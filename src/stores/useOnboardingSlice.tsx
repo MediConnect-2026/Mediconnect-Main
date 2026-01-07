@@ -2,11 +2,11 @@ import { type StateCreator } from "zustand";
 import type { PatientOnboardingSchemaType } from "@/types/OnbordingTypes";
 
 export interface OnboardingSlice {
-  selectedRole: string | null;
+  selectedRole: "Patient" | "Doctor" | "Center" | null;
   patientOnboardingData?: PatientOnboardingSchemaType;
   setpatientOnboardingData?: (data: PatientOnboardingSchemaType) => void;
 
-  setSelectedRole: (role: string | null) => void;
+  setSelectedRole: (role: "Patient" | "Doctor" | "Center" | null) => void;
   clearOnboarding: () => void;
 }
 

@@ -28,11 +28,11 @@ function OtpVerificationPage() {
       console.log("OTP Data:", data);
       setOtp(data.otp);
 
-      if (selectedRole === "patient") {
+      if (selectedRole === "Patient") {
         return navigate("/auth/patient-onboarding", { replace: true });
-      } else if (selectedRole === "doctor") {
+      } else if (selectedRole === "Doctor") {
         return navigate("/auth/doctor-onboarding", { replace: true });
-      } else if (selectedRole === "center") {
+      } else if (selectedRole === "Center") {
         return navigate("/auth/center-onboarding", { replace: true });
       }
     } else {

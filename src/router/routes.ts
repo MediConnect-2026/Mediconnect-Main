@@ -5,7 +5,11 @@ export const ROUTES = {
   REGISTER: "/auth/register",
   REG_EMAIL_VERIFICATION: "/auth/reg-email-verification",
   OTP_VERIFICATION: "/auth/otp-verification",
-  PATIENT_ONBOARDING: "/auth/patient-onboarding",
+  //Patient Flow
+  PATIENT_BASIC_INFO: "/auth/patient-onboarding/basic-info",
+  PATIENT_PASSWORD: "/auth/patient-onboarding/password-setup",
+  PATIENT_PROFILE_PHOTO: "/auth/patient-onboarding/profile-photo",
+
   DOCTOR_ONBOARDING: "/auth/doctor-onboarding",
   CENTER_ONBOARDING: "/auth/center-onboarding",
 

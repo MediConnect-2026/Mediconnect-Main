@@ -11,7 +11,9 @@ import Register from "@/features/auth/pages/registerFlow/RegisterPage";
 import DarkLayout from "@/layout/DarkLayout";
 import RegEmailVerificationPage from "@/features/auth/pages/registerFlow/RegEmailVerificationPage";
 import OtpVerificationPage from "@/features/auth/pages/registerFlow/OtpVerificationPage";
-import PatientOnboardingPage from "@/features/auth/pages/registerFlow/patientOnboarding/PatientOnboardingPage";
+import PatientBasicInfoPage from "@/features/auth/pages/registerFlow/patientOnboarding/PatientBasicInfoPage";
+import PatientProfilePhotoPage from "@/features/auth/pages/registerFlow/patientOnboarding/PatientProfilePhotoPage";
+import SetCredentialsPage from "@/features/auth/pages/registerFlow/SetCredentialsPage";
 import DoctorOnboardingPage from "@/features/auth/pages/registerFlow/DoctorOnboardingPage";
 import CenterOnboardingPage from "@/features/auth/pages/registerFlow/CenterOnboardingPage";
 function AppRouter() {
@@ -31,8 +33,16 @@ function AppRouter() {
             element={<OtpVerificationPage />}
           />
           <Route
-            path={ROUTES.PATIENT_ONBOARDING}
-            element={<PatientOnboardingPage />}
+            path={ROUTES.PATIENT_BASIC_INFO}
+            element={<PatientBasicInfoPage />}
+          />
+          <Route
+            path={ROUTES.PATIENT_PROFILE_PHOTO}
+            element={<PatientProfilePhotoPage />}
+          />
+          <Route
+            path={ROUTES.PATIENT_PASSWORD}
+            element={<SetCredentialsPage />}
           />
           <Route
             path={ROUTES.DOCTOR_ONBOARDING}

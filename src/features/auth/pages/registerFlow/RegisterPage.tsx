@@ -10,9 +10,9 @@ import gsap from "gsap";
 import { useAppStore } from "@/stores/useAppStore";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
 const roles = [
-  { key: "paciente", img: PacienteIMG },
-  { key: "doctor", img: DoctorIMG },
-  { key: "centro", img: CenterIMG },
+  { key: "Patient", img: PacienteIMG },
+  { key: "Doctor", img: DoctorIMG },
+  { key: "Center", img: CenterIMG },
 ];
 
 function RegisterPage() {
@@ -25,7 +25,7 @@ function RegisterPage() {
   const selectedRole = useAppStore((state) => state.selectedRole);
   const detailsRefs = useRef<Record<string, HTMLUListElement | null>>({});
 
-  const handleselectRole = (roleKey: string) => {
+  const handleselectRole = (roleKey: "Patient" | "Doctor" | "Center") => {
     setRoleInStore(roleKey);
     console.log(selectedRole);
   };
@@ -65,9 +65,10 @@ function RegisterPage() {
           const isSelected = selectedRole === role.key;
           const roleT = (field: string) =>
             t(`registerRole.roles.${role.key}.${field}`);
-          const details = t(`registerRole.roles.${role.key}.details`, {
+          const detailsRaw = t(`registerRole.roles.${role.key}.details`, {
             returnObjects: true,
-          }) as string[];
+          });
+          const details = Array.isArray(detailsRaw) ? detailsRaw : [];
 
           return (
             <div
@@ -84,7 +85,9 @@ function RegisterPage() {
               `}
               onMouseEnter={() => setHovered(role.key)}
               onMouseLeave={() => setHovered(null)}
-              onClick={() => handleselectRole(role.key)}
+              onClick={() =>
+                handleselectRole(role.key as "Patient" | "Doctor" | "Center")
+              }
               style={{
                 minWidth: isMobile ? "100%" : 320,
                 maxWidth: isMobile ? "100%" : 400,
