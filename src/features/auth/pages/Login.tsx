@@ -1,7 +1,7 @@
 import { useRef } from "react";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
-import LoginAsideImg from "@/assets/LoginAside.png";
+// import LoginAsideImg from "@/assets/LoginAside.png";
 import Logo from "@/assets//MediConnectLanding-green.png";
 import MCFormWrapper from "@/shared/components/forms/MCFormWrapper";
 import MCInput from "@/shared/components/forms/MCInput";
@@ -123,11 +123,7 @@ function Login() {
         </main>
         {!isMobile && (
           <aside className="h-full w-full">
-            <img
-              src={LoginAsideImg}
-              alt="Login Aside"
-              className="h-full w-full object-cover"
-            />
+            <img alt="Login Aside" className="h-full w-full object-cover" />
           </aside>
         )}
       </div>

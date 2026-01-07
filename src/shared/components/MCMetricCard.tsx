@@ -1,5 +1,4 @@
 import React from "react";
-import { ArrowUp } from "lucide-react";
 
 type MCMetricCardProps = {
   title: string;
@@ -15,7 +14,7 @@ const MCMetricCard: React.FC<MCMetricCardProps> = ({
   icon,
   value,
   subtitle,
-  percentage = "12%",
+
   bordered = true,
 }) => {
   return (

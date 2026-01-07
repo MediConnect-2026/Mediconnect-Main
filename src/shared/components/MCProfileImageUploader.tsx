@@ -1,5 +1,5 @@
 import "react-image-crop/dist/ReactCrop.css";
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback } from "react";
 import ReactCrop, {
   type Crop,
   type PixelCrop,
