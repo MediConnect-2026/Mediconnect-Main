@@ -10,8 +10,8 @@ function AuthHeader() {
   const { t } = useTranslation("auth");
   const email = useAppStore((state) => state.forgotPassword?.email);
   const otp = useAppStore((state) => state.otp);
-
-  const hasProgress = email || otp;
+  const selectedRole = useAppStore((state) => state.selectedRole);
+  const hasProgress = email || otp || selectedRole;
 
   const handleConfirmCancel = () => {
     navigate("/login", { replace: true });

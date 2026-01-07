@@ -10,6 +10,7 @@ export interface AuthSlice {
   resetPassword: ResetPasswordSchemaType;
   isAuthenticated: boolean;
   token: string | null;
+  selectedRole: string | null;
 
   setLoginCredentials: (data: LoginSchemaType) => void;
   setForgotPassword: (data: ForgotPasswordSchemaType) => void;
@@ -17,6 +18,7 @@ export interface AuthSlice {
   setResetPassword: (data: ResetPasswordSchemaType) => void;
   clearForgotPassword: () => void;
   login: (token: string) => void;
+  setSelectedRole: (role: string | null) => void;
   logout: () => void;
   reset: () => void;
 }
@@ -36,6 +38,7 @@ export const createAuthSlice: StateCreator<AuthSlice> = (set) => ({
   },
   isAuthenticated: false,
   token: null,
+  selectedRole: null,
 
   setLoginCredentials: (data) => set({ loginCredentials: data }),
   setForgotPassword: (data) => set({ forgotPassword: data }),
@@ -52,6 +55,8 @@ export const createAuthSlice: StateCreator<AuthSlice> = (set) => ({
       token,
       isAuthenticated: true,
     }),
+
+  setSelectedRole: (role) => set({ selectedRole: role }),
   logout: () =>
     set({
       token: null,

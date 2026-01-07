@@ -1,7 +1,7 @@
 import type React from "react";
 import { useEffect } from "react";
 import MCButton from "@/shared/components/forms/MCButton";
-
+import { useIsMobile } from "@/lib/hooks/useIsMobile";
 import {
   MorphingDialog,
   MorphingDialogTrigger,
