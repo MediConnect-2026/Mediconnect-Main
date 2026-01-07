@@ -70,7 +70,7 @@ export function MCModalBase({
   // Espaciado adaptativo para móvil
   const paddingClasses = isMobile ? "p-4" : "p-6";
   const headerPadding = isMobile ? "px-4 pt-4 pb-3" : "px-6 pt-6 pb-4";
-  const contentPadding = isMobile ? "px-4 py-3" : "px-6 py-4";
+  const contentPadding = isMobile ? "px-6 py-2" : "px-6 py-2";
   const footerPadding = isMobile ? "px-4 pb-4 pt-3" : "px-6 pb-6 pt-4";
 
   const handleConfirm = () => {

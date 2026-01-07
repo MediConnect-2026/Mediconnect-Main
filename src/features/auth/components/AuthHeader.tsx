@@ -37,19 +37,15 @@ function AuthHeader() {
             <MCModalBase
               id="cancel-process-modal"
               trigger={backButtonContent}
-              title="¿Deseas cancelar el proceso?"
+              title={t("header.cancelTitle")}
               variant="warning"
               onConfirm={handleConfirmCancel}
-              confirmText="Sí, cancelar"
-              secondaryText="Continuar"
+              confirmText={t("header.confirmCancel")}
+              secondaryText={t("header.continue")}
             >
-              <div>
-                <p className="text-gray-600 mb-4">
-                  Si sales ahora, perderás el progreso de recuperación de
-                  contraseña y el código de verificación enviado será eliminado.
-                </p>
-                <p className="text-gray-600">
-                  Tendrás que iniciar el proceso nuevamente.
+              <div className="flex flex-col">
+                <p className="text-primary text-justify">
+                  {t("header.cancelWarning")}
                 </p>
               </div>
             </MCModalBase>
