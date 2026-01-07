@@ -1,10 +1,10 @@
 import MCFormWrapper from "@/shared/components/forms/MCFormWrapper";
-import AuthContentContainer from "../components/AuthContentContainer";
+import AuthContentContainer from "../../components/AuthContentContainer";
 import MCOtpInput from "@/shared/components/forms/MCOtpInput";
 import { OtpSchema } from "@/schema/AuthSchema";
 import { useAppStore } from "@/stores/useAppStore";
 import { useTranslation } from "react-i18next";
-import AuthFooterContainer from "../components/AuthFooterContainer";
+import AuthFooterContainer from "../../components/AuthFooterContainer";
 import MCButton from "@/shared/components/forms/MCButton";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
@@ -71,7 +71,6 @@ function VerifyEmailPage() {
         <AuthFooterContainer
           backButtonProps={{
             disabled: false,
-            onClick: () => navigate("/auth/forgot-password", { replace: true }),
           }}
         />
       </MCFormWrapper>

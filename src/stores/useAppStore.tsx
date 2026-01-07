@@ -21,6 +21,7 @@ export const useAppStore = create<AppStore>()(
         otp: state.otp,
         isAuthenticated: state.isAuthenticated,
         token: state.token,
+        selectedRole: state.selectedRole,
         // De GlobalUISlice
         theme: state.theme,
         language: state.language,

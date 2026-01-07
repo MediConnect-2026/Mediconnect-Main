@@ -4,18 +4,30 @@ import AuthLayout from "@/layout/AuthLayout";
 import DashboardLayout from "@/layout/DashboardLayout";
 import Login from "@/features/auth/pages/Login";
 import ForgotPasswordPage from "@/features/auth/pages/ForgotPasswordPage";
-import VerifyEmailPage from "@/features/auth/pages/VerifyEmailPage";
-import ResetPasswordPage from "@/features/auth/pages/ResetPasswordPage";
-import PasswordSuccessPage from "@/features/auth/pages/PasswordSuccessPage";
-import Register from "@/features/auth/pages/Register";
+import VerifyEmailPage from "@/features/auth/pages/passwordFlow/VerifyEmailPage";
+import ResetPasswordPage from "@/features/auth/pages/passwordFlow/ResetPasswordPage";
+import PasswordSuccessPage from "@/features/auth/pages/passwordFlow/PasswordSuccessPage";
+import Register from "@/features/auth/pages/registerFlow/Register";
 import DarkLayout from "@/layout/DarkLayout";
+import RegEmailVerificationPage from "@/features/auth/pages/registerFlow/RegEmailVerificationPage";
+import OtpVerificationPage from "@/features/auth/pages/registerFlow/OtpVerificationPage";
 function AppRouter() {
   return (
     <BrowserRouter>
       <Router>
         <Route path={ROUTES.LOGIN} index element={<Login />} />
         <Route element={<AuthLayout />}>
+          {/* Register Flow */}{" "}
           <Route path={ROUTES.REGISTER} element={<Register />} />
+          <Route
+            path={ROUTES.REG_EMAIL_VERIFICATION}
+            element={<RegEmailVerificationPage />}
+          />
+          <Route
+            path={ROUTES.OTP_VERIFICATION}
+            element={<OtpVerificationPage />}
+          />
+          {/* Password flow */}
           <Route
             path={ROUTES.FORGOT_PASSWORD}
             element={<ForgotPasswordPage />}

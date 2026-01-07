@@ -71,5 +71,6 @@ export const createAuthSlice: StateCreator<AuthSlice> = (set) => ({
       forgotPassword: { email: "" },
       otp: "",
       resetPassword: { password: "", confirmPassword: "" },
+      selectedRole: null,
     }),
 });

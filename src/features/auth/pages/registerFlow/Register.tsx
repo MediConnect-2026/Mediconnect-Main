@@ -3,8 +3,8 @@ import { useTranslation } from "react-i18next";
 import PacienteIMG from "@/assets/Register-Patient.png";
 import DoctorIMG from "@/assets/Register-Doctor.png";
 import CenterIMG from "@/assets/Register-Center.png";
-import AuthFooterContainer from "../components/AuthFooterContainer";
-import AuthContentContainer from "../components/AuthContentContainer";
+import AuthFooterContainer from "../../components/AuthFooterContainer";
+import AuthContentContainer from "../../components/AuthContentContainer";
 import { useNavigate } from "react-router-dom";
 import gsap from "gsap";
 import { useAppStore } from "@/stores/useAppStore";
@@ -27,6 +27,7 @@ function Register() {
 
   const handleselectRole = (roleKey: string) => {
     setRoleInStore(roleKey);
+    console.log(selectedRole);
   };
 
   useEffect(() => {
@@ -154,7 +155,7 @@ function Register() {
           <AuthFooterContainer
             continueButtonProps={{
               children: t("footer.continue"),
-              onClick: () => navigate("/auth/register/details"),
+              onClick: () => navigate("/auth/reg-email-verification"),
               disabled: !selectedRole,
             }}
             backButtonProps={{
