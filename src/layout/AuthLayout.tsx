@@ -5,18 +5,21 @@ import { useAppStore } from "@/stores/useAppStore";
 
 function AuthLayout() {
   const location = useLocation();
-  const reset = useAppStore((state) => state.reset);
+  const clearOnboarding = useAppStore((state) => state.clearOnboarding);
+  const clearAuthFlow = useAppStore((state) => state.clearAuthFlow);
+
   const setAccessPage = useAppStore((state) => state.setAccessPage);
 
   useEffect(() => {
     return () => {
       const currentPath = window.location.pathname;
       if (!currentPath.startsWith("/auth")) {
-        reset();
+        clearOnboarding();
+        clearAuthFlow();
         setAccessPage(false, []);
       }
     };
-  }, [location.pathname, reset, setAccessPage]);
+  }, [location.pathname, clearAuthFlow, clearOnboarding, setAccessPage]);
 
   return (
     <div>

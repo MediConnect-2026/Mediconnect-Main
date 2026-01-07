@@ -39,13 +39,3 @@ export function ResetPasswordSchema(t: (key: string) => string) {
       }
     });
 }
-
-// Type inferido del esquema de Login
-export type LoginSchemaType = z.infer<ReturnType<typeof LoginSchema>>;
-export type ForgotPasswordSchemaType = z.infer<
-  ReturnType<typeof ForgotPasswordSchema>
->;
-export type OtpSchemaType = z.infer<ReturnType<typeof OtpSchema>>;
-export type ResetPasswordSchemaType = z.infer<
-  ReturnType<typeof ResetPasswordSchema>
->;

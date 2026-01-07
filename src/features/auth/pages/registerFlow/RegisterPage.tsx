@@ -15,7 +15,7 @@ const roles = [
   { key: "centro", img: CenterIMG },
 ];
 
-function Register() {
+function RegisterPage() {
   const [hovered, setHovered] = useState<string | null>(null);
   const isMobile = useIsMobile();
 
@@ -168,4 +168,4 @@ function Register() {
   );
 }
 
-export default Register;
+export default RegisterPage;

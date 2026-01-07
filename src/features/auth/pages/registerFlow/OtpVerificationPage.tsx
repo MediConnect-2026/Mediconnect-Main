@@ -12,7 +12,7 @@ import { useEffect } from "react";
 function OtpVerificationPage() {
   const { t } = useTranslation("auth");
   const navigate = useNavigate();
-  const confirmedEmail = useAppStore((state) => state.forgotPassword.email);
+  const confirmedEmail = useAppStore((state) => state.registerEmail.email);
   const otpData = useAppStore((state) => state.otp);
   const setOtp = useAppStore((state) => state.setOtp);
   const selectedRole = useAppStore((state) => state.selectedRole);

@@ -11,12 +11,12 @@ function RegEmailVerificationPage() {
   const { t } = useTranslation("auth");
   const navigate = useNavigate();
 
-  const forgotPasswordData = useAppStore((state) => state.forgotPassword);
-  const setForgotPassword = useAppStore((state) => state.setForgotPassword);
+  const registerEmailData = useAppStore((state) => state.registerEmail);
+  const setRegisterEmail = useAppStore((state) => state.setRegisterEmail);
   const selectedRole = useAppStore((state) => state.selectedRole);
 
   const handlesubmit = (data: { email: string }) => {
-    setForgotPassword({ email: data.email });
+    setRegisterEmail({ email: data.email });
     navigate("/auth/otp-verification", { replace: true });
   };
 
@@ -37,7 +37,7 @@ function RegEmailVerificationPage() {
           handlesubmit(data);
         }}
         defaultValues={{
-          email: forgotPasswordData?.email || "",
+          email: registerEmailData?.email || "",
         }}
         className="flex flex-col items-center w-full"
       >
@@ -48,7 +48,7 @@ function RegEmailVerificationPage() {
             label={t("forgotPassword.emailLabel")}
             placeholder={t("forgotPassword.emailPlaceholder")}
           />
-          <p className="text-center mt-2 w-full">{forgotPasswordData?.email}</p>
+          <p className="text-center mt-2 w-full">{registerEmailData?.email}</p>
         </div>
         <AuthFooterContainer
           backButtonProps={{

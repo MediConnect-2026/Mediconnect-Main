@@ -14,7 +14,7 @@ import { useTranslation } from "react-i18next";
 import LanguageDropDown from "../components/LanguageDropDown";
 import { useNavigate } from "react-router-dom";
 import OAuthProvider from "../components/OAuthProvider";
-function Login() {
+function LoginPage() {
   const { t } = useTranslation("auth");
   const isMobile = useIsMobile();
   const loginCredentials = useAppStore((state) => state.loginCredentials);
@@ -168,4 +168,4 @@ function Login() {
   );
 }
 
-export default Login;
+export default LoginPage;
