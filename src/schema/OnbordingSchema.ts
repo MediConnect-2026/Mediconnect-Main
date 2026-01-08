@@ -72,6 +72,7 @@ export function PatientCreatePasswordSchema(t: (key: string) => string) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message: t("validation.passwordsMustMatch"),
+          path: ["confirmPassword"],
         });
       }
     });

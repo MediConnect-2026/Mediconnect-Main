@@ -20,7 +20,7 @@ function SetCredentialsPage() {
   );
   const otpData = useAppStore((state) => state.otp);
   console.log(basicInfo);
-  // Validar que se haya completado la información básica
+
   useEffect(() => {
     // Validar OTP
     if (!otpData) {
@@ -29,7 +29,6 @@ function SetCredentialsPage() {
       return;
     }
 
-    // Validar que exista información básica completa
     if (
       !basicInfo?.name ||
       !basicInfo?.lastName ||
@@ -41,7 +40,6 @@ function SetCredentialsPage() {
       return;
     }
 
-    // Validar rol
     if (selectedRole !== "Patient") {
       console.log("Invalid role for patient onboarding, redirecting...");
       navigate("/auth/register", { replace: true });
@@ -65,17 +63,6 @@ function SetCredentialsPage() {
     }
   };
 
-  // Early return si no hay información básica completa
-  if (
-    !basicInfo?.name ||
-    !basicInfo?.lastName ||
-    !basicInfo?.identityDocument ||
-    !basicInfo?.email ||
-    !otpData
-  ) {
-    return null;
-  }
-
   return (
     <AuthContentContainer
       title={t("setCredentialsPage.title")}
@@ -87,8 +74,8 @@ function SetCredentialsPage() {
         }}
         schema={PatientCreatePasswordSchema((key) => t(key))}
         defaultValues={{
-          password: basicInfo.password || "",
-          confirmPassword: basicInfo.confirmPassword || "",
+          password: basicInfo?.password || "",
+          confirmPassword: basicInfo?.confirmPassword || "",
         }}
         className="flex flex-col items-center w-full"
       >
