@@ -19,6 +19,7 @@ function SetCredentialsPage() {
   const basicInfo = useAppStore((state) => state.patientOnboardingData);
 
   const handleSubmit = (data: PatientCreatePasswordSchemaType) => {
+    navigate("/auth/patient-onboarding/profile-photo");
     if (selectedRole === "Patient" && setPatientOnboardingData) {
       setPatientOnboardingData({
         ...basicInfo,
@@ -31,7 +32,6 @@ function SetCredentialsPage() {
 
         urlImg: basicInfo?.urlImg || undefined,
       });
-      navigate("/auth/patient-onboarding/profile-photo");
     }
   };
 
@@ -66,15 +66,15 @@ function SetCredentialsPage() {
             placeholder={t("setCredentialsPage.confirmPasswordPlaceholder")}
             required
           />
-        </div>
+        </div>{" "}
+        <AuthFooterContainer
+          backButtonProps={{
+            onClick() {
+              navigate("/auth/patient-onboarding/basic-info");
+            },
+          }}
+        ></AuthFooterContainer>
       </MCFormWrapper>
-      <AuthFooterContainer
-        backButtonProps={{
-          onClick() {
-            navigate("/auth/patient-onboarding/basic-info");
-          },
-        }}
-      ></AuthFooterContainer>
     </AuthContentContainer>
   );
 }

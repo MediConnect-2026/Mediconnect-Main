@@ -16,18 +16,7 @@ export function PatientOnboardingSchema(t: (key: string) => string) {
   return BasePatientSchema.extend({
     name: z.string().min(1, t("validation.nameRequired")),
     lastName: z.string().min(1, t("validation.lastNameRequired")),
-    urlImg: z
-      .instanceof(File)
-      .optional()
-      .refine((file) => !file || file.size <= 5 * 1024 * 1024, {
-        message: "Image must be smaller than 5MB",
-      })
-      .refine(
-        (file) =>
-          !file ||
-          ["image/jpeg", "image/png", "image/webp"].includes(file.type),
-        { message: "Only JPG, PNG or WEBP images are allowed" }
-      ),
+    urlImg: z.string().optional(),
     identityDocument: z.string().refine(
       (val) => {
         return ValidateDominicanID(val) || validatePassport(val);

@@ -28,7 +28,7 @@ function PatientBasicInfoPage() {
         urlImg: basicInfo?.urlImg,
       });
     }
-    navigate("/siguiente-paso");
+    navigate("/auth/patient-onboarding/password-setup");
   };
 
   return (
