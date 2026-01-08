@@ -33,7 +33,6 @@ function PatientProfilePhotoPage() {
   const [selectedImageSrc, setSelectedImageSrc] = useState<string>("");
   const profileInputRef = useRef<HTMLInputElement>(null);
 
-  // Validar que se haya completado todo el flujo anterior
   useEffect(() => {
     // if (!otpData) {
     //   console.log("No OTP found, redirecting to OTP verification...");
@@ -103,22 +102,9 @@ function PatientProfilePhotoPage() {
         urlImg: profile,
       });
     }
-    setAccessPage(true, [""]);
-    navigate("/auth/patient-onboarding/finish", { replace: true });
+    setAccessPage(true, ["/auth/register-success"]);
+    navigate("/auth/register-success", { replace: true });
   };
-
-  // Early return si no hay credenciales completas
-  if (
-    !otpData ||
-    !basicInfo?.name ||
-    !basicInfo?.lastName ||
-    !basicInfo?.identityDocument ||
-    !basicInfo?.email ||
-    !basicInfo?.password ||
-    !basicInfo?.confirmPassword
-  ) {
-    return null;
-  }
 
   return (
     <AuthContentContainer

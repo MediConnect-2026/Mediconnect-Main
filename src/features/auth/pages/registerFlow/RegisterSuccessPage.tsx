@@ -13,11 +13,10 @@ function RegisterSuccessPage() {
 
   useEffect(() => {
     const hasValidAccess =
-        canAccessPage && allowedPages.includes(");
+      canAccessPage && allowedPages.includes("/auth/register-success");
 
     if (!hasValidAccess) {
-      navigate("/auth/forgot-password", { replace: true });
-    } else {
+      navigate("/auth/register", { replace: true });
     }
   }, [canAccessPage, allowedPages, navigate]);
 
