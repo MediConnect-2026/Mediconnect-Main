@@ -70,17 +70,12 @@ export function PatientBasicInfoSchema(t: (key: string) => string) {
     name: true,
     lastName: true,
     identityDocument: true,
-    email: true,
   }).extend({
     name: z.string().min(1, t("validation.nameRequired")),
     lastName: z.string().min(1, t("validation.lastNameRequired")),
     identityDocument: z
       .string()
       .min(1, t("validation.identityDocumentRequired")),
-    email: z
-      .string()
-      .min(1, t("validation.emailRequired"))
-      .email(t("validation.emailInvalid")),
   });
 }
 

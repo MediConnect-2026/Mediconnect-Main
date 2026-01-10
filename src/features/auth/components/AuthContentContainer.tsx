@@ -78,7 +78,7 @@ const AuthContentContainer: React.FC<AuthContentContainerProps> = ({
   return (
     <div
       ref={containerRef}
-      className={`w-full flex flex-col justify-center items-center overflow-x-hidden    overflow-y-hidden ${
+      className={`w-full  h-full flex flex-col justify-center items-center overflow-x-hidden overflow-y-hidden    ${
         isMobile ? "p-4 max-w-full" : "max-w-3xl"
       } ${containerClassName} `}
     >
@@ -105,7 +105,7 @@ const AuthContentContainer: React.FC<AuthContentContainerProps> = ({
         className={
           isMobile
             ? "w-full px-4"
-            : "w-full flex flex-col items-center justify-center"
+            : "w-full h-full flex flex-col items-center justify-center"
         }
       >
         {children}

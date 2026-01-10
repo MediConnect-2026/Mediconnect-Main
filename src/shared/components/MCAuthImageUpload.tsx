@@ -4,7 +4,7 @@ import MCProfileImageUploader from "@/shared/components/MCProfileImageUploader";
 import { useState, useEffect } from "react";
 import { ImageUp, Camera, XIcon, FileText } from "lucide-react";
 import MCCameraModal from "@/shared/components/MCCameraModal";
-import { FilePond, registerPlugin } from "react-filepond";
+import { registerPlugin } from "react-filepond";
 import "filepond/dist/filepond.min.css";
 import FilePondPluginImageExifOrientation from "filepond-plugin-image-exif-orientation";
 import FilePondPluginImagePreview from "filepond-plugin-image-preview";

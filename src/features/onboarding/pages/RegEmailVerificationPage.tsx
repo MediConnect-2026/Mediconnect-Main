@@ -1,11 +1,11 @@
 import { useEffect } from "react";
 import MCFormWrapper from "@/shared/components/forms/MCFormWrapper";
-import AuthContentContainer from "../../components/AuthContentContainer";
+import AuthContentContainer from "@/features/auth/components/AuthContentContainer";
 import MCInput from "@/shared/components/forms/MCInput";
 import { ForgotPasswordSchema } from "@/schema/AuthSchema";
 import { useAppStore } from "@/stores/useAppStore";
 import { useTranslation } from "react-i18next";
-import AuthFooterContainer from "../../components/AuthFooterContainer";
+import AuthFooterContainer from "@/features/auth/components/AuthFooterContainer";
 import { useNavigate } from "react-router-dom";
 
 function RegEmailVerificationPage() {

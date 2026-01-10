@@ -3,8 +3,8 @@ import { useTranslation } from "react-i18next";
 import PacienteIMG from "@/assets/Register-Patient.png";
 import DoctorIMG from "@/assets/Register-Doctor.png";
 import CenterIMG from "@/assets/Register-Center.png";
-import AuthFooterContainer from "../../components/AuthFooterContainer";
-import AuthContentContainer from "../../components/AuthContentContainer";
+import AuthFooterContainer from "@/features/auth/components/AuthFooterContainer";
+import AuthContentContainer from "@/features/auth/components/AuthContentContainer";
 import { useNavigate } from "react-router-dom";
 import gsap from "gsap";
 import { useAppStore } from "@/stores/useAppStore";
@@ -30,7 +30,7 @@ function RegisterPage() {
 
   const handleselectRole = (roleKey: "Patient" | "Doctor" | "Center") => {
     if (selectedRole !== roleKey) {
-      resetFlows(); // Reinicia todo el onboarding si cambia el rol
+      resetFlows();
       setRoleInStore(roleKey);
     }
   };
@@ -63,7 +63,7 @@ function RegisterPage() {
       <div
         className={`flex flex-col ${
           isMobile ? "" : "sm:flex-row"
-        } gap-6 justify-center items-center w-full max-w-5xl`}
+        } gap-6 justify-center items-center w-full max-w-5xl   `}
       >
         {roles.map((role) => {
           const isHovered = hovered === role.key;
@@ -78,7 +78,7 @@ function RegisterPage() {
           return (
             <div
               key={role.key}
-              className={`relative rounded-3xl overflow-hidden shadow-lg transition-all duration-300
+              className={`relative rounded-3xl  overflow-hidden shadow-lg transition-all duration-300
                 w-full ${isMobile ? "" : "sm:w-1/3"} cursor-pointer group
                 ${
                   isSelected
@@ -107,14 +107,14 @@ function RegisterPage() {
               />
               {/* Overlay degradado */}
               <div
-                className={`absolute inset-0 bg-gradient-to-t from-black/20 via-black/10 to-transparent ${
+                className={`absolute  overflow-y-hidden inset-0 bg-gradient-to-t from-black/20 via-black/10 to-transparent ${
                   isHovered || isSelected
                     ? "opacity-from-black/60 via-black/20"
                     : ""
                 }`}
               />
               {/* Título y subtítulo */}
-              <div className="absolute top-6 left-0 w-full px-6">
+              <div className="absolute top-6 left-0 w-full px-6 ">
                 <p
                   className={`text-white text-base font-medium mb-2 drop-shadow text-center transition-all duration-200
                     ${isSelected ? "font-bold text-xl" : ""}

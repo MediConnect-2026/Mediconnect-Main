@@ -5,11 +5,11 @@ import { useTranslation } from "react-i18next";
 import AuthFooterContainer from "@/features/auth/components/AuthFooterContainer";
 import { useNavigate } from "react-router-dom";
 import { Progress } from "@/shared/ui/progress";
-import OnboardingChecklist from "@/features/auth/components/OnboardingChecklist";
-import AcademicDegreeUpload from "../../components/doctors/AcademicDegreeUpload";
-import GovernmentIdUpload from "../../components/doctors/GovernmentIdUpload";
-import ProfilePhotoUpload from "../../components/doctors/ProfilePhotoUpload";
-import AdditionalCertificationsUpload from "../../components/doctors/AdditionalCertificationsUpload";
+import OnboardingChecklist from "@/features/onboarding/components/OnboardingChecklist";
+import AcademicDegreeUpload from "../../onboarding/components/doctors/AcademicDegreeUpload";
+import GovernmentIdUpload from "../../onboarding/components/doctors/GovernmentIdUpload";
+import ProfilePhotoUpload from "../../onboarding/components/doctors/ProfilePhotoUpload";
+import AdditionalCertificationsUpload from "../../onboarding/components/doctors/AdditionalCertificationsUpload";
 
 function DoctorOnboardingPage() {
   const { t } = useTranslation("auth");

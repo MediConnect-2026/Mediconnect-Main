@@ -7,16 +7,16 @@ import ForgotPasswordPage from "@/features/auth/pages/passwordFlow/ForgotPasswor
 import VerifyEmailPage from "@/features/auth/pages/passwordFlow/VerifyEmailPage";
 import ResetPasswordPage from "@/features/auth/pages/passwordFlow/ResetPasswordPage";
 import PasswordSuccessPage from "@/features/auth/pages/PasswordSuccessPage";
-import Register from "@/features/auth/pages/registerFlow/RegisterPage";
+import Register from "@/features/onboarding/pages/RegisterPage";
 import DarkLayout from "@/layout/DarkLayout";
-import RegEmailVerificationPage from "@/features/auth/pages/registerFlow/RegEmailVerificationPage";
-import OtpVerificationPage from "@/features/auth/pages/registerFlow/OtpVerificationPage";
-import PatientBasicInfoPage from "@/features/auth/pages/registerFlow/patientOnboarding/PatientBasicInfoPage";
-import PatientProfilePhotoPage from "@/features/auth/pages/registerFlow/patientOnboarding/PatientProfilePhotoPage";
-import SetCredentialsPage from "@/features/auth/pages/registerFlow/SetCredentialsPage";
-import DoctorOnboardingPage from "@/features/auth/pages/registerFlow/DoctorOnboardingPage";
-import CenterOnboardingPage from "@/features/auth/pages/registerFlow/CenterOnboardingPage";
-import RegisterSuccessPage from "@/features/auth/pages/registerFlow/RegisterSuccessPage";
+import RegEmailVerificationPage from "@/features/onboarding/pages/RegEmailVerificationPage";
+import OtpVerificationPage from "@/features/onboarding/pages/OtpVerificationPage";
+import PatientBasicInfoPage from "@/features/onboarding/pages/PatientBasicInfoPage";
+import PatientProfilePhotoPage from "@/features/onboarding/pages/PatientProfilePhotoPage";
+import SetCredentialsPage from "@/features/onboarding/pages/SetCredentialsPage";
+import DoctorOnboardingPage from "@/features/onboarding/pages/DoctorOnboardingPage";
+import CenterOnboardingPage from "@/features/onboarding/pages/CenterOnboardingPage";
+import RegisterSuccessPage from "@/features/onboarding/pages/RegisterSuccessPage";
 function AppRouter() {
   return (
     <BrowserRouter>

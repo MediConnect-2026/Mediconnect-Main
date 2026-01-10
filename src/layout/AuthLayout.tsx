@@ -21,8 +21,12 @@ function AuthLayout() {
     };
   }, [location.pathname, clearAuthFlow, clearOnboarding, setAccessPage]);
 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
+
   return (
-    <div>
+    <div className="min-h-screen flex flex-col">
       <div>
         <AuthHeader />
       </div>
