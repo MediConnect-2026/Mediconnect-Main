@@ -17,6 +17,7 @@ import {
   DialogFooter,
   DialogClose,
 } from "@/shared/ui/dialog";
+import { useIsMobile } from "@/lib/hooks/useIsMobile";
 
 export interface ImageCropModalProps {
   isOpen: boolean;
@@ -49,6 +50,7 @@ export default function MCProfileImageUploader({
   onCropComplete,
   title,
 }: ImageCropModalProps) {
+  const isMobile = useIsMobile();
   const [crop, setCrop] = useState<Crop>();
   const [completedCrop, setCompletedCrop] = useState<PixelCrop>();
   const [scale, setScale] = useState(1);
@@ -118,7 +120,13 @@ export default function MCProfileImageUploader({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="min-w-2xl max-w-3xl p-0 overflow-hidden bg-card border-border rounded-3xl ">
+      <DialogContent
+        className={
+          isMobile
+            ? "w-[95vw] mx-auto p-0 overflow-hidden bg-card border-border rounded-3xl"
+            : "min-w-2xl max-w-3xl p-0 overflow-hidden bg-card border-border rounded-3xl"
+        }
+      >
         <DialogHeader className="p-4 pb-0">
           <DialogTitle className="font-display text-xl">{title}</DialogTitle>
         </DialogHeader>

@@ -74,7 +74,7 @@ function DoctorOnboardingPage() {
         id: "personal-info",
         title: "Información personal",
         completed: completionStates.isPersonalInfoComplete,
-        onClick: () => navigate("/auth/doctor/onboarding/personal-info"),
+        onClick: () => console.log("Información personal"),
       },
       {
         id: "id-doc",
