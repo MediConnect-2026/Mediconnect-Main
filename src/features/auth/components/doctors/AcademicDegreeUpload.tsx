@@ -1,5 +1,6 @@
 import MCImageUpload from "@/shared/components/MCAuthImageUpload";
 import academicImg from "@/assets/doctorOnbording/studies.png";
+import { useAppStore } from "@/stores/useAppStore";
 
 type AcademicDegreeUploadProps = {
   children?: React.ReactNode;
@@ -9,8 +10,33 @@ export function AcademicDegreeUploadTrigger({
   children,
   ...modalProps
 }: AcademicDegreeUploadProps) {
+  const doctorOnboardingData = useAppStore(
+    (state) => state.doctorOnboardingData
+  );
+
+  const setDoctorOnboardingData = useAppStore(
+    (state) => state.setDoctorOnboardingData
+  );
+
   const handleFileUpload = (fileUrl: string, fileType: string) => {
-    console.log("Archivo subido:", fileUrl, fileType);
+    if (!doctorOnboardingData || !setDoctorOnboardingData) return;
+
+    setDoctorOnboardingData({
+      ...doctorOnboardingData,
+      academicTitle: {
+        url: fileUrl,
+        type: fileType,
+      },
+    });
+  };
+
+  const handleFileRemove = () => {
+    if (!doctorOnboardingData || !setDoctorOnboardingData) return;
+
+    setDoctorOnboardingData({
+      ...doctorOnboardingData,
+      academicTitle: undefined,
+    });
   };
 
   return (
@@ -24,6 +50,12 @@ export function AcademicDegreeUploadTrigger({
       isCircular={false}
       accept="image/*,application/pdf"
       onFileUpload={handleFileUpload}
+      onFileRemove={handleFileRemove}
+      uploadedFiles={
+        doctorOnboardingData?.academicTitle
+          ? [doctorOnboardingData.academicTitle]
+          : []
+      }
       {...modalProps}
     >
       {children}

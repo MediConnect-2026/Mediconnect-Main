@@ -2,13 +2,7 @@ import { MCModalBase } from "@/shared/components/MCModalBase";
 import MCButton from "@/shared/components/forms/MCButton";
 import MCProfileImageUploader from "@/shared/components/MCProfileImageUploader";
 import { useState, useEffect } from "react";
-import {
-  ImageUp,
-  Camera,
-  Image as ImageIcon,
-  XIcon,
-  FileText,
-} from "lucide-react";
+import { ImageUp, Camera, XIcon, FileText } from "lucide-react";
 import MCCameraModal from "@/shared/components/MCCameraModal";
 import { FilePond, registerPlugin } from "react-filepond";
 import "filepond/dist/filepond.min.css";
@@ -19,6 +13,7 @@ import "filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css";
 // Registrar plugins de FilePond
 registerPlugin(FilePondPluginImageExifOrientation, FilePondPluginImagePreview);
 
+type UploadedFile = { url: string; name?: string; type: string };
 type MCImageUploadProps = {
   children?: React.ReactNode;
   title: string;
@@ -30,10 +25,12 @@ type MCImageUploadProps = {
   isCircular?: boolean;
   accept?: string;
   onFileUpload?: (fileUrl: string, fileType: string) => void;
+  onFileRemove?: (index: number) => void; // Nueva prop para manejar eliminación
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
   allowMultiple?: boolean;
   maxFiles?: number;
+  uploadedFiles?: UploadedFile[];
 };
 
 export function MCImageUpload({
@@ -47,16 +44,23 @@ export function MCImageUpload({
   isCircular = false,
   accept = "image/*,application/pdf",
   onFileUpload,
+  onFileRemove,
   allowMultiple = false,
   maxFiles = 1,
+  uploadedFiles: uploadedFilesProp,
   ...modalProps
 }: MCImageUploadProps) {
   const [rawImage, setRawImage] = useState<string | null>(null);
-  const [uploadedFiles, setUploadedFiles] = useState<
-    Array<{ url: string; name: string; type: string }>
-  >([]);
+  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [cropModalOpen, setCropModalOpen] = useState(false);
   const [files, setFiles] = useState<any[]>([]);
+
+  // Sincroniza archivos subidos externos con el estado interno
+  useEffect(() => {
+    if (uploadedFilesProp) {
+      setUploadedFiles(uploadedFilesProp);
+    }
+  }, [uploadedFilesProp]);
 
   const handleFilePondUpdate = (fileItems: any[]) => {
     // Verificar límite de archivos
@@ -126,6 +130,8 @@ export function MCImageUpload({
 
   const handleRemoveFile = (index: number) => {
     setUploadedFiles((prev) => prev.filter((_, i) => i !== index));
+    // Notificar al componente padre sobre la eliminación
+    onFileRemove?.(index);
   };
 
   const handleFileUpload = () => {
@@ -200,22 +206,6 @@ export function MCImageUpload({
               {description}
             </p>
           </div>
-
-          {/* FilePond Drop Zone */}
-          {/* {uploadedFiles.length < maxFiles && (
-            <div className="mb-6">
-              <FilePond
-                files={files}
-                onupdatefiles={handleFilePondUpdate}
-                allowMultiple={allowMultiple}
-                maxFiles={maxFiles - uploadedFiles.length}
-                acceptedFileTypes={accept.split(",")}
-                labelIdle='Arrastra y suelta tus archivos aquí o <span class="filepond--label-action">Buscar</span>'
-                credits={false}
-                disabled={uploadedFiles.length >= maxFiles}
-              />
-            </div>
-          )} */}
 
           {uploadedFiles.length >= maxFiles && (
             <div className="mb-6 p-4 bg-gray-100 border border-gray-300 rounded-lg text-center">

@@ -1,5 +1,6 @@
 import MCImageUpload from "@/shared/components/MCAuthImageUpload";
 import Certifciades from "@/assets/doctorOnbording/certificates.png";
+import { useAppStore } from "@/stores/useAppStore";
 
 type AdditionalCertificationsUploadProps = {
   children?: React.ReactNode;
@@ -9,8 +10,42 @@ export function AdditionalCertificationsUploadTrigger({
   children,
   ...modalProps
 }: AdditionalCertificationsUploadProps) {
+  const doctorOnboardingData = useAppStore(
+    (state) => state.doctorOnboardingData
+  );
+
+  const setDoctorOnboardingData = useAppStore(
+    (state) => state.setDoctorOnboardingData
+  );
+
   const handleFileUpload = (fileUrl: string, fileType: string) => {
-    console.log("Archivo subido:", fileUrl, fileType);
+    if (!doctorOnboardingData || !setDoctorOnboardingData) return;
+
+    const newCertification = {
+      url: fileUrl,
+      type: fileType,
+    };
+
+    setDoctorOnboardingData({
+      ...doctorOnboardingData,
+      certifications: [
+        ...(doctorOnboardingData.certifications ?? []),
+        newCertification,
+      ],
+    });
+  };
+
+  const handleFileRemove = (index: number) => {
+    if (!doctorOnboardingData || !setDoctorOnboardingData) return;
+
+    const updatedCertifications = (
+      doctorOnboardingData.certifications ?? []
+    ).filter((_, i) => i !== index);
+
+    setDoctorOnboardingData({
+      ...doctorOnboardingData,
+      certifications: updatedCertifications,
+    });
   };
 
   return (
@@ -24,8 +59,10 @@ export function AdditionalCertificationsUploadTrigger({
       isCircular={false}
       accept="image/*,application/pdf"
       onFileUpload={handleFileUpload}
+      onFileRemove={handleFileRemove}
       maxFiles={5}
-      allowMultiple={true}
+      allowMultiple={false}
+      uploadedFiles={doctorOnboardingData?.certifications ?? []}
       {...modalProps}
     >
       {children}
