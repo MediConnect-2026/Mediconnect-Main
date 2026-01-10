@@ -10,6 +10,10 @@ import { Progress } from "@/shared/ui/progress";
 import { ArrowRight } from "lucide-react";
 import OnboardingChecklist from "@/features/auth/components/OnboardingChecklist";
 import AcademicDegreeUpload from "../../components/doctors/AcademicDegreeUpload";
+import GovernmentIdUpload from "../../components/doctors/GovernmentIdUpload";
+import ProfilePhotoUpload from "../../components/doctors/ProfilePhotoUpload";
+import AdditionalCertificationsUpload from "../../components/doctors/AdditionalCertificationsUpload";
+
 function DoctorOnboardingPage() {
   const { t } = useTranslation("auth");
   const navigate = useNavigate();
@@ -48,22 +52,13 @@ function DoctorOnboardingPage() {
         title: "Información personal",
         completed: Boolean(isPersonalInfoComplete),
         onClick: () => console.log("Personal Info"),
-        // trigger: (
-        //   <AcademicDegreeUpload>
-        //     {/* El botón se renderiza como children */}
-        //   </AcademicDegreeUpload>
-        // ),
       },
       {
         id: "id-doc",
         title: "Documento de identificación",
         completed: Boolean(isIdDocComplete),
         onClick: () => console.log("Documento"),
-        // trigger: (
-        //   <AcademicDegreeUpload>
-        //     {/* El botón se renderiza como children */}
-        //   </AcademicDegreeUpload>
-        // ),
+        trigger: <GovernmentIdUpload>Cargar documento</GovernmentIdUpload>,
       },
       {
         id: "profile-photo",
@@ -71,11 +66,7 @@ function DoctorOnboardingPage() {
         optional: true,
         completed: isProfilePhotoComplete,
         onClick: () => console.log("Foto"),
-        // trigger: (
-        //   <AcademicDegreeUpload>
-        //     {/* El botón se renderiza como children */}
-        //   </AcademicDegreeUpload>
-        // ),
+        trigger: <ProfilePhotoUpload>Cargar foto</ProfilePhotoUpload>,
       },
       {
         id: "certs",
@@ -83,11 +74,11 @@ function DoctorOnboardingPage() {
         optional: true,
         completed: isCertificationsComplete,
         onClick: () => console.log("Certificaciones"),
-        // trigger: (
-        //   <AcademicDegreeUpload>
-        //     {/* El botón se renderiza como children */}
-        //   </AcademicDegreeUpload>
-        // ),
+        trigger: (
+          <AdditionalCertificationsUpload>
+            Cargar certificación
+          </AdditionalCertificationsUpload>
+        ),
       },
       {
         id: "degree",
@@ -95,11 +86,7 @@ function DoctorOnboardingPage() {
         optional: true,
         completed: isAcademicTitleComplete,
         onClick: () => console.log("Título"),
-        trigger: (
-          <AcademicDegreeUpload>
-            {/* El botón se renderiza como children */}
-          </AcademicDegreeUpload>
-        ),
+        trigger: <AcademicDegreeUpload>Cargar título</AcademicDegreeUpload>,
       },
     ];
   }, [doctorOnboardingData]);

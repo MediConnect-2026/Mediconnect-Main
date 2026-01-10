@@ -12,21 +12,21 @@ const getSystemTheme = (): ResolvedTheme => {
 };
 
 export type GlobalUISlice = {
+  isloading: boolean;
+  setIsLoading: (loading: boolean) => void;
+  error: string;
+  setError: (error: string) => void;
   theme: Theme;
   resolvedTheme: ResolvedTheme;
   setTheme: (theme: Theme) => void;
   toggleTheme: () => void;
   language: string;
   setLanguage: (lang: string) => void;
-  isloading: boolean;
-  setIsLoading: (loading: boolean) => void;
   toast: {
     message: string;
     type: "success" | "error" | "info";
     open: boolean;
   };
-  PasswordVisibility: boolean;
-  SetPasswordVisibility: (visibility: boolean) => void;
   setToast: (toast: {
     message: string;
     type: "success" | "error" | "info";
@@ -40,6 +40,10 @@ export type GlobalUISlice = {
 };
 
 export const createGlobalUISlice: StateCreator<GlobalUISlice> = (set, get) => ({
+  isloading: false,
+  setIsLoading: (loading: boolean) => set({ isloading: loading }),
+  error: "",
+  setError: (error: string) => set({ error }),
   theme: "light",
   resolvedTheme: getSystemTheme(),
   setTheme: (theme) => {
@@ -63,11 +67,6 @@ export const createGlobalUISlice: StateCreator<GlobalUISlice> = (set, get) => ({
     i18n.changeLanguage(lang);
     set({ language: lang });
   },
-  isloading: false,
-  setIsLoading: (loading: boolean) => set({ isloading: loading }),
-  PasswordVisibility: false,
-  SetPasswordVisibility: (visibility: boolean) =>
-    set({ PasswordVisibility: visibility }),
   toast: {
     message: "",
     type: "info",
