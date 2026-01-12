@@ -4,6 +4,9 @@ import PersonalIdentificationStep1 from "./PersonalIdentificationStep1";
 import PersonalIdentificationStep2 from "./PersonalIdentificationStep2";
 import MCStepper from "@/shared/components/MCStepper";
 import AuthFooterContainer from "@/features/auth/components/AuthFooterContainer";
+import { useAppStore } from "@/stores/useAppStore";
+import { MorphingDialogClose } from "@/shared/ui/morphing-dialog";
+
 const steps = [
   { title: "Datos personales" },
   { title: "Información profesional" },
@@ -22,7 +25,27 @@ export function PersonalIdentificationDialogTrigger({
 function PersonalIdentificationDialog({
   children,
 }: PersonalIdentificationDialogProps) {
-  const [current, setCurrent] = useState(0);
+  const current = useAppStore((s) => s.onboardingStep);
+  const setCurrent = useAppStore((s) => s.setOnboardingStep);
+  const [step1Valid, setStep1Valid] = useState(false);
+  const doctorsteps = useAppStore((state) => state.doctorOnboardingData);
+
+  const doctorStep1 =
+    doctorsteps?.name &&
+    doctorsteps?.lastName &&
+    doctorsteps?.gender &&
+    doctorsteps?.birthDate &&
+    doctorsteps?.nationality &&
+    doctorsteps?.identityDocument &&
+    doctorsteps?.phone;
+
+  const doctorStep2 =
+    doctorsteps?.exequatur &&
+    doctorsteps?.mainSpecialty &&
+    doctorsteps?.secondarySpecialties;
+
+  const handleValidationChange = (isValid: boolean) => setStep1Valid(isValid);
+  const handleNextStep = () => setCurrent(current + 1);
 
   return (
     <MCModalBase
@@ -32,7 +55,7 @@ function PersonalIdentificationDialog({
       typeclose="Arrow"
       triggerClassName="w-full"
     >
-      <div className="w-full flex flex-col items-center justify-center min-h-[70vh] py-10">
+      <div className="w-full flex flex-col items-center justify-center  mt-10 ">
         <h1 className="text-3xl font-semibold text-center">
           Identificación profesional
         </h1>
@@ -48,34 +71,52 @@ function PersonalIdentificationDialog({
             />
           </div>
 
-          <div className="w-full flex-1">
-            <div className="w-full">
-              {current === 0 && <PersonalIdentificationStep1 />}
-              {current === 1 && <PersonalIdentificationStep2 />}
+          <div className="w-full flex-1 py-4">
+            <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 ">
+              {current === 0 && (
+                <PersonalIdentificationStep1
+                  onValidationChange={handleValidationChange}
+                  onNext={handleNextStep}
+                >
+                  <AuthFooterContainer
+                    backButtonProps={{
+                      onClick: () => {
+                        if (current > 0) {
+                          setCurrent(current - 1);
+                        }
+                      },
+                      disabled: current === 0,
+                    }}
+                    continueButtonProps={{
+                      disabled: !step1Valid || !doctorStep1,
+                    }}
+                  />
+                </PersonalIdentificationStep1>
+              )}
+              {current === 1 && (
+                <PersonalIdentificationStep2>
+                  <AuthFooterContainer
+                    type="Save"
+                    backButtonProps={{
+                      onClick: () => {
+                        setCurrent(current - 1);
+                      },
+                      disabled: false,
+                    }}
+                    continueButtonProps={{
+                      type: "submit",
+                      disabled: !doctorStep2,
+                    }}
+                    canClose={true}
+                    continueButtonWrapper={MorphingDialogClose}
+                  />
+                </PersonalIdentificationStep2>
+              )}
             </div>
           </div>
         </div>
       </div>
-      <div className="w-full flex-shrink-0 ">
-        <AuthFooterContainer
-          backButtonProps={{
-            onClick: () => {
-              if (current > 0) {
-                setCurrent(current - 1);
-              }
-            },
-            disabled: current === 0,
-          }}
-          continueButtonProps={{
-            onClick: () => {
-              if (current < steps.length - 1) {
-                setCurrent(current + 1);
-              }
-            },
-            disabled: current === steps.length - 1,
-          }}
-        />
-      </div>
+      <div className="w-full flex-shrink-0 "></div>
     </MCModalBase>
   );
 }

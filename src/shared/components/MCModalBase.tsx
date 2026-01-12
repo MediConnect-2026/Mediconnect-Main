@@ -144,7 +144,7 @@ export function MCModalBase({
 
           {/* Content */}
           <MorphingDialogDescription
-            className={`${contentPadding} flex-1 overflow-y-auto min-h-0`}
+            className={`${contentPadding} flex-1 overflow-y-auto min-h-0 scrollbar-hide`}
           >
             {children}
           </MorphingDialogDescription>

@@ -9,11 +9,19 @@ interface AuthFooterContainerProps {
   backButtonProps?: React.ComponentProps<typeof MCBackButton>;
   continueButtonProps?: React.ComponentProps<typeof MCButton>;
   children?: React.ReactNode;
+  classname?: string;
+  type?: "Continue" | "Save";
+  continueButtonWrapper?: React.ComponentType<{ children: React.ReactNode }>;
+  canClose?: boolean;
 }
 
 const AuthFooterContainer: React.FC<AuthFooterContainerProps> = ({
   backButtonProps,
   continueButtonProps,
+  classname,
+  type = "Continue",
+  continueButtonWrapper: ContinueButtonWrapper,
+  canClose = false,
 }) => {
   const isMobile = useIsMobile();
   const { t } = useTranslation("auth");
@@ -23,19 +31,32 @@ const AuthFooterContainer: React.FC<AuthFooterContainerProps> = ({
         isMobile
           ? "flex flex-col-2  justify-between items-center"
           : "grid grid-cols-2  sm:flex sm:justify-between items-center"
-      }`}
+      } ${classname}`}
     >
       <div>
         <MCBackButton {...backButtonProps} />
       </div>
-      <MCButton
-        type="submit"
-        icon={<ArrowRightIcon />}
-        iconPosition="right"
-        {...continueButtonProps}
-      >
-        {t("footer.continue")}
-      </MCButton>
+      {ContinueButtonWrapper && canClose ? (
+        <ContinueButtonWrapper>
+          <MCButton
+            type="submit"
+            icon={<ArrowRightIcon />}
+            iconPosition="right"
+            {...continueButtonProps}
+          >
+            {type === "Continue" ? t("footer.continue") : t("footer.save")}
+          </MCButton>
+        </ContinueButtonWrapper>
+      ) : (
+        <MCButton
+          type="submit"
+          icon={<ArrowRightIcon />}
+          iconPosition="right"
+          {...continueButtonProps}
+        >
+          {type === "Continue" ? t("footer.continue") : t("footer.save")}
+        </MCButton>
+      )}
     </div>
   );
 };

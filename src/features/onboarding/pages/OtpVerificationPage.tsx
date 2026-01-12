@@ -17,7 +17,7 @@ function OtpVerificationPage() {
   const selectedRole = useAppStore((state) => state.selectedRole);
   const basicInfo = useAppStore((state) => state.patientOnboardingData);
   const doctorBasicInfo = useAppStore((state) => state.doctorOnboardingData);
-
+  const verifyEmail = useAppStore((state) => state.verifyEmail);
   const confirmedEmail =
     selectedRole === "Patient"
       ? basicInfo?.email
@@ -40,8 +40,8 @@ function OtpVerificationPage() {
     console.log("OTP Data:", data);
 
     setOtp(data.otp);
-
-    // Esperar un tick para asegurar que el estado se guardó
+    verifyEmail.verified = true;
+    verifyEmail.email = confirmedEmail ?? "";
     setTimeout(() => {
       if (selectedRole === "Patient") {
         navigate("/auth/patient-onboarding/basic-info", { replace: true });

@@ -1,20 +1,26 @@
-import React from "react";
 import MCInput from "@/shared/components/forms/MCInput";
 import MCSelect from "@/shared/components/forms/MCSelect";
 import MCFormWrapper from "@/shared/components/forms/MCFormWrapper";
 import { useAppStore } from "@/stores/useAppStore";
 import { type DoctorBasicInfoSchemaType } from "@/types/OnbordingTypes";
 import { DoctorBasicInfoSchema } from "@/schema/OnbordingSchema";
-import AuthFooterContainer from "@/features/auth/components/AuthFooterContainer";
-import { Button } from "@/shared/ui/button";
+import { useEffect } from "react";
 
-function PersonalIdentificationStep1() {
+type PersonalIdentificationStep1Props = {
+  children?: React.ReactNode;
+  onValidationChange?: (isValid: boolean) => void;
+  onNext?: () => void;
+};
+
+function PersonalIdentificationStep1({
+  children,
+  onValidationChange,
+  onNext,
+}: PersonalIdentificationStep1Props) {
   const doctorOnboardingData = useAppStore(
     (state) => state.doctorOnboardingData
   );
-  const setDoctorOnboardingData = useAppStore(
-    (state) => state.setDoctorOnboardingData
-  );
+  const setDoctorField = useAppStore((state) => state.setDoctorField);
 
   const genderOptions = [
     { value: "masculino", label: "Masculino" },
@@ -32,23 +38,17 @@ function PersonalIdentificationStep1() {
   ];
 
   const handleSubmit = (data: DoctorBasicInfoSchemaType) => {
-    if (setDoctorOnboardingData && doctorOnboardingData) {
-      setDoctorOnboardingData({
-        ...doctorOnboardingData,
-        name: data.name,
-        lastName: data.lastName,
-        gender: data.gender,
-        birthDate: data.birthDate,
-        nationality: data.nationality,
-        identityDocument: data.identityDocument,
-        phone: data.phone,
-      });
-    }
-    // Navegar al siguiente paso
+    // Ya no necesitas actualizar el store aquí si usas setDoctorField en los onChange
+    onValidationChange?.(true);
+    onNext?.();
   };
 
+  useEffect(() => {
+    console.log("Doctor Onboarding Data:", doctorOnboardingData);
+  }, [doctorOnboardingData]);
+
   return (
-    <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 py-8">
+    <div className="w-full ">
       <div className="mb-5">
         <h1 className="text-2xl sm:text-3xl font-bold text-primary mb-2">
           Datos personales
@@ -62,21 +62,22 @@ function PersonalIdentificationStep1() {
         schema={DoctorBasicInfoSchema((t) => t)}
         onSubmit={handleSubmit}
         defaultValues={doctorOnboardingData}
+        onValidationChange={onValidationChange}
       >
         <div className="space-y-4">
           {/* Nombre y Apellido */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <MCInput
-              name="firstName"
+              name="name"
               label="Nombre(s)"
               placeholder="Juan Luis"
-              required
+              onChange={(e) => setDoctorField?.("name", e.target.value)}
             />
             <MCInput
               name="lastName"
               label="Apellido(s)"
               placeholder="Capellán Aramboles"
-              required
+              onChange={(e) => setDoctorField?.("lastName", e.target.value)}
             />
           </div>
 
@@ -87,14 +88,16 @@ function PersonalIdentificationStep1() {
               label="Género"
               placeholder="Seleccionar género"
               options={genderOptions}
-              required
+              onChange={(value) =>
+                setDoctorField?.("gender", Array.isArray(value) ? value[0] : value)
+              }
             />
             <MCInput
               name="birthDate"
               label="Fecha de Nacimiento"
               type="date"
-              placeholder="dd/mm/aaaa"
-              required
+              placeholder="yyyy-mm-dd"
+              onChange={(e) => setDoctorField?.("birthDate", e.target.value)}
             />
           </div>
 
@@ -105,25 +108,30 @@ function PersonalIdentificationStep1() {
               label="Nacionalidad"
               placeholder="Seleccionar nacionalidad"
               options={nationalityOptions}
-              required
+              onChange={(value) =>
+                setDoctorField?.("nationality", Array.isArray(value) ? value[0] : value)
+              }
             />
             <MCInput
-              name="identificationNumber"
+              name="identityDocument"
               label="Número de Identificación"
               placeholder="000-0000000-0"
-              required
+              onChange={(e) =>
+                setDoctorField?.("identityDocument", e.target.value)
+              }
             />
           </div>
 
           {/* Teléfono móvil */}
           <MCInput
-            name="phoneNumber"
+            name="phone"
             label="Teléfono móvil"
             type="tel"
             placeholder="+1 (809) 000-0000"
-            required
+            onChange={(e) => setDoctorField?.("phone", e.target.value)}
           />
         </div>
+        {children}
       </MCFormWrapper>
     </div>
   );

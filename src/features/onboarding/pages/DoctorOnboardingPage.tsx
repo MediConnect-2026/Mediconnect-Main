@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import AuthContentContainer from "@/features/auth/components/AuthContentContainer";
 import { useAppStore } from "@/stores/useAppStore";
 import { useTranslation } from "react-i18next";
@@ -14,12 +14,21 @@ import PersonalIdentificationDialog from "@/features/onboarding/components/docto
 function DoctorOnboardingPage() {
   const { t } = useTranslation("auth");
   const navigate = useNavigate();
-
+  const verifyEmail = useAppStore((state) => state.verifyEmail);
   const doctorOnboardingData = useAppStore(
     (state) => state.doctorOnboardingData
   );
+  useEffect(() => {
+    if (!verifyEmail.verified) {
+      navigate("/auth/register", { replace: true });
+      return;
+    }
 
-  // Calcular estados de completitud
+    if (!verifyEmail.email) {
+      navigate("/auth/reg-email-verification", { replace: true });
+    }
+  }, [verifyEmail.email, verifyEmail.verified, navigate]);
+
   const completionStates = useMemo(() => {
     const isPersonalInfoComplete =
       doctorOnboardingData?.name &&
@@ -30,10 +39,7 @@ function DoctorOnboardingPage() {
       doctorOnboardingData?.phone &&
       doctorOnboardingData?.email;
 
-    const isIdDocComplete = Boolean(
-      doctorOnboardingData?.identityDocument ||
-        doctorOnboardingData?.identityDocumentFile
-    );
+    const isIdDocComplete = Boolean(doctorOnboardingData?.identityDocumentFile);
 
     const isProfilePhotoComplete = Boolean(doctorOnboardingData?.urlImg);
 
