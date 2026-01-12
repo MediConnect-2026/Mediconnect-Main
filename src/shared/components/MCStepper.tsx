@@ -93,7 +93,7 @@ function MCStepper({
                   >
                     <Check
                       className={cn(
-                        "h-8 w-8",
+                        "h-8 w-8 stroke-2",
                         // Si el paso está terminado pero no es el actual, baja opacidad
                         current !== index && "opacity-60"
                       )}

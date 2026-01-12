@@ -30,12 +30,13 @@ function PersonalIdentificationDialog({
       size="xl"
       trigger={children}
       typeclose="Arrow"
+      triggerClassName="w-full"
     >
       <div className="w-full flex flex-col items-center justify-center min-h-[70vh] py-10">
         <h1 className="text-3xl font-semibold text-center">
           Identificación profesional
         </h1>
-        <div className="w-full flex flex-col items-center gap-8 flex-1">
+        <div className="w-full flex flex-col items-center gap- flex-1">
           <div className="max-w-md w-full mx-auto h-fit">
             <MCStepper
               items={steps}
@@ -47,7 +48,7 @@ function PersonalIdentificationDialog({
             />
           </div>
 
-          <div className="w-full mt-8 flex-1 bg-red-500">
+          <div className="w-full flex-1">
             <div className="w-full">
               {current === 0 && <PersonalIdentificationStep1 />}
               {current === 1 && <PersonalIdentificationStep2 />}
@@ -55,7 +56,7 @@ function PersonalIdentificationDialog({
           </div>
         </div>
       </div>
-      <div className="w-full flex-shrink-0 mt-8">
+      <div className="w-full flex-shrink-0 ">
         <AuthFooterContainer
           backButtonProps={{
             onClick: () => {

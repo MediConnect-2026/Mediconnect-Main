@@ -10,7 +10,6 @@ import AcademicDegreeUpload from "../../onboarding/components/doctors/AcademicDe
 import GovernmentIdUpload from "../../onboarding/components/doctors/GovernmentIdUpload";
 import ProfilePhotoUpload from "../../onboarding/components/doctors/ProfilePhotoUpload";
 import AdditionalCertificationsUpload from "../../onboarding/components/doctors/AdditionalCertificationsUpload";
-import DialogTrigger from "@/features/onboarding/components/doctors/personalIdentificationStep/PersonalIdentificationDialog";
 import PersonalIdentificationDialog from "@/features/onboarding/components/doctors/personalIdentificationStep/PersonalIdentificationDialog";
 function DoctorOnboardingPage() {
   const { t } = useTranslation("auth");

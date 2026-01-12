@@ -105,7 +105,10 @@ export function DoctorOnboardingSchema(t: (key: string) => string) {
     name: z.string().min(1, t("validation.nameRequired")),
     lastName: z.string().min(1, t("validation.lastNameRequired")),
     gender: z.string().min(1, t("validation.genderRequired")),
-    birthDate: z.string().min(1, t("validation.birthDateRequired")),
+    birthDate: z
+      .string()
+      .min(1, t("validation.birthDateRequired"))
+      .regex(/^\d{2}\/\d{2}\/\d{4}$/, t("validation.birthDateFormat")),
     nationality: z.string().min(1, t("validation.nationalityRequired")),
     identityDocument: z
       .string()
@@ -113,7 +116,10 @@ export function DoctorOnboardingSchema(t: (key: string) => string) {
     exequatur: z.string().min(1, t("validation.exequaturRequired")),
     mainSpecialty: z.string().min(1, t("validation.mainSpecialtyRequired")),
     secondarySpecialties: z.array(z.string()).optional(),
-    phone: z.string().min(1, t("validation.phoneRequired")),
+    phone: z
+      .string()
+      .min(1, t("validation.phoneRequired"))
+      .regex(/^\+1\s?\(\d{3}\)\s?\d{3}-\d{4}$/, t("validation.phoneInvalid")),
     email: z
       .string()
       .min(1, t("validation.emailRequired"))
@@ -135,6 +141,45 @@ export function DoctorOnboardingSchema(t: (key: string) => string) {
   });
 }
 
+export function DoctorBasicInfoSchema(t: (key: string) => string) {
+  return BaseDoctorSchema.pick({
+    name: true,
+    lastName: true,
+    gender: true,
+    birthDate: true,
+    nationality: true,
+    identityDocument: true,
+    phone: true,
+  }).extend({
+    name: z.string().min(1, t("validation.nameRequired")),
+    lastName: z.string().min(1, t("validation.lastNameRequired")),
+    gender: z.string().min(1, t("validation.genderRequired")),
+    birthDate: z
+      .string()
+      .min(1, t("validation.birthDateRequired"))
+      .regex(/^\d{2}\/\d{2}\/\d{4}$/, t("validation.birthDateFormat")),
+    nationality: z.string().min(1, t("validation.nationalityRequired")),
+    identityDocument: z
+      .string()
+      .min(1, t("validation.identityDocumentRequired")),
+    phone: z
+      .string()
+      .min(1, t("validation.phoneRequired"))
+      .regex(/^\+1\s?\(\d{3}\)\s?\d{3}-\d{4}$/, t("validation.phoneInvalid")),
+  });
+}
+
+export function DoctorProfessionalInfoSchema(t: (key: string) => string) {
+  return BaseDoctorSchema.pick({
+    exequatur: true,
+    mainSpecialty: true,
+    secondarySpecialties: true,
+  }).extend({
+    exequatur: z.string().min(1, t("validation.exequaturRequired")),
+    mainSpecialty: z.string().min(1, t("validation.mainSpecialtyRequired")),
+    secondarySpecialties: z.array(z.string()).optional(),
+  });
+}
 // Exportar tipos inferidos
 export type PatientOnboardingSchemaType = z.infer<
   ReturnType<typeof PatientOnboardingSchema>

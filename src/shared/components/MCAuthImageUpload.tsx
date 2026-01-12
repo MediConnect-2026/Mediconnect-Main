@@ -53,7 +53,6 @@ export function MCImageUpload({
   const [rawImage, setRawImage] = useState<string | null>(null);
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [cropModalOpen, setCropModalOpen] = useState(false);
-  const [files, setFiles] = useState<any[]>([]);
 
   // Sincroniza archivos subidos externos con el estado interno
   useEffect(() => {
@@ -61,54 +60,6 @@ export function MCImageUpload({
       setUploadedFiles(uploadedFilesProp);
     }
   }, [uploadedFilesProp]);
-
-  const handleFilePondUpdate = (fileItems: any[]) => {
-    // Verificar límite de archivos
-    if (uploadedFiles.length >= maxFiles) {
-      setFiles([]);
-      return;
-    }
-
-    setFiles(fileItems);
-
-    // Procesar archivos
-    fileItems.forEach((fileItem) => {
-      const file = fileItem.file;
-
-      // Verificar si ya alcanzamos el límite
-      if (uploadedFiles.length >= maxFiles) {
-        return;
-      }
-
-      if (file.type === "application/pdf") {
-        const url = URL.createObjectURL(file);
-        const newFile = { url, name: file.name, type: "pdf" };
-
-        setUploadedFiles((prev) => {
-          if (prev.length >= maxFiles) return prev;
-          const exists = prev.some((f) => f.name === file.name);
-          if (!exists) {
-            const updated = [...prev, newFile];
-            onFileUpload?.(url, "pdf");
-            return updated;
-          }
-          return prev;
-        });
-
-        // Limpiar FilePond después de procesar
-        setFiles([]);
-      } else if (file.type.startsWith("image/")) {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          setRawImage(event.target?.result as string);
-          setCropModalOpen(true);
-          // Limpiar FilePond después de procesar
-          setFiles([]);
-        };
-        reader.readAsDataURL(file);
-      }
-    });
-  };
 
   const handleCameraCapture = (imageDataUrl: string) => {
     setRawImage(imageDataUrl);
