@@ -53,7 +53,6 @@ function OtpVerificationPage() {
       } else if (selectedRole === "Center") {
         navigate("/auth/center-onboarding", { replace: true });
       } else {
-        // Si no hay rol, redirigir al registro
         navigate("/auth/register", { replace: true });
       }
     }, 0);

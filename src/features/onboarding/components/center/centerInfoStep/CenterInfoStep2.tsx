@@ -38,7 +38,7 @@ function CenterInfoStep2({
   };
 
   return (
-    <div className="w-full">
+    <div className="w-full flex flex-col gap-4">
       <div className="mb-5">
         <h1 className="text-2xl sm:text-3xl font-bold text-primary mb-2">
           Ubicación del centro
@@ -48,23 +48,17 @@ function CenterInfoStep2({
         </p>
       </div>
 
-      <MapSelectLocation
-        value={
-          centerOnboardingData?.coordinates
-            ? {
-                lat: centerOnboardingData.coordinates.latitude,
-                lng: centerOnboardingData.coordinates.longitude,
-              }
-            : { lat: 0, lng: 0 }
-        }
-        onChange={(lat, lng) =>
-          setCenterField?.("coordinates", {
-            latitude: lat,
-            longitude: lng,
-          })
-        }
-        onLocationDetails={handleLocationDetails}
-      />
+      <div className="h-[350px] mb-6">
+        <MapSelectLocation
+          onChange={(lat, lng) =>
+            setCenterField?.("coordinates", {
+              latitude: lat,
+              longitude: lng,
+            })
+          }
+          onLocationDetails={handleLocationDetails}
+        />
+      </div>
 
       <MCFormWrapper
         schema={CenterLocationInfoSchema((t) => t)}
@@ -79,20 +73,6 @@ function CenterInfoStep2({
             label="Dirección"
             placeholder="Calle, número, sector, ciudad"
             onChange={(e) => setCenterField?.("address", e.target.value)}
-          />
-
-          <MCInput
-            name="zipCode"
-            label="Código Postal"
-            placeholder="10101"
-            onChange={(e) => setCenterField?.("zipCode", e.target.value)}
-          />
-
-          <MCInput
-            name="neighborhood"
-            label="Sector / Vecindario"
-            placeholder="Los Jardines"
-            onChange={(e) => setCenterField?.("neighborhood", e.target.value)}
           />
         </div>
         {children}

@@ -25,7 +25,6 @@ function RegisterPage() {
   const setRoleInStore = useAppStore((state) => state.setSelectedRole);
   const selectedRole = useAppStore((state) => state.selectedRole);
   const detailsRefs = useRef<Record<string, HTMLUListElement | null>>({});
-
   const resetFlows = useAppStore((state) => state.clearOnboarding);
   const clearAuthFlow = useAppStore((state) => state.clearAuthFlow);
 

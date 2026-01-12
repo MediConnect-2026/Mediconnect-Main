@@ -26,6 +26,7 @@ export const useAppStore = create<AppStore>()(
         // De AuthSlice (sesión persistente)
         isAuthenticated: state.isAuthenticated,
         token: state.token,
+        verifyEmail: state.verifyEmail,
 
         // De OnboardingSlice (rol persistente)
         selectedRole: state.selectedRole,

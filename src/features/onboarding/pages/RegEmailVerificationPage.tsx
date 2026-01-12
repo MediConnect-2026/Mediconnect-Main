@@ -21,7 +21,7 @@ function RegEmailVerificationPage() {
   const setEmailDoctor = useAppStore((state) => state.setDoctorOnboardingData);
   const centerBasicInfo = useAppStore((state) => state.centerOnboardingData);
   const setEmailCenter = useAppStore((state) => state.setCenterOnboardingData);
-
+  const setVerifyEmail = useAppStore((state) => state.setVerifyEmail);
   useEffect(() => {
     if (!selectedRole) {
       console.log("No role selected, redirecting...");
@@ -30,16 +30,13 @@ function RegEmailVerificationPage() {
   }, [selectedRole, navigate]);
 
   const handlesubmit = (data: { email: string }) => {
-    console.log("selectedRole:", selectedRole);
-    console.log("doctorBasicInfo:", doctorBasicInfo);
-    console.log("setEmailDoctor:", setEmailDoctor);
+    setVerifyEmail({ email: data.email, verified: true }); // <-- Guarda email y verified: false
 
     if (selectedRole === "Doctor" && setEmailDoctor && doctorBasicInfo) {
       setEmailDoctor({
         ...doctorBasicInfo,
         email: data.email ?? "",
       });
-      console.log("vamos a otp doctor");
       navigate("/auth/otp-verification", { replace: true });
     }
 

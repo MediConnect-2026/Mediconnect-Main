@@ -11,6 +11,7 @@ import GovernmentIdUpload from "../../onboarding/components/doctors/GovernmentId
 import ProfilePhotoUpload from "../../onboarding/components/doctors/ProfilePhotoUpload";
 import AdditionalCertificationsUpload from "../../onboarding/components/doctors/AdditionalCertificationsUpload";
 import PersonalIdentificationDialog from "@/features/onboarding/components/doctors/personalIdentificationStep/PersonalIdentificationDialog";
+
 function DoctorOnboardingPage() {
   const { t } = useTranslation("auth");
   const navigate = useNavigate();
@@ -24,7 +25,7 @@ function DoctorOnboardingPage() {
       return;
     }
 
-    if (!verifyEmail.email) {
+    if (!verifyEmail.email || verifyEmail.email === "") {
       navigate("/auth/reg-email-verification", { replace: true });
     }
   }, [verifyEmail.email, verifyEmail.verified, navigate]);

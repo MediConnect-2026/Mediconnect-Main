@@ -30,6 +30,8 @@ export default function MapSelectLocation({
       );
       const data = await response.json();
 
+      console.log("data de getlocation", data);
+
       if (data.features && data.features.length > 0) {
         let address = "";
         let neighborhood = "";
@@ -93,7 +95,7 @@ export default function MapSelectLocation({
 
     markerRef.current = new mapboxgl.Marker({
       draggable: true,
-      color: "#3b82f6", // Color azul para el marcador
+      color: "#1f6c16", // Color azul para el marcador
     })
       .setLngLat([initialLng, initialLat])
       .addTo(mapRef.current);
@@ -125,7 +127,6 @@ export default function MapSelectLocation({
     };
   }, []);
 
-  // Actualizar marcador cuando cambie el valor desde el exterior
   useEffect(() => {
     if (mapRef.current && markerRef.current && value?.lat && value?.lng) {
       markerRef.current.setLngLat([value.lng, value.lat]);
@@ -134,15 +135,12 @@ export default function MapSelectLocation({
   }, [value]);
 
   return (
-    <div className="mb-4">
-      <label className="block text-sm font-medium text-gray-700 mb-2">
-        Seleccione la ubicación en el mapa
-      </label>
+    <div className="h-full w-full">
       <div
         ref={containerRef}
-        className="h-[350px] rounded-xl border border-gray-300"
+        className="h-full w-full rounded-xl border border-gray-300"
       />
-      <p className="text-xs text-gray-500 mt-2">
+      <p className="text-xs text-primary mt-2">
         Haga clic en el mapa o arrastre el marcador para seleccionar la
         ubicación
       </p>
