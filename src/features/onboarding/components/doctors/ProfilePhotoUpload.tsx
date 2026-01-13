@@ -1,6 +1,7 @@
 import MCImageUpload from "@/shared/components/MCAuthImageUpload";
 import documentImg from "@/assets/doctorOnbording/profile-picture.png";
 import { useAppStore } from "@/stores/useAppStore";
+import { useTranslation } from "react-i18next";
 
 type ProfilePhotoUploadProps = {
   children?: React.ReactNode;
@@ -10,6 +11,7 @@ export function ProfilePhotoUploadTrigger({
   children,
   ...modalProps
 }: ProfilePhotoUploadProps) {
+  const { t } = useTranslation("auth");
   const doctorOnboardingData = useAppStore(
     (state) => state.doctorOnboardingData
   );
@@ -26,7 +28,7 @@ export function ProfilePhotoUploadTrigger({
       urlImg: {
         url: fileUrl,
         type: "image",
-        name: "Foto de perfil",
+        name: t("profilePhotoUpload.title"),
       },
     });
   };
@@ -42,11 +44,11 @@ export function ProfilePhotoUploadTrigger({
 
   return (
     <MCImageUpload
-      title="Foto de perfil"
-      description="Sube una foto clara y profesional para tu perfil."
+      title={t("profilePhotoUpload.title")}
+      description={t("profilePhotoUpload.description")}
       imageSrc={documentImg}
       modalId="profile-photo"
-      cropTitle="Recorta tu foto de perfil"
+      cropTitle={t("profilePhotoUpload.cropTitle")}
       aspectRatio={1}
       isCircular={true}
       accept="image/*"

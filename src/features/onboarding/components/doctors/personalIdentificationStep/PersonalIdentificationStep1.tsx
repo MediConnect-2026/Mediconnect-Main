@@ -5,6 +5,7 @@ import { useAppStore } from "@/stores/useAppStore";
 import { type DoctorBasicInfoSchemaType } from "@/types/OnbordingTypes";
 import { DoctorBasicInfoSchema } from "@/schema/OnbordingSchema";
 import { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 
 type PersonalIdentificationStep1Props = {
   children?: React.ReactNode;
@@ -17,24 +18,52 @@ function PersonalIdentificationStep1({
   onValidationChange,
   onNext,
 }: PersonalIdentificationStep1Props) {
+  const { t } = useTranslation("auth");
   const doctorOnboardingData = useAppStore(
     (state) => state.doctorOnboardingData
   );
   const setDoctorField = useAppStore((state) => state.setDoctorField);
 
   const genderOptions = [
-    { value: "masculino", label: "Masculino" },
-    { value: "femenino", label: "Femenino" },
-    { value: "otro", label: "Otro" },
+    {
+      value: "masculino",
+      label: t("personalIdentificationStep.genderOptions.masculino"),
+    },
+    {
+      value: "femenino",
+      label: t("personalIdentificationStep.genderOptions.femenino"),
+    },
+    {
+      value: "otro",
+      label: t("personalIdentificationStep.genderOptions.otro"),
+    },
   ];
 
   const nationalityOptions = [
-    { value: "dominicana", label: "Dominicana" },
-    { value: "estadounidense", label: "Estadounidense" },
-    { value: "mexicana", label: "Mexicana" },
-    { value: "colombiana", label: "Colombiana" },
-    { value: "venezolana", label: "Venezolana" },
-    { value: "otra", label: "Otra" },
+    {
+      value: "dominicana",
+      label: t("personalIdentificationStep.nationalityOptions.dominicana"),
+    },
+    {
+      value: "estadounidense",
+      label: t("personalIdentificationStep.nationalityOptions.estadounidense"),
+    },
+    {
+      value: "mexicana",
+      label: t("personalIdentificationStep.nationalityOptions.mexicana"),
+    },
+    {
+      value: "colombiana",
+      label: t("personalIdentificationStep.nationalityOptions.colombiana"),
+    },
+    {
+      value: "venezolana",
+      label: t("personalIdentificationStep.nationalityOptions.venezolana"),
+    },
+    {
+      value: "otra",
+      label: t("personalIdentificationStep.nationalityOptions.otra"),
+    },
   ];
 
   const handleSubmit = (data: DoctorBasicInfoSchemaType) => {
@@ -50,10 +79,10 @@ function PersonalIdentificationStep1({
     <div className="w-full ">
       <div className="mb-5">
         <h1 className="text-2xl sm:text-3xl font-bold text-primary mb-2">
-          Datos personales
+          {t("personalIdentificationStep.title")}
         </h1>
         <p className="text-primary/60 text-sm sm:text-base">
-          Complete su información personal
+          {t("personalIdentificationStep.subtitle")}
         </p>
       </div>
 
@@ -68,14 +97,14 @@ function PersonalIdentificationStep1({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <MCInput
               name="name"
-              label="Nombre(s)"
-              placeholder="Juan Luis"
+              label={t("personalIdentificationStep.nameLabel")}
+              placeholder={t("personalIdentificationStep.namePlaceholder")}
               onChange={(e) => setDoctorField?.("name", e.target.value)}
             />
             <MCInput
               name="lastName"
-              label="Apellido(s)"
-              placeholder="Capellán Aramboles"
+              label={t("personalIdentificationStep.lastNameLabel")}
+              placeholder={t("personalIdentificationStep.lastNamePlaceholder")}
               onChange={(e) => setDoctorField?.("lastName", e.target.value)}
             />
           </div>
@@ -84,8 +113,8 @@ function PersonalIdentificationStep1({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <MCSelect
               name="gender"
-              label="Género"
-              placeholder="Seleccionar género"
+              label={t("personalIdentificationStep.genderLabel")}
+              placeholder={t("personalIdentificationStep.genderPlaceholder")}
               options={genderOptions}
               onChange={(value) =>
                 setDoctorField?.(
@@ -96,9 +125,9 @@ function PersonalIdentificationStep1({
             />
             <MCInput
               name="birthDate"
-              label="Fecha de Nacimiento"
+              label={t("personalIdentificationStep.birthDateLabel")}
               type="date"
-              placeholder="yyyy-mm-dd"
+              placeholder={t("personalIdentificationStep.birthDatePlaceholder")}
               onChange={(e) => setDoctorField?.("birthDate", e.target.value)}
             />
           </div>
@@ -107,8 +136,10 @@ function PersonalIdentificationStep1({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <MCSelect
               name="nationality"
-              label="Nacionalidad"
-              placeholder="Seleccionar nacionalidad"
+              label={t("personalIdentificationStep.nationalityLabel")}
+              placeholder={t(
+                "personalIdentificationStep.nationalityPlaceholder"
+              )}
               options={nationalityOptions}
               onChange={(value) =>
                 setDoctorField?.(
@@ -119,8 +150,10 @@ function PersonalIdentificationStep1({
             />
             <MCInput
               name="identityDocument"
-              label="Número de Identificación"
-              placeholder="000-0000000-0"
+              label={t("personalIdentificationStep.identityDocumentLabel")}
+              placeholder={t(
+                "personalIdentificationStep.identityDocumentPlaceholder"
+              )}
               onChange={(e) =>
                 setDoctorField?.("identityDocument", e.target.value)
               }
@@ -130,9 +163,9 @@ function PersonalIdentificationStep1({
           {/* Teléfono móvil */}
           <MCInput
             name="phone"
-            label="Teléfono móvil"
+            label={t("personalIdentificationStep.phoneLabel")}
             type="tel"
-            placeholder="+1 (809) 000-0000"
+            placeholder={t("personalIdentificationStep.phonePlaceholder")}
             onChange={(e) => setDoctorField?.("phone", e.target.value)}
           />
         </div>

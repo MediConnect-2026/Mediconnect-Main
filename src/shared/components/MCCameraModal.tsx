@@ -10,6 +10,7 @@ import {
   MorphingDialogDescription,
   MorphingDialogContainer,
 } from "@/shared/ui/morphing-dialog";
+import { useTranslation } from "react-i18next";
 
 import { useGlobalUIStore } from "@/stores/useGlobalUIStore";
 
@@ -28,6 +29,7 @@ export function MCCameraModal({
   const streamRef = useRef<MediaStream | null>(null);
   const [isCameraActive, setIsCameraActive] = useState(false);
   const isMobile = useIsMobile();
+  const { t } = useTranslation("auth");
 
   const isLoading = useGlobalUIStore((state) => state.isloading);
   const setIsLoading = useGlobalUIStore((state) => state.setIsLoading);
@@ -142,7 +144,7 @@ export function MCCameraModal({
                   isMobile ? "text-lg" : "text-xl"
                 }`}
               >
-                Tomar foto
+                {t("cameraModal.title")}
               </h2>
             </MorphingDialogTitle>
             <MorphingDialogClose
@@ -160,14 +162,16 @@ export function MCCameraModal({
                 {error ? (
                   <div className="absolute inset-0 flex items-center justify-center bg-red-100">
                     <span className="text-red-500 text-center px-4">
-                      {error}
+                      {t("cameraModal.error")}
                     </span>
                   </div>
                 ) : null}
 
                 {isLoading && !error ? (
                   <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
-                    <span className="text-gray-500">Cargando cámara...</span>
+                    <span className="text-gray-500">
+                      {t("cameraModal.loading")}
+                    </span>
                   </div>
                 ) : null}
 
@@ -196,7 +200,7 @@ export function MCCameraModal({
                 onClick={handleCancel}
                 className={isMobile ? "w-full" : ""}
               >
-                Cancelar
+                {t("cameraModal.cancel")}
               </MCButton>
             </MorphingDialogClose>
 
@@ -208,7 +212,7 @@ export function MCCameraModal({
                 disabled={isLoading || !!error}
                 className={isMobile ? "w-full" : ""}
               >
-                Capturar foto
+                {t("cameraModal.capture")}
               </MCButton>
             </MorphingDialogClose>
           </div>

@@ -9,6 +9,7 @@ import "filepond/dist/filepond.min.css";
 import FilePondPluginImageExifOrientation from "filepond-plugin-image-exif-orientation";
 import FilePondPluginImagePreview from "filepond-plugin-image-preview";
 import "filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css";
+import { useTranslation } from "react-i18next";
 
 // Registrar plugins de FilePond
 registerPlugin(FilePondPluginImageExifOrientation, FilePondPluginImagePreview);
@@ -25,7 +26,7 @@ type MCImageUploadProps = {
   isCircular?: boolean;
   accept?: string;
   onFileUpload?: (fileUrl: string, fileType: string) => void;
-  onFileRemove?: (index: number) => void; // Nueva prop para manejar eliminación
+  onFileRemove?: (index: number) => void;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
   allowMultiple?: boolean;
@@ -39,7 +40,7 @@ export function MCImageUpload({
   description,
   imageSrc,
   modalId,
-  cropTitle = "Recorta tu imagen",
+  cropTitle,
   aspectRatio = 1,
   isCircular = false,
   accept = "image/*,application/pdf",
@@ -50,11 +51,11 @@ export function MCImageUpload({
   uploadedFiles: uploadedFilesProp,
   ...modalProps
 }: MCImageUploadProps) {
+  const { t } = useTranslation("auth");
   const [rawImage, setRawImage] = useState<string | null>(null);
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [cropModalOpen, setCropModalOpen] = useState(false);
 
-  // Sincroniza archivos subidos externos con el estado interno
   useEffect(() => {
     if (uploadedFilesProp) {
       setUploadedFiles(uploadedFilesProp);
@@ -81,12 +82,10 @@ export function MCImageUpload({
 
   const handleRemoveFile = (index: number) => {
     setUploadedFiles((prev) => prev.filter((_, i) => i !== index));
-    // Notificar al componente padre sobre la eliminación
     onFileRemove?.(index);
   };
 
   const handleFileUpload = () => {
-    // Verificar límite antes de abrir el selector
     if (uploadedFiles.length >= maxFiles) {
       return;
     }
@@ -100,7 +99,6 @@ export function MCImageUpload({
         (e.target as HTMLInputElement).files || []
       );
 
-      // Limitar archivos según el espacio disponible
       const availableSlots = maxFiles - uploadedFiles.length;
       const filesToProcess = selectedFiles.slice(0, availableSlots);
 
@@ -161,17 +159,20 @@ export function MCImageUpload({
           {uploadedFiles.length >= maxFiles && (
             <div className="mb-6 p-4 bg-gray-100 border border-gray-300 rounded-lg text-center">
               <p className="text-sm text-gray-600">
-                Has alcanzado el límite de {maxFiles} archivo
-                {maxFiles > 1 ? "s" : ""}
+                {t("imageUpload.limitReached", {
+                  maxFiles,
+                  plural: maxFiles > 1 ? "s" : "",
+                })}
               </p>
             </div>
           )}
 
-          {/* Preview de archivos subidos */}
           {uploadedFiles.length > 0 && (
             <div className="mb-6 space-y-3">
               <h3 className="text-sm font-medium text-gray-700">
-                Archivos subidos ({uploadedFiles.length})
+                {t("imageUpload.uploadedFiles", {
+                  count: uploadedFiles.length,
+                })}
               </h3>
               <div className="grid grid-cols-2 gap-3">
                 {uploadedFiles.map((file, index) => (
@@ -191,7 +192,7 @@ export function MCImageUpload({
                           rel="noopener noreferrer"
                           className="text-secondary underline text-xs mt-1"
                         >
-                          Ver PDF
+                          {t("imageUpload.viewPDF")}
                         </a>
                       </div>
                     ) : (
@@ -204,11 +205,10 @@ export function MCImageUpload({
                       </div>
                     )}
 
-                    {/* Botón de eliminar en esquina superior derecha */}
                     <button
                       onClick={() => handleRemoveFile(index)}
                       className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center shadow-md hover:bg-red-600 transition-colors z-10"
-                      aria-label="Eliminar archivo"
+                      aria-label={t("imageUpload.removeFile")}
                     >
                       <XIcon className="w-4 h-4" />
                     </button>
@@ -225,7 +225,7 @@ export function MCImageUpload({
               icon={<ImageUp />}
               disabled={uploadedFiles.length >= maxFiles}
             >
-              Subir imagen o PDF
+              {t("imageUpload.uploadButton")}
             </MCButton>
 
             <MCCameraModal
@@ -238,7 +238,7 @@ export function MCImageUpload({
                 icon={<Camera />}
                 disabled={uploadedFiles.length >= maxFiles}
               >
-                Tomar foto
+                {t("imageUpload.cameraButton")}
               </MCButton>
             </MCCameraModal>
           </div>
@@ -253,7 +253,7 @@ export function MCImageUpload({
           aspectRatio={aspectRatio}
           isCircular={isCircular}
           onCropComplete={handleCropComplete}
-          title={cropTitle}
+          title={cropTitle || t("imageUpload.cropTitle")}
         />
       )}
     </>

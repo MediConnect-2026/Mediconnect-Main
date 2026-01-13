@@ -2,6 +2,7 @@ import MCImageUpload from "@/shared/components/MCAuthImageUpload";
 import centerImg from "@/assets/centerOnboarding/centerpfp.png";
 import { useAppStore } from "@/stores/useAppStore";
 import React from "react";
+import { useTranslation } from "react-i18next";
 
 type ProfilePhotoUploadProps = {
   children?: React.ReactNode;
@@ -11,6 +12,7 @@ export function ProfilePhotoUpload({
   children,
   ...modalProps
 }: ProfilePhotoUploadProps) {
+  const { t } = useTranslation("auth");
   const centerOnboardingData = useAppStore(
     (state) => state.centerOnboardingData
   );
@@ -27,7 +29,7 @@ export function ProfilePhotoUpload({
       urlImg: {
         url: fileUrl,
         type: "image",
-        name: "Foto de perfil",
+        name: t("centerProfilePhotoUpload.title"),
       },
     });
   };
@@ -43,11 +45,11 @@ export function ProfilePhotoUpload({
 
   return (
     <MCImageUpload
-      title="Foto de perfil"
-      description="Sube una foto clara y profesional para el perfil del centro."
+      title={t("centerProfilePhotoUpload.title")}
+      description={t("centerProfilePhotoUpload.description")}
       imageSrc={centerImg}
       modalId="center-profile-photo"
-      cropTitle="Recorta la foto de perfil del centro"
+      cropTitle={t("centerProfilePhotoUpload.cropTitle")}
       aspectRatio={1}
       isCircular={true}
       accept="image/*"

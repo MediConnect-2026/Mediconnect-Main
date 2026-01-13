@@ -17,6 +17,7 @@ import {
 import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
 import { XIcon, ArrowLeft } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const dialogStack: string[] = [];
 
@@ -448,6 +449,7 @@ function MorphingDialogClose({
   typeclose,
 }: MorphingDialogCloseProps) {
   const { setIsOpen, uniqueId } = useMorphingDialog();
+  const { t } = useTranslation("auth");
 
   const handleClose = useCallback(
     (e: React.MouseEvent) => {
@@ -455,6 +457,13 @@ function MorphingDialogClose({
       setIsOpen(false);
     },
     [setIsOpen]
+  );
+
+  const backButtonContent = (
+    <div className="group flex items-center gap-2 text-primary transition-all duration-150 hover:opacity-80 active:scale-95 cursor-pointer">
+      <ArrowLeft className="text-primary transition-transform duration-200 group-hover:-translate-x-1 group-hover:scale-110" />
+      <span className="font-medium text-lg">{t("header.back")}</span>
+    </div>
   );
 
   return (
@@ -470,14 +479,7 @@ function MorphingDialogClose({
       variants={variants}
     >
       {children ||
-        (typeclose === "Arrow" ? (
-          <div className="flex items-center justify-center gap-1.5">
-            <ArrowLeft className="p-0 m-0 " size={24} />{" "}
-            <p className="text-lg font-medium">Volver</p>
-          </div>
-        ) : (
-          <XIcon size={24} />
-        ))}
+        (typeclose === "Arrow" ? backButtonContent : <XIcon size={24} />)}
     </motion.button>
   );
 }

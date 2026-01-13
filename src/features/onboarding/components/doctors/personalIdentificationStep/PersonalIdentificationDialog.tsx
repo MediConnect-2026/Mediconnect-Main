@@ -7,24 +7,21 @@ import AuthFooterContainer from "@/features/auth/components/AuthFooterContainer"
 import { useGlobalUIStore } from "@/stores/useGlobalUIStore";
 import { MorphingDialogClose } from "@/shared/ui/morphing-dialog";
 import { useAppStore } from "@/stores/useAppStore";
-const steps = [
-  { title: "Datos personales" },
-  { title: "Información profesional" },
-];
-
+import { useTranslation } from "react-i18next";
 type PersonalIdentificationDialogProps = {
   children?: React.ReactNode;
 };
 
-export function PersonalIdentificationDialogTrigger({
-  children,
-}: PersonalIdentificationDialogProps) {
-  return <>{children}</>;
-}
-
 function PersonalIdentificationDialog({
   children,
 }: PersonalIdentificationDialogProps) {
+  const { t } = useTranslation("auth");
+
+  const steps = [
+    { title: t("personalIdentificationDialog.steps.personal") },
+    { title: t("personalIdentificationDialog.steps.professional") },
+  ];
+
   const current = useGlobalUIStore((s) => s.onboardingStep);
   const setCurrent = useGlobalUIStore((s) => s.setOnboardingStep);
   const [step1Valid, setStep1Valid] = useState(false);
@@ -57,7 +54,7 @@ function PersonalIdentificationDialog({
     >
       <div className="w-full flex flex-col items-center justify-center  mt-10 ">
         <h1 className="text-3xl font-semibold text-center">
-          Identificación profesional
+          {t("personalIdentificationDialog.title")}
         </h1>
         <div className="w-full flex flex-col items-center gap- flex-1">
           <div className="max-w-md w-full mx-auto h-fit">

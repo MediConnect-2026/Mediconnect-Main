@@ -1,6 +1,7 @@
 import MCImageUpload from "@/shared/components/MCAuthImageUpload";
 import academicImg from "@/assets/doctorOnbording/studies.png";
 import { useAppStore } from "@/stores/useAppStore";
+import { useTranslation } from "react-i18next";
 
 type AcademicDegreeUploadProps = {
   children?: React.ReactNode;
@@ -10,6 +11,7 @@ export function AcademicDegreeUploadTrigger({
   children,
   ...modalProps
 }: AcademicDegreeUploadProps) {
+  const { t } = useTranslation("auth");
   const doctorOnboardingData = useAppStore(
     (state) => state.doctorOnboardingData
   );
@@ -41,11 +43,11 @@ export function AcademicDegreeUploadTrigger({
 
   return (
     <MCImageUpload
-      title="Título académico"
-      description="Sube una imagen o PDF claro de tu título académico. Esto ayuda a verificar tus credenciales y mejora la confianza en la plataforma."
+      title={t("academicDegreeUpload.title")}
+      description={t("academicDegreeUpload.description")}
       imageSrc={academicImg}
       modalId="academic-degree"
-      cropTitle="Recorta tu título académico"
+      cropTitle={t("academicDegreeUpload.cropTitle")}
       aspectRatio={1.4}
       isCircular={false}
       accept="image/*,application/pdf"

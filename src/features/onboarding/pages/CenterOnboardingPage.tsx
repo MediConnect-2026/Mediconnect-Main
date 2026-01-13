@@ -51,28 +51,28 @@ function CenterOnboardingPage() {
     return [
       {
         id: "center-info",
-        title: "Información del centro",
+        title: t("centerOnboarding.steps.centerInfo"),
         completed: completionStates.isCenterInfoComplete,
         onClick: () => console.log("Información del centro"),
         trigger: <CenterInfoStep />,
       },
       {
         id: "health-certificate",
-        title: "Certificado de habilitación sanitaria",
+        title: t("centerOnboarding.steps.healthCertificate"),
         completed: completionStates.isHealthCertificateComplete,
         onClick: () => console.log("Certificado sanitario"),
         trigger: <HealthCertificateUpload />,
       },
       {
         id: "profile-photo",
-        title: "Foto de perfil",
+        title: t("centerOnboarding.steps.profilePhoto"),
         optional: true,
         completed: completionStates.isProfilePhotoComplete,
         onClick: () => console.log("Foto de perfil"),
         trigger: <ProfilePhotoUpload />,
       },
     ];
-  }, [completionStates, navigate]);
+  }, [completionStates, navigate, t]);
 
   // Calcular progreso
   const progressStats = useMemo(() => {
@@ -103,27 +103,28 @@ function CenterOnboardingPage() {
 
   return (
     <AuthContentContainer
-      title="Documentos y datos requeridos para el registro de Centros de Salud en MediConnect"
+      title={t("centerOnboarding.title")}
       titleAndSubtitleStart={true}
     >
       <div className="flex flex-col items-center w-full">
         <div className="mb-6 w-full space-y-2">
           <p className="text-base font-medium text-primary/80">
-            Proporciona la información esencial para validar tu institución
-            dentro de la plataforma.
+            {t("centerOnboarding.subtitle")}
           </p>
-
           <div className="flex items-center space-x-2 text-sm text-primary/80 transition-all duration-300">
             <span className="font-semibold transition-all duration-300">
-              {progressStats.completedRequiredItems} de{" "}
-              {progressStats.requiredItemsCount} requeridos
+              {t("centerOnboarding.requiredProgress", {
+                completed: progressStats.completedRequiredItems,
+                total: progressStats.requiredItemsCount,
+              })}
             </span>
             <span className="mx-1 text-accent">•</span>
             <span className="transition-all duration-300">
-              {progressStats.completedOptionalItems} opcionales completados
+              {t("centerOnboarding.optionalProgress", {
+                count: progressStats.completedOptionalItems,
+              })}
             </span>
           </div>
-
           <div className="pt-2">
             <Progress
               value={progressStats.progressPercentage}
@@ -131,7 +132,6 @@ function CenterOnboardingPage() {
             />
           </div>
         </div>
-
         <OnboardingChecklist items={checklistItems} />
         <AuthFooterContainer
           continueButtonProps={{

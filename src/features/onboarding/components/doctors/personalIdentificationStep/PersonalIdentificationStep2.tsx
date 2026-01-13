@@ -5,6 +5,7 @@ import { useAppStore } from "@/stores/useAppStore";
 import { DoctorProfessionalInfoSchema } from "@/schema/OnbordingSchema";
 import { useEffect } from "react";
 import { useGlobalUIStore } from "@/stores/useGlobalUIStore";
+import { useTranslation } from "react-i18next";
 
 type PersonalIdentificationStep2Props = {
   children?: React.ReactNode;
@@ -12,20 +13,12 @@ type PersonalIdentificationStep2Props = {
   onNext?: () => void;
 };
 
-const specialtyOptions = [
-  { value: "medicina_general", label: "Medicina General" },
-  { value: "pediatria", label: "Pediatría" },
-  { value: "cardiologia", label: "Cardiología" },
-  { value: "dermatologia", label: "Dermatología" },
-  { value: "ginecologia", label: "Ginecología" },
-  { value: "otra", label: "Otra" },
-];
-
 function PersonalIdentificationStep2({
   children,
   onValidationChange,
   onNext,
 }: PersonalIdentificationStep2Props) {
+  const { t } = useTranslation("auth");
   const doctorOnboardingData = useAppStore(
     (state) => state.doctorOnboardingData
   );
@@ -34,8 +27,36 @@ function PersonalIdentificationStep2({
     (state) => state.setOnboardingStep
   );
 
+  const specialtyOptions = [
+    {
+      value: "medicina_general",
+      label: t(
+        "professionalIdentificationStep.specialtyOptions.medicina_general"
+      ),
+    },
+    {
+      value: "pediatria",
+      label: t("professionalIdentificationStep.specialtyOptions.pediatria"),
+    },
+    {
+      value: "cardiologia",
+      label: t("professionalIdentificationStep.specialtyOptions.cardiologia"),
+    },
+    {
+      value: "dermatologia",
+      label: t("professionalIdentificationStep.specialtyOptions.dermatologia"),
+    },
+    {
+      value: "ginecologia",
+      label: t("professionalIdentificationStep.specialtyOptions.ginecologia"),
+    },
+    {
+      value: "otra",
+      label: t("professionalIdentificationStep.specialtyOptions.otra"),
+    },
+  ];
+
   const handleSubmit = (data: any) => {
-    // El submit ya no necesita actualizar el store aquí si usas setDoctorField en los onChange
     setOnboardingStep(0);
     onValidationChange?.(true);
     onNext?.();
@@ -47,10 +68,10 @@ function PersonalIdentificationStep2({
     <div className="w-full">
       <div className="mb-5">
         <h1 className="text-2xl sm:text-3xl font-bold text-primary mb-2">
-          Información profesional
+          {t("professionalIdentificationStep.title")}
         </h1>
         <p className="text-primary/60 text-sm sm:text-base">
-          Complete su información profesional
+          {t("professionalIdentificationStep.subtitle")}
         </p>
       </div>
 
@@ -63,14 +84,18 @@ function PersonalIdentificationStep2({
         <div className="space-y-4">
           <MCInput
             name="exequatur"
-            label="Número de Exequátur"
-            placeholder="123456"
+            label={t("professionalIdentificationStep.exequaturLabel")}
+            placeholder={t(
+              "professionalIdentificationStep.exequaturPlaceholder"
+            )}
             onChange={(e) => setDoctorField?.("exequatur", e.target.value)}
           />
           <MCSelect
             name="mainSpecialty"
-            label="Especialidad principal"
-            placeholder="Seleccionar especialidad"
+            label={t("professionalIdentificationStep.mainSpecialtyLabel")}
+            placeholder={t(
+              "professionalIdentificationStep.selectSpecialtyPlaceholder"
+            )}
             options={specialtyOptions}
             onChange={(value) => {
               if (Array.isArray(value)) {
@@ -82,8 +107,12 @@ function PersonalIdentificationStep2({
           />
           <MCSelect
             name="secondarySpecialties"
-            label="Especialidades secundarias"
-            placeholder="Seleccionar especialidades"
+            label={t(
+              "professionalIdentificationStep.secondarySpecialtiesLabel"
+            )}
+            placeholder={t(
+              "professionalIdentificationStep.selectSpecialtiesPlaceholder"
+            )}
             options={specialtyOptions}
             multiple
             onChange={(value) => {

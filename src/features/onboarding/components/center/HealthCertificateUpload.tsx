@@ -2,6 +2,7 @@ import MCImageUpload from "@/shared/components/MCAuthImageUpload";
 import centerDocImg from "@/assets/centerOnboarding/center.png";
 import { useAppStore } from "@/stores/useAppStore";
 import React from "react";
+import { useTranslation } from "react-i18next";
 
 type HealthCertificateUploadProps = {
   children?: React.ReactNode;
@@ -11,6 +12,7 @@ export function HealthCertificateUpload({
   children,
   ...modalProps
 }: HealthCertificateUploadProps) {
+  const { t } = useTranslation("auth");
   const centerOnboardingData = useAppStore(
     (state) => state.centerOnboardingData
   );
@@ -42,11 +44,11 @@ export function HealthCertificateUpload({
 
   return (
     <MCImageUpload
-      title="Certificado de Salud"
-      description="Sube una imagen clara y legible del certificado de salud del centro."
+      title={t("healthCertificateUpload.title")}
+      description={t("healthCertificateUpload.description")}
       imageSrc={centerDocImg}
       modalId="health-certificate"
-      cropTitle="Recorta el certificado de salud"
+      cropTitle={t("healthCertificateUpload.cropTitle")}
       aspectRatio={1.6}
       isCircular={false}
       accept="image/*"

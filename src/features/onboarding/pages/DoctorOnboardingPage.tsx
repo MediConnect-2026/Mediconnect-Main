@@ -79,21 +79,21 @@ function DoctorOnboardingPage() {
     return [
       {
         id: "personal-info",
-        title: "Información personal",
+        title: t("doctorOnboarding.steps.personalInfo"),
         completed: completionStates.isPersonalInfoComplete,
         onClick: () => console.log("Información personal"),
-        trigger: <PersonalIdentificationDialog />, // <-- FIXED
+        trigger: <PersonalIdentificationDialog />,
       },
       {
         id: "id-doc",
-        title: "Documento de identificación",
+        title: t("doctorOnboarding.steps.idDoc"),
         completed: completionStates.isIdDocComplete,
         onClick: () => console.log("Documento"),
         trigger: <GovernmentIdUpload />,
       },
       {
         id: "profile-photo",
-        title: "Foto de perfil",
+        title: t("doctorOnboarding.steps.profilePhoto"),
         optional: true,
         completed: completionStates.isProfilePhotoComplete,
         onClick: () => console.log("Foto"),
@@ -101,7 +101,7 @@ function DoctorOnboardingPage() {
       },
       {
         id: "certs",
-        title: "Certificaciones adicionales",
+        title: t("doctorOnboarding.steps.certs"),
         optional: true,
         completed: completionStates.isCertificationsComplete,
         onClick: () => console.log("Certificaciones"),
@@ -109,14 +109,14 @@ function DoctorOnboardingPage() {
       },
       {
         id: "degree",
-        title: "Título académico",
+        title: t("doctorOnboarding.steps.degree"),
         optional: true,
         completed: completionStates.isAcademicTitleComplete,
         onClick: () => console.log("Título"),
         trigger: <AcademicDegreeUpload />,
       },
     ];
-  }, [completionStates, navigate]);
+  }, [completionStates, navigate, t]);
 
   // Calcular progreso
   const progressStats = useMemo(() => {
@@ -147,27 +147,28 @@ function DoctorOnboardingPage() {
 
   return (
     <AuthContentContainer
-      title="Documentos y datos requeridos para registro de doctores en MediConnect"
+      title={t("doctorOnboarding.title")}
       titleAndSubtitleStart={true}
     >
       <div className="flex flex-col items-center w-full">
         <div className="mb-6 w-full space-y-2">
           <p className="text-base font-medium text-primary/80">
-            Completa estos pasos y empieza a transformar la vida de tus
-            pacientes.
+            {t("doctorOnboarding.subtitle")}
           </p>
-
           <div className="flex items-center space-x-2 text-sm text-primary/80 transition-all duration-300">
             <span className="font-semibold transition-all duration-300">
-              {progressStats.completedRequiredItems} de{" "}
-              {progressStats.requiredItemsCount} requeridos
+              {t("doctorOnboarding.requiredProgress", {
+                completed: progressStats.completedRequiredItems,
+                total: progressStats.requiredItemsCount,
+              })}
             </span>
             <span className="mx-1 text-accent">•</span>
             <span className="transition-all duration-300">
-              {progressStats.completedOptionalItems} opcionales completados
+              {t("doctorOnboarding.optionalProgress", {
+                count: progressStats.completedOptionalItems,
+              })}
             </span>
           </div>
-
           <div className="pt-2">
             <Progress
               value={progressStats.progressPercentage}
@@ -175,7 +176,6 @@ function DoctorOnboardingPage() {
             />
           </div>
         </div>
-
         <OnboardingChecklist items={checklistItems} />
         <AuthFooterContainer
           continueButtonProps={{

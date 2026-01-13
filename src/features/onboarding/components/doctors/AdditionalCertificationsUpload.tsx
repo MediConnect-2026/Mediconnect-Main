@@ -1,6 +1,7 @@
 import MCImageUpload from "@/shared/components/MCAuthImageUpload";
 import Certifciades from "@/assets/doctorOnbording/certificates.png";
 import { useAppStore } from "@/stores/useAppStore";
+import { useTranslation } from "react-i18next";
 
 type AdditionalCertificationsUploadProps = {
   children?: React.ReactNode;
@@ -10,6 +11,7 @@ export function AdditionalCertificationsUploadTrigger({
   children,
   ...modalProps
 }: AdditionalCertificationsUploadProps) {
+  const { t } = useTranslation("auth");
   const doctorOnboardingData = useAppStore(
     (state) => state.doctorOnboardingData
   );
@@ -50,11 +52,11 @@ export function AdditionalCertificationsUploadTrigger({
 
   return (
     <MCImageUpload
-      title="Certificaciones adicionales"
-      description="Adjunta también tus certificaciones profesionales, asegurándote de que todos los archivos sean visibles y estén en formato PDF o imagen."
+      title={t("additionalCertificationsUpload.title")}
+      description={t("additionalCertificationsUpload.description")}
       imageSrc={Certifciades}
       modalId="additional-certifications"
-      cropTitle="Recorta tu certificación"
+      cropTitle={t("additionalCertificationsUpload.cropTitle")}
       aspectRatio={1.4}
       isCircular={false}
       accept="image/*,application/pdf"

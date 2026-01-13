@@ -1,6 +1,7 @@
 import MCImageUpload from "@/shared/components/MCAuthImageUpload";
 import documentImg from "@/assets/doctorOnbording/documents.png";
 import { useAppStore } from "@/stores/useAppStore";
+import { useTranslation } from "react-i18next";
 
 type GovernmentIdUploadProps = {
   children?: React.ReactNode;
@@ -10,6 +11,7 @@ export function GovernmentIdUploadTrigger({
   children,
   ...modalProps
 }: GovernmentIdUploadProps) {
+  const { t } = useTranslation("auth");
   const doctorOnboardingData = useAppStore(
     (state) => state.doctorOnboardingData
   );
@@ -41,11 +43,11 @@ export function GovernmentIdUploadTrigger({
 
   return (
     <MCImageUpload
-      title="Documento de Identificación"
-      description="Sube una imagen clara y legible de tu documento de identidad (frontal y posterior, o pasaporte)."
+      title={t("governmentIdUpload.title")}
+      description={t("governmentIdUpload.description")}
       imageSrc={documentImg}
       modalId="government-id"
-      cropTitle="Recorta tu documento"
+      cropTitle={t("governmentIdUpload.cropTitle")}
       aspectRatio={1.6}
       isCircular={false}
       accept="image/*"

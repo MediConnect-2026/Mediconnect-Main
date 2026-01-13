@@ -1,9 +1,9 @@
 import MCInput from "@/shared/components/forms/MCInput";
 import MCFormWrapper from "@/shared/components/forms/MCFormWrapper";
-import MCTextArea from "@/shared/components/forms/MCTextArea";
 import { useAppStore } from "@/stores/useAppStore";
 import { CenterLocationInfoSchema } from "@/schema/OnbordingSchema";
 import MapSelectLocation from "@/shared/components/maps/MapSelectLocation";
+import { useTranslation } from "react-i18next";
 
 type CenterInfoStep2Props = {
   children?: React.ReactNode;
@@ -16,6 +16,7 @@ function CenterInfoStep2({
   onValidationChange,
   onNext,
 }: CenterInfoStep2Props) {
+  const { t } = useTranslation("auth");
   const centerOnboardingData = useAppStore(
     (state) => state.centerOnboardingData
   );
@@ -43,10 +44,10 @@ function CenterInfoStep2({
     <div className="w-full flex flex-col gap-4">
       <div className="mb-5">
         <h1 className="text-2xl sm:text-3xl font-bold text-primary mb-2">
-          Ubicación del centro
+          {t("centerInfoStep.locationTitle")}
         </h1>
         <p className="text-primary/60 text-sm sm:text-base">
-          Complete la información de ubicación de su centro
+          {t("centerInfoStep.locationSubtitle")}
         </p>
       </div>
 
@@ -73,22 +74,22 @@ function CenterInfoStep2({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <MCInput
               name="address"
-              label="Dirección"
-              placeholder="Calle, número, sector, ciudad"
+              label={t("centerInfoStep.addressLabel")}
+              placeholder={t("centerInfoStep.addressPlaceholder")}
               onChange={(e) => setCenterField?.("address", e.target.value)}
             />
             <MCInput
               name="province"
-              label="Provincia"
-              placeholder="Ej: Santo Domingo"
+              label={t("centerInfoStep.provinceLabel")}
+              placeholder={t("centerInfoStep.provincePlaceholder")}
               onChange={(e) => setCenterField?.("province", e.target.value)}
             />
           </div>
 
           <MCInput
             name="municipality"
-            label="Municipio"
-            placeholder="Ej: Santo Domingo Este"
+            label={t("centerInfoStep.municipalityLabel")}
+            placeholder={t("centerInfoStep.municipalityPlaceholder")}
             onChange={(e) => setCenterField?.("municipality", e.target.value)}
           />
         </div>

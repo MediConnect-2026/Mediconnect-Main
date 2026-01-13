@@ -5,6 +5,7 @@ import MCTextArea from "@/shared/components/forms/MCTextArea";
 import { useAppStore } from "@/stores/useAppStore";
 import { CenterBasicInfoSchema } from "@/schema/OnbordingSchema";
 import { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 
 type CenterInfoStep1Props = {
   children?: React.ReactNode;
@@ -17,17 +18,24 @@ function CenterInfoStep1({
   onValidationChange,
   onNext,
 }: CenterInfoStep1Props) {
+  const { t } = useTranslation("auth");
   const centerOnboardingData = useAppStore(
     (state) => state.centerOnboardingData
   );
   const setCenterField = useAppStore((state) => state.setCenterField);
 
   const typeOptions = [
-    { value: "clinica", label: "Clínica" },
-    { value: "hospital", label: "Hospital" },
-    { value: "laboratorio", label: "Laboratorio" },
-    { value: "centro_diagnostico", label: "Centro Diagnóstico" },
-    { value: "otro", label: "Otro" },
+    { value: "clinica", label: t("centerInfoStep.typeOptions.clinica") },
+    { value: "hospital", label: t("centerInfoStep.typeOptions.hospital") },
+    {
+      value: "laboratorio",
+      label: t("centerInfoStep.typeOptions.laboratorio"),
+    },
+    {
+      value: "centro_diagnostico",
+      label: t("centerInfoStep.typeOptions.centro_diagnostico"),
+    },
+    { value: "otro", label: t("centerInfoStep.typeOptions.otro") },
   ];
 
   const handleSubmit = (data: any) => {
@@ -43,10 +51,10 @@ function CenterInfoStep1({
     <div className="w-full">
       <div className="mb-5">
         <h1 className="text-2xl sm:text-3xl font-bold text-primary mb-2">
-          Información del centro
+          {t("centerInfoStep.title")}
         </h1>
         <p className="text-primary/60 text-sm sm:text-base">
-          Complete la información básica de su centro
+          {t("centerInfoStep.subtitle")}
         </p>
       </div>
 
@@ -61,14 +69,14 @@ function CenterInfoStep1({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <MCInput
               name="name"
-              label="Nombre del centro"
-              placeholder="Centro Médico Vitalia"
+              label={t("centerInfoStep.nameLabel")}
+              placeholder={t("centerInfoStep.namePlaceholder")}
               onChange={(e) => setCenterField?.("name", e.target.value)}
             />
             <MCSelect
               name="centerType"
-              label="Tipo de centro"
-              placeholder="Seleccionar tipo"
+              label={t("centerInfoStep.centerTypeLabel")}
+              placeholder={t("centerInfoStep.centerTypePlaceholder")}
               options={typeOptions}
               onChange={(value) =>
                 setCenterField?.(
@@ -82,8 +90,8 @@ function CenterInfoStep1({
           {/* Descripción */}
           <MCTextArea
             name="Description"
-            label="Descripción"
-            placeholder="Describe brevemente el centro"
+            label={t("centerInfoStep.descriptionLabel")}
+            placeholder={t("centerInfoStep.descriptionPlaceholder")}
             onChange={(e) => setCenterField?.("Description", e.target.value)}
           />
 
@@ -91,14 +99,14 @@ function CenterInfoStep1({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <MCInput
               name="website"
-              label="Sitio web"
-              placeholder="https://tucentro.com"
+              label={t("centerInfoStep.websiteLabel")}
+              placeholder={t("centerInfoStep.websitePlaceholder")}
               onChange={(e) => setCenterField?.("website", e.target.value)}
             />
             <MCInput
               name="rnc"
-              label="RNC"
-              placeholder="123456789"
+              label={t("centerInfoStep.rncLabel")}
+              placeholder={t("centerInfoStep.rncPlaceholder")}
               onChange={(e) => setCenterField?.("rnc", e.target.value)}
             />
           </div>
@@ -106,9 +114,9 @@ function CenterInfoStep1({
           {/* Teléfono */}
           <MCInput
             name="phone"
-            label="Teléfono"
+            label={t("centerInfoStep.phoneLabel")}
             type="tel"
-            placeholder="+1 (809) 000-0000"
+            placeholder={t("centerInfoStep.phonePlaceholder")}
             onChange={(e) => setCenterField?.("phone", e.target.value)}
           />
         </div>

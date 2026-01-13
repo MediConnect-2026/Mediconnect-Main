@@ -7,7 +7,7 @@ import AuthFooterContainer from "@/features/auth/components/AuthFooterContainer"
 import { useAppStore } from "@/stores/useAppStore";
 import { MorphingDialogClose } from "@/shared/ui/morphing-dialog";
 import { useGlobalUIStore } from "@/stores/useGlobalUIStore";
-const steps = [{ title: "Información Básica" }, { title: "Ubicación" }];
+import { useTranslation } from "react-i18next";
 
 type CenterInfoDialogProps = {
   children?: React.ReactNode;
@@ -18,6 +18,12 @@ export function CenterInfoDialogTrigger({ children }: CenterInfoDialogProps) {
 }
 
 function CenterInfoStep({ children }: CenterInfoDialogProps) {
+  const { t } = useTranslation("auth");
+  const steps = [
+    { title: t("centerInfoStep.steps.basic") },
+    { title: t("centerInfoStep.steps.location") },
+  ];
+
   const current = useGlobalUIStore((s) => s.onboardingStep);
   const setCurrent = useGlobalUIStore((s) => s.setOnboardingStep);
   const [step1Valid, setStep1Valid] = useState(false);
@@ -50,7 +56,7 @@ function CenterInfoStep({ children }: CenterInfoDialogProps) {
     >
       <div className="w-full flex flex-col items-center justify-center mt-10">
         <h1 className="text-3xl font-semibold text-center">
-          Información del centro
+          {t("centerInfoStep.title")}
         </h1>
         <div className="w-full flex flex-col items-center flex-1">
           <div className="max-w-md w-full mx-auto h-fit">

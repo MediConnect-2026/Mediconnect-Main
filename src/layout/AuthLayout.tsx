@@ -17,7 +17,7 @@ function AuthLayout() {
       if (!currentPath.startsWith("/auth")) {
         clearOnboarding();
         clearAuthFlow();
-        setAccessPage(false, []);
+        setAccessPage(false, [], "Auth flow exited");
       }
     };
   }, [location.pathname, clearAuthFlow, clearOnboarding, setAccessPage]);
