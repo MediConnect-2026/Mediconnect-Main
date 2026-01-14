@@ -46,29 +46,6 @@ const isMac =
   /Mac|iPod|iPhone|iPad/.test(navigator.platform);
 const cmdOrCtrl = isMac ? "⌘" : "Ctrl";
 
-const languages = [
-  { code: "es", label: "Español", flag: flagSpain },
-  { code: "en", label: "English", flag: flagUSA },
-];
-
-const themeOptions: { value: Theme; label: string; icon: React.ReactNode }[] = [
-  {
-    value: "light",
-    label: "Claro",
-    icon: <Sun className="w-4 h-4 text-primary" />,
-  },
-  {
-    value: "dark",
-    label: "Oscuro",
-    icon: <Moon className="w-4 h-4 text-primary" />,
-  },
-  {
-    value: "system",
-    label: "Sistema",
-    icon: <Monitor className="w-4 h-4 text-primary" />,
-  },
-];
-
 interface UserData {
   name: string;
   email: string;
@@ -109,7 +86,7 @@ export function MCUserMenuContent({
   isMobile,
   userRole,
 }: MCUserMenuContentProps) {
-  const { t } = useTranslation("dashboard");
+  const { t } = useTranslation("common");
 
   const handleLanguageChange = (langCode: string) => {
     setLanguage(langCode);
@@ -127,7 +104,37 @@ export function MCUserMenuContent({
       setSubMenuOpen(null);
     }
   };
+  const languages = [
+    {
+      code: "es",
+      label: t("userMenu.spanish", { defaultValue: "Español" }),
+      flag: flagSpain,
+    },
+    {
+      code: "en",
+      label: t("userMenu.english", { defaultValue: "English" }),
+      flag: flagUSA,
+    },
+  ];
 
+  const themeOptions: { value: Theme; label: string; icon: React.ReactNode }[] =
+    [
+      {
+        value: "light",
+        label: t("userMenu.themeLight", { defaultValue: "Light" }),
+        icon: <Sun className="w-4 h-4 text-primary" />,
+      },
+      {
+        value: "dark",
+        label: t("userMenu.themeDark", { defaultValue: "Dark" }),
+        icon: <Moon className="w-4 h-4 text-primary" />,
+      },
+      {
+        value: "system",
+        label: t("userMenu.themeSystem", { defaultValue: "System" }),
+        icon: <Monitor className="w-4 h-4 text-primary" />,
+      },
+    ];
   // Componente para submenú móvil
   const MobileSubMenu = ({
     title,
@@ -189,7 +196,7 @@ export function MCUserMenuContent({
     ];
 
     // Agregar ítems específicos por rol
-    if (userRole === "DOCTOR" || userRole === "HEALTH_CENTER") {
+    if (userRole === "DOCTOR" || userRole === "CENTER") {
       baseItems.push({
         icon: <FileCheck className="w-4 h-4 mr-2" />,
         label: t("userMenu.verificationDocs"),

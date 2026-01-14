@@ -1,0 +1,8 @@
+{
+  "navbar": {
+    "home": "Inicio",
+    "appointments": "Citas",
+    "doctors": "Doctores",
+    "calendar": "Calendario"
+  }
+}

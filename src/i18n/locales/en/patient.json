@@ -1,0 +1,8 @@
+{
+  "navbar": {
+    "home": "Home",
+    "appointments": "Appointments",
+    "doctors": "Doctors",
+    "calendar": "Calendar"
+  }
+}

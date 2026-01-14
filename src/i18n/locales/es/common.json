@@ -1,0 +1,22 @@
+{
+  "userMenu": {
+    "spanish": "Español",
+    "english": "Inglés",
+    "themeLight": "Claro",
+    "themeDark": "Oscuro",
+    "themeSystem": "Sistema",
+    "changeLanguage": "Cambiar idioma",
+    "changeTheme": "Cambiar tema",
+    "viewProfile": "Ver perfil",
+    "editProfile": "Editar perfil",
+    "verificationDocs": "Documentos de verificación",
+    "requests": "Solicitudes",
+    "settings": "Configuración",
+    "privacy": "Privacidad",
+    "logout": "Cerrar sesión",
+    "doctor": "Doctor",
+    "patient": "Paciente",
+    "center": "Centro",
+    "admin": "Administrador"
+  }
+}

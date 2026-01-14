@@ -17,12 +17,20 @@ import { NAVBAR_CONFIG } from "@/config/navbar.config";
 
 function MCNavbar() {
   const location = useLocation();
-  const { t } = useTranslation("dashboard");
+  const { t } = useTranslation(); // Usar namespace automático
   const theme = useGlobalUIStore((state) => state.theme);
   const role = useAppStore((state) => state.user?.role);
 
   const effectiveRole = role || "PATIENT";
   const menuConfig = NAVBAR_CONFIG[effectiveRole as keyof typeof NAVBAR_CONFIG];
+
+  // Definir namespace según rol
+  const nsMap: Record<string, string> = {
+    PATIENT: "patient",
+    DOCTOR: "doctor",
+    CENTER: "center",
+  };
+  const ns = nsMap[effectiveRole] || "patient";
 
   return (
     <nav className="w-full flex items-center justify-between px-4 sm:px-6 lg:px-10 py-3 bg-background rounded-full shadow-md border border-border">
@@ -51,7 +59,7 @@ function MCNavbar() {
                           : "font-normal opacity-70 hover:opacity-100"
                       }`}
                     >
-                      {item.label}
+                      {t(`navbar.${item.label.toLowerCase()}`, { ns })}
                     </Link>
                   </NavigationMenuLink>
                 </NavigationMenuItem>

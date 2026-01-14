@@ -3,30 +3,30 @@ export const NAVBAR_CONFIG = {
   PATIENT: {
     home: "/patient/dashboard",
     menu: [
-      { label: "Inicio", href: "/patient/dashboard" },
-      { label: "Citas", href: "/patient/my-appointments" },
-      { label: "Doctores", href: "/patient/find-doctor" },
-      { label: "Calendario", href: "/patient/calendar" },
+      { label: "home", href: "/patient/dashboard" },
+      { label: "appointments", href: "/patient/my-appointments" },
+      { label: "doctors", href: "/patient/find-doctor" },
+      { label: "calendar", href: "/patient/calendar" },
     ],
   },
 
   DOCTOR: {
     home: "/doctor/dashboard",
     menu: [
-      { label: "Inicio", href: "/doctor/dashboard" },
-      { label: "Pacientes", href: "/doctor/my-patients" },
-      { label: "Citas", href: "/doctor/appointments" },
-      { label: "Servicios", href: "/doctor/services" },
-      { label: "Calendario", href: "/doctor/schedule" },
+      { label: "home", href: "/doctor/dashboard" },
+      { label: "patients", href: "/doctor/my-patients" },
+      { label: "appointments", href: "/doctor/appointments" },
+      { label: "services", href: "/doctor/services" },
+      { label: "schedule", href: "/doctor/schedule" },
     ],
   },
 
   CENTER: {
     home: "/center/dashboard",
     menu: [
-      { label: "Inicio", href: "/center/dashboard" },
-      { label: "Doctores", href: "/center/staff" },
-      { label: "Solicitudes", href: "/center/requests" },
+      { label: "home", href: "/center/dashboard" },
+      { label: "doctors", href: "/center/staff" },
+      { label: "requests", href: "/center/requests" },
     ],
   },
 };

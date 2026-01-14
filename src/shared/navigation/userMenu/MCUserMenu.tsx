@@ -16,7 +16,7 @@ export function MCUserMenu() {
   const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
 
   // Hooks globales
-  const { t } = useTranslation("dashboard");
+  const { t } = useTranslation("common");
   const language = useGlobalUIStore((state) => state.language);
   const setLanguage = useGlobalUIStore((state) => state.setLanguage);
   const theme = useGlobalUIStore((state) => state.theme);
@@ -52,7 +52,7 @@ export function MCUserMenu() {
           email: "HospDarioCont@gmail.com",
           avatar: "",
           initials: "HC",
-          roleLabel: t("userMenu.healthCenter"),
+          roleLabel: t("userMenu.center"),
         };
       default:
         return {

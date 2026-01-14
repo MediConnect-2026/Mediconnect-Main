@@ -1,0 +1,9 @@
+{
+  "navbar": {
+    "home": "Inicio",
+    "patients": "Pacientes",
+    "appointments": "Citas",
+    "services": "Servicios",
+    "schedule": "Calendario"
+  }
+}
