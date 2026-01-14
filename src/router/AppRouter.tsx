@@ -17,6 +17,11 @@ import SetCredentialsPage from "@/features/onboarding/pages/SetCredentialsPage";
 import DoctorOnboardingPage from "@/features/onboarding/pages/DoctorOnboardingPage";
 import CenterOnboardingPage from "@/features/onboarding/pages/CenterOnboardingPage";
 import RegisterSuccessPage from "@/features/onboarding/pages/RegisterSuccessPage";
+
+import PatientDashboard from "@/features/patient/pages/DashboardPage";
+import DoctorDashboard from "@/features/doctor/pages/DashboardPage";
+import CenterDashboard from "@/features/center/pages/DashboardPage";
+
 function AppRouter() {
   return (
     <BrowserRouter>
@@ -78,7 +83,11 @@ function AppRouter() {
           />
         </Route>
         <Route element={<DarkLayout />}>
-          <Route element={<DashboardLayout />}></Route>
+          <Route element={<DashboardLayout />}>
+            <Route path={ROUTES.PATIENT.HOME} element={<PatientDashboard />} />
+            <Route path={ROUTES.DOCTOR.HOME} element={<DoctorDashboard />} />
+            <Route path={ROUTES.CENTER.HOME} element={<CenterDashboard />} />
+          </Route>
         </Route>
       </Router>
     </BrowserRouter>
