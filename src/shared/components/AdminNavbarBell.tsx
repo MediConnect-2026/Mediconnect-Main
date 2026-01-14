@@ -146,10 +146,7 @@ function AdminNavbarBell() {
               <TabsTrigger
                 value="unread"
                 className={cn(
-                  "flex-1 text-xs font-medium py-3 rounded-md transition-all duration-200",
-                  activeTab === "unread"
-                    ? "bg-primary text-white shadow"
-                    : "bg-accent text-accent-foreground "
+                  "flex-1 text-xs font-medium py-3 rounded-md transition-all duration-200"
                 )}
               >
                 Unread
@@ -157,10 +154,7 @@ function AdminNavbarBell() {
               <TabsTrigger
                 value="read"
                 className={cn(
-                  "flex-1 text-xs font-medium py-3 px-3 rounded-md transition-all duration-200",
-                  activeTab === "read"
-                    ? "bg-primary text-white shadow"
-                    : "bg-accent text-accent-foreground "
+                  "flex-1 text-xs font-medium py-3 px-3 rounded-md transition-all duration-200"
                 )}
               >
                 Read
