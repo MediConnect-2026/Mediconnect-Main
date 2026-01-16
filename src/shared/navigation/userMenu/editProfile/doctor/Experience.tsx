@@ -8,7 +8,7 @@ import { useProfileStore } from "@/stores/useProfileStore";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
 import { Plus, Trash2, GripVertical } from "lucide-react";
 import { useFormContext } from "react-hook-form";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { MCDialogBase } from "@/shared/components/MCDialogBase";
 import {
   draggable,
@@ -44,41 +44,52 @@ function DraggableExperienceCard({
   experience,
   index,
   onDelete,
-  onDragStart,
-  onDragOver,
-  onDrop,
+  onReorder,
   isMobile,
   months,
   years,
   t,
 }: DraggableExperienceCardProps & {
-  onDragStart: (index: number) => void;
-  onDragOver: (index: number) => void;
-  onDrop: (index: number) => void;
+  onReorder: (startIndex: number, finishIndex: number) => void;
 }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const handleRef = useRef<HTMLButtonElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isOver, setIsOver] = useState(false);
 
+  useEffect(() => {
+    const element = ref.current;
+    const handle = handleRef.current;
+    if (!element || !handle) return;
+
+    return combine(
+      draggable({
+        element,
+        dragHandle: handle,
+        getInitialData: () => ({ index }),
+        onDragStart: () => setIsDragging(true),
+        onDrop: () => setIsDragging(false),
+      }),
+      dropTargetForElements({
+        element,
+        getData: () => ({ index }),
+        onDragEnter: () => setIsOver(true),
+        onDragLeave: () => setIsOver(false),
+        onDrop: ({ source }) => {
+          setIsOver(false);
+          const startIndex = source.data.index as number;
+          if (startIndex !== index) {
+            onReorder(startIndex, index);
+          }
+        },
+      })
+    );
+  }, [index, onReorder]);
+
   return (
     <div
-      draggable
-      onDragStart={() => {
-        setIsDragging(true);
-        onDragStart(index);
-      }}
-      onDragEnd={() => setIsDragging(false)}
-      onDragOver={(e) => {
-        e.preventDefault();
-        setIsOver(true);
-        onDragOver(index);
-      }}
-      onDragLeave={() => setIsOver(false)}
-      onDrop={(e) => {
-        e.preventDefault();
-        setIsOver(false);
-        onDrop(index);
-      }}
-      className={`relative rounded-3xl border p-4 bg-white transition-all cursor-move ${
+      ref={ref}
+      className={`relative rounded-3xl border p-4 bg-white transition-all ${
         isDragging ? "opacity-50 scale-95" : ""
       } ${isOver ? "border-primary border-2 shadow-lg" : "border-primary/10"}`}
     >
@@ -86,6 +97,7 @@ function DraggableExperienceCard({
       <div className="flex items-center justify-between pb-4">
         {/* Drag Handle */}
         <button
+          ref={handleRef}
           type="button"
           className="bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-full w-8 h-8 flex items-center justify-center cursor-grab active:cursor-grabbing transition-colors mr-2"
           aria-label={t("experienceForm.dragHandle")}
@@ -244,6 +256,15 @@ function ExperienceFields() {
     }
   };
 
+  const handleReorder = (startIndex: number, finishIndex: number) => {
+    const reordered = reorder({
+      list: experiences,
+      startIndex,
+      finishIndex,
+    });
+    setValue("experiences", reordered);
+  };
+
   // If no experiences, show add button
   if (!experiences.length) {
     return (
@@ -271,13 +292,11 @@ function ExperienceFields() {
             experience={experience}
             index={index}
             onDelete={setDeleteIndex}
+            onReorder={handleReorder}
             isMobile={isMobile}
             months={months}
             years={years}
             t={t}
-            onDragStart={handleDragStart}
-            onDragOver={handleDragOver}
-            onDrop={handleDrop}
           />
         ))}
       </div>
