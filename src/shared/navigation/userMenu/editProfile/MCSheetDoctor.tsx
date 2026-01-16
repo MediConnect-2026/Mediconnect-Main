@@ -22,7 +22,6 @@ interface MCSheetDoctorProps {
 type CropType = "banner" | "profile";
 
 function MCSheetDoctor({ onOpenChange }: MCSheetDoctorProps) {
-  const isMobile = useIsMobile();
   const [formData, setFormData] = useState({
     nombre: "Dr. Cristiano Ronaldo",
     especialidad: "Cardiología",

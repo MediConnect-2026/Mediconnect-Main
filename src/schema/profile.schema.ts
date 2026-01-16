@@ -74,6 +74,19 @@ export function patientProfileSchema(t: (key: string) => string) {
   });
 }
 
+export function patientClinicalHistorySchema(t: (key: string) => string) {
+  return z.object({
+    allergies: z.array(z.string()).optional(),
+    conditions: z.array(z.string()).optional(),
+  });
+}
+
+export function patientInsuranceSchema(t: (key: string) => string) {
+  return z.object({
+    insuranceProvider: z.array(z.string()).optional(),
+  });
+}
+
 export function centerProfileSchema(t: (key: string) => string) {
   return profileSchema(t).extend({
     centerType: z.string().min(1, t("validation.centerTypeRequired")),

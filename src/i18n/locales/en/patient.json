@@ -10,16 +10,20 @@
     "editProfileDescription": "Modify your personal and medical information",
     "generalInfo": "General Information",
     "clinicalHistory": "Clinical History",
-    "insurance": "Insurance",
+    "insurance": "Medical Insurance",
     "bannerImage": "Banner Image",
     "changeImage": "Change image",
     "deleteBanner": "Delete banner",
+    "confirmDeleteBannerTitle": "Delete banner image?",
+    "confirmDeleteBannerDescription": "This action cannot be undone. The banner image will be permanently deleted.",
     "profilePhoto": "Profile Photo",
     "recommended": "Recommended: 400x400px, JPG or PNG format",
     "deleteProfilePhoto": "Delete profile photo",
+    "confirmDeleteTitle": "Delete profile photo?",
+    "confirmDeleteDescription": "This action cannot be undone. The profile photo will be permanently deleted.",
     "fullName": "Full Name",
     "fullNamePlaceholder": "Enter your full name",
-    "identityDocument": "ID",
+    "identityDocument": "ID Number",
     "identityDocumentPlaceholder": "000-0000000-0",
     "email": "Email",
     "emailPlaceholder": "email@example.com",
@@ -36,14 +40,34 @@
     "cropBanner": "Crop banner",
     "cropProfilePhoto": "Crop profile photo"
   },
+  "clinicalHistory": {
+    "importantTitle": "Important Clinical History",
+    "importantDescription": "Keep your medical information updated to receive safer and more personalized care.",
+    "allergies": "Allergies",
+    "addAllergy": "Add Allergy",
+    "selectAllergy": "Select an allergy",
+    "removeAllergy": "Remove allergy",
+    "conditions": "Conditions",
+    "addCondition": "Add Condition",
+    "removeCondition": "Remove condition",
+    "conditionPlaceholder": "Describe your condition"
+  },
+  "insurance": {
+    "title": "Medical Insurance",
+    "description": "Add your current medical insurance to facilitate your care.",
+    "list": "Your Insurance",
+    "add": "Add Medical Insurance",
+    "select": "Select insurance",
+    "remove": "Remove insurance"
+  },
   "validation": {
     "fullNameRequired": "Full name is required",
-    "identityDocumentRequired": "ID is required",
-    "identityDocumentInvalid": "Invalid ID format",
+    "identityDocumentRequired": "ID number is required",
+    "identityDocumentInvalid": "Invalid ID number format",
     "emailInvalid": "Invalid email address",
-    "ageInvalid": "Invalid input: expected number, received string",
-    "heightInvalid": "Invalid input: expected number, received string",
-    "weightInvalid": "Invalid input: expected number, received string",
-    "bloodTypeInvalid": "Invalid option: expected one of A+, A-, B+, B-, AB+, AB-, O+, O-"
+    "ageInvalid": "Invalid input: a number was expected",
+    "heightInvalid": "Invalid input: a number was expected",
+    "weightInvalid": "Invalid input: a number was expected",
+    "bloodTypeInvalid": "Invalid option: expected A+, A-, B+, B-, AB+, AB-, O+ or O-"
   }
 }

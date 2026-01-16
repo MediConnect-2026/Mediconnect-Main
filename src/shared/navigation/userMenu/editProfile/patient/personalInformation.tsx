@@ -9,7 +9,7 @@ import { MCUserBanner } from "../../MCUserBanner";
 import { Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { MCDialogBase } from "@/shared/components/MCDialogBase";
-import { MCModalBase } from "@/shared/components/MCModalBase";
+import { useIsMobile } from "@/lib/hooks/useIsMobile";
 
 interface PersonalInformationProps {
   schema: any;
@@ -23,15 +23,14 @@ function PersonalInformation({
   onOpenChange,
 }: PersonalInformationProps) {
   const { t } = useTranslation("patient");
+  const isMobile = useIsMobile();
   const patientProfile = useProfileStore((s) => s.patientProfile);
   const setPatientProfile = useProfileStore((s) => s.setPatientProfile);
 
-  // Estado local para cropper
   const [cropModalOpen, setCropModalOpen] = useState(false);
   const [cropType, setCropType] = useState<CropType>("profile");
   const [tempImage, setTempImage] = useState<string>("");
 
-  // Estado local para las imágenes
   const [bannerImage, setBannerImage] = useState<string>(
     patientProfile?.banner?.url || ""
   );
@@ -42,9 +41,7 @@ function PersonalInformation({
   const bannerInputRef = useRef<HTMLInputElement>(null);
   const profileInputRef = useRef<HTMLInputElement>(null);
 
-  // Estado para controlar la apertura del modal de eliminación de imagen de perfil
   const [showDeleteProfileModal, setShowDeleteProfileModal] = useState(false);
-  // Estado para controlar la apertura del modal de eliminación de imagen de banner
   const [showDeleteBannerModal, setShowDeleteBannerModal] = useState(false);
 
   const handleImageChange = (
@@ -73,22 +70,20 @@ function PersonalInformation({
     setCropModalOpen(false);
   };
 
-  // Borrar imagen de perfil
   const handleRemoveProfileImage = () => {
     setProfileImage("");
     if (profileInputRef.current) {
       profileInputRef.current.value = "";
     }
-    setShowDeleteProfileModal(false); // Cierra el modal después de borrar
+    setShowDeleteProfileModal(false);
   };
 
-  // Borrar imagen de banner
   const handleRemoveBannerImage = () => {
     setBannerImage("");
     if (bannerInputRef.current) {
       bannerInputRef.current.value = "";
     }
-    setShowDeleteBannerModal(false); // Cierra el modal después de borrar
+    setShowDeleteBannerModal(false);
   };
 
   const handleSubmit = (data: any) => {
@@ -123,7 +118,6 @@ function PersonalInformation({
         }
       />
 
-      {/* Modal para eliminar foto de perfil */}
       <MCDialogBase
         open={showDeleteProfileModal}
         onOpenChange={setShowDeleteProfileModal}
@@ -136,7 +130,6 @@ function PersonalInformation({
         <p>{t("profileForm.confirmDeleteDescription")}</p>
       </MCDialogBase>
 
-      {/* Modal para eliminar banner */}
       <MCDialogBase
         open={showDeleteBannerModal}
         onOpenChange={setShowDeleteBannerModal}
@@ -157,12 +150,16 @@ function PersonalInformation({
         onSubmit={handleSubmit}
         className="flex flex-col gap-4"
       >
-        {/* Imagen de Banner */}
-        <div className="flex flex-col gap-4">
-          <h3 className="text-lg font-medium">
+        {/* Banner Image */}
+        <div className="flex flex-col gap-3">
+          <h3 className={`${isMobile ? "text-base" : "text-lg"} font-medium`}>
             {t("profileForm.bannerImage")}
           </h3>
-          <div className="relative w-full h-40 bg-accent/30 rounded-2xl overflow-hidden group">
+          <div
+            className={`relative w-full ${
+              isMobile ? "h-28" : "h-40"
+            } bg-accent/30 rounded-2xl overflow-hidden group`}
+          >
             <label
               className="absolute inset-0 cursor-pointer"
               onClick={() => bannerInputRef.current?.click()}
@@ -189,7 +186,11 @@ function PersonalInformation({
                 onChange={(e) => handleImageChange(e, "banner")}
               />
               <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                <span className="text-white font-semibold text-lg">
+                <span
+                  className={`text-white font-semibold ${
+                    isMobile ? "text-sm" : "text-lg"
+                  }`}
+                >
                   {t("profileForm.changeImage")}
                 </span>
               </div>
@@ -197,26 +198,32 @@ function PersonalInformation({
             {bannerImage && (
               <button
                 type="button"
-                className="absolute top-2 right-3 bg-red-500 text-white rounded-full w-9 h-9 flex items-center justify-center shadow-lg hover:bg-red-600 transition-colors z-20 border-2 border-white"
+                className={`absolute top-2 right-3 bg-red-500 text-white rounded-full ${
+                  isMobile ? "w-7 h-7" : "w-9 h-9"
+                } flex items-center justify-center shadow-lg hover:bg-red-600 transition-colors z-20 border-2 border-white`}
                 onClick={(e) => {
                   e.stopPropagation();
                   setShowDeleteBannerModal(true);
                 }}
                 aria-label={t("profileForm.deleteBanner")}
               >
-                <Trash2 className="w-5 h-5" />
+                <Trash2 className={`${isMobile ? "w-4 h-4" : "w-5 h-5"}`} />
               </button>
             )}
           </div>
         </div>
 
-        {/* Foto de perfil */}
-        <div className="flex flex-col gap-4">
-          <h3 className="text-lg font-medium">
+        {/* Profile Photo */}
+        <div className="flex flex-col gap-3">
+          <h3 className={`${isMobile ? "text-base" : "text-lg"} font-medium`}>
             {t("profileForm.profilePhoto")}
           </h3>
           <div className="flex items-center gap-4">
-            <div className="relative w-32 h-32 overflow-hidden group">
+            <div
+              className={`relative ${
+                isMobile ? "w-24 h-24" : "w-32 h-32"
+              } overflow-hidden group`}
+            >
               <div className="w-full h-full rounded-full border-4">
                 <label
                   className="absolute inset-0 cursor-pointer"
@@ -234,7 +241,7 @@ function PersonalInformation({
                         patientProfile?.fullName ||
                         t("profileForm.fullNamePlaceholder")
                       }
-                      size={128}
+                      size={isMobile ? 96 : 128}
                       className="w-full h-full"
                     />
                   )}
@@ -246,36 +253,45 @@ function PersonalInformation({
                     onChange={(e) => handleImageChange(e, "profile")}
                   />
                   <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-full">
-                    <span className="text-white font-semibold text-sm">
+                    <span
+                      className={`text-white font-semibold ${
+                        isMobile ? "text-xs text-center px-2" : "text-sm"
+                      }`}
+                    >
                       {t("profileForm.changeImage")}
                     </span>
                   </div>
                 </label>
               </div>
-              {/* Botón de eliminar rojo */}
               {profileImage && (
                 <button
                   type="button"
-                  className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-9 h-9 flex items-center justify-center shadow-lg hover:bg-red-600 transition-colors z-20 border-2 border-white"
+                  className={`absolute top-0 right-0 bg-red-500 text-white rounded-full ${
+                    isMobile ? "w-7 h-7" : "w-9 h-9"
+                  } flex items-center justify-center shadow-lg hover:bg-red-600 transition-colors z-20 border-2 border-white`}
                   onClick={(e) => {
                     e.stopPropagation();
                     setShowDeleteProfileModal(true);
                   }}
                   aria-label={t("profileForm.deleteProfilePhoto")}
                 >
-                  <Trash2 className="w-5 h-5" />
+                  <Trash2 className={`${isMobile ? "w-4 h-4" : "w-5 h-5"}`} />
                 </button>
               )}
             </div>
             <div className="flex flex-col gap-2">
-              <p className="text-sm text-muted-foreground">
+              <p
+                className={`${
+                  isMobile ? "text-xs" : "text-sm"
+                } text-muted-foreground`}
+              >
                 {t("profileForm.recommended")}
               </p>
             </div>
           </div>
         </div>
 
-        {/* Inputs del formulario */}
+        {/* Form Inputs */}
         <MCInput
           name="fullName"
           label={t("profileForm.fullName")}
@@ -325,14 +341,22 @@ function PersonalInformation({
           placeholder={t("profileForm.bloodTypePlaceholder")}
         />
 
-        <div className="flex gap-3 mt-4">
-          <MCButton variant="primary" size="m" type="submit">
+        <div
+          className={`flex ${isMobile ? "flex-col" : "flex-row"} gap-3 mt-4`}
+        >
+          <MCButton
+            variant="primary"
+            size="m"
+            type="submit"
+            className={isMobile ? "w-full" : ""}
+          >
             {t("profileForm.saveChanges")}
           </MCButton>
           <MCButton
             variant="secondary"
             size="m"
             onClick={() => onOpenChange(false)}
+            className={isMobile ? "w-full" : ""}
           >
             {t("profileForm.cancel")}
           </MCButton>

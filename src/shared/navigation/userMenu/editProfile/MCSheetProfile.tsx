@@ -34,8 +34,8 @@ function MCSheetProfile({ open, onOpenChange }: MCSheetProfileProps) {
         aria-describedby="mc-sheet-desc"
         className={
           isMobile
-            ? "inset-y-0 my-2.5 flex items-center justify-center h-[calc(100%-20px)] w-[calc(100vw-10px)] ml-[10px] rounded-l-4xl border-accent"
-            : "min-w-1/1.5 border-accent inset-y-0 my-2.5 flex items-center justify-center h-[calc(100%-20px)] rounded-l-4xl"
+            ? "inset-y-0 my-2.5 flex items-center justify-center h-[calc(100%-20px)] w-[calc(100vw-20px)] ml-[10px] rounded-l-4xl border-accent overflow-hidden"
+            : "w-[900px] border-accent inset-y-0 my-2.5 flex items-center justify-center h-[calc(100%-20px)] rounded-l-4xl"
         }
       >
         {renderProfileContent()}
