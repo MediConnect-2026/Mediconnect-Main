@@ -291,7 +291,7 @@ function GeneralInfortmation({ onOpenChange }: GeneralInfortmationProps) {
 
         {/* Form Inputs */}
         <MCInput
-          name="name"
+          name="fullName"
           label={t("profileForm.fullName")}
           type="text"
           placeholder={t("profileForm.fullNamePlaceholder")}

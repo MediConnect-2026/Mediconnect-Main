@@ -3,5 +3,67 @@
     "home": "Inicio",
     "doctors": "Doctores",
     "requests": "Solicitudes"
+  },
+  "editProfile": {
+    "title": "Editar perfil del centro",
+    "subtitle": "Modifica la información general y la ubicación de tu centro de salud."
+  },
+  "tabs": {
+    "general": "Información general",
+    "location": "Ubicación"
+  },
+  "profileForm": {
+    "bannerImage": "Imagen de portada",
+    "profilePhoto": "Foto de perfil",
+    "changeImage": "Cambiar imagen",
+    "recommended": "Tamaño recomendado: 1200x400px",
+    "fullName": "Nombre completo",
+    "fullNamePlaceholder": "Ingresa el nombre del centro",
+    "phone": "Teléfono",
+    "phonePlaceholder": "Ingresa el número de teléfono",
+    "saveChanges": "Guardar cambios",
+    "cancel": "Cancelar",
+    "cropBanner": "Recortar portada",
+    "cropProfilePhoto": "Recortar foto de perfil",
+    "confirmDeleteTitle": "Eliminar foto de perfil",
+    "confirmDeleteDescription": "¿Estás seguro de que deseas eliminar esta foto de perfil?",
+    "confirmDeleteBannerTitle": "Eliminar portada",
+    "confirmDeleteBannerDescription": "¿Estás seguro de que deseas eliminar esta portada?",
+    "deleteProfilePhoto": "Eliminar foto de perfil",
+    "deleteBanner": "Eliminar portada"
+  },
+  "centerForm": {
+    "centerType": "Tipo de centro",
+    "centerTypePlaceholder": "Ej. Clínica, Hospital, Laboratorio",
+    "website": "Sitio web",
+    "websitePlaceholder": "Ingresa la URL del sitio web",
+    "taxId": "RNC",
+    "taxIdPlaceholder": "Ingresa el RNC o identificación fiscal",
+    "address": "Dirección",
+    "addressPlaceholder": "Ingresa la dirección",
+    "description": "Descripción",
+    "descriptionPlaceholder": "Escribe una breve descripción de tu centro"
+  },
+  "locationForm": {
+    "title": "Ubicación del Centro de Salud",
+    "subtitle": "Selecciona la ubicación exacta y completa los detalles de la dirección.",
+    "addressLabel": "Dirección",
+    "addressPlaceholder": "Calle, número, etc.",
+    "provinceLabel": "Provincia",
+    "provincePlaceholder": "Provincia",
+    "municipalityLabel": "Municipio",
+    "municipalityPlaceholder": "Municipio"
+  },
+  "validation": {
+    "fullNameRequired": "El nombre completo es requerido",
+    "addressRequired": "La dirección es requerida",
+    "provinceRequired": "La provincia es requerida",
+    "municipalityRequired": "El municipio es requerido",
+    "centerTypeRequired": "El tipo de centro es requerido",
+    "phoneRequired": "El teléfono es requerido",
+    "taxIdRequired": "El RFC es requerido"
+  },
+  "common": {
+    "close": "Cerrar"
   }
 }
