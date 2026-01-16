@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import GeneralInformation from "./GeneralInformation";
 import Education from "./Education";
 import LanguagesTab from "./Languages";
@@ -20,15 +21,16 @@ interface MCSheetDoctorProps {
 }
 
 function MCSheetDoctor({ onOpenChange }: MCSheetDoctorProps) {
+  const { t } = useTranslation("doctor");
   const [activeTab, setActiveTab] = useState("general");
   const isMobile = useIsMobile();
 
   const tabs = [
-    { value: "general", label: "Información General", icon: User },
-    { value: "formacion", label: "Formación", icon: GraduationCap },
-    { value: "idiomas", label: "Idiomas", icon: Languages },
-    { value: "seguros", label: "Seguros", icon: Shield },
-    { value: "experiencia", label: "Experiencia", icon: Briefcase },
+    { value: "general", label: t("tabs.general"), icon: User },
+    { value: "formacion", label: t("tabs.education"), icon: GraduationCap },
+    { value: "idiomas", label: t("tabs.languages"), icon: Languages },
+    { value: "seguros", label: t("tabs.insurance"), icon: Shield },
+    { value: "experiencia", label: t("tabs.experience"), icon: Briefcase },
   ];
 
   const getTabTitle = () => {
@@ -56,7 +58,7 @@ function MCSheetDoctor({ onOpenChange }: MCSheetDoctorProps) {
             flex items-center justify-center
             transition
           "
-          aria-label="Cerrar"
+          aria-label={t("common.close")}
         >
           <X className="h-6 w-6" />
         </button>
@@ -65,7 +67,7 @@ function MCSheetDoctor({ onOpenChange }: MCSheetDoctorProps) {
       {/* ================= MOBILE TABS ================= */}
       {isMobile && (
         <div className="px-4 pt-12 pb-4">
-          <h1 className="text-xl font-medium mb-2">Editar Perfil</h1>
+          <h1 className="text-xl font-medium mb-2">{t("editProfile.title")}</h1>
           <div>
             <TabsList className="w-full flex justify-between rounded-2xl overflow-x-auto">
               {tabs.map(({ value, icon: Icon }) => (
@@ -86,9 +88,9 @@ function MCSheetDoctor({ onOpenChange }: MCSheetDoctorProps) {
       {!isMobile && (
         <aside className="w-full h-full rounded-l-4xl bg-accent/30 border-r-3 border-accent py-6 m-0 flex flex-col gap-4">
           <div className="w-full px-10 mt-6 flex flex-col gap-2">
-            <h1 className="text-xl font-medium">Editar Perfil</h1>
+            <h1 className="text-xl font-medium">{t("editProfile.title")}</h1>
             <p className="text-base max-w-50 text-left">
-              Modifica tu información profesional
+              {t("editProfile.subtitle")}
             </p>
           </div>
 
@@ -116,7 +118,7 @@ function MCSheetDoctor({ onOpenChange }: MCSheetDoctorProps) {
           <div className="flex items-center justify-end p-2">
             <button
               className="rounded-full h-8 w-8 flex items-center border-none outline-none ring-none justify-center hover:bg-accent/70 focus:bg-accent active:scale-95 transition-all duration-200"
-              aria-label="Cerrar"
+              aria-label={t("common.close")}
               onClick={() => onOpenChange(false)}
             >
               <X className="h-4 w-4" />
