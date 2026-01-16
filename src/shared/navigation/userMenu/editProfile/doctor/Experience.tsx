@@ -6,8 +6,16 @@ import { doctorExperienceSchema } from "@/schema/profile.schema";
 import { useTranslation } from "react-i18next";
 import { useProfileStore } from "@/stores/useProfileStore";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
-import { useState } from "react";
-import { X, Plus } from "lucide-react";
+import { Plus, Trash2, GripVertical } from "lucide-react";
+import { useFormContext } from "react-hook-form";
+import { useState, useRef } from "react";
+import { MCDialogBase } from "@/shared/components/MCDialogBase";
+import {
+  draggable,
+  dropTargetForElements,
+} from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
+import { combine } from "@atlaskit/pragmatic-drag-and-drop/combine";
+import { reorder } from "@atlaskit/pragmatic-drag-and-drop/reorder";
 
 interface ExperienceFormData {
   hospital: string;
@@ -22,27 +30,163 @@ interface ExperienceProps {
   onOpenChange: (open: boolean) => void;
 }
 
-function Experience({ onOpenChange }: ExperienceProps) {
+interface DraggableExperienceCardProps {
+  experience: ExperienceFormData;
+  index: number;
+  onDelete: (index: number) => void;
+  isMobile: boolean;
+  months: Array<{ value: string; label: string }>;
+  years: Array<{ value: string; label: string }>;
+  t: any;
+}
+
+function DraggableExperienceCard({
+  experience,
+  index,
+  onDelete,
+  onDragStart,
+  onDragOver,
+  onDrop,
+  isMobile,
+  months,
+  years,
+  t,
+}: DraggableExperienceCardProps & {
+  onDragStart: (index: number) => void;
+  onDragOver: (index: number) => void;
+  onDrop: (index: number) => void;
+}) {
+  const [isDragging, setIsDragging] = useState(false);
+  const [isOver, setIsOver] = useState(false);
+
+  return (
+    <div
+      draggable
+      onDragStart={() => {
+        setIsDragging(true);
+        onDragStart(index);
+      }}
+      onDragEnd={() => setIsDragging(false)}
+      onDragOver={(e) => {
+        e.preventDefault();
+        setIsOver(true);
+        onDragOver(index);
+      }}
+      onDragLeave={() => setIsOver(false)}
+      onDrop={(e) => {
+        e.preventDefault();
+        setIsOver(false);
+        onDrop(index);
+      }}
+      className={`relative rounded-3xl border p-4 bg-white transition-all cursor-move ${
+        isDragging ? "opacity-50 scale-95" : ""
+      } ${isOver ? "border-primary border-2 shadow-lg" : "border-primary/10"}`}
+    >
+      {/* Header Row: Drag, Title, Delete */}
+      <div className="flex items-center justify-between pb-4">
+        {/* Drag Handle */}
+        <button
+          type="button"
+          className="bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-full w-8 h-8 flex items-center justify-center cursor-grab active:cursor-grabbing transition-colors mr-2"
+          aria-label={t("experienceForm.dragHandle")}
+        >
+          <GripVertical className="w-4 h-4" />
+        </button>
+
+        {/* Experience Title */}
+        <h3 className="text-lg font-semibold text-primary flex-1 text-center">
+          {t("experienceForm.experienceTitle")} {index + 1}
+        </h3>
+
+        {/* Delete Button */}
+        <button
+          type="button"
+          className="bg-red-500 hover:bg-red-600 text-white rounded-full w-8 h-8 flex items-center justify-center shadow transition-colors ml-2"
+          onClick={() => onDelete(index)}
+          aria-label={t("experienceForm.deleteExperience")}
+        >
+          <Trash2 className="w-4 h-4" />
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 pl-2">
+        <MCInput
+          name={`experiences.${index}.position`}
+          label={t("experienceForm.position")}
+          type="text"
+          size="small"
+          placeholder={t("experienceForm.positionPlaceholder")}
+        />
+
+        <MCInput
+          name={`experiences.${index}.hospital`}
+          label={t("experienceForm.organization")}
+          type="text"
+          size="small"
+          placeholder={t("experienceForm.organizationPlaceholder")}
+        />
+
+        {/* Start Date */}
+        <div className="flex flex-col gap-2">
+          <label className="text-sm font-medium">
+            {t("experienceForm.startDate")}
+          </label>
+          <div
+            className={`grid ${
+              isMobile ? "grid-cols-1 gap-3" : "grid-cols-2 gap-4"
+            }`}
+          >
+            <MCSelect
+              name={`experiences.${index}.startMonth`}
+              placeholder={t("experienceForm.selectMonth")}
+              options={months}
+              size="small"
+            />
+            <MCSelect
+              name={`experiences.${index}.startYear`}
+              placeholder={t("experienceForm.selectYear")}
+              options={years}
+              size="small"
+            />
+          </div>
+        </div>
+
+        {/* End Date */}
+        <div className="flex flex-col gap-2">
+          <label className="text-sm font-medium">
+            {t("experienceForm.endDate")}
+          </label>
+          <div
+            className={`grid ${
+              isMobile ? "grid-cols-1 gap-3" : "grid-cols-2 gap-4"
+            }`}
+          >
+            <MCSelect
+              name={`experiences.${index}.endMonth`}
+              placeholder={t("experienceForm.selectMonth")}
+              options={months}
+              size="small"
+            />
+            <MCSelect
+              name={`experiences.${index}.endYear`}
+              placeholder={t("experienceForm.selectYear")}
+              options={years}
+              size="small"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ExperienceFields() {
   const { t } = useTranslation("doctor");
   const isMobile = useIsMobile();
-
-  const setDoctorExperience = useProfileStore(
-    (state) => state.setDoctorExperience
-  );
-  const doctorExperience = useProfileStore((state) => state.doctorExperience);
-
-  const [experiences, setExperiences] = useState<ExperienceFormData[]>(
-    doctorExperience?.experiences || [
-      {
-        hospital: "",
-        position: "",
-        startMonth: "",
-        startYear: "",
-        endMonth: "",
-        endYear: "",
-      },
-    ]
-  );
+  const { watch, setValue } = useFormContext();
+  const experiences = watch("experiences") || [];
+  const [deleteIndex, setDeleteIndex] = useState<number | null>(null);
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
 
   const months = [
     { value: "01", label: t("months.january") },
@@ -64,8 +208,19 @@ function Experience({ onOpenChange }: ExperienceProps) {
     return { value: year.toString(), label: year.toString() };
   });
 
+  const handleDragStart = (index: number) => setDraggedIndex(index);
+  const handleDragOver = (_: number) => {};
+  const handleDrop = (dropIndex: number) => {
+    if (draggedIndex === null || draggedIndex === dropIndex) return;
+    const newExperiences = [...experiences];
+    const [draggedItem] = newExperiences.splice(draggedIndex, 1);
+    newExperiences.splice(dropIndex, 0, draggedItem);
+    setValue("experiences", newExperiences);
+    setDraggedIndex(null);
+  };
+
   const addExperience = () => {
-    setExperiences([
+    const newExperiences = [
       ...experiences,
       {
         hospital: "",
@@ -75,190 +230,109 @@ function Experience({ onOpenChange }: ExperienceProps) {
         endMonth: "",
         endYear: "",
       },
-    ]);
+    ];
+    setValue("experiences", newExperiences);
   };
 
-  const removeExperience = (index: number) => {
-    if (experiences.length > 1) {
-      setExperiences(experiences.filter((_, i) => i !== index));
+  const confirmRemoveExperience = () => {
+    if (deleteIndex !== null && experiences.length > 0) {
+      const newExperiences = experiences.filter(
+        (_: any, i: number) => i !== deleteIndex
+      );
+      setValue("experiences", newExperiences);
+      setDeleteIndex(null);
     }
   };
 
-  const updateExperience = (
-    index: number,
-    field: keyof ExperienceFormData,
-    value: string
-  ) => {
-    const updatedExperiences = experiences.map((exp, i) =>
-      i === index ? { ...exp, [field]: value } : exp
+  // If no experiences, show add button
+  if (!experiences.length) {
+    return (
+      <div className="flex flex-col gap-4">
+        <MCButton
+          type="button"
+          variant="tercero"
+          size="m"
+          onClick={addExperience}
+          className="w-full flex items-center gap-2"
+        >
+          <Plus className="w-4 h-4" />
+          {t("experienceForm.addExperience")}
+        </MCButton>
+      </div>
     );
-    setExperiences(updatedExperiences);
-  };
-
-  const handleSubmit = () => {
-    try {
-      const validatedData = doctorExperienceSchema(t).parse({ experiences });
-      setDoctorExperience(validatedData);
-      onOpenChange(false);
-    } catch (error) {
-      console.error("Validation error:", error);
-    }
-  };
+  }
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-2">
-        <h2 className={`${isMobile ? "text-xl" : "text-2xl"} font-semibold`}>
-          {t("experienceForm.title")}
-        </h2>
-        <p className="text-muted-foreground text-sm">
-          {t("experienceForm.description")}
-        </p>
-      </div>
-
+    <>
       <div className="flex flex-col gap-4">
-        {experiences.map((experience, index) => (
-          <div key={index} className="relative border rounded-lg p-4 bg-card">
-            {/* Header con título y botón eliminar */}
-            <div className="flex items-center justify-between mb-4">
-              <h3
-                className={`${isMobile ? "text-base" : "text-lg"} font-medium`}
-              >
-                {t("experienceForm.experienceNumber", { number: index + 1 })}
-              </h3>
-              {experiences.length > 1 && (
-                <button
-                  type="button"
-                  onClick={() => removeExperience(index)}
-                  className="text-destructive hover:text-destructive/80 transition-colors"
-                  aria-label={t("experienceForm.removeExperience")}
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              )}
-            </div>
-
-            {/* Formulario de experiencia */}
-            <div className="grid grid-cols-1 gap-4">
-              <MCInput
-                name={`position-${index}`}
-                label={t("experienceForm.position")}
-                type="text"
-                placeholder={t("experienceForm.positionPlaceholder")}
-                value={experience.position}
-                onChange={(e) =>
-                  updateExperience(index, "position", e.target.value)
-                }
-              />
-
-              <MCInput
-                name={`hospital-${index}`}
-                label={t("experienceForm.organization")}
-                type="text"
-                placeholder={t("experienceForm.organizationPlaceholder")}
-                value={experience.hospital}
-                onChange={(e) =>
-                  updateExperience(index, "hospital", e.target.value)
-                }
-              />
-
-              {/* Fecha de inicio */}
-              <div className="flex flex-col gap-2">
-                <label className="text-sm font-medium">
-                  {t("experienceForm.startDate")}
-                </label>
-                <div
-                  className={`grid ${
-                    isMobile ? "grid-cols-1 gap-3" : "grid-cols-2 gap-4"
-                  }`}
-                >
-                  <MCSelect
-                    name={`startMonth-${index}`}
-                    placeholder={t("experienceForm.selectMonth")}
-                    options={months}
-                    value={experience.startMonth}
-                    onChange={(value) =>
-                      updateExperience(index, "startMonth", value)
-                    }
-                  />
-                  <MCSelect
-                    name={`startYear-${index}`}
-                    placeholder={t("experienceForm.selectYear")}
-                    options={years}
-                    value={experience.startYear}
-                    onChange={(value) =>
-                      updateExperience(index, "startYear", value)
-                    }
-                  />
-                </div>
-              </div>
-
-              {/* Fecha de finalización */}
-              <div className="flex flex-col gap-2">
-                <label className="text-sm font-medium">
-                  {t("experienceForm.endDate")}
-                </label>
-                <div
-                  className={`grid ${
-                    isMobile ? "grid-cols-1 gap-3" : "grid-cols-2 gap-4"
-                  }`}
-                >
-                  <MCSelect
-                    name={`endMonth-${index}`}
-                    placeholder={t("experienceForm.selectMonth")}
-                    options={months}
-                    value={experience.endMonth}
-                    onChange={(value) =>
-                      updateExperience(index, "endMonth", value)
-                    }
-                  />
-                  <MCSelect
-                    name={`endYear-${index}`}
-                    placeholder={t("experienceForm.selectYear")}
-                    options={years}
-                    value={experience.endYear}
-                    onChange={(value) =>
-                      updateExperience(index, "endYear", value)
-                    }
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
+        {experiences.map((experience: ExperienceFormData, index: number) => (
+          <DraggableExperienceCard
+            key={index}
+            experience={experience}
+            index={index}
+            onDelete={setDeleteIndex}
+            isMobile={isMobile}
+            months={months}
+            years={years}
+            t={t}
+            onDragStart={handleDragStart}
+            onDragOver={handleDragOver}
+            onDrop={handleDrop}
+          />
         ))}
       </div>
 
-      {/* Botón agregar experiencia */}
+      {/* Delete Confirmation Modal */}
+      <MCDialogBase
+        open={deleteIndex !== null}
+        onOpenChange={(open) => !open && setDeleteIndex(null)}
+        title={t("experienceForm.confirmDeleteTitle")}
+        onConfirm={confirmRemoveExperience}
+        onSecondary={() => setDeleteIndex(null)}
+        variant="warning"
+        size="sm"
+      >
+        <p>{t("experienceForm.confirmDeleteDescription")}</p>
+      </MCDialogBase>
+
+      {/* Add Experience Button */}
       <MCButton
-        variant="outline"
+        type="button"
+        variant="tercero"
         size="m"
         onClick={addExperience}
-        className="w-full flex items-center gap-2"
+        className="w-full flex items-center gap-2 mt-4"
       >
         <Plus className="w-4 h-4" />
         {t("experienceForm.addExperience")}
       </MCButton>
+    </>
+  );
+}
 
-      {/* Botones de acción */}
-      <div className={`flex ${isMobile ? "flex-col" : "flex-row"} gap-3 mt-6`}>
-        <MCButton
-          variant="primary"
-          size="m"
-          onClick={handleSubmit}
-          className={isMobile ? "w-full" : ""}
-        >
-          {t("experienceForm.saveChanges")}
-        </MCButton>
-        <MCButton
-          variant="secondary"
-          size="m"
-          onClick={() => onOpenChange(false)}
-          className={isMobile ? "w-full" : ""}
-        >
-          {t("experienceForm.cancel")}
-        </MCButton>
-      </div>
-    </div>
+function Experience({ onOpenChange }: ExperienceProps) {
+  const { t } = useTranslation("doctor");
+  const setDoctorExperience = useProfileStore(
+    (state) => state.setDoctorExperience
+  );
+  const doctorExperience = useProfileStore((state) => state.doctorExperience);
+
+  const defaultValues = {
+    experiences: doctorExperience?.experiences || [],
+  };
+
+  return (
+    <MCFormWrapper
+      schema={doctorExperienceSchema(t)}
+      defaultValues={defaultValues}
+      onSubmit={(data) => {
+        setDoctorExperience(data);
+        onOpenChange(false);
+      }}
+      className="flex flex-col gap-6"
+    >
+      <ExperienceFields />
+    </MCFormWrapper>
   );
 }
 

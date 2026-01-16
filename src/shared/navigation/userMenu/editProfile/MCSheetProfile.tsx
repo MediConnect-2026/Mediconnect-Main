@@ -1,5 +1,5 @@
 import { Sheet, SheetContent } from "@/shared/ui/sheet";
-import MCSheetPatient from "./patient/MCSheetPatient";
+// import MCSheetPatient from "./patient/MCSheetPatient";
 import MCSheetDoctor from "./doctor/MCSheetDoctor";
 import MCSheetHealthCenter from "./MCSheetHealthCenter";
 import { useAppStore } from "@/stores/useAppStore";
@@ -15,13 +15,13 @@ function MCSheetProfile({ open, onOpenChange }: MCSheetProfileProps) {
   const renderProfileContent = () => {
     switch (user?.role) {
       case "PATIENT":
-        return <MCSheetPatient onOpenChange={onOpenChange} />;
+      // return <MCSheetPatient onOpenChange={onOpenChange} />;
       case "DOCTOR":
         return <MCSheetDoctor onOpenChange={onOpenChange} />;
       case "CENTER":
         return <MCSheetHealthCenter onOpenChange={onOpenChange} />;
       default:
-        return <MCSheetPatient onOpenChange={onOpenChange} />;
+      // return <MCSheetPatient onOpenChange={onOpenChange} />;
     }
   };
 

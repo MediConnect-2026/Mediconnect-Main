@@ -9,11 +9,11 @@ import {
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
 import { useState } from "react";
-import GeneralInformation from "./generalInformation";
-import Education from "./education";
-import LanguagesTab from "./languages";
-import Insurance from "./insurance";
-import Experience from "./experience";
+import GeneralInformation from "./GeneralInformation";
+import Education from "./Education";
+import LanguagesTab from "./Languages";
+import Insurance from "./Insurance";
+import Experience from "./Experience";
 
 interface MCSheetDoctorProps {
   onOpenChange: (open: boolean) => void;
@@ -152,7 +152,7 @@ function MCSheetDoctor({ onOpenChange }: MCSheetDoctorProps) {
           </TabsContent>
 
           <TabsContent value="experiencia" className="m-0 p-0">
-            <Experience />
+            <Experience onOpenChange={onOpenChange} />
           </TabsContent>
         </div>
       </main>
