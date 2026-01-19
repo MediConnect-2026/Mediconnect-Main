@@ -33,6 +33,7 @@ import { Card, CardContent, CardHeader } from "@/shared/ui/card";
 import MCDoctorsCards from "@/shared/components/MCDoctorsCards";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
 import PatientProfileBannerMobile from "@/features/patient/components/PatientProfileBannerMobile";
+import { MCFilterPopover } from "@/shared/components/filters/MCFilterPopover";
 function PatientProfilePage() {
   const [openSheet, setOpenSheet] = useState(false);
   const user = useAppStore((state) => state.user);
@@ -174,7 +175,7 @@ function PatientProfilePage() {
             <Card className="animate-fade-in rounded-4xl border-0 shadow-md bg-background">
               <CardContent className={isMobile ? "p-4" : "p-2"}>
                 <h2
-                  className={`mb-6 ${isMobile ? "text-lg" : "text-xl"} font-semibold text-foreground`}
+                  className={`mb-6 ${isMobile ? "text-lg" : "text-2xl"} font-semibold text-foreground`}
                 >
                   Mis Seguros Médicos
                 </h2>
@@ -206,7 +207,7 @@ function PatientProfilePage() {
             <Card className="animate-fade-in rounded-4xl border-0 shadow-md bg-background">
               <CardContent className={isMobile ? "p-4" : "p-2"}>
                 <h2
-                  className={`mb-6 ${isMobile ? "text-lg" : "text-xl"} font-semibold text-foreground`}
+                  className={`mb-6 ${isMobile ? "text-lg" : "text-2xl"} font-semibold text-foreground`}
                 >
                   Información Médica
                 </h2>
@@ -298,16 +299,19 @@ function PatientProfilePage() {
           <CardHeader className={isMobile ? "p-4" : "p-2"}>
             <div className="flex justify-between items-center">
               <h2
-                className={`mb-6 ${isMobile ? "text-lg" : "text-xl"} font-semibold text-foreground`}
+                className={` ${isMobile ? "text-lg" : "text-2xl"} font-semibold text-foreground`}
               >
                 Doctores Favoritos
               </h2>
-              <div className="text-sm text-primary">filtros</div>
+
+              <MCFilterPopover activeFiltersCount={0} onClearFilters={() => {}}>
+                <div>nose no</div>
+              </MCFilterPopover>
             </div>
           </CardHeader>
 
           <CardContent
-            className={`mb-6 grid ${isMobile ? "grid-cols-1" : "grid-cols-3"} gap-4 ${isMobile ? "px-2" : ""}`}
+            className={`mb-6 grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 3xl:grid-cols-3 gap-4 ${isMobile ? "px-2" : ""}`}
           >
             <MCDoctorsCards
               key={1}

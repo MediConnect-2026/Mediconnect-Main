@@ -1,12 +1,6 @@
 import React from "react";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardFooter,
-} from "@/shared/ui/card";
-import { Button } from "../ui/button";
+import { Card, CardContent, CardTitle } from "@/shared/ui/card";
+
 import { Star, Heart, Languages, ShieldCheck, Stethoscope } from "lucide-react";
 import MCButton from "./forms/MCButton";
 import {
