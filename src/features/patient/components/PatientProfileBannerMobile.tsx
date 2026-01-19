@@ -1,0 +1,138 @@
+import React from "react";
+import {
+  Ellipsis,
+  History,
+  Settings,
+  Shield,
+  Copy,
+  LogOut,
+  BadgeCheck,
+} from "lucide-react";
+import { Button } from "@/shared/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/shared/ui/dropdown-menu";
+import {
+  Avatar as UiAvatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@/shared/ui/avatar";
+import { MCUserAvatar } from "@/shared/navigation/userMenu/MCUserAvatar";
+import { MCUserBanner } from "@/shared/navigation/userMenu/MCUserBanner";
+import MCButton from "@/shared/components/forms/MCButton";
+
+interface Props {
+  user: any;
+  setOpenSheet: (open: boolean) => void;
+}
+
+function PatientProfileBannerMobile({ user, setOpenSheet }: Props) {
+  return (
+    <div className="w-full rounded-3xl shadow-md bg-background overflow-hidden">
+      {/* Banner */}
+      <div className="relative h-36">
+        {user?.banner ? (
+          <img
+            src={user.banner}
+            alt="Banner"
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <MCUserBanner
+            name={user?.name || "Paciente"}
+            className="w-full h-full"
+          />
+        )}
+
+        {/* Avatar */}
+        <div className="absolute -bottom-14 left-4">
+          {user?.avatar ? (
+            <UiAvatar className="w-28 h-28 border-4 border-background">
+              <AvatarImage src={user.avatar} />
+              <AvatarFallback>
+                {user?.name
+                  ?.split(" ")
+                  .map((n: string) => n[0])
+                  .join("")
+                  .toUpperCase()}
+              </AvatarFallback>
+            </UiAvatar>
+          ) : (
+            <MCUserAvatar
+              name={user?.name || "Paciente"}
+              size={112}
+              className="border-4 border-background"
+            />
+          )}
+        </div>
+      </div>
+
+      {/* Info */}
+      <div className="pt-16 px-4 pb-4 flex flex-col gap-4">
+        <div className="flex justify-between items-start">
+          <div>
+            <div className="flex items-center gap-1">
+              <h3 className="text-lg font-semibold text-foreground">
+                {user?.name || "Ilia Topuria"}
+              </h3>
+              <BadgeCheck className="w-4 h-4 text-primary" />
+            </div>
+
+            <p className="text-sm text-muted-foreground">
+              <span className="font-medium">Paciente desde:</span> 15 de Enero,
+              2025
+            </p>
+          </div>
+
+          {/* Menu */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button size="icon" variant="outline" className="rounded-full">
+                <Ellipsis />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem>
+                <History className="w-4 h-4 mr-2" />
+                Historial
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <Settings className="w-4 h-4 mr-2" />
+                Configuración
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <Shield className="w-4 h-4 mr-2" />
+                Privacidad
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <Copy className="w-4 h-4 mr-2" />
+                Copiar perfil
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem className="text-red-500">
+                <LogOut className="w-4 h-4 mr-2" />
+                Cerrar sesión
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+
+        {/* Edit Button */}
+        <MCButton
+          variant="secondary"
+          size="m"
+          className="rounded-full w-full"
+          onClick={() => setOpenSheet(true)}
+        >
+          Editar perfil
+        </MCButton>
+      </div>
+    </div>
+  );
+}
+
+export default PatientProfileBannerMobile;

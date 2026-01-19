@@ -1,4 +1,5 @@
 import { Button } from "@/shared/ui/button";
+import { useIsMobile } from "@/lib/hooks/useIsMobile";
 
 type MediButtonProps = {
   children?: React.ReactNode;
@@ -17,7 +18,7 @@ type MediButtonProps = {
   type?: "button" | "submit" | "reset";
   icon?: React.ReactNode;
   iconPosition?: "left" | "right";
-  size?: "s" | "m" | "l" | "xl"; // Agregado xl
+  size?: "s" | "sm" | "m" | "l" | "xl";
 };
 
 function MCButton({
@@ -29,58 +30,75 @@ function MCButton({
   type = "button",
   icon,
   iconPosition = "left",
-  size = "l", // Default medium
+  size = "l",
 }: MediButtonProps) {
-  const baseStyles =
-    "font-medium rounded-full transition-colors transition-opacity transition-transform duration-200 focus:outline-none active:scale-99";
+  const isMobile = useIsMobile();
 
+  const baseStyles =
+    "font-medium rounded-full transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary active:scale-[0.98] flex items-center justify-center gap-2";
+
+  // Tamaños responsive que se ajustan automáticamente
   const sizeStyles: Record<string, string> = {
-    s: "px-4 py-2 text-sm", // pequeño
-    m: "px-6 py-4 text-base md:px-8 md:py-6 md:text-lg", // intermedio real
-    l: "px-8 py-5 text-lg md:px-10 md:py-7 md:text-xl", // era el m anterior
-    xl: "px-12 py-7 text-xl md:px-16 md:py-10 md:text-2xl", // era el l anterior
+    s: "px-3 py-2 text-xs sm:px-3.5 sm:py-2.5 sm:text-sm",
+    sm: "px-4 py-2.5 text-sm sm:px-5 sm:py-3 sm:text-base",
+    m: "px-5 py-3 text-sm sm:px-6 sm:py-3.5 md:px-8 md:py-4 md:text-base lg:text-lg",
+    l: "px-6 py-3.5 text-base sm:px-8 sm:py-4 md:px-10 md:py-5 lg:px-12 lg:py-6 lg:text-lg",
+    xl: "px-8 py-4 text-base sm:px-10 sm:py-5 md:px-12 md:py-6 lg:px-16 lg:py-8 lg:text-xl xl:text-2xl",
   };
+
+  // Ajuste dinámico según si es mobile
+  const responsiveSize =
+    isMobile && (size === "l" || size === "xl") ? "m" : size;
 
   const variants: Record<string, string> = {
     primary: `
       bg-primary text-background border border-transparent
-      hover:bg-primary/90 hover:opacity-90
-      active:bg-primary/80 active:opacity-80
+      hover:bg-primary/90 hover:shadow-md
+      active:bg-primary/80
+      disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-primary
     `,
     secondary: `
       bg-transparent border border-primary text-primary
-      hover:bg-primary/10 hover:opacity-90
-      active:bg-primary/20 active:opacity-80
+      hover:bg-primary/10 hover:border-primary/80
+      active:bg-primary/20
+      disabled:opacity-50 disabled:cursor-not-allowed
     `,
     delete: `
       bg-red-600 text-white border border-red-600
-      hover:bg-red-700 hover:opacity-90
-      active:bg-red-800 active:opacity-80
+      hover:bg-red-700 hover:shadow-md
+      active:bg-red-800
+      disabled:opacity-50 disabled:cursor-not-allowed
     `,
     success: `
       bg-green-600 text-white border border-green-600
-      hover:bg-green-700 hover:opacity-90
-      active:bg-green-800 active:opacity-80
+      hover:bg-green-700 hover:shadow-md
+      active:bg-green-800
+      disabled:opacity-50 disabled:cursor-not-allowed
     `,
     warning: `
       bg-yellow-400 text-black border border-yellow-400
-      hover:bg-yellow-500 hover:opacity-90
-      active:bg-yellow-600 active:opacity-80
+      hover:bg-yellow-500 hover:shadow-md
+      active:bg-yellow-600
+      disabled:opacity-50 disabled:cursor-not-allowed
     `,
     link: `
       bg-transparent border-none text-primary underline underline-offset-2 px-0 py-0
-      hover:text-primary/80 hover:opacity-80
-      active:text-primary/60 active:opacity-60
+      hover:text-primary/80 hover:no-underline
+      active:text-primary/60
+      disabled:opacity-50 disabled:cursor-not-allowed
       shadow-none
     `,
     tercero: `
       bg-[var(--color-bg-btn-secondary)] text-black border border-[var(--color-bg-btn-secondary)]
-      hover:bg-[var(--color-bg-btn-secondary)]/90 hover:opacity-90
-      active:bg-[var(--color-bg-btn-secondary)]/80 active:opacity-80
+      hover:bg-[var(--color-bg-btn-secondary)]/90 hover:shadow-md
+      active:bg-[var(--color-bg-btn-secondary)]/80
+      disabled:opacity-50 disabled:cursor-not-allowed
     `,
     outline: `
-      bg-transparent border-none text-primary
-      active:opacity-60 
+      bg-transparent border border-primary/30 text-primary
+      hover:border-primary hover:bg-primary/5
+      active:bg-primary/10
+      disabled:opacity-50 disabled:cursor-not-allowed
     `,
   };
 
@@ -89,7 +107,7 @@ function MCButton({
       type={type}
       onClick={onClick}
       disabled={disabled}
-      className={`${baseStyles} ${sizeStyles[size]} ${
+      className={`${baseStyles} ${sizeStyles[responsiveSize]} ${
         variants[variant] || variants.primary
       } ${className || ""}`}
       icon={icon}
