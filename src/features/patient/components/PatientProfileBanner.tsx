@@ -66,7 +66,7 @@ function PatientProfileBanner({ user, setOpenSheet }: Props) {
               <MCUserAvatar
                 name={user?.name || "IliaTopuria"}
                 size={180}
-                className="border-6"
+                className="border-5 border-background rounded-full h-full"
               />
             )}
 

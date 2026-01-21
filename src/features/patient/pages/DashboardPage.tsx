@@ -40,10 +40,12 @@ function DashboardPage() {
 
         {/* FILA 2: DOCTORES + HISTORIA CLÍNICA */}
         <div className="grid grid-cols-[7fr_3fr] gap-6 w-full">
-          <Card className="rounded-2xl">
+          <Card className="rounded-4xl">
             <MyDoctors />
           </Card>
-          <Card className="rounded-2xl"></Card>
+          <Card className="rounded-4xl">
+            <MyInsurance></MyInsurance>
+          </Card>
         </div>
       </div>
     </main>

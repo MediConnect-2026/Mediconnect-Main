@@ -48,8 +48,29 @@ const doctorsList = [
     languages: ["es"],
     insuranceAccepted: ["universal"],
     isFavorite: true,
+    urlImage: "",
+  },
+  {
+    name: "Sofía Ramírez",
+    specialty: "Endocrinóloga",
+    rating: 4.6,
+    yearsOfExperience: 12,
+    languages: ["es", "fr"],
+    insuranceAccepted: ["senasa", "mapfre", "yunen"],
+    isFavorite: true,
     urlImage:
-      "https://i.pinimg.com/736x/b5/09/6b/b5096bf449df00f2f3fc52d8a4de5c70.jpg",
+      "https://i.pinimg.com/736x/8f/7a/9c/8f7a9cb4ea42e64fa5c7025a9918d62c.jpg",
+  },
+  {
+    name: "Sofía Ramírez",
+    specialty: "Endocrinóloga",
+    rating: 4.6,
+    yearsOfExperience: 12,
+    languages: ["es", "fr"],
+    insuranceAccepted: ["senasa", "mapfre", "yunen"],
+    isFavorite: true,
+    urlImage:
+      "https://i.pinimg.com/736x/8f/7a/9c/8f7a9cb4ea42e64fa5c7025a9918d62c.jpg",
   },
   {
     name: "Sofía Ramírez",
@@ -317,7 +338,7 @@ function PatientProfilePage() {
           </CardHeader>
 
           <CardContent className={isMobile ? "p-4 pt-2" : "p-6 pt-4"}>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 2xl:grid-cols-5 gap-4">
               {filteredDoctors.map((doctor, idx) => (
                 <MCDoctorsCards
                   key={idx}
@@ -328,7 +349,6 @@ function PatientProfilePage() {
                   languages={doctor.languages}
                   insuranceAccepted={doctor.insuranceAccepted}
                   isFavorite={doctor.isFavorite}
-                  fullInfoView={true}
                   urlImage={doctor.urlImage}
                 />
               ))}

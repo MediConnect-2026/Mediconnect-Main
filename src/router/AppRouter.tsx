@@ -17,7 +17,7 @@ import SetCredentialsPage from "@/features/onboarding/pages/SetCredentialsPage";
 import DoctorOnboardingPage from "@/features/onboarding/pages/DoctorOnboardingPage";
 import CenterOnboardingPage from "@/features/onboarding/pages/CenterOnboardingPage";
 import RegisterSuccessPage from "@/features/onboarding/pages/RegisterSuccessPage";
-
+import { ScrollToTop } from "@/shared/navigation/ScrollToTop";
 import PatientDashboard from "@/features/patient/pages/DashboardPage";
 import DoctorDashboard from "@/features/doctor/pages/DashboardPage";
 import CenterDashboard from "@/features/center/pages/DashboardPage";
@@ -27,6 +27,8 @@ import PatientProfilePage from "@/features/patient/pages/PatientProfilePage";
 function AppRouter() {
   return (
     <BrowserRouter>
+      {" "}
+      <ScrollToTop /> {/* 👈 AQUÍ, dentro del Router real */}
       <Router>
         <Route path={ROUTES.LOGIN} index element={<Login />} />
         <Route element={<AuthLayout />}>
