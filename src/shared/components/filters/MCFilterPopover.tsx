@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { Popover, PopoverTrigger, PopoverContent } from "@/shared/ui/popover";
 import { SlidersHorizontal, X } from "lucide-react";
 import { Button } from "@/shared/ui/button";
@@ -18,6 +19,7 @@ export function MCFilterPopover({
 }: MCFilterPopoverProps) {
   const [open, setOpen] = React.useState(false);
   const isMobile = useIsMobile();
+  const { t } = useTranslation("patient");
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -35,10 +37,10 @@ export function MCFilterPopover({
               ? "ring-2 ring-accent/70 border-secondary"
               : "opacity-100 hover:border-primary/30",
           )}
-          aria-label="Abrir filtros"
+          aria-label={t("filters.popover.open")}
         >
           <SlidersHorizontal className="w-4 h-4 sm:w-4.5 sm:h-4.5 flex-shrink-0" />
-          {!isMobile && <span>Filtros</span>}
+          {!isMobile && <span>{t("filters.popover.filters")}</span>}
           {activeFiltersCount > 0 && (
             <span className="ml-0.5 sm:ml-1 px-1.5 sm:px-2 py-0.5 rounded-full bg-primary text-primary-foreground text-xs font-medium min-w-[20px] text-center">
               {activeFiltersCount}
@@ -63,13 +65,13 @@ export function MCFilterPopover({
           {/* Header */}
           <div className="flex items-center justify-between pb-2 sm:pb-0 border-b sm:border-b-0 border-border/50">
             <h4 className="font-semibold text-foreground text-base sm:text-lg">
-              Filtros de Búsqueda
+              {t("filters.popover.title")}
             </h4>
             {activeFiltersCount > 0 && (
               <Button
                 variant="ghost"
                 size="sm"
-                aria-label="Limpiar filtros"
+                aria-label={t("filters.popover.clear")}
                 onClick={onClearFilters}
                 className={cn(
                   "transition-all duration-200 ease-in-out",
@@ -83,7 +85,9 @@ export function MCFilterPopover({
                 )}
               >
                 <X className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                <span className="hidden sm:inline">Limpiar</span>
+                <span className="hidden sm:inline">
+                  {t("filters.popover.clear")}
+                </span>
               </Button>
             )}
           </div>
@@ -101,13 +105,13 @@ export function MCFilterPopover({
                 className="flex-1 rounded-full text-sm"
                 onClick={() => setOpen(false)}
               >
-                Cancelar
+                {t("filters.popover.cancel")}
               </Button>
               <Button
                 className="flex-1 rounded-full text-sm"
                 onClick={() => setOpen(false)}
               >
-                Aplicar
+                {t("filters.popover.apply")}
               </Button>
             </div>
           )}

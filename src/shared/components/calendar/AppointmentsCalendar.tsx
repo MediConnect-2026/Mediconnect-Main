@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { format, isSameDay } from "date-fns";
-import { es } from "date-fns/locale";
+import { enUS, es } from "date-fns/locale";
 import { Calendar } from "@/shared/ui/calendar";
 import { AppointmentCard } from "./AppointmentCard";
 import { motion, AnimatePresence } from "framer-motion";
@@ -8,13 +8,13 @@ import { CalendarDays } from "lucide-react";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
 import type { Appointment, AppointmentStatus } from "./AppointmentCard";
 import { fadeInUp, fadeInUpDelayed } from "@/lib/animations/commonAnimations";
+import { useTranslation } from "react-i18next";
 
 const appointmentsData: Appointment[] = [
   {
     id: "1",
     date: new Date(2026, 0, 20),
     clientName: "Alexander Gil",
-
     service: "Consulta interna",
     startTime: "9:00 AM",
     endTime: "10:00 AM",
@@ -86,6 +86,8 @@ const appointmentsData: Appointment[] = [
 export function AppointmentsCalendar() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const isMobile = useIsMobile();
+  const { t, i18n } = useTranslation("patient");
+
   const appointmentsForDate = appointmentsData.filter((apt) =>
     isSameDay(apt.date, selectedDate),
   );
@@ -108,6 +110,20 @@ export function AppointmentsCalendar() {
     (appointmentsForDate.length > 4 && !isMobile) ||
     (appointmentsForDate.length > 2 && isMobile);
 
+  // Selecciona el locale según el idioma actual
+  const calendarLocale = i18n.language === "es" ? es : enUS;
+
+  // Formatea la fecha según el idioma
+  const formattedDate = format(selectedDate, "d 'de' MMMM", {
+    locale: calendarLocale,
+  });
+
+  // Determina qué key usar para el plural
+  const appointmentCountKey =
+    appointmentsForDate.length === 1
+      ? "appointments.appointmentsCount"
+      : "appointments.appointmentsCount_plural";
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-[4fr_0.5fr_6fr] gap-4">
       {/* Calendar Section */}
@@ -115,13 +131,13 @@ export function AppointmentsCalendar() {
         <h2
           className={`mb-6 ${isMobile ? "text-lg" : "text-2xl"} font-semibold text-foreground`}
         >
-          Calendario de citas
+          {t("navbar.calendar")}
         </h2>
         <Calendar
           mode="single"
           selected={selectedDate}
           onSelect={(date) => date && setSelectedDate(date)}
-          locale={es}
+          locale={calendarLocale}
           className="w-full"
           modifiers={{
             hasAppointment: appointmentDates,
@@ -141,11 +157,10 @@ export function AppointmentsCalendar() {
           <h2
             className={`mb-6 ${isMobile ? "text-lg" : "text-2xl"} font-semibold text-foreground`}
           >
-            Citas para {format(selectedDate, "d 'de' MMMM", { locale: es })}
+            {t("appointments.appointmentsForDate", { date: formattedDate })}
           </h2>
           <span className="bg-sage-light text-primary text-sm font-medium px-3 py-1 rounded-full">
-            {appointmentsForDate.length}{" "}
-            {appointmentsForDate.length === 1 ? "cita" : "citas"}
+            {t(appointmentCountKey, { count: appointmentsForDate.length })}
           </span>
         </div>
 
@@ -180,12 +195,11 @@ export function AppointmentsCalendar() {
                 <div className="w-16 h-16 rounded-full bg-sage-light flex items-center justify-center mb-4">
                   <CalendarDays className="h-8 w-8 text-primary" />
                 </div>
-                <h3 className=" text-xl font-medium text-foreground mb-2">
-                  Sin citas programadas
+                <h3 className="text-xl font-medium text-foreground mb-2">
+                  {t("appointments.emptyTitle")}
                 </h3>
                 <p className="text-muted-foreground max-w-xs">
-                  No tienes citas para este día. Selecciona otra fecha o agenda
-                  una nueva cita.
+                  {t("appointments.emptyDescription")}
                 </p>
               </motion.div>
             )}

@@ -4,6 +4,7 @@ import { fadeInUp } from "@/lib/animations/commonAnimations";
 import MCButton from "@/shared/components/forms/MCButton";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
 import MCSheetProfile from "@/shared/navigation/userMenu/editProfile/MCSheetProfile";
+import { useTranslation } from "react-i18next";
 
 const insurances = [
   {
@@ -24,12 +25,14 @@ function MyInsurance() {
   const [openSheet, setOpenSheet] = useState(false);
   const scrollable = insurances.length >= 4;
   const isMobile = useIsMobile();
+  const { t } = useTranslation("patient");
+
   return (
     <motion.div {...fadeInUp}>
       <h2
         className={`mb-6 ${isMobile ? "text-lg" : "text-2xl"} font-semibold text-foreground`}
       >
-        Tus planes de seguro
+        {t("insurance.title")}
       </h2>
       <div
         className={`space-y-6 mb-8 ${
@@ -54,7 +57,7 @@ function MyInsurance() {
         className="w-full rounded-full text-lg bg-primary text-background"
         onClick={() => setOpenSheet(true)}
       >
-        Agregar plan
+        {t("insurance.add")}
       </MCButton>
       <MCSheetProfile
         open={openSheet}

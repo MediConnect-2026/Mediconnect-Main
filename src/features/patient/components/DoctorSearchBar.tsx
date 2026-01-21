@@ -7,6 +7,7 @@ import InsuranceDropdown from "@/features/patient/components/searchComponent/Ins
 import type { Doctor, Specialty, InsurancePlan } from "@/data/searchData";
 import { motion } from "framer-motion";
 import { fadeInUp } from "@/lib/animations/commonAnimations";
+import { useTranslation } from "react-i18next";
 
 const DoctorSearchBar = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -18,6 +19,7 @@ const DoctorSearchBar = () => {
   const searchRef = useRef<HTMLDivElement>(null);
   const insuranceRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
+  const { t } = useTranslation("patient");
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -64,14 +66,14 @@ const DoctorSearchBar = () => {
         {/* Campo de búsqueda */}
         <div ref={searchRef} className="flex-1 py-2 relative">
           <label className="block text-xs md:text-sm font-medium text-foreground mb-1">
-            Buscar
+            {t("searchBar.searchLabel")}
           </label>
           <input
             type="text"
             placeholder={
               isMobile
-                ? "Doctor, especialidad..."
-                : "Nombre del doctor, centro de salud o especialidad"
+                ? t("searchBar.searchPlaceholderMobile")
+                : t("searchBar.searchPlaceholderDesktop")
             }
             value={searchTerm}
             onChange={(e) => {
@@ -97,12 +99,14 @@ const DoctorSearchBar = () => {
         {/* Campo de seguro */}
         <div ref={insuranceRef} className="flex-1 py-2 relative">
           <label className="block text-xs md:text-sm font-medium text-foreground mb-1">
-            Seguro
+            {t("searchBar.insuranceLabel")}
           </label>
           <input
             type="text"
             placeholder={
-              isMobile ? "Plan de seguros..." : "Agregar plan de seguros"
+              isMobile
+                ? t("searchBar.insurancePlaceholderMobile")
+                : t("searchBar.insurancePlaceholderDesktop")
             }
             value={insurance}
             onChange={(e) => {
@@ -125,12 +129,12 @@ const DoctorSearchBar = () => {
         <button
           onClick={handleSearch}
           className="w-full md:w-14 h-12 md:h-14 rounded-xl md:rounded-full bg-primary hover:bg-primary/90 flex items-center justify-center transition-colors md:ml-4"
-          aria-label="Buscar"
+          aria-label={t("searchBar.searchButton")}
         >
           <Search className="w-5 h-5 text-primary-foreground" />
           {isMobile && (
             <span className="ml-2 font-medium text-primary-foreground">
-              Buscar
+              {t("searchBar.searchButton")}
             </span>
           )}
         </button>

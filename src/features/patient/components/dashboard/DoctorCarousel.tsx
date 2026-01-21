@@ -12,7 +12,17 @@ import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/shared/ui/button";
 import { motion } from "framer-motion";
 import { fadeInUp } from "@/lib/animations/commonAnimations";
-
+import { useTranslation } from "react-i18next"; // <--- Añade traducción
+import { Stethoscope } from "lucide-react";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/shared/ui/empty";
+import MCButton from "@/shared/components/forms/MCButton";
 interface Doctor {
   id: number;
   name: string;
@@ -35,12 +45,13 @@ interface DoctorCarouselProps {
 
 export function DoctorCarousel({
   doctors,
-  title = "Tu equipo de atención",
+  title,
   variant = "m",
   showSearch = true,
 }: DoctorCarouselProps) {
   const scrollContainerRef = React.useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
+  const { t } = useTranslation("patient"); // <--- Hook de traducción
 
   // Obtener filtros y setters del store
   const doctorFilters = useFiltersStore((state) => state.doctorFilters);
@@ -109,7 +120,7 @@ export function DoctorCarousel({
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
         <h2 className="text-lg sm:text-xl lg:text-2xl font-semibold text-foreground">
-          {title}
+          {title || t("navbar.doctors")}
         </h2>
 
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
@@ -148,37 +159,79 @@ export function DoctorCarousel({
             "hidden sm:flex size-9 sm:size-10 lg:size-11 aria-disabled:opacity-50 p-2 border-none select-none transition-all duration-200 hover:bg-primary/10 dark:hover:bg-primary/20 active:scale-95 rounded-full flex-shrink-0",
             defaultClassNames.button_previous,
           )}
-          aria-label="Scroll left"
+          aria-label={
+            t("navbar.doctors") + " " + t("common.previous") || "Scroll left"
+          }
         >
           <ChevronLeft size={20} className="text-foreground" />
         </button>
 
-        {/* Cards Container */}
-        <div
-          ref={scrollContainerRef}
-          className="flex gap-3 sm:gap-4 overflow-x-auto scrollbar-hide py-2 snap-x snap-mandatory"
-          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-        >
-          {filteredDoctors.map((doctor) => (
-            <div
-              key={doctor.id}
-              className="flex-shrink-0 snap-center w-[85vw] sm:w-[calc((100%-32px)/2)] lg:w-[calc((100%-64px)/3)] min-w-[110px] max-w-[300px]"
-            >
-              <MCDoctorCard
-                name={doctor.name}
-                specialty={doctor.specialty}
-                rating={doctor.rating}
-                yearsOfExperience={doctor.yearsOfExperience}
-                languages={doctor.languages}
-                insuranceAccepted={doctor.insuranceAccepted}
-                isFavorite={doctor.isFavorite}
-                urlImage={doctor.urlImage}
-                variant={variant}
-                lastAppointment={doctor.lastAppointment}
-              />
-            </div>
-          ))}
-        </div>
+        {/* Cards Container o Empty */}
+        {filteredDoctors.length === 0 ? (
+          <Empty className="flex-1 my-6">
+            <EmptyHeader>
+              <EmptyMedia variant="icon">
+                {/* Puedes usar cualquier icono, por ejemplo: */}
+                <Stethoscope size={32} />
+              </EmptyMedia>
+              <EmptyTitle>
+                {t("doctors.emptyTitle", "No doctors found")}
+              </EmptyTitle>
+              <EmptyDescription>
+                {t(
+                  "doctors.emptyDescription",
+                  "Try adjusting your filters or search criteria.",
+                )}
+              </EmptyDescription>
+            </EmptyHeader>
+            <EmptyContent>
+              {/* Puedes agregar un botón para limpiar filtros si lo deseas */}
+              <MCButton
+                size="s"
+                variant="outline"
+                onClick={() =>
+                  setDoctorFilters({
+                    name: "",
+                    specialty: "",
+                    yearsOfExperience: null,
+                    languages: [],
+                    acceptingInsurance: [],
+                    isFavorite: null,
+                    rating: null,
+                  })
+                }
+              >
+                {t("filters.popover.clear", "Clear filters")}
+              </MCButton>
+            </EmptyContent>
+          </Empty>
+        ) : (
+          <div
+            ref={scrollContainerRef}
+            className="flex gap-3 sm:gap-4 overflow-x-auto scrollbar-hide py-2 snap-x snap-mandatory"
+            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+          >
+            {filteredDoctors.map((doctor) => (
+              <div
+                key={doctor.id}
+                className="flex-shrink-0 snap-center w-[85vw] sm:w-[calc((100%-32px)/2)] lg:w-[calc((100%-64px)/3)] min-w-[110px] max-w-[300px]"
+              >
+                <MCDoctorCard
+                  name={doctor.name}
+                  specialty={doctor.specialty}
+                  rating={doctor.rating}
+                  yearsOfExperience={doctor.yearsOfExperience}
+                  languages={doctor.languages}
+                  insuranceAccepted={doctor.insuranceAccepted}
+                  isFavorite={doctor.isFavorite}
+                  urlImage={doctor.urlImage}
+                  variant={variant}
+                  lastAppointment={doctor.lastAppointment}
+                />
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* Right Arrow - Hidden on mobile */}
         <button
@@ -188,7 +241,9 @@ export function DoctorCarousel({
             "hidden sm:flex size-9 sm:size-10 lg:size-11 aria-disabled:opacity-50 p-2 select-none border-none transition-all duration-200 hover:bg-primary/10 dark:hover:bg-primary/20 active:scale-95 rounded-full flex-shrink-0",
             defaultClassNames.button_next,
           )}
-          aria-label="Scroll right"
+          aria-label={
+            t("navbar.doctors") + " " + t("common.next") || "Scroll right"
+          }
         >
           <ChevronRight size={20} className="text-foreground" />
         </button>

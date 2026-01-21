@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardTitle } from "@/shared/ui/card";
 import { Star, Heart, Languages, ShieldCheck, Stethoscope } from "lucide-react";
 import MCButton from "./forms/MCButton";
@@ -10,10 +11,6 @@ import {
 } from "../ui/tooltip";
 import { MCUserAvatar } from "@/shared/navigation/userMenu/MCUserAvatar";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
-
-/* =========================
-   TYPES
-========================= */
 
 export type DoctorCardVariant = "s" | "m" | "default";
 
@@ -77,6 +74,7 @@ function MCDoctorsCards({
 }: Doctor) {
   const styles = VARIANT_STYLES[variant];
   const isMobile = useIsMobile();
+  const { t } = useTranslation("patient");
 
   return (
     <Card className="rounded-3xl bg-transparent border border-primary/10 shadow-sm hover:shadow-lg transition-shadow h-full flex flex-col">
@@ -148,7 +146,8 @@ function MCDoctorsCards({
           {/* Mostrar lastAppointment en "s" y "m" */}
           {(variant === "s" || variant === "m") && lastAppointment && (
             <span className="text-xs text-primary/50 my-1">
-              Última cita: {lastAppointment}
+              {t("doctors.lastAppointment", "Last appointment")}:{" "}
+              {lastAppointment}
             </span>
           )}
 
@@ -159,15 +158,20 @@ function MCDoctorsCards({
                 <Stethoscope size={16} className="text-secondary" />
                 <span className="text-sm">
                   {yearsOfExperience
-                    ? `${yearsOfExperience}+ años de experiencia`
-                    : "Experiencia no especificada"}
+                    ? t("doctors.experience", {
+                        count: yearsOfExperience,
+                        years: yearsOfExperience,
+                      })
+                    : t("doctors.noExperience", "Experience not specified")}
                 </span>
               </div>
 
               <div className="flex items-center gap-2">
                 <Languages size={16} className="text-secondary" />
                 <span className="text-sm truncate">
-                  {languages?.join(", ") || "Idiomas no especificados"}
+                  {languages?.length
+                    ? languages.join(", ")
+                    : t("doctors.noLanguages", "Languages not specified")}
                 </span>
               </div>
 
@@ -179,7 +183,11 @@ function MCDoctorsCards({
                       <TooltipTrigger asChild>
                         <div className="cursor-pointer">
                           <span className="font-semibold text-sm">
-                            Seguros aceptados:
+                            {t(
+                              "doctors.acceptedInsurances",
+                              "Accepted insurances",
+                            )}
+                            :
                           </span>
                           <p className="text-sm truncate max-w-[220px]">
                             {insuranceAccepted.join(", ")}
@@ -198,15 +206,15 @@ function MCDoctorsCards({
         </div>
       </CardContent>
 
-      {/* ACTIONS */}
       <div className="grid grid-cols-3 gap-2 ">
-        <MCButton size={styles.buttonSize}>Agendar</MCButton>
-        <MCButton size={styles.buttonSize} variant="secondary">
-          Perfil
+        <MCButton size={styles.buttonSize}>
+          {t("doctors.schedule", "Schedule")}
         </MCButton>
-
         <MCButton size={styles.buttonSize} variant="secondary">
-          Historial
+          {t("doctors.profile", "Profile")}
+        </MCButton>
+        <MCButton size={styles.buttonSize} variant="secondary">
+          {t("doctors.history", "History")}
         </MCButton>
       </div>
     </Card>

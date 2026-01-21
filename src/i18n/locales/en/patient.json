@@ -38,7 +38,15 @@
     "saveChanges": "Save changes",
     "cancel": "Cancel",
     "cropBanner": "Crop banner",
-    "cropProfilePhoto": "Crop profile photo"
+    "cropProfilePhoto": "Crop profile photo",
+    "patientSince": "Patient since:",
+    "menu": {
+      "history": "View full history",
+      "settings": "Settings",
+      "privacy": "Privacy & Security",
+      "copyProfile": "Copy profile",
+      "logout": "Log out"
+    }
   },
   "clinicalHistory": {
     "importantTitle": "Important Clinical History",
@@ -58,7 +66,8 @@
     "list": "Your Insurance",
     "add": "Add Medical Insurance",
     "select": "Select insurance",
-    "remove": "Remove insurance"
+    "remove": "Remove insurance",
+    "morePlans": "More insurance plans in the network. View all"
   },
   "validation": {
     "fullNameRequired": "Full name is required",
@@ -69,5 +78,100 @@
     "heightInvalid": "Invalid input: a number was expected",
     "weightInvalid": "Invalid input: a number was expected",
     "bloodTypeInvalid": "Invalid option: expected A+, A-, B+, B-, AB+, AB-, O+ or O-"
+  },
+  "appointments": {
+    "reschedule": "Reschedule",
+    "cancel": "Cancel",
+    "join": "Join",
+    "details": "Details",
+    "viewDetails": "View details",
+    "virtual": "Virtual",
+    "inPerson": "In Person",
+    "appointmentsForDate": "Appointments for {{date}}",
+    "appointmentsCount": "{{count}} appointment",
+    "appointmentsCount_plural": "{{count}} appointments",
+    "emptyTitle": "No appointments scheduled",
+    "emptyDescription": "You have no appointments for this day. Select another date or schedule a new appointment."
+  },
+  "dashboard": {
+    "searchTitle": "Search for doctors, specialties or nearby clinics"
+  },
+  "filters": {
+    "labels": {
+      "specialty": "Specialty",
+      "languages": "Languages",
+      "insurances": "Accepted insurances",
+      "experience": "Years of experience",
+      "ranking": "Minimum ranking",
+      "onlyFavorites": "Only favorites"
+    },
+    "placeholders": {
+      "specialty": "Select specialty",
+      "languages": "Select languages",
+      "insurances": "Select insurances",
+      "yearsOfExperience": "Select years of experience",
+      "ranking": "Select ranking"
+    },
+    "specialties": {
+      "cardiology": "Cardiology",
+      "dermatology": "Dermatology",
+      "pediatrics": "Pediatrics"
+    },
+    "languages": {
+      "es": "Spanish",
+      "en": "English",
+      "fr": "French"
+    },
+    "insurances": {
+      "senasa": "SeNaSa",
+      "palic": "ARS Palic",
+      "humano": "Humano Seguros"
+    },
+    "experience": {
+      "1": "1+ years",
+      "3": "3+ years",
+      "5": "5+ years",
+      "10": "10+ years"
+    },
+    "ranking": {
+      "4_5": "Greater than 4.5",
+      "4": "Greater than 4",
+      "3_5": "Greater than 3.5",
+      "3": "Greater than 3",
+      "all": "All"
+    },
+    "popover": {
+      "title": "Search Filters",
+      "filters": "Filters",
+      "clear": "Clear",
+      "cancel": "Cancel",
+      "apply": "Apply",
+      "open": "Open filters"
+    }
+  },
+  "searchBar": {
+    "searchLabel": "Search",
+    "searchPlaceholderMobile": "Doctor, specialty...",
+    "searchPlaceholderDesktop": "Doctor's name, health center or specialty",
+    "insuranceLabel": "Insurance",
+    "insurancePlaceholderMobile": "Insurance plan...",
+    "insurancePlaceholderDesktop": "Add insurance plan",
+    "searchButton": "Search",
+    "popularPlans": "Popular plans",
+    "allPlans": "All plans",
+    "noPlans": "No plans found"
+  },
+  "doctors": {
+    "emptyTitle": "No se encontraron doctores",
+    "emptyDescription": "Intenta ajustar tus filtros o criterios de búsqueda.",
+    "lastAppointment": "Last appointment",
+    "experience": "{{count}} year of experience",
+    "experience_plural": "{{count}} years of experience",
+    "noExperience": "Experience not specified",
+    "noLanguages": "Languages not specified",
+    "acceptedInsurances": "Accepted insurances",
+    "schedule": "Schedule",
+    "profile": "Profile",
+    "history": "History"
   }
 }

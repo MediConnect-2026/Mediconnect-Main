@@ -6,7 +6,7 @@
     "calendar": "Calendario"
   },
   "profileForm": {
-    "editProfile": "Editar Perfil",
+    "editProfile": "Editar perfil",
     "editProfileDescription": "Modifica tu información personal y médica",
     "generalInfo": "Información General",
     "clinicalHistory": "Historial Clínico",
@@ -38,7 +38,15 @@
     "saveChanges": "Guardar cambios",
     "cancel": "Cancelar",
     "cropBanner": "Recortar portada",
-    "cropProfilePhoto": "Recortar foto de perfil"
+    "cropProfilePhoto": "Recortar foto de perfil",
+    "patientSince": "Paciente desde:",
+    "menu": {
+      "history": "Ver historial completo",
+      "settings": "Configuración",
+      "privacy": "Privacidad y seguridad",
+      "copyProfile": "Copiar perfil",
+      "logout": "Cerrar sesión"
+    }
   },
   "clinicalHistory": {
     "importantTitle": "Historial Clínico Importante",
@@ -58,7 +66,8 @@
     "list": "Tus Seguros",
     "add": "Agregar Seguro Médico",
     "select": "Selecciona un seguro",
-    "remove": "Eliminar seguro"
+    "remove": "Eliminar seguro",
+    "morePlans": "Más planes de Seguros dentro de la red. Ver todo"
   },
   "validation": {
     "fullNameRequired": "El nombre completo es requerido",
@@ -69,5 +78,101 @@
     "heightInvalid": "Entrada inválida: se esperaba un número",
     "weightInvalid": "Entrada inválida: se esperaba un número",
     "bloodTypeInvalid": "Opción inválida: se esperaba A+, A-, B+, B-, AB+, AB-, O+ u O-"
+  },
+
+  "appointments": {
+    "reschedule": "Reprogramar",
+    "cancel": "Cancelar",
+    "join": "Unirse",
+    "details": "Detalles",
+    "viewDetails": "Ver detalles",
+    "virtual": "Virtual",
+    "inPerson": "Presencial",
+    "appointmentsForDate": "Citas para {{date}}",
+    "appointmentsCount": "{{count}} cita",
+    "appointmentsCount_plural": "{{count}} citas",
+    "emptyTitle": "Sin citas programadas",
+    "emptyDescription": "No tienes citas para este día. Selecciona otra fecha o agenda una nueva cita."
+  },
+  "dashboard": {
+    "searchTitle": "Busca médicos, especialidades o clínicas cercanas"
+  },
+  "filters": {
+    "labels": {
+      "specialty": "Especialidad",
+      "languages": "Idiomas",
+      "insurances": "Seguros aceptados",
+      "experience": "Años de experiencia",
+      "ranking": "Ranking mínimo",
+      "onlyFavorites": "Solo favoritos"
+    },
+    "specialties": {
+      "cardiology": "Cardiología",
+      "dermatology": "Dermatología",
+      "pediatrics": "Pediatría"
+    },
+    "languages": {
+      "es": "Español",
+      "en": "Inglés",
+      "fr": "Francés"
+    },
+    "insurances": {
+      "senasa": "SeNaSa",
+      "palic": "ARS Palic",
+      "humano": "Humano Seguros"
+    },
+    "experience": {
+      "1": "1+ años",
+      "3": "3+ años",
+      "5": "5+ años",
+      "10": "10+ años"
+    },
+    "ranking": {
+      "4_5": "Mayor a 4.5",
+      "4": "Mayor a 4",
+      "3_5": "Mayor a 3.5",
+      "3": "Mayor a 3",
+      "all": "Todos"
+    },
+    "placeholders": {
+      "specialty": "Selecciona especialidad",
+      "languages": "Selecciona idiomas",
+      "insurances": "Selecciona seguros",
+      "yearsOfExperience": "Selecciona años de experiencia",
+      "ranking": "Selecciona ranking"
+    },
+    "popover": {
+      "title": "Filtros de Búsqueda",
+      "filters": "Filtros",
+      "clear": "Limpiar",
+      "cancel": "Cancelar",
+      "apply": "Aplicar",
+      "open": "Abrir filtros"
+    }
+  },
+  "searchBar": {
+    "searchLabel": "Buscar",
+    "searchPlaceholderMobile": "Doctor, especialidad...",
+    "searchPlaceholderDesktop": "Nombre del doctor, centro de salud o especialidad",
+    "insuranceLabel": "Seguro",
+    "insurancePlaceholderMobile": "Plan de seguros...",
+    "insurancePlaceholderDesktop": "Agregar plan de seguros",
+    "searchButton": "Buscar",
+    "popularPlans": "Planes populares",
+    "allPlans": "Todos los planes",
+    "noPlans": "No se encontraron planes"
+  },
+  "doctors": {
+    "emptyTitle": "No doctors found",
+    "emptyDescription": "Try adjusting your filters or search criteria.",
+    "lastAppointment": "Última cita",
+    "experience": "{{count}} año de experiencia",
+    "experience_plural": "{{count}} años de experiencia",
+    "noExperience": "Experiencia no especificada",
+    "noLanguages": "Idiomas no especificados",
+    "acceptedInsurances": "Seguros aceptados",
+    "schedule": "Agendar",
+    "profile": "Perfil",
+    "history": "Historial"
   }
 }

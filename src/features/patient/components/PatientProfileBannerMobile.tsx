@@ -24,6 +24,7 @@ import {
 import { MCUserAvatar } from "@/shared/navigation/userMenu/MCUserAvatar";
 import { MCUserBanner } from "@/shared/navigation/userMenu/MCUserBanner";
 import MCButton from "@/shared/components/forms/MCButton";
+import { useTranslation } from "react-i18next";
 
 interface Props {
   user: any;
@@ -31,6 +32,8 @@ interface Props {
 }
 
 function PatientProfileBannerMobile({ user, setOpenSheet }: Props) {
+  const { t } = useTranslation("patient");
+
   return (
     <div className="w-full rounded-3xl shadow-md bg-background overflow-hidden">
       {/* Banner */}
@@ -38,7 +41,7 @@ function PatientProfileBannerMobile({ user, setOpenSheet }: Props) {
         {user?.banner ? (
           <img
             src={user.banner}
-            alt="Banner"
+            alt={t("profileForm.bannerImage")}
             className="w-full h-full object-cover"
           />
         ) : (
@@ -83,8 +86,10 @@ function PatientProfileBannerMobile({ user, setOpenSheet }: Props) {
             </div>
 
             <p className="text-sm text-muted-foreground">
-              <span className="font-medium">Paciente desde:</span> 15 de Enero,
-              2025
+              <span className="font-medium">
+                {t("profileForm.patientSince")}
+              </span>{" "}
+              15 de Enero, 2025
             </p>
           </div>
 
@@ -98,24 +103,24 @@ function PatientProfileBannerMobile({ user, setOpenSheet }: Props) {
             <DropdownMenuContent align="end">
               <DropdownMenuItem>
                 <History className="w-4 h-4 mr-2" />
-                Historial
+                {t("profileForm.menu.history")}
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <Settings className="w-4 h-4 mr-2" />
-                Configuración
+                {t("profileForm.menu.settings")}
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <Shield className="w-4 h-4 mr-2" />
-                Privacidad
+                {t("profileForm.menu.privacy")}
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <Copy className="w-4 h-4 mr-2" />
-                Copiar perfil
+                {t("profileForm.menu.copyProfile")}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem className="text-red-500">
                 <LogOut className="w-4 h-4 mr-2" />
-                Cerrar sesión
+                {t("profileForm.menu.logout")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -128,7 +133,7 @@ function PatientProfileBannerMobile({ user, setOpenSheet }: Props) {
           className="rounded-full w-full"
           onClick={() => setOpenSheet(true)}
         >
-          Editar perfil
+          {t("profileForm.editProfile")}
         </MCButton>
       </div>
     </div>

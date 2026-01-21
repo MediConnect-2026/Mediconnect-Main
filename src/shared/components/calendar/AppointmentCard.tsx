@@ -4,6 +4,7 @@ import { MCUserAvatar } from "@/shared/navigation/userMenu/MCUserAvatar";
 import { Video, MapPin } from "lucide-react";
 import MCButton from "../forms/MCButton";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
+import { useTranslation } from "react-i18next";
 
 export type AppointmentStatus =
   | "scheduled"
@@ -31,6 +32,7 @@ interface AppointmentCardProps {
 
 export function AppointmentCard({ appointment, index }: AppointmentCardProps) {
   const isMobile = useIsMobile();
+  const { t } = useTranslation("patient");
 
   const initials = appointment.clientName
     .split(" ")
@@ -49,14 +51,14 @@ export function AppointmentCard({ appointment, index }: AppointmentCardProps) {
             size="s"
             className="rounded-full w-full sm:w-auto"
           >
-            {isMobile ? "Reprogramar" : "Reschedule"}
+            {t("appointments.reschedule")}
           </MCButton>
           <MCButton
             variant="outlineDelete"
             size="s"
             className="rounded-full w-full sm:w-auto"
           >
-            {isMobile ? "Cancelar" : "Cancel"}
+            {t("appointments.cancel")}
           </MCButton>
         </div>
       );
@@ -67,14 +69,14 @@ export function AppointmentCard({ appointment, index }: AppointmentCardProps) {
         return (
           <div className="flex flex-col sm:flex-row w-full sm:w-fit gap-2">
             <MCButton size="s" className="rounded-full w-full sm:w-auto">
-              {isMobile ? "Unirse" : "Join"}
+              {t("appointments.join")}
             </MCButton>
             <MCButton
               variant="outline"
               size="s"
               className="rounded-full w-full sm:w-auto"
             >
-              {isMobile ? "Detalles" : "View details"}
+              {t("appointments.details")}
             </MCButton>
           </div>
         );
@@ -83,7 +85,7 @@ export function AppointmentCard({ appointment, index }: AppointmentCardProps) {
       return (
         <div className="w-full">
           <MCButton variant="outline" size="s" className="rounded-full w-full">
-            {isMobile ? "Ver detalles" : "View details"}
+            {t("appointments.viewDetails")}
           </MCButton>
         </div>
       );
@@ -93,7 +95,7 @@ export function AppointmentCard({ appointment, index }: AppointmentCardProps) {
     return (
       <div className="w-full">
         <MCButton variant="outline" size="s" className="rounded-full w-full">
-          {isMobile ? "Ver detalles" : "View details"}
+          {t("appointments.viewDetails")}
         </MCButton>
       </div>
     );
@@ -143,12 +145,12 @@ export function AppointmentCard({ appointment, index }: AppointmentCardProps) {
               {appointment.isVirtual ? (
                 <>
                   <Video className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-                  Virtual
+                  {t("appointments.virtual")}
                 </>
               ) : (
                 <>
                   <MapPin className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-                  {isMobile ? "Presencial" : "In-person"}
+                  {t("appointments.inPerson")}
                 </>
               )}
             </span>

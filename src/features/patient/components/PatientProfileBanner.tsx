@@ -23,6 +23,7 @@ import {
 } from "@/shared/ui/avatar";
 import { MCUserAvatar } from "@/shared/navigation/userMenu/MCUserAvatar";
 import { MCUserBanner } from "@/shared/navigation/userMenu/MCUserBanner";
+import { useTranslation } from "react-i18next";
 
 interface Props {
   user: any;
@@ -30,13 +31,15 @@ interface Props {
 }
 
 function PatientProfileBanner({ user, setOpenSheet }: Props) {
+  const { t } = useTranslation("patient");
+
   return (
     <div className="w-[90%] shadow-md rounded-4xl border-0 mx-auto">
       <div className="relative h-60 flex items-end rounded-t-4xl bg-background ">
         {user?.banner ? (
           <img
             src={user.banner}
-            alt="Banner de usuario"
+            alt={t("profileForm.bannerImage")}
             className="absolute top-0 left-0 w-full h-full object-cover rounded-t-4xl"
             style={{ zIndex: 1 }}
           />
@@ -53,7 +56,10 @@ function PatientProfileBanner({ user, setOpenSheet }: Props) {
           <div className="flex items-center w-[95%]">
             {user?.avatar ? (
               <UiAvatar className="w-40 h-40 rounded-full border-4 border-background">
-                <AvatarImage src={user.avatar} alt="User Avatar" />
+                <AvatarImage
+                  src={user.avatar}
+                  alt={t("profileForm.profilePhoto")}
+                />
                 <AvatarFallback>
                   {user.name
                     .split(" ")
@@ -76,8 +82,10 @@ function PatientProfileBanner({ user, setOpenSheet }: Props) {
                   {user?.name || "Ilia Topuria"}
                 </h3>
                 <p className="text-primary">
-                  <span className="font-medium">Paciente desde:</span> 15 de
-                  Enero, 2025
+                  <span className="font-medium">
+                    {t("profileForm.patientSince")}
+                  </span>{" "}
+                  15 de Enero, 2025
                 </p>
               </div>
 
@@ -88,7 +96,7 @@ function PatientProfileBanner({ user, setOpenSheet }: Props) {
                   className="font-medium rounded-full transition-colors transition-opacity transition-transform duration-200 focus:outline-none px-6 py-3 text-base md:px-8 md:py-6 md:text-lg bg-transparent border border-primary text-primary hover:bg-primary/10 hover:opacity-90 active:bg-primary/20 active:opacity-80 active:scale-95 active:shadow-inner"
                   onClick={() => setOpenSheet(true)}
                 >
-                  Editar Perfil
+                  {t("profileForm.editProfile")}
                 </MCButton>
 
                 <DropdownMenu>
@@ -100,24 +108,26 @@ function PatientProfileBanner({ user, setOpenSheet }: Props) {
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem>
                       <History className="w-4 h-4 mr-2" />
-                      Ver historial completo
+                      {t("profileForm.menu.history")}
                     </DropdownMenuItem>
                     <DropdownMenuItem>
                       <Settings className="w-4 h-4 mr-2" />
-                      Configuración
+                      {t("profileForm.menu.settings")}
                     </DropdownMenuItem>
                     <DropdownMenuItem>
                       <Shield className="w-4 h-4 mr-2" />
-                      Privacidad y seguridad
+                      {t("profileForm.menu.privacy")}
                     </DropdownMenuItem>
                     <DropdownMenuItem>
                       <Copy className="w-4 h-4 mr-2" />
-                      Copiar perfil
+                      {t("profileForm.menu.copyProfile")}
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem>
                       <LogOut className="w-4 h-4 mr-2 text-red-500" />
-                      <span className="text-red-500">Cerrar sesión</span>
+                      <span className="text-red-500">
+                        {t("profileForm.menu.logout")}
+                      </span>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>

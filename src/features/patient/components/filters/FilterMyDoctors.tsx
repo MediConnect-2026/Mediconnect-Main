@@ -1,92 +1,102 @@
 import { Heart, Star } from "lucide-react";
-
 import MCFilterSelect from "@/shared/components/filters/MCFilterSelect";
 import { Label } from "@/shared/ui/label";
 import { Switch } from "@/shared/ui/switch";
 import { type JSX } from "react";
 import { type DoctorFiltersSlice } from "@/stores/filters/doctorFilters.slice";
+import { useTranslation } from "react-i18next";
 
 type OptionType = { value: string; label: string | JSX.Element };
-
-const specialties: OptionType[] = [
-  { value: "cardiology", label: "Cardiología" },
-  { value: "dermatology", label: "Dermatología" },
-  { value: "pediatrics", label: "Pediatría" },
-  // ...otras especialidades
-];
-
-const languages: OptionType[] = [
-  { value: "es", label: "Español" },
-  { value: "en", label: "Inglés" },
-  { value: "fr", label: "Francés" },
-  // ...otros idiomas
-];
-
-const insurances: OptionType[] = [
-  { value: "senasa", label: "SeNaSa" },
-  { value: "palic", label: "ARS Palic" },
-  { value: "humano", label: "Humano Seguros" },
-  // ...otros seguros
-];
-
-const experienceOptions: OptionType[] = [
-  { value: "1", label: "1+ años" },
-  { value: "3", label: "3+ años" },
-  { value: "5", label: "5+ años" },
-  { value: "10", label: "10+ años" },
-];
-
-const rankingOptions: OptionType[] = [
-  {
-    value: "4.5",
-    label: (
-      <span className="flex items-center gap-1">
-        Mayor a 4.5 <Star className="w-4 h-4 text-yellow-400" />
-      </span>
-    ),
-  },
-  {
-    value: "4",
-    label: (
-      <span className="flex items-center gap-1">
-        Mayor a 4 <Star className="w-4 h-4 text-yellow-400" />
-      </span>
-    ),
-  },
-  {
-    value: "3.5",
-    label: (
-      <span className="flex items-center gap-1">
-        Mayor a 3.5 <Star className="w-4 h-4 text-yellow-400" />
-      </span>
-    ),
-  },
-  {
-    value: "3",
-    label: (
-      <span className="flex items-center gap-1">
-        Mayor a 3 <Star className="w-4 h-4 text-yellow-400" />
-      </span>
-    ),
-  },
-  { value: "0", label: <span className="flex items-center gap-1">Todos</span> },
-];
-
-type DoctorFiltersProps = {
-  doctorFilters: DoctorFiltersSlice["doctorFilters"];
-  setDoctorFilters: DoctorFiltersSlice["setDoctorFilters"];
-};
 
 function FilterMyDoctors({
   doctorFilters,
   setDoctorFilters,
-}: DoctorFiltersProps) {
+}: {
+  doctorFilters: DoctorFiltersSlice["doctorFilters"];
+  setDoctorFilters: DoctorFiltersSlice["setDoctorFilters"];
+}) {
+  const { t } = useTranslation("patient");
+
+  const specialties: OptionType[] = [
+    { value: "cardiology", label: t("filters.specialties.cardiology") },
+    { value: "dermatology", label: t("filters.specialties.dermatology") },
+    { value: "pediatrics", label: t("filters.specialties.pediatrics") },
+    // ...otras especialidades
+  ];
+
+  const languages: OptionType[] = [
+    { value: "es", label: t("filters.languages.es") },
+    { value: "en", label: t("filters.languages.en") },
+    { value: "fr", label: t("filters.languages.fr") },
+    // ...otros idiomas
+  ];
+
+  const insurances: OptionType[] = [
+    { value: "senasa", label: t("filters.insurances.senasa") },
+    { value: "palic", label: t("filters.insurances.palic") },
+    { value: "humano", label: t("filters.insurances.humano") },
+    // ...otros seguros
+  ];
+
+  const experienceOptions: OptionType[] = [
+    { value: "1", label: t("filters.experience.1") },
+    { value: "3", label: t("filters.experience.3") },
+    { value: "5", label: t("filters.experience.5") },
+    { value: "10", label: t("filters.experience.10") },
+  ];
+
+  const rankingOptions: OptionType[] = [
+    {
+      value: "4.5",
+      label: (
+        <span className="flex items-center gap-1">
+          {t("filters.ranking.4_5")}{" "}
+          <Star className="w-4 h-4 text-yellow-400" />
+        </span>
+      ),
+    },
+    {
+      value: "4",
+      label: (
+        <span className="flex items-center gap-1">
+          {t("filters.ranking.4")} <Star className="w-4 h-4 text-yellow-400" />
+        </span>
+      ),
+    },
+    {
+      value: "3.5",
+      label: (
+        <span className="flex items-center gap-1">
+          {t("filters.ranking.3_5")}{" "}
+          <Star className="w-4 h-4 text-yellow-400" />
+        </span>
+      ),
+    },
+    {
+      value: "3",
+      label: (
+        <span className="flex items-center gap-1">
+          {t("filters.ranking.3")} <Star className="w-4 h-4 text-yellow-400" />
+        </span>
+      ),
+    },
+    {
+      value: "0",
+      label: (
+        <span className="flex items-center gap-1">
+          {t("filters.ranking.all")}
+        </span>
+      ),
+    },
+  ];
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full h-full">
       <MCFilterSelect
         name="specialty"
-        label="Especialidad"
+        label={t("filters.labels.specialty")}
         options={specialties}
+        placeholder={t("filters.placeholders.specialty")}
         value={doctorFilters.specialty}
         onChange={(v) =>
           setDoctorFilters({
@@ -97,10 +107,11 @@ function FilterMyDoctors({
       />
       <MCFilterSelect
         name="languages"
-        label="Idiomas"
+        label={t("filters.labels.languages")}
         options={languages}
         multiple
         searchable
+        placeholder={t("filters.placeholders.languages")}
         value={doctorFilters.languages}
         onChange={(v) =>
           setDoctorFilters({
@@ -111,10 +122,11 @@ function FilterMyDoctors({
       />
       <MCFilterSelect
         name="acceptingInsurance"
-        label="Seguros aceptados"
+        label={t("filters.labels.insurances")}
         options={insurances}
         multiple
         searchable
+        placeholder={t("filters.placeholders.insurances")}
         value={doctorFilters.acceptingInsurance}
         onChange={(v) =>
           setDoctorFilters({
@@ -125,8 +137,9 @@ function FilterMyDoctors({
       />
       <MCFilterSelect
         name="yearsOfExperience"
-        label="Años de experiencia"
+        label={t("filters.labels.experience")}
         options={experienceOptions}
+        placeholder={t("filters.placeholders.yearsOfExperience")}
         value={
           doctorFilters.yearsOfExperience !== null
             ? String(doctorFilters.yearsOfExperience)
@@ -141,8 +154,9 @@ function FilterMyDoctors({
       />
       <MCFilterSelect
         name="rating"
-        label="Ranking mínimo"
+        label={t("filters.labels.ranking")}
         options={rankingOptions}
+        placeholder={t("filters.placeholders.ranking")}
         value={
           doctorFilters.rating !== null ? String(doctorFilters.rating) : "0"
         }
@@ -168,7 +182,8 @@ function FilterMyDoctors({
           htmlFor="only-favorites"
           className="text-primary flex items-center gap-2 cursor-pointer"
         >
-          Solo favoritos <Heart className="w-5 h-5 text-red-500" fill="red" />
+          {t("filters.labels.onlyFavorites")}{" "}
+          <Heart className="w-5 h-5 text-red-500" fill="red" />
         </Label>
       </div>
     </div>

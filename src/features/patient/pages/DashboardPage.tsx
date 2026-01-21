@@ -1,6 +1,6 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { Card } from "@/shared/ui/card";
-import { Search } from "lucide-react";
 import { AppointmentsCalendar } from "@/shared/components/calendar/AppointmentsCalendar";
 import DoctorSearchBar from "../components/DoctorSearchBar";
 import MyInsurance from "../components/dashboard/MyInsurance";
@@ -93,6 +93,7 @@ const mockDoctors = [
 
 function DashboardPage() {
   const isMobile = useIsMobile();
+  const { t } = useTranslation("patient");
 
   return (
     <motion.main {...fadeInUp} className="min-h-screen">
@@ -100,7 +101,7 @@ function DashboardPage() {
         {/* BUSCADOR SUPERIOR */}
         <div className="rounded-2xl md:rounded-4xl p-6 md:p-12 w-full flex flex-col items-center bg-accent-foreground">
           <h1 className="text-xl md:text-4xl font-semibold text-background dark:text-primary mb-3 md:mb-4 text-center">
-            Busca médicos, especialidades o clínicas cercanas
+            {t("dashboard.searchTitle")}
           </h1>
           <div className="w-full">
             <DoctorSearchBar />
@@ -129,24 +130,22 @@ function DashboardPage() {
             </Card>
 
             {/* Información médica */}
-            <Card className="rounded-2xl md:rounded-4xl">
-              <MedicalInfoCard
-                isMobile={isMobile}
-                age="45 años"
-                bmi="26.1"
-                height="175 cm"
-                weight="80 kg"
-                bloodType="O+"
-                allergies={[
-                  "Penicilina (produce erupción cutánea)",
-                  "Penicilina (produce erupción cutánea)",
-                ]}
-                conditions={[
-                  "Apendicectomía en 2010",
-                  "Antecedentes familiares de diabetes tipo 2",
-                ]}
-              />
-            </Card>
+            <MedicalInfoCard
+              isMobile={isMobile}
+              age="45 años"
+              bmi="26.1"
+              height="175 cm"
+              weight="80 kg"
+              bloodType="O+"
+              allergies={[
+                "Penicilina (produce erupción cutánea)",
+                "Penicilina (produce erupción cutánea)",
+              ]}
+              conditions={[
+                "Apendicectomía en 2010",
+                "Antecedentes familiares de diabetes tipo 2",
+              ]}
+            />
           </div>
         </div>
       </div>

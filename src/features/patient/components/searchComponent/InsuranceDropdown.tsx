@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { insurancePlans, type InsurancePlan } from "@/data/searchData";
 
 interface InsuranceDropdownProps {
@@ -12,6 +13,8 @@ const InsuranceDropdown = ({
   onSelect,
   isMobile = false,
 }: InsuranceDropdownProps) => {
+  const { t } = useTranslation("patient");
+
   const { popularPlans, allPlans } = useMemo(() => {
     const query = searchTerm.toLowerCase().trim();
 
@@ -61,7 +64,7 @@ const InsuranceDropdown = ({
         {popularPlans.length > 0 && (
           <div className="px-4 md:px-5">
             <h3 className="font-semibold text-foreground mb-2 text-sm md:text-base">
-              Planes populares
+              {t("searchBar.popularPlans")}
             </h3>
             {popularPlans.map((plan) => (
               <button
@@ -79,7 +82,7 @@ const InsuranceDropdown = ({
         {isMobile && mobilePlans.length > 0 && (
           <div className="px-4 mt-4">
             <h3 className="font-semibold text-foreground mb-2 text-sm">
-              Todos los planes
+              {t("searchBar.allPlans")}
             </h3>
             {mobilePlans.map((plan) => (
               <button
@@ -97,7 +100,7 @@ const InsuranceDropdown = ({
         {!isMobile && groupedPlans && Object.keys(groupedPlans).length > 0 && (
           <div className="px-5 mt-4">
             <h3 className="font-semibold text-foreground mb-2">
-              Todos los planes
+              {t("searchBar.allPlans")}
             </h3>
             {Object.entries(groupedPlans).map(([letter, plans]) => (
               <div key={letter}>
@@ -123,7 +126,7 @@ const InsuranceDropdown = ({
             ? mobilePlans.length === 0
             : Object.keys(groupedPlans || {}).length === 0) && (
             <div className="px-4 md:px-5 py-4 text-muted-foreground text-center text-sm md:text-base">
-              No se encontraron planes
+              {t("searchBar.noPlans")}
             </div>
           )}
       </div>

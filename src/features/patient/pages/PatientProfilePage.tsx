@@ -1,11 +1,9 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import MCBackButton from "@/shared/components/forms/MCBackButton";
-
 import { Heart, AlertTriangle } from "lucide-react";
-
 import MCSheetProfile from "@/shared/navigation/userMenu/editProfile/MCSheetProfile";
-
 import { useAppStore } from "@/stores/useAppStore";
 import { Card, CardContent, CardHeader } from "@/shared/ui/card";
 import MCDoctorsCards from "@/shared/components/MCDoctorsCards";
@@ -71,17 +69,20 @@ function getActiveFilters(
   filters: DoctorFiltersSlice["doctorFilters"],
 ): string[] {
   const active: string[] = [];
-  if (filters.specialty) active.push("Especialidad");
-  if (filters.languages.length) active.push("Idiomas");
-  if (filters.acceptingInsurance.length) active.push("Seguros");
-  if (filters.yearsOfExperience) active.push("Experiencia");
-  if (filters.rating && filters.rating > 0) active.push("Ranking");
-  if (filters.isFavorite) active.push("Solo favoritos");
+  if (filters.specialty) active.push("filters.labels.specialty");
+  if (filters.languages.length) active.push("filters.labels.languages");
+  if (filters.acceptingInsurance.length)
+    active.push("filters.labels.insurances");
+  if (filters.yearsOfExperience) active.push("filters.labels.experience");
+  if (filters.rating && filters.rating > 0)
+    active.push("filters.labels.ranking");
+  if (filters.isFavorite) active.push("filters.labels.onlyFavorites");
   return active;
 }
 
 function PatientProfilePage() {
   const [openSheet, setOpenSheet] = useState(false);
+  const { t } = useTranslation("patient");
 
   const user = useAppStore((state) => state.user);
   const isMobile = useIsMobile();
@@ -132,7 +133,6 @@ function PatientProfilePage() {
   });
 
   const activeFilters = getActiveFilters(doctorFilters);
-  console.log(activeFilters);
 
   return (
     <div
@@ -169,7 +169,7 @@ function PatientProfilePage() {
                 <h2
                   className={`mb-6 ${isMobile ? "text-lg" : "text-2xl"} font-semibold text-foreground`}
                 >
-                  Mis Seguros Médicos
+                  {t("insurance.title")}
                 </h2>
                 <div
                   className={`grid ${isMobile ? "grid-cols-2" : "grid-cols-2"} gap-2`}
@@ -189,7 +189,7 @@ function PatientProfilePage() {
                   ))}
                   <div className="flex items-center gap-3 p-2">
                     <span className="text-sm text-primary hover:underline hover:text-secondary cursor-pointer">
-                      Más planes de Seguros dentro de la red Ver todo
+                      {t("insurance.morePlans")}
                     </span>
                   </div>
                 </div>
@@ -198,18 +198,24 @@ function PatientProfilePage() {
 
             <MedicalInfoCard
               isMobile={isMobile}
-              age="45 años"
+              age={t("profileForm.agePlaceholder")}
               bmi="26.1"
-              height="175 cm"
-              weight="80 kg"
-              bloodType="O+"
+              height={t("profileForm.heightPlaceholder") + " cm"}
+              weight={t("profileForm.weightPlaceholder") + " kg"}
+              bloodType={t("profileForm.bloodTypePlaceholder")}
               allergies={[
-                "Penicilina (produce erupción cutánea)",
-                "Penicilina (produce erupción cutánea)",
+                t("clinicalHistory.allergies") + " (Penicillin, skin rash)",
+                t("clinicalHistory.allergies") + " (Penicillin, skin rash)",
               ]}
               conditions={[
-                "Apendicectomía en 2010",
-                "Antecedentes familiares de diabetes tipo 2",
+                t(
+                  "clinicalHistory.conditionPlaceholder",
+                  "Appendectomy in 2010",
+                ),
+                t(
+                  "clinicalHistory.conditionPlaceholder",
+                  "Family history of type 2 diabetes",
+                ),
               ]}
             />
           </div>
@@ -223,11 +229,13 @@ function PatientProfilePage() {
               <h2
                 className={`${isMobile ? "text-lg" : "text-2xl"} font-semibold text-foreground`}
               >
-                Doctores Favoritos
+                {t("navbar.doctors")}
               </h2>
               <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
                 <div className="w-full sm:w-auto flex-1 sm:flex-none">
-                  <MCFilterInput />
+                  <MCFilterInput
+                    placeholder={t("filters.placeholders.specialty")}
+                  />
                 </div>
                 <MCFilterPopover
                   activeFiltersCount={activeFilters.length}
@@ -254,19 +262,34 @@ function PatientProfilePage() {
 
           <CardContent className={isMobile ? "p-4 pt-2" : "p-6 pt-4"}>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
-              {filteredDoctors.map((doctor, idx) => (
-                <MCDoctorsCards
-                  key={idx}
-                  name={doctor.name}
-                  specialty={doctor.specialty}
-                  rating={doctor.rating}
-                  yearsOfExperience={doctor.yearsOfExperience}
-                  languages={doctor.languages}
-                  insuranceAccepted={doctor.insuranceAccepted}
-                  isFavorite={doctor.isFavorite}
-                  urlImage={doctor.urlImage}
-                />
-              ))}
+              {filteredDoctors.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-8">
+                  <AlertTriangle className="w-10 h-10 text-muted-foreground mb-2" />
+                  <span className="text-lg font-semibold text-muted-foreground">
+                    {t("doctors.emptyTitle", "No doctors found")}
+                  </span>
+                  <span className="text-sm text-muted-foreground">
+                    {t(
+                      "doctors.emptyDescription",
+                      "Try adjusting your filters or search criteria.",
+                    )}
+                  </span>
+                </div>
+              ) : (
+                filteredDoctors.map((doctor, idx) => (
+                  <MCDoctorsCards
+                    key={idx}
+                    name={doctor.name}
+                    specialty={doctor.specialty}
+                    rating={doctor.rating}
+                    yearsOfExperience={doctor.yearsOfExperience}
+                    languages={doctor.languages}
+                    insuranceAccepted={doctor.insuranceAccepted}
+                    isFavorite={doctor.isFavorite}
+                    urlImage={doctor.urlImage}
+                  />
+                ))
+              )}
             </div>
           </CardContent>
         </Card>
