@@ -3,6 +3,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/avatar";
 import { MCUserAvatar } from "@/shared/navigation/userMenu/MCUserAvatar";
 import { Video, MapPin } from "lucide-react";
 import MCButton from "../forms/MCButton";
+import { useIsMobile } from "@/lib/hooks/useIsMobile";
 
 export type AppointmentStatus =
   | "scheduled"
@@ -29,6 +30,8 @@ interface AppointmentCardProps {
 }
 
 export function AppointmentCard({ appointment, index }: AppointmentCardProps) {
+  const isMobile = useIsMobile();
+
   const initials = appointment.clientName
     .split(" ")
     .map((n) => n[0])
@@ -37,45 +40,60 @@ export function AppointmentCard({ appointment, index }: AppointmentCardProps) {
   // Botones según estado y tipo
   const renderButtons = () => {
     const { status, isVirtual } = appointment;
+
     if (status === "scheduled" || status === "pending") {
       return (
-        <div className="flex w-fit gap-2">
-          <MCButton variant="outline" size="s" className="rounded-full">
-            Reschedule
+        <div className="flex flex-col sm:flex-row w-full sm:w-fit gap-2">
+          <MCButton
+            variant="outline"
+            size="s"
+            className="rounded-full w-full sm:w-auto"
+          >
+            {isMobile ? "Reprogramar" : "Reschedule"}
           </MCButton>
-          <MCButton variant="outlineDelete" size="s" className="rounded-full">
-            Cancel
+          <MCButton
+            variant="outlineDelete"
+            size="s"
+            className="rounded-full w-full sm:w-auto"
+          >
+            {isMobile ? "Cancelar" : "Cancel"}
           </MCButton>
         </div>
       );
     }
+
     if (status === "in_progress") {
       if (isVirtual) {
         return (
-          <div className="flex w-fit gap-2">
-            <MCButton size="s" className="rounded-full">
-              Join
+          <div className="flex flex-col sm:flex-row w-full sm:w-fit gap-2">
+            <MCButton size="s" className="rounded-full w-full sm:w-auto">
+              {isMobile ? "Unirse" : "Join"}
             </MCButton>
-            <MCButton variant="outline" size="s" className="rounded-full">
-              View details
+            <MCButton
+              variant="outline"
+              size="s"
+              className="rounded-full w-full sm:w-auto"
+            >
+              {isMobile ? "Detalles" : "View details"}
             </MCButton>
           </div>
         );
       }
       // presencial
       return (
-        <div className="bg-red-400 w-full">
+        <div className="w-full">
           <MCButton variant="outline" size="s" className="rounded-full w-full">
-            View details
+            {isMobile ? "Ver detalles" : "View details"}
           </MCButton>
         </div>
       );
     }
+
     // completed o cancelled
     return (
       <div className="w-full">
         <MCButton variant="outline" size="s" className="rounded-full w-full">
-          View details
+          {isMobile ? "Ver detalles" : "View details"}
         </MCButton>
       </div>
     );
@@ -86,11 +104,13 @@ export function AppointmentCard({ appointment, index }: AppointmentCardProps) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.1, duration: 0.3 }}
-      className="flex items-center justify-between p-2 rounded-xl bg-none "
+      className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 p-3 sm:p-2 rounded-xl bg-none border-b sm:border-b-0 border-border/50 last:border-b-0"
     >
-      <div className="flex items-center gap-4">
+      {/* Contenido principal */}
+      <div className="flex items-start sm:items-center gap-3 sm:gap-4">
+        {/* Avatar */}
         {appointment.clientImage ? (
-          <Avatar className="h-14 w-14">
+          <Avatar className="h-12 w-12 sm:h-14 sm:w-14 flex-shrink-0">
             <AvatarImage
               src={appointment.clientImage}
               alt={appointment.clientName}
@@ -98,35 +118,46 @@ export function AppointmentCard({ appointment, index }: AppointmentCardProps) {
             <AvatarFallback>{initials}</AvatarFallback>
           </Avatar>
         ) : (
-          <MCUserAvatar size={56} name={appointment.clientName} />
+          <div className="flex-shrink-0">
+            <MCUserAvatar
+              size={isMobile ? 48 : 56}
+              name={appointment.clientName}
+            />
+          </div>
         )}
-        <div className="flex flex-col">
-          <h4 className="font-display text-lg font-semibold text-foreground">
+
+        {/* Información */}
+        <div className="flex flex-col min-w-0 flex-1">
+          <h4 className="font-display text-base sm:text-lg font-semibold text-foreground truncate">
             {appointment.clientName}
           </h4>
-          <p className="text-sm text-muted-foreground">{appointment.service}</p>
-          <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
-            <span>
+          <p className="text-xs sm:text-sm text-muted-foreground truncate">
+            {appointment.service}
+          </p>
+          <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mt-1 text-xs sm:text-sm text-muted-foreground">
+            <span className="whitespace-nowrap">
               {appointment.startTime} - {appointment.endTime}
             </span>
-            <span className="text-muted-foreground/50">•</span>
-            <span className="flex items-center gap-1">
+            <span className="hidden sm:inline text-muted-foreground/50">•</span>
+            <span className="flex items-center gap-1 whitespace-nowrap">
               {appointment.isVirtual ? (
                 <>
-                  <Video className="h-3.5 w-3.5" />
+                  <Video className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                   Virtual
                 </>
               ) : (
                 <>
-                  <MapPin className="h-3.5 w-3.5" />
-                  In-person
+                  <MapPin className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+                  {isMobile ? "Presencial" : "In-person"}
                 </>
               )}
             </span>
           </div>
         </div>
       </div>
-      <div className="flex gap-2 w-fit">{renderButtons()}</div>
+
+      {/* Botones de acción */}
+      <div className="flex gap-2 w-full sm:w-fit">{renderButtons()}</div>
     </motion.div>
   );
 }

@@ -1,11 +1,5 @@
 import React from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
-import MCButton from "@/shared/components/forms/MCButton";
-import MCBackButton from "@/shared/components/forms/MCBackButton";
-import MCInput from "@/shared/components/forms/MCInput";
-import MCFilterSelect from "@/shared/components/filters/MCFilterSelect";
-import MCFilterInput from "@/shared/components/filters/MCFilterInput";
-import MCDoctorsCards from "@/shared/components/MCDoctorsCards";
+import { Card } from "@/shared/ui/card";
 import { Search } from "lucide-react";
 import { AppointmentsCalendar } from "@/shared/components/calendar/AppointmentsCalendar";
 import DoctorSearchBar from "../components/DoctorSearchBar";
@@ -96,17 +90,18 @@ const mockDoctors = [
     lastAppointment: "22/08/2025",
   },
 ];
+
 function DashboardPage() {
   const isMobile = useIsMobile();
+
   return (
     <motion.main {...fadeInUp} className="min-h-screen">
       <div className="mx-auto space-y-4">
         {/* BUSCADOR SUPERIOR */}
-        <div className="rounded-4xl p-12 w-full flex flex-col items-center bg-accent-foreground ">
-          <h1 className="text-4xl font-semibold text-background dark:text-primary mb-4">
+        <div className="rounded-2xl md:rounded-4xl p-6 md:p-12 w-full flex flex-col items-center bg-accent-foreground">
+          <h1 className="text-xl md:text-4xl font-semibold text-background dark:text-primary mb-3 md:mb-4 text-center">
             Busca médicos, especialidades o clínicas cercanas
           </h1>
-
           <div className="w-full">
             <DoctorSearchBar />
           </div>
@@ -114,39 +109,44 @@ function DashboardPage() {
 
         <div className="w-full flex flex-col justify-center items-center gap-4">
           {/* FILA 1: CALENDARIO + SEGUROS */}
-          <div className="grid grid-cols-[69.5%_29.5%]  justify-between  w-full">
+          <div className="grid grid-cols-1 lg:grid-cols-[69.5%_29.5%] gap-4 w-full">
             {/* Calendario + citas */}
-            <Card className="rounded-4xl">
+            <Card className="rounded-2xl md:rounded-4xl">
               <AppointmentsCalendar />
             </Card>
 
             {/* Mis seguros */}
-            <Card className="rounded-4xl">
-              <MyInsurance></MyInsurance>
+            <Card className="rounded-2xl md:rounded-4xl">
+              <MyInsurance />
             </Card>
           </div>
-          <div className="grid grid-cols-[69.5%_29.5%]  justify-between  w-full">
-            <Card className="rounded-4xl ">
+
+          {/* FILA 2: DOCTORES + INFORMACIÓN MÉDICA */}
+          <div className="grid grid-cols-1 lg:grid-cols-[69.5%_29.5%] gap-4 w-full">
+            {/* Carrusel de doctores */}
+            <Card className="rounded-2xl md:rounded-4xl">
               <DoctorCarousel doctors={mockDoctors} />
             </Card>
-            {/* Información médica */}
 
-            <MedicalInfoCard
-              isMobile={isMobile}
-              age="45 años"
-              bmi="26.1"
-              height="175 cm"
-              weight="80 kg"
-              bloodType="O+"
-              allergies={[
-                "Penicilina (produce erupción cutánea)",
-                "Penicilina (produce erupción cutánea)",
-              ]}
-              conditions={[
-                "Apendicectomía en 2010",
-                "Antecedentes familiares de diabetes tipo 2",
-              ]}
-            />
+            {/* Información médica */}
+            <Card className="rounded-2xl md:rounded-4xl">
+              <MedicalInfoCard
+                isMobile={isMobile}
+                age="45 años"
+                bmi="26.1"
+                height="175 cm"
+                weight="80 kg"
+                bloodType="O+"
+                allergies={[
+                  "Penicilina (produce erupción cutánea)",
+                  "Penicilina (produce erupción cutánea)",
+                ]}
+                conditions={[
+                  "Apendicectomía en 2010",
+                  "Antecedentes familiares de diabetes tipo 2",
+                ]}
+              />
+            </Card>
           </div>
         </div>
       </div>

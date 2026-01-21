@@ -1,6 +1,7 @@
 import { Search } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { useDebounce } from "@/lib/hooks/useDebounce";
+import { useIsMobile } from "@/lib/hooks/useIsMobile";
 import SearchDropdown from "./searchComponent/SearchDropdown";
 import InsuranceDropdown from "@/features/patient/components/searchComponent/InsuranceDropdown";
 import type { Doctor, Specialty, InsurancePlan } from "@/data/searchData";
@@ -16,8 +17,8 @@ const DoctorSearchBar = () => {
   const debouncedSearch = useDebounce(searchTerm, 150);
   const searchRef = useRef<HTMLDivElement>(null);
   const insuranceRef = useRef<HTMLDivElement>(null);
+  const isMobile = useIsMobile();
 
-  // Cerrar dropdowns al hacer click fuera
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -59,15 +60,19 @@ const DoctorSearchBar = () => {
 
   return (
     <motion.div {...fadeInUp} className="w-full max-w-4xl mx-auto">
-      <div className="bg-card rounded-full shadow-search flex items-center p-2 pl-6 relative border-2 border-foreground/10">
+      <div className="bg-card rounded-2xl md:rounded-full shadow-search flex flex-col md:flex-row items-stretch md:items-center p-4 md:p-2 md:pl-6 relative border-2 border-foreground/10 gap-3 md:gap-0">
         {/* Campo de búsqueda */}
         <div ref={searchRef} className="flex-1 py-2 relative">
-          <label className="block text-sm font-medium text-foreground mb-1">
+          <label className="block text-xs md:text-sm font-medium text-foreground mb-1">
             Buscar
           </label>
           <input
             type="text"
-            placeholder="Nombre del doctor, centro de salud o especialidad"
+            placeholder={
+              isMobile
+                ? "Doctor, especialidad..."
+                : "Nombre del doctor, centro de salud o especialidad"
+            }
             value={searchTerm}
             onChange={(e) => {
               setSearchTerm(e.target.value);
@@ -81,21 +86,24 @@ const DoctorSearchBar = () => {
               searchTerm={debouncedSearch}
               onSelectDoctor={handleSelectDoctor}
               onSelectSpecialty={handleSelectSpecialty}
+              isMobile={isMobile}
             />
           )}
         </div>
 
         {/* Separador */}
-        <div className="w-px h-12 bg-border mx-4" />
+        <div className="w-full md:w-px h-px md:h-12 bg-border md:mx-4" />
 
         {/* Campo de seguro */}
         <div ref={insuranceRef} className="flex-1 py-2 relative">
-          <label className="block text-sm font-medium text-foreground mb-1">
+          <label className="block text-xs md:text-sm font-medium text-foreground mb-1">
             Seguro
           </label>
           <input
             type="text"
-            placeholder="Agregar plan de seguros"
+            placeholder={
+              isMobile ? "Plan de seguros..." : "Agregar plan de seguros"
+            }
             value={insurance}
             onChange={(e) => {
               setInsurance(e.target.value);
@@ -108,6 +116,7 @@ const DoctorSearchBar = () => {
             <InsuranceDropdown
               searchTerm={insurance}
               onSelect={handleSelectInsurance}
+              isMobile={isMobile}
             />
           )}
         </div>
@@ -115,10 +124,15 @@ const DoctorSearchBar = () => {
         {/* Botón de búsqueda */}
         <button
           onClick={handleSearch}
-          className="w-14 h-14 rounded-full bg-primary hover:bg-primary/90 flex items-center justify-center transition-colors ml-4"
+          className="w-full md:w-14 h-12 md:h-14 rounded-xl md:rounded-full bg-primary hover:bg-primary/90 flex items-center justify-center transition-colors md:ml-4"
           aria-label="Buscar"
         >
           <Search className="w-5 h-5 text-primary-foreground" />
+          {isMobile && (
+            <span className="ml-2 font-medium text-primary-foreground">
+              Buscar
+            </span>
+          )}
         </button>
       </div>
     </motion.div>

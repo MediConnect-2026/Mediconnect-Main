@@ -103,6 +103,11 @@ export function AppointmentsCalendar() {
   // Get dates that have appointments for highlighting
   const appointmentDates = appointmentsData.map((apt) => apt.date);
 
+  // Check if the appointments list is scrollable
+  const isScrollable =
+    (appointmentsForDate.length > 4 && !isMobile) ||
+    (appointmentsForDate.length > 2 && isMobile);
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-[4fr_0.5fr_6fr] gap-4">
       {/* Calendar Section */}
@@ -144,7 +149,9 @@ export function AppointmentsCalendar() {
           </span>
         </div>
 
-        <div className="space-y-4 ">
+        <div
+          className={`space-y-4 ${isScrollable ? "max-h-[320px] overflow-y-auto pr-2" : ""}`}
+        >
           <AnimatePresence mode="wait">
             {appointmentsForDate.length > 0 ? (
               <motion.div
