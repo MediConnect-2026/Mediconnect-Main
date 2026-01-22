@@ -1,8 +1,13 @@
 import { Star, MapPin, Globe, Phone, Shield } from "lucide-react";
 import { type Clinic } from "@/data/providers";
-import { Button } from "@/shared/ui/button";
 import { cn } from "@/lib/utils";
 import { useAppStore } from "@/stores/useAppStore";
+import MCButton from "@/shared/components/forms/MCButton";
+import React from "react";
+import { useNavigate } from "react-router-dom";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/tooltip";
+import { useIsMobile } from "@/lib/hooks/useIsMobile";
+
 interface ClinicCardProps {
   clinic: Clinic;
   isConnected: boolean;
@@ -17,90 +22,214 @@ export const CenterCards = ({
   onViewProfile,
 }: ClinicCardProps) => {
   const userRole = useAppStore((state) => state.user?.role);
+  const navigate = useNavigate();
+  const isMobile = useIsMobile();
+
+  const handleProfile = () => {
+    navigate(`/center/profile/${clinic.id}`);
+  };
 
   return (
-    <div className="bg-card rounded-xl p-5 border border-border transition-all duration-200 hover:shadow-md">
-      <div className="flex gap-5 items-start">
-        {/* Clinic Logo */}
-        <div className="flex-shrink-0">
-          <div className="w-28 h-28 md:w-36 md:h-36 rounded-full overflow-hidden border-4 border-primary/20 bg-primary/5">
-            <img
-              src={clinic.image}
-              alt={clinic.name}
-              className="w-full h-full object-cover"
-            />
-          </div>
+    <div
+      className={cn(
+        "bg-background p-3 sm:p-4 border-b transition-all duration-200",
+        "border-primary/15 hover:bg-muted/30 rounded-t-2xl sm:rounded-t-4xl",
+      )}
+    >
+      <div className="flex gap-3 sm:gap-4 h-full">
+        {/* Clinic Image - Responsive sizing */}
+        <div
+          className={cn(
+            "relative overflow-hidden rounded-2xl sm:rounded-3xl border border-primary/5 flex-shrink-0",
+            isMobile ? "w-20 h-20 rounded-full" : "",
+          )}
+        >
+          <img
+            src={clinic.image}
+            alt={clinic.name}
+            className="w-30 h-full md:w-45 md:h-full object-cover transition-transform duration-500 hover:scale-110"
+          />
         </div>
 
-        {/* Clinic Info */}
+        {/* Clinic Info - Flexible container */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-start gap-2 mb-2">
-            <h3 className="font-semibold text-foreground text-lg leading-tight">
-              {clinic.name}
-            </h3>
-            <div className="flex items-center gap-1 flex-shrink-0">
-              <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
-              <span className="text-sm font-medium">{clinic.rating}</span>
+          {/* Header with name and rating */}
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex-1 min-w-0">
+              <h3
+                className={cn(
+                  "font-semibold text-foreground leading-tight hover:underline cursor-pointer",
+                  isMobile ? "text-sm" : "text-base md:text-lg",
+                )}
+                onClick={handleProfile}
+              >
+                {clinic.name}
+              </h3>
+
+              {/* Rating */}
+              <div
+                className={cn(
+                  "flex items-center gap-1.5 mt-1",
+                  isMobile && "text-xs",
+                )}
+              >
+                <div className="flex items-center gap-1">
+                  <Star
+                    className={cn(
+                      "fill-amber-400 text-amber-400",
+                      isMobile ? "w-3 h-3" : "w-4 h-4",
+                    )}
+                  />
+                  <span className="text-xs sm:text-sm font-medium">
+                    {clinic.rating}
+                  </span>
+                  {!isMobile && clinic.reviewCount && (
+                    <span className="text-muted-foreground text-xs sm:text-sm">
+                      ({clinic.reviewCount} reseñas)
+                    </span>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
 
           {/* Address */}
-          <div className="flex items-start gap-1.5 text-sm text-muted-foreground mb-2">
-            <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5" />
+          <div
+            className={cn(
+              "flex items-start gap-1.5 mt-2 text-muted-foreground",
+              isMobile ? "text-xs" : "text-sm",
+            )}
+          >
+            <MapPin
+              className={cn(
+                "flex-shrink-0 mt-0.5 text-secondary",
+                isMobile ? "w-3 h-3" : "w-4 h-4",
+              )}
+            />
             <span className="line-clamp-1">{clinic.address}</span>
           </div>
 
-          {/* Languages & Phone */}
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm mb-2">
+          {/* Languages & Phone - Now visible on all devices */}
+          <div
+            className={cn(
+              "flex flex-wrap items-center gap-x-4 gap-y-1 mt-2",
+              isMobile ? "text-xs" : "text-sm",
+            )}
+          >
             <div className="flex items-center gap-1.5 text-muted-foreground">
-              <Globe className="w-4 h-4" />
-              <span>{clinic.languages.join(", ")}</span>
+              <Globe
+                className={cn(
+                  "text-secondary",
+                  isMobile ? "w-3 h-3" : "w-4 h-4",
+                )}
+              />
+              {clinic.languages.length > 2 ? (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="cursor-pointer">
+                      {clinic.languages[0]}
+                      <span className="text-secondary ml-1">
+                        y otros {clinic.languages.length - 1} idiomas...
+                      </span>
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <span>{clinic.languages.join(", ")}</span>
+                  </TooltipContent>
+                </Tooltip>
+              ) : (
+                <span>{clinic.languages.join(", ")}</span>
+              )}
             </div>
             {clinic.phone && (
               <div className="flex items-center gap-1.5 text-muted-foreground">
-                <Phone className="w-4 h-4" />
+                <Phone
+                  className={cn(
+                    "text-secondary",
+                    isMobile ? "w-3 h-3" : "w-4 h-4",
+                  )}
+                />
                 <span>{clinic.phone}</span>
               </div>
             )}
           </div>
 
-          {/* Insurances */}
-          <div className="flex items-start gap-1.5 text-sm text-muted-foreground mb-4">
-            <Shield className="w-4 h-4 flex-shrink-0 mt-0.5" />
-            <span className="line-clamp-1">
-              <span className="font-medium">Seguros aceptados:</span>{" "}
-              {clinic.insurances.join(", ")}
+          {/* Insurances - Simplified on mobile */}
+          <div
+            className={cn(
+              "flex items-start gap-1.5 mt-2 text-muted-foreground",
+              isMobile ? "text-xs" : "text-sm",
+            )}
+          >
+            <Shield
+              className={cn(
+                "flex-shrink-0 mt-0.5 text-secondary",
+                isMobile ? "w-3 h-3" : "w-4 h-4",
+              )}
+            />
+            <span className="font-medium">
+              {isMobile ? "Seguros:" : "Seguros aceptados:"}
             </span>
+            {clinic.insurances.length > 2 ? (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="cursor-pointer truncate">
+                    {isMobile
+                      ? clinic.insurances[0]
+                      : clinic.insurances.slice(0, 2).join(", ")}
+                    <span className="text-secondary ml-1">
+                      y {clinic.insurances.length - (isMobile ? 1 : 2)} más...
+                    </span>
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <span>{clinic.insurances.join(", ")}</span>
+                </TooltipContent>
+              </Tooltip>
+            ) : (
+              <span className="truncate">{clinic.insurances.join(", ")}</span>
+            )}
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex gap-3">
+          {/* Action buttons - Responsive layout */}
+          <div
+            className={cn("flex gap-2 sm:gap-3", isMobile ? "mt-3" : "mt-4")}
+          >
             {userRole === "DOCTOR" ? (
               <>
-                <Button
-                  variant={isConnected ? "default" : "outline"}
-                  className={cn("flex-1", isConnected && "bg-primary/90")}
+                <MCButton
+                  variant={isConnected ? "primary" : "outline"}
+                  size={isMobile ? "xs" : "sm"}
+                  className={cn(
+                    "flex-1",
+                    isMobile && "text-xs px-2",
+                    isConnected &&
+                      "bg-secondary hover:bg-secondary/90 text-white border-none active:bg-secondary/80",
+                    !isConnected &&
+                      "border-secondary text-secondary hover:bg-secondary/10 hover:border-secondary/80 active:bg-secondary/20",
+                  )}
                   onClick={() => onConnect(clinic.id)}
-                  disabled={isConnected}
                 >
                   {isConnected ? "Conectado" : "Conectar"}
-                </Button>
-                <Button
+                </MCButton>
+                <MCButton
                   variant="outline"
-                  className="flex-1"
-                  onClick={() => onViewProfile(clinic.id)}
+                  size={isMobile ? "xs" : "sm"}
+                  className={cn("flex-1", isMobile && "text-xs px-2")}
+                  onClick={handleProfile}
                 >
                   Ver Perfil
-                </Button>
+                </MCButton>
               </>
             ) : (
-              <Button
+              <MCButton
                 variant="outline"
-                className="flex-1"
-                onClick={() => onViewProfile(clinic.id)}
+                size={isMobile ? "xs" : "sm"}
+                className={cn("flex-1", isMobile && "text-xs px-2")}
+                onClick={handleProfile}
               >
                 Ver Perfil
-              </Button>
+              </MCButton>
             )}
           </div>
         </div>
