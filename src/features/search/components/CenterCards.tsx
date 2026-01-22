@@ -2,7 +2,7 @@ import { Star, MapPin, Globe, Phone, Shield } from "lucide-react";
 import { type Clinic } from "@/data/providers";
 import { Button } from "@/shared/ui/button";
 import { cn } from "@/lib/utils";
-
+import { useAppStore } from "@/stores/useAppStore";
 interface ClinicCardProps {
   clinic: Clinic;
   isConnected: boolean;
@@ -16,6 +16,8 @@ export const CenterCards = ({
   onConnect,
   onViewProfile,
 }: ClinicCardProps) => {
+  const userRole = useAppStore((state) => state.user?.role);
+
   return (
     <div className="bg-card rounded-xl p-5 border border-border transition-all duration-200 hover:shadow-md">
       <div className="flex gap-5 items-start">
@@ -73,20 +75,33 @@ export const CenterCards = ({
 
           {/* Action Buttons */}
           <div className="flex gap-3">
-            <Button
-              variant={isConnected ? "default" : "outline"}
-              className={cn("flex-1", isConnected && "bg-primary/90")}
-              onClick={() => onConnect(clinic.id)}
-            >
-              {isConnected ? "Conectado" : "Conectar"}
-            </Button>
-            <Button
-              variant="outline"
-              className="flex-1"
-              onClick={() => onViewProfile(clinic.id)}
-            >
-              Ver Perfil
-            </Button>
+            {userRole === "DOCTOR" ? (
+              <>
+                <Button
+                  variant={isConnected ? "default" : "outline"}
+                  className={cn("flex-1", isConnected && "bg-primary/90")}
+                  onClick={() => onConnect(clinic.id)}
+                  disabled={isConnected}
+                >
+                  {isConnected ? "Conectado" : "Conectar"}
+                </Button>
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => onViewProfile(clinic.id)}
+                >
+                  Ver Perfil
+                </Button>
+              </>
+            ) : (
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => onViewProfile(clinic.id)}
+              >
+                Ver Perfil
+              </Button>
+            )}
           </div>
         </div>
       </div>

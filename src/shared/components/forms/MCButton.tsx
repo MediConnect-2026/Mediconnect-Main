@@ -11,14 +11,15 @@ type MediButtonProps = {
     | "warning"
     | "link"
     | "tercero"
-    | "outline";
+    | "outline"
+    | "outlineDelete";
   onClick?: () => void;
   className?: string;
   disabled?: boolean;
   type?: "button" | "submit" | "reset";
   icon?: React.ReactNode;
   iconPosition?: "left" | "right";
-  size?: "xs" | "s" | "sm" | "m" | "l" | "xl";
+  size?: "xs" | "s" | "sm" | "m" | "ml" | "l" | "xl";
 };
 
 function MCButton({
@@ -35,14 +36,15 @@ function MCButton({
   const isMobile = useIsMobile();
 
   const baseStyles =
-    "font-medium rounded-full transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary active:scale-[0.98] flex items-center justify-center gap-2";
+    "font-medium rounded-full transition-all duration-200 focus:outline-none active:scale-[0.98] flex items-center justify-center gap-2";
 
   // Tamaños responsive que se ajustan automáticamente
   const sizeStyles: Record<string, string> = {
-    xs: "px-2 py-1 text-[10px] sm:px-2.5 sm:py-1.5 sm:text-xs", // NUEVO tamaño xs
+    xs: "px-2 py-1 text-[10px] sm:px-2.5 sm:py-1.5 sm:text-xs",
     s: "px-3 py-2 text-xs sm:px-3.5 sm:py-2.5 sm:text-sm",
     sm: "px-4 py-2.5 text-sm sm:px-5 sm:py-3 sm:text-base",
     m: "px-5 py-3 text-sm sm:px-6 sm:py-3.5 md:px-8 md:py-4 md:text-base lg:text-lg",
+    ml: "px-6 py-3.5 text-base sm:px-7 sm:py-4 md:px-9 md:py-4.5 md:text-lg lg:text-lg",
     l: "px-6 py-3.5 text-base sm:px-8 sm:py-4 md:px-10 md:py-5 lg:px-12 lg:py-6 lg:text-lg",
     xl: "px-8 py-4 text-base sm:px-10 sm:py-5 md:px-12 md:py-6 lg:px-16 lg:py-8 lg:text-xl xl:text-2xl",
   };

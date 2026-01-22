@@ -6,7 +6,7 @@ export interface BaseProvider {
   name: string;
   rating: number;
   reviewCount?: number;
-  address: string;
+  address: string[] | string;
   languages: string[];
   insurances: string[];
   phone?: string;
@@ -30,6 +30,7 @@ export interface Doctor extends BaseProvider {
     dayName: string;
     slots: number;
   }[];
+  isConnected?: boolean;
 }
 
 export interface Clinic extends BaseProvider {
@@ -49,11 +50,15 @@ export const doctors: Doctor[] = [
     specialty: "Ginecólogo",
     rating: 4.8,
     reviewCount: 121,
-    address: "Av. Sarasota #56, Plaza Médica Sarasota, Piso 2",
-    additionalLocations: 2,
+    address: [
+      "Av. Sarasota #56, Plaza Médica Sarasota, Piso 2",
+      "Calle 1, Torre Médica 3, Santo Domingo",
+      "Av. Bolívar 123, Consultorio 5, Santo Domingo",
+    ],
+
     languages: ["Español", "Inglés"],
     modality: ["Presencial", "Virtual"],
-    insurances: ["ARS Senasa", "Mapfre Salud"],
+    insurances: ["ARS Senasa", "Mapfre Salud", "ARS Senasa", "Mapfre Salud"],
     experience: 8,
     specialties: ["Ginecología General", "Fertilidad"],
     bio: "Especialista en salud femenina y cuidado reproductivo con más de 12 años de experiencia.",
@@ -68,6 +73,7 @@ export const doctors: Doctor[] = [
       { date: "Nov 2", dayName: "Dom", slots: 13 },
       { date: "Nov 3", dayName: "Lun", slots: 11 },
     ],
+    isConnected: true,
   },
   {
     id: "d2",
@@ -76,8 +82,11 @@ export const doctors: Doctor[] = [
     specialty: "Terapeuta",
     rating: 4.7,
     reviewCount: 20,
-    address: "C. Mahatma Gandhi 101, Santo Domingo",
-    additionalLocations: 2,
+    address: [
+      "C. Mahatma Gandhi 101, Santo Domingo",
+      "Av. Winston Churchill 200, Torre Empresarial, Santo Domingo",
+      "Calle El Sol 45, Plaza Médica, Santiago",
+    ],
     languages: ["Español"],
     modality: ["Presencial", "Virtual"],
     insurances: ["ARS Senasa"],
@@ -96,6 +105,7 @@ export const doctors: Doctor[] = [
       { date: "Nov 2", dayName: "Dom", slots: 13 },
       { date: "Nov 3", dayName: "Lun", slots: 11 },
     ],
+    isConnected: true,
   },
   {
     id: "d3",
@@ -123,6 +133,7 @@ export const doctors: Doctor[] = [
       { date: "Nov 2", dayName: "Dom", slots: 13 },
       { date: "Nov 3", dayName: "Lun", slots: 11 },
     ],
+    isConnected: false,
   },
   {
     id: "d4",
@@ -151,6 +162,7 @@ export const doctors: Doctor[] = [
       { date: "Nov 2", dayName: "Dom", slots: 13 },
       { date: "Nov 3", dayName: "Lun", slots: 11 },
     ],
+    isConnected: false,
   },
 ];
 
