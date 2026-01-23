@@ -11,6 +11,8 @@ import {
 } from "../ui/tooltip";
 import { MCUserAvatar } from "@/shared/navigation/userMenu/MCUserAvatar";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
+import { Heart as HeartFilled, Heart as HeartOutlined } from "lucide-react";
+import { useAppStore } from "@/stores/useAppStore";
 
 export type DoctorCardVariant = "s" | "m" | "default";
 
@@ -24,9 +26,9 @@ interface Doctor {
   insuranceAccepted?: string[];
   isFavorite?: boolean;
   urlImage?: string;
-
   variant?: DoctorCardVariant;
-  lastAppointment?: string; // solo S
+  lastAppointment?: string;
+  onToggleFavorite?: () => void; // <-- Nuevo prop
 }
 
 /* =========================
@@ -71,10 +73,19 @@ function MCDoctorsCards({
   urlImage,
   variant = "default",
   lastAppointment,
+  onToggleFavorite, // <-- Recibe el prop
 }: Doctor) {
   const styles = VARIANT_STYLES[variant];
   const isMobile = useIsMobile();
   const { t } = useTranslation("patient");
+
+  const userRole = useAppStore((state) => state.user?.role);
+
+  // Simula función para marcar favorito (debes implementar la lógica real)
+  const handleFavoriteClick = () => {
+    // Aquí va la lógica para marcar/desmarcar favorito
+    // Ejemplo: dispatch, mutate, etc.
+  };
 
   return (
     <Card className="rounded-3xl bg-transparent border border-primary/10 shadow-sm hover:shadow-lg transition-shadow h-full flex flex-col">
@@ -112,9 +123,17 @@ function MCDoctorsCards({
           </div>
         )}
 
-        {isFavorite && (
-          <div className="absolute top-3 right-3 bg-background/30 rounded-full p-1">
-            <Heart size={16} fill="red" className="text-red-500" />
+        {/* FAVORITE ICON SOLO PARA PACIENTES */}
+        {userRole === "PATIENT" && (
+          <div
+            className="absolute top-3 right-3 bg-background/30 rounded-full p-1 cursor-pointer"
+            onClick={onToggleFavorite} // <-- Usa el prop
+          >
+            {isFavorite ? (
+              <HeartFilled size={16} fill="red" className="text-red-500" />
+            ) : (
+              <HeartOutlined size={16} className="text-primary" />
+            )}
           </div>
         )}
       </div>

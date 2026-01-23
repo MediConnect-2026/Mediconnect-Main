@@ -146,7 +146,8 @@ function Search() {
             {t("search.selectedProviders", {
               count: selectedProviders.length,
               max: 3,
-              defaultValue: "{{count}} of {{max}} providers selected for comparison",
+              defaultValue:
+                "{{count}} of {{max}} providers selected for comparison",
             })}
           </span>
           <Button
@@ -161,7 +162,7 @@ function Search() {
 
       {/* Contenido principal */}
       <main className="p-4 w-full">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[calc(100vh-200px)]">
+        <div className="grid grid-cols-1 lg:grid-cols-[4fr_6fr] gap-4 h-[calc(100vh-200px)]">
           {/* Lista de proveedores - Izquierda */}
           <div
             className="space-y-4 overflow-y-auto"
@@ -197,7 +198,7 @@ function Search() {
                     <EmptyDescription>
                       {t(
                         "search.noResultsDescription",
-                        "No results for the selected filters. Try changing the filters or search."
+                        "No results for the selected filters. Try changing the filters or search.",
                       )}
                     </EmptyDescription>
                   </EmptyContent>

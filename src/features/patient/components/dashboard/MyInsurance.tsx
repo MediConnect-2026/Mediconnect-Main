@@ -46,7 +46,7 @@ function MyInsurance() {
     <motion.div {...fadeInUp} className="w-full h-full flex flex-col">
       <h2
         className={`mb-6 ${
-          isMobile ? "text-lg" : "text-2xl"
+          isMobile ? "text-lg" : "text-3xl"
         } font-semibold text-foreground`}
       >
         {t("insurance.title")}

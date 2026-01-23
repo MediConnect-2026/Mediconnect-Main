@@ -57,8 +57,25 @@ export function DoctorCarousel({
   const doctorFilters = useFiltersStore((state) => state.doctorFilters);
   const setDoctorFilters = useFiltersStore((state) => state.setDoctorFilters);
 
+  // Nuevo estado local para los doctores
+  const [doctorList, setDoctorList] = React.useState(doctors);
+
+  // Actualiza doctorList si cambia la prop doctors
+  React.useEffect(() => {
+    setDoctorList(doctors);
+  }, [doctors]);
+
+  // Función para hacer toggle de favorito
+  const handleToggleFavorite = (doctorId: number) => {
+    setDoctorList((prev) =>
+      prev.map((doc) =>
+        doc.id === doctorId ? { ...doc, isFavorite: !doc.isFavorite } : doc,
+      ),
+    );
+  };
+
   // Filtrar doctores según los filtros activos
-  const filteredDoctors = doctors.filter((doctor) => {
+  const filteredDoctors = doctorList.filter((doctor) => {
     if (
       doctorFilters.specialty &&
       doctor.specialty.toLowerCase() !== doctorFilters.specialty.toLowerCase()
@@ -119,7 +136,7 @@ export function DoctorCarousel({
     <motion.section className="max-w-full p-4 sm:p-6" {...fadeInUp}>
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
-        <h2 className="text-lg sm:text-xl lg:text-2xl font-semibold text-foreground">
+        <h2 className="text-lg sm:text-xl lg:text-3xl font-semibold text-foreground">
           {title || t("navbar.doctors")}
         </h2>
 
@@ -185,7 +202,6 @@ export function DoctorCarousel({
               </EmptyDescription>
             </EmptyHeader>
             <EmptyContent>
-              {/* Puedes agregar un botón para limpiar filtros si lo deseas */}
               <MCButton
                 size="s"
                 variant="outline"
@@ -227,13 +243,13 @@ export function DoctorCarousel({
                   urlImage={doctor.urlImage}
                   variant={variant}
                   lastAppointment={doctor.lastAppointment}
+                  onToggleFavorite={() => handleToggleFavorite(doctor.id)} // <-- Nuevo prop
                 />
               </div>
             ))}
           </div>
         )}
 
-        {/* Right Arrow - Hidden on mobile */}
         <button
           onClick={() => scroll("right")}
           className={cn(

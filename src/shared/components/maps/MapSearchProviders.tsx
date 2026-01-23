@@ -1,6 +1,8 @@
 import { useEffect, useRef } from "react";
 import mapboxgl from "mapbox-gl";
+import { createRoot } from "react-dom/client";
 import { type Provider } from "@/data/providers";
+import ProviderPopup from "./ProviderPopup"; // Adjust the import path as needed
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
 
@@ -36,50 +38,41 @@ export default function MapSearchProviders({
     providers.forEach((provider) => {
       const isSelected = selectedProviders.includes(provider.id);
 
+      // Crear elemento para el popup
+      const popupNode = document.createElement("div");
+      const root = createRoot(popupNode);
+
+      root.render(
+        <ProviderPopup
+          provider={provider}
+          isSelected={isSelected}
+          onSelect={(id) => onProviderSelect?.(id)}
+        />,
+      );
+
+      // Crear popup
+      const popup = new mapboxgl.Popup({
+        offset: 25,
+        closeButton: false,
+        closeOnClick: true,
+        maxWidth: "none",
+      }).setDOMContent(popupNode);
+
+      // Crear marker
       const marker = new mapboxgl.Marker({
-        color: provider.type === "doctor" ? "#2563eb" : "#16a34a",
+        color: provider.type === "doctor" ? "#d57725" : "#16a34a",
         scale: isSelected ? 1.2 : 1,
       })
         .setLngLat([provider.coordinates.lng, provider.coordinates.lat])
-        .setPopup(
-          new mapboxgl.Popup({ offset: 20 }).setHTML(`
-            <div class="p-2">
-              <div class="flex items-center gap-2 mb-2">
-                <img src="${provider.image}" alt="${provider.name}" 
-                     class="w-10 h-10 rounded-full object-cover" />
-                <div>
-                  <strong class="text-sm">${provider.name}</strong><br/>
-                  <span class="text-xs text-gray-600">
-                    ${provider.type === "doctor" ? (provider as any).specialty : "Centro médico"}
-                  </span>
-                </div>
-              </div>
-              <div class="text-xs text-gray-500 mb-2">
-                <div>📍 ${provider.address}</div>
-                <div>⭐ ${provider.rating} ${provider.reviewCount ? `(${provider.reviewCount} reseñas)` : ""}</div>
-              </div>
-              <button 
-                onclick="window.selectProvider && window.selectProvider('${provider.id}')"
-                class="w-full bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600">
-                ${isSelected ? "Seleccionado" : "Seleccionar"}
-              </button>
-            </div>
-          `),
-        )
+        .setPopup(popup)
         .addTo(mapRef.current!);
 
       markersRef.current.push(marker);
     });
 
-    // Función global para manejar selección desde popup
-    (window as any).selectProvider = (id: string) => {
-      onProviderSelect?.(id);
-    };
-
     return () => {
       markersRef.current.forEach((marker) => marker.remove());
       mapRef.current?.remove();
-      delete (window as any).selectProvider;
     };
   }, [providers, selectedProviders, onProviderSelect]);
 

@@ -32,7 +32,7 @@ const MedicalInfoCard = ({
       <Card className="rounded-4xl border-0 h-full shadow-md bg-background">
         <CardContent className={isMobile ? "p-4" : "p-2"}>
           <h2
-            className={`mb-6 ${isMobile ? "text-lg" : "text-2xl"} font-semibold text-foreground`}
+            className={`mb-6 ${isMobile ? "text-lg" : "text-3xl"} font-semibold text-foreground`}
           >
             {t("profileForm.clinicalHistory")}
           </h2>

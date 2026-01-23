@@ -135,7 +135,7 @@ export function AppointmentsCalendar() {
         }}
       >
         <h2
-          className={`mb-6 flex-shrink-0 ${isMobile ? "text-lg" : "text-2xl"} font-semibold text-foreground`}
+          className={`mb-6 flex-shrink-0 ${isMobile ? "text-lg" : "text-3xl"} font-semibold text-foreground`}
         >
           {t("navbar.calendar")}
         </h2>
@@ -173,7 +173,7 @@ export function AppointmentsCalendar() {
       >
         <div className="flex items-center justify-between pb-6 flex-wrap gap-2 flex-shrink-0">
           <h2
-            className={`${isMobile ? "text-lg" : "text-2xl"} font-semibold text-foreground`}
+            className={`${isMobile ? "text-lg" : "text-3xl"} font-semibold text-foreground`}
           >
             {t("appointments.appointmentsForDate", { date: formattedDate })}
           </h2>

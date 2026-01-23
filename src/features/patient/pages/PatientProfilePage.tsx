@@ -26,7 +26,7 @@ const doctorsList = [
     yearsOfExperience: 15,
     languages: ["es", "en", "fr"],
     insuranceAccepted: ["senasa", "universal", "humano"],
-    isFavorite: true,
+    isFavorite: false,
     urlImage:
       "https://i.pinimg.com/736x/58/8b/f4/588bf4e2b04c192c96b297d7627b31e6.jpg",
   },

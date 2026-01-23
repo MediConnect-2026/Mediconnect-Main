@@ -1,4 +1,3 @@
-import React from "react";
 import MCButton from "@/shared/components/forms/MCButton";
 import {
   History,
