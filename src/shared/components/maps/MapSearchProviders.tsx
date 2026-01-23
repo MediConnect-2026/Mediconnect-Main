@@ -5,6 +5,7 @@ import { type Provider } from "@/data/providers";
 import ProviderPopup from "./ProviderPopup";
 import { Expand, Minimize, Plus, Minus } from "lucide-react";
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
+import { AnimatePresence, motion } from "framer-motion"; // Corrige el import, debe ser de "framer-motion"
 
 interface MapSearchProvidersProps {
   providers: Provider[];
@@ -108,41 +109,95 @@ export default function MapSearchProviders({
   return (
     <>
       {/* Modal para fullscreen */}
-      {isFullscreen && (
-        <div
-          className="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/10 backdrop-blur-sm dark:bg-black/40 flex items-center justify-center"
-          style={{ backdropFilter: "blur(2px)" }}
-        >
-          <div
-            className="relative bg-white rounded-4xl shadow-2xl overflow-hidden flex"
-            style={{
-              width: "95vw",
-              height: "95vh",
-              background: "#fff",
-              padding: 0,
-              margin: 0,
-            }}
+      <AnimatePresence>
+        {isFullscreen && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.12 }} // Cambia aquí
+            className="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/10 backdrop-blur-sm dark:bg-black/40 flex items-center justify-center"
+            style={{ backdropFilter: "blur(2px)" }}
           >
             <div
-              ref={fullscreenContainerRef}
-              className="absolute inset-0 w-full h-full"
+              className="relative bg-white rounded-4xl shadow-2xl overflow-hidden flex"
+              style={{
+                width: "95vw",
+                height: "95vh",
+                background: "#fff",
+                padding: 0,
+                margin: 0,
+              }}
+            >
+              <div
+                ref={fullscreenContainerRef}
+                className="absolute inset-0 w-full h-full"
+                style={{ background: "#fff" }}
+              />
+              {/* Botón minimizar y controles de zoom agrupados */}
+              <div className="absolute top-4 right-4 z-[10000] flex flex-col items-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsFullscreen(false)}
+                  className="bg-background shadow-lg rounded-full p-3 border border-primary/75 hover:bg-background/85 transition active:scale-95"
+                  aria-label="Minimizar mapa"
+                >
+                  <Minimize size={24} />
+                </button>
+                <div className="flex flex-col gap-2 mt-4">
+                  <button
+                    type="button"
+                    onClick={() => mapRef.current?.zoomIn()}
+                    className="bg-background shadow-lg rounded-full p-3 border border-primary/75 hover:bg-background/85 transition active:scale-95"
+                    aria-label="Aumentar zoom"
+                  >
+                    <Plus size={24} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => mapRef.current?.zoomOut()}
+                    className="bg-background shadow-lg rounded-full p-3 border border-primary/75 hover:bg-background/85 transition active:scale-95"
+                    aria-label="Reducir zoom"
+                  >
+                    <Minus size={24} />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Mapa normal */}
+      <AnimatePresence>
+        {!isFullscreen && (
+          <motion.div
+            initial={{ opacity: 0, scale: 1.05 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 1.05 }}
+            transition={{ duration: 0.12 }} // Cambia aquí también
+            className={`relative h-full w-full rounded-xl${!isFullscreen ? " active" : ""}`}
+          >
+            <div
+              ref={normalContainerRef}
+              className="h-full w-full rounded-xl"
               style={{ background: "#fff" }}
             />
-            {/* Botón minimizar y controles de zoom agrupados */}
-            <div className="absolute top-4 right-4 z-[10000] flex flex-col items-end gap-2">
+
+            <div className="absolute top-4 right-4 z-49 flex flex-col items-center justify-center gap-2 ">
               <button
                 type="button"
-                onClick={() => setIsFullscreen(false)}
-                className="bg-white shadow-lg rounded-full p-3 border border-gray-200 hover:bg-gray-100 transition"
-                aria-label="Minimizar mapa"
+                onClick={() => setIsFullscreen(true)}
+                className="bg-background shadow-lg rounded-full p-3 border border-primary/75 hover:bg-background/85 transition active:scale-95"
+                aria-label="Expandir mapa"
               >
-                <Minimize size={24} />
+                <Expand size={24} />
               </button>
-              <div className="flex flex-col gap-2 mt-4">
+              <div className="flex flex-col gap-2 mt-4 ">
                 <button
                   type="button"
                   onClick={() => mapRef.current?.zoomIn()}
-                  className="bg-white shadow-lg rounded-full p-3 border border-gray-200 hover:bg-gray-100 transition"
+                  className="bg-background shadow-lg rounded-full p-3 border border-primary/75 hover:bg-background/85 transition active:scale-95"
                   aria-label="Aumentar zoom"
                 >
                   <Plus size={24} />
@@ -150,56 +205,16 @@ export default function MapSearchProviders({
                 <button
                   type="button"
                   onClick={() => mapRef.current?.zoomOut()}
-                  className="bg-white shadow-lg rounded-full p-3 border border-gray-200 hover:bg-gray-100 transition"
+                  className="bg-background shadow-lg rounded-full p-3 border border-primary/75 hover:bg-background/85 transition active:scale-95"
                   aria-label="Reducir zoom"
                 >
                   <Minus size={24} />
                 </button>
               </div>
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* Mapa normal */}
-      {!isFullscreen && (
-        <div className="relative h-full w-full rounded-xl">
-          <div
-            ref={normalContainerRef}
-            className="h-full w-full rounded-xl"
-            style={{ background: "#fff" }}
-          />
-
-          <div className="absolute top-4 right-4 z-[10000] flex flex-col items-center justify-center gap-2 ">
-            <button
-              type="button"
-              onClick={() => setIsFullscreen(true)}
-              className="bg-white shadow-lg rounded-full p-3 border border-gray-200 hover:bg-gray-100 transition"
-              aria-label="Expandir mapa"
-            >
-              <Expand size={24} />
-            </button>
-            <div className="flex flex-col gap-2 mt-4 ">
-              <button
-                type="button"
-                onClick={() => mapRef.current?.zoomIn()}
-                className="bg-white shadow-lg rounded-full p-3 border border-gray-200 hover:bg-gray-100 transition"
-                aria-label="Aumentar zoom"
-              >
-                <Plus size={24} />
-              </button>
-              <button
-                type="button"
-                onClick={() => mapRef.current?.zoomOut()}
-                className="bg-white shadow-lg rounded-full p-3 border border-gray-200 hover:bg-gray-100 transition"
-                aria-label="Reducir zoom"
-              >
-                <Minus size={24} />
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 }

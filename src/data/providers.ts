@@ -31,6 +31,7 @@ export interface Doctor extends BaseProvider {
     slots: number;
   }[];
   isConnected?: boolean;
+  isFavorite?: boolean; // <-- Agrega esta línea
 }
 
 export interface Clinic extends BaseProvider {
@@ -55,7 +56,6 @@ export const doctors: Doctor[] = [
       "Calle 1, Torre Médica 3, Santo Domingo",
       "Av. Bolívar 123, Consultorio 5, Santo Domingo",
     ],
-
     languages: ["Español", "Inglés"],
     modality: ["Presencial", "Virtual"],
     insurances: ["ARS Senasa", "Mapfre Salud", "ARS Senasa", "Mapfre Salud"],
@@ -74,6 +74,7 @@ export const doctors: Doctor[] = [
       { date: "Nov 3", dayName: "Lun", slots: 11 },
     ],
     isConnected: true,
+    isFavorite: false, // <-- Agrega esto
   },
   {
     id: "d2",
@@ -106,6 +107,7 @@ export const doctors: Doctor[] = [
       { date: "Nov 3", dayName: "Lun", slots: 11 },
     ],
     isConnected: true,
+    isFavorite: true, // <-- Agrega esto
   },
   {
     id: "d3",
@@ -134,6 +136,7 @@ export const doctors: Doctor[] = [
       { date: "Nov 3", dayName: "Lun", slots: 11 },
     ],
     isConnected: false,
+    isFavorite: false, // <-- Agrega esto
   },
   {
     id: "d4",
@@ -163,6 +166,7 @@ export const doctors: Doctor[] = [
       { date: "Nov 3", dayName: "Lun", slots: 11 },
     ],
     isConnected: false,
+    isFavorite: true, // <-- Agrega esto
   },
 ];
 

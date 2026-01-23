@@ -16,7 +16,7 @@ import { useNavigate } from "react-router-dom";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/tooltip";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
 import { useTranslation } from "react-i18next";
-
+import { Heart as HeartFilled, Heart as HeartOutlined } from "lucide-react";
 interface DoctorCardsProps {
   doctor: Doctor;
   isSelected: boolean;
@@ -32,12 +32,18 @@ export const DoctorCards = ({
 }: DoctorCardsProps) => {
   const userRole = useAppStore((state) => state.user?.role);
   const [isConnected, setIsConnected] = useState(doctor.isConnected ?? false);
+  const [isFavorite, setIsFavorite] = useState(doctor.isFavorite ?? false); // <-- Nuevo estado
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const { t } = useTranslation("common");
 
   const handleConnectToggle = () => {
     setIsConnected((prev) => !prev);
+  };
+
+  const handleFavoriteToggle = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsFavorite((prev) => !prev);
   };
 
   return (
@@ -57,6 +63,7 @@ export const DoctorCards = ({
             isMobile ? "w-20 h-20 rounded-full" : "",
           )}
         >
+          {/* Imagen del doctor */}
           {doctor.image ? (
             <img
               src={doctor.image}
@@ -69,6 +76,32 @@ export const DoctorCards = ({
               alt="Doctor por defecto"
               className="w-30 h-full md:w-45 md:h-full object-cover transition-transform duration-500 hover:scale-110"
             />
+          )}
+
+          {/* FAVORITE ICON SOLO PARA PACIENTES */}
+          {userRole === "PATIENT" && (
+            <div
+              className={`
+                absolute top-3 right-3
+                flex flex-col justify-center items-center
+                rounded-full border-none border-white/60
+                bg-black/20 backdrop-blur-xl shadow-2xl
+                transition-all duration-700 ease-[cubic-bezier(0.175,0.885,0.32,2.2)]
+                z-20 p-1.5
+              `}
+              style={{
+                backdropFilter: "blur(16px) saturate(180%) contrast(120%)",
+                WebkitBackdropFilter:
+                  "blur(16px) saturate(180%) contrast(120%)",
+              }}
+              onClick={handleFavoriteToggle} // <-- Toggle favorito
+            >
+              {isFavorite ? (
+                <HeartFilled size={20} fill="red" className="text-red-500" />
+              ) : (
+                <HeartOutlined size={20} className="text-white/50 stroke-2" />
+              )}
+            </div>
           )}
         </div>
         {/* Doctor Info - Flexible container */}

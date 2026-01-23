@@ -1,7 +1,7 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardTitle } from "@/shared/ui/card";
-import { Star, Heart, Languages, ShieldCheck, Stethoscope } from "lucide-react";
+import { Star, Languages, ShieldCheck, Stethoscope } from "lucide-react";
 import MCButton from "./forms/MCButton";
 import {
   Tooltip,
@@ -126,13 +126,24 @@ function MCDoctorsCards({
         {/* FAVORITE ICON SOLO PARA PACIENTES */}
         {userRole === "PATIENT" && (
           <div
-            className="absolute top-3 right-3 bg-background/30 rounded-full p-1 cursor-pointer"
+            className={`
+              absolute top-3 right-3
+              flex flex-col justify-center items-center
+              rounded-full border-none border-white/60
+              bg-black/20 backdrop-blur-xl shadow-2xl
+              transition-all duration-700 ease-[cubic-bezier(0.175,0.885,0.32,2.2)]
+              z-20 p-1.5
+            `}
+            style={{
+              backdropFilter: "blur(16px) saturate(180%) contrast(120%)",
+              WebkitBackdropFilter: "blur(16px) saturate(180%) contrast(120%)",
+            }}
             onClick={onToggleFavorite} // <-- Usa el prop
           >
             {isFavorite ? (
-              <HeartFilled size={16} fill="red" className="text-red-500" />
+              <HeartFilled size={20} fill="red" className="text-red-500" />
             ) : (
-              <HeartOutlined size={16} className="text-primary" />
+              <HeartOutlined size={20} className="text-white/50 stroke-2" />
             )}
           </div>
         )}
