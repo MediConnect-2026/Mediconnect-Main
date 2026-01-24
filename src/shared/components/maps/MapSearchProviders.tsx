@@ -201,7 +201,7 @@ export default function MapSearchProviders({
       }).setDOMContent(popupNode);
 
       const marker = new mapboxgl.Marker({
-        color: provider.type === "doctor" ? "#d57725" : "#16a34a",
+        color: provider.type === "doctor" ? "#A8C3A0" : "#8BB1CA",
         scale: isSelected ? 1.2 : 1,
       })
         .setLngLat([provider.coordinates.lng, provider.coordinates.lat])
@@ -214,7 +214,7 @@ export default function MapSearchProviders({
     return () => {
       markersRef.current.forEach((marker) => marker.remove());
       mapRef.current?.remove();
-      setisLoading(false); // Ocultar loading si el mapa se desmonta antes de cargar
+      setisLoading(false);
     };
   }, [
     providers,
@@ -222,8 +222,8 @@ export default function MapSearchProviders({
     onProviderSelect,
     isFullscreen,
     isdarkMode,
-    is3D, // <-- Dependencia para recargar el mapa si cambia el modo 3D
-    userLocation, // <-- Añade userLocation como dependencia
+    is3D,
+    userLocation,
   ]);
 
   // Ajustar vista cuando cambian los providers
@@ -372,7 +372,7 @@ export default function MapSearchProviders({
               className="h-full w-full rounded-xl"
               style={{ background: "#fff" }}
             />
-            <div className="absolute top-4 left-4 z-[10001]">
+            <div className="absolute top-4 left-4  z-10">
               <Tooltip>
                 <TooltipTrigger asChild>
                   <button
@@ -393,7 +393,7 @@ export default function MapSearchProviders({
                 </TooltipContent>
               </Tooltip>
             </div>
-            <div className="absolute top-4 right-4 z-49 flex flex-col items-center justify-center gap-2 ">
+            <div className="absolute top-4 right-4  z-10 flex flex-col items-center justify-center gap-2 ">
               <button
                 type="button"
                 onClick={() => setIsFullscreen(true)}

@@ -20,20 +20,24 @@ import { Button } from "@/shared/ui/button";
 import { useTranslation } from "react-i18next";
 import { fadeInUp, fadeInUpDelayed } from "@/lib/animations/commonAnimations";
 import { motion } from "framer-motion";
-
+import MCButton from "@/shared/components/forms/MCButton";
+import CompareModal from "../components/CompareModal";
 const tipoProveedorOptions = [
+  { value: "all", label: "Todos" },
   { value: "doctor", label: "Doctor" },
   { value: "hospital", label: "Hospital" },
   { value: "clinica", label: "Clínica" },
 ];
 
 const calificacionOptions = [
+  { value: "all", label: "Todos" },
   { value: "5", label: "5 estrellas" },
   { value: "4", label: "4 estrellas o más" },
   { value: "3", label: "3 estrellas o más" },
 ];
 
 const especialidadOptions = [
+  { value: "all", label: "Todos" },
   { value: "cardiologia", label: "Cardiología" },
   { value: "pediatria", label: "Pediatría" },
   { value: "dermatologia", label: "Dermatología" },
@@ -41,17 +45,20 @@ const especialidadOptions = [
 ];
 
 const modalidadOptions = [
+  { value: "all", label: "Todos" },
   { value: "presencial", label: "Presencial" },
   { value: "virtual", label: "Virtual" },
 ];
 
 const generoOptions = [
+  { value: "all", label: "Todos" },
   { value: "masculino", label: "Masculino" },
   { value: "femenino", label: "Femenino" },
   { value: "otro", label: "Otro" },
 ];
 
 const idiomasOptions = [
+  { value: "all", label: "Todos" },
   { value: "espanol", label: "Español" },
   { value: "ingles", label: "Inglés" },
   { value: "frances", label: "Francés" },
@@ -59,6 +66,7 @@ const idiomasOptions = [
 ];
 
 const horarioOptions = [
+  { value: "all", label: "Todos" },
   { value: "manana", label: "Mañana" },
   { value: "tarde", label: "Tarde" },
   { value: "noche", label: "Noche" },
@@ -110,36 +118,50 @@ function Search() {
             name="tipoProveedor"
             placeholder={t("search.providerType", "Tipo de proveedor")}
             options={tipoProveedorOptions}
+            multiple
+            noBadges
           />
           <MCFilterSelect
             name="especialidad"
             placeholder={t("search.specialty", "Especialidad")}
             options={especialidadOptions}
+            multiple
+            noBadges
           />
           <MCFilterSelect
             name="modalidad"
             placeholder={t("search.modality", "Modalidad")}
             options={modalidadOptions}
+            multiple
+            noBadges
           />
           <MCFilterSelect
             name="genero"
             placeholder={t("search.gender", "Género")}
             options={generoOptions}
+            multiple
+            noBadges
           />
           <MCFilterSelect
             name="idiomas"
             placeholder={t("search.languages", "Idiomas")}
             options={idiomasOptions}
+            multiple
+            noBadges
           />
           <MCFilterSelect
             name="horario"
             placeholder={t("search.schedule", "Horario")}
             options={horarioOptions}
+            multiple
+            noBadges
           />
           <MCFilterSelect
             name="calificacion"
             placeholder={t("search.rating", "Calificación")}
             options={calificacionOptions}
+            multiple
+            noBadges
           />
         </div>
       </motion.div>
@@ -147,24 +169,34 @@ function Search() {
       {/* Contador de seleccionados */}
       {selectedProviders.length > 0 && (
         <motion.div
-          {...fadeInUpDelayed}
-          className="flex items-center justify-between bg-primary/10 p-3 rounded-lg w-full max-w-5xl mb-4"
+          initial={{ y: 100, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: 100, opacity: 0 }}
+          transition={{ type: "spring", stiffness: 300, damping: 30 }}
+          className="fixed bottom-0 left-0 w-full z-50  bg-background dark:bg-bg-btn-secondary shadow-lg border border-primary/15  border-b-transparent flex items-center justify-between px-4 py-2.5 md:max-w-md md:left-1/2 md:-translate-x-1/2 rounded-t-2xl"
+          style={{ maxWidth: 480 }}
         >
-          <span className="text-sm">
+          <span className="text-sm  text-primary">
             {t("search.selectedProviders", {
               count: selectedProviders.length,
               max: 3,
-              defaultValue:
-                "{{count}} of {{max}} providers selected for comparison",
+              defaultValue: "{{count}} de {{max}} seleccionados para comparar",
             })}
           </span>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => console.log("Comparar:", selectedProviders)}
+          <CompareModal
+            selectedProviders={allProviders.filter((provider) =>
+              selectedProviders.includes(provider.id),
+            )}
           >
-            {t("search.compare", "Compare")}
-          </Button>
+            <MCButton
+              className="w-fit
+              "
+              size="sm"
+              onClick={() => console.log("Comparar:", selectedProviders)}
+            >
+              {t("search.compare", "Comparar")}
+            </MCButton>{" "}
+          </CompareModal>
         </motion.div>
       )}
 

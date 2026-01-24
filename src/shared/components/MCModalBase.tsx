@@ -20,7 +20,7 @@ interface MCModalBaseProps {
   children: React.ReactNode;
   triggerClassName?: string;
   title?: string;
-  size?: "sm" | "md" | "lg" | "xl" | "2xl";
+  size?: "sm" | "md" | "lg" | "xl" | "2xl" | "wider";
   className?: string;
   variant?: "warning" | "confirm" | "decide" | "info";
   onConfirm?: () => void;
@@ -77,6 +77,9 @@ export function MCModalBase({
     lg: isMobile ? "w-[95vw] h-[80vh]" : "w-[672px] h-[700px]",
     xl: isMobile ? "w-[98vw] h-[85vh]" : "w-[896px] h-[800px]",
     "2xl": isMobile ? "w-[100vw] h-[90vh]" : "w-[1152px] h-[900px]",
+    wider: isMobile
+      ? "min-w-[220px] max-w-[98vw] h-[80vh] overflow-x-auto"
+      : "min-w-[320px] max-w-[1200px] h-[700px] overflow-x-auto",
   };
 
   // Espaciado adaptativo para móvil
@@ -107,14 +110,15 @@ export function MCModalBase({
       )}
       <MorphingDialogContainer className={paddingClasses}>
         <MorphingDialogContent
-          className={`bg-white rounded-3xl shadow-lg ${sizeClasses[size]} ${className} flex flex-col overflow-hidden`}
+          className={`bg-bg-secondary rounded-3xl shadow-lg ${sizeClasses[size]} ${className} flex flex-col overflow-hidden`}
+          style={{ overflowX: size === "wider" ? "auto" : undefined }}
         >
           {/* Header */}
           {(title || typeclose) && (
             <div
               className={`flex justify-between items-center ${headerPadding} flex-shrink-0
       ${typeclose === "Arrow" ? "bg-accent text-primary rounded-t-3xl" : ""}
-      ${borderHeader ? "border-b border-gray-100" : ""}
+      ${borderHeader ? "border-b border-gray-100 dark:border-neutral-800" : ""}
     `}
             >
               {title && (
@@ -131,12 +135,12 @@ export function MCModalBase({
               {typeclose === "Arrow" ? (
                 <MorphingDialogClose
                   typeclose="Arrow"
-                  className="text-primary flex-shrink-0"
+                  className="text-primary dark:text-primary-dark flex-shrink-0"
                 />
               ) : (
                 <MorphingDialogClose
                   typeclose={typeclose}
-                  className="text-primary flex-shrink-0"
+                  className="text-primary dark:text-primary-dark flex-shrink-0"
                 />
               )}
             </div>
@@ -144,7 +148,11 @@ export function MCModalBase({
 
           {/* Content */}
           <MorphingDialogDescription
-            className={`${contentPadding} flex-1 overflow-y-auto min-h-0 scrollbar-hide text-gray-600 dark:text-gray-300`}
+            className={`${contentPadding} flex-1 min-h-0 scrollbar-hide text-gray-600 dark:text-gray-300 ${
+              size === "wider"
+                ? "min-w-[220px] max-w-[1200px] overflow-x-auto"
+                : ""
+            }`}
           >
             {children}
           </MorphingDialogDescription>
@@ -153,7 +161,9 @@ export function MCModalBase({
           {variant === "warning" && (
             <div
               className={`flex gap-2 justify-end ${footerPadding} flex-shrink-0 ${
-                borderFooter ? "border-t border-gray-100" : ""
+                borderFooter
+                  ? "border-t border-gray-100 dark:border-neutral-800"
+                  : ""
               } ${isMobile ? "flex-col-reverse" : ""}`}
             >
               <MorphingDialogClose>
@@ -180,7 +190,9 @@ export function MCModalBase({
           {variant === "confirm" && (
             <div
               className={`flex justify-end ${footerPadding} flex-shrink-0 ${
-                borderFooter ? "border-t border-gray-100" : ""
+                borderFooter
+                  ? "border-t border-gray-100 dark:border-neutral-800"
+                  : ""
               }`}
             >
               <MCButton
@@ -197,7 +209,9 @@ export function MCModalBase({
           {variant === "decide" && (
             <div
               className={`flex gap-2 justify-end ${footerPadding} flex-shrink-0 ${
-                borderFooter ? "border-t border-gray-100" : ""
+                borderFooter
+                  ? "border-t border-gray-100 dark:border-neutral-800"
+                  : ""
               } ${isMobile ? "flex-col-reverse" : ""}`}
             >
               <MorphingDialogClose>

@@ -31,6 +31,7 @@ interface MCFilterSelectProps {
   searchable?: boolean;
   value?: string | string[];
   onChange?: (value: string | string[]) => void;
+  noBadges?: boolean; // <-- NUEVA PROP
 }
 
 function MCFilterSelect({
@@ -49,6 +50,7 @@ function MCFilterSelect({
   searchable = false,
   value,
   onChange,
+  noBadges = false, // <-- NUEVA PROP CON VALOR POR DEFECTO
 }: MCFilterSelectProps) {
   const [selectedValues, setSelectedValues] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -95,11 +97,19 @@ function MCFilterSelect({
 
   const handleSelectChange = (selected: string) => {
     if (multiple) {
-      const newValues = selectedValues.includes(selected)
-        ? selectedValues.filter((v) => v !== selected)
-        : [...selectedValues, selected];
-      setSelectedValues(newValues);
-      onChange?.(newValues);
+      if (selected === "all") {
+        setSelectedValues(["all"]);
+        onChange?.(["all"]);
+      } else {
+        let newValues = selectedValues.filter((v) => v !== "all");
+        if (selectedValues.includes(selected)) {
+          newValues = newValues.filter((v) => v !== selected);
+        } else {
+          newValues = [...newValues, selected];
+        }
+        setSelectedValues(newValues);
+        onChange?.(newValues);
+      }
     } else {
       onChange?.(selected);
     }
@@ -114,6 +124,7 @@ function MCFilterSelect({
 
   const getDisplayValue = () => {
     if (multiple && selectedValues.length > 0) {
+      if (selectedValues.includes("all")) return "Todos";
       return `${selectedValues.length} seleccionado(s)`;
     }
     if (!multiple && value) {
@@ -223,7 +234,7 @@ function MCFilterSelect({
         </Select>
       </div>
 
-      {multiple && selectedValues.length > 0 && (
+      {multiple && selectedValues.length > 0 && !noBadges && (
         <div className="flex flex-wrap gap-2 mt-2">
           {selectedValues.map((val) => {
             const option = options.find((opt) => opt.value === val);
