@@ -58,10 +58,23 @@ export const doctors: Doctor[] = [
     ],
     languages: ["Español", "Inglés"],
     modality: ["Presencial", "Virtual"],
-    insurances: ["ARS Senasa", "Mapfre Salud", "ARS Senasa", "Mapfre Salud"],
+    insurances: [
+      "ARS Senasa",
+      "Mapfre Salud",
+      "ARS Senasa",
+      "Mapfre Salud",
+      "Mapfre Salud",
+      "ARS Senasa",
+      "Mapfre Salud",
+    ],
     experience: 8,
     specialties: ["Ginecología General", "Fertilidad"],
-    bio: "Especialista en salud femenina y cuidado reproductivo con más de 12 años de experiencia.",
+    bio: `Especialista en salud femenina y cuidado reproductivo con más de 12 años de experiencia. 
+La Dra. Criparni ha dedicado su carrera a la atención integral de la mujer, abordando desde consultas de rutina hasta tratamientos avanzados de fertilidad. 
+Ha participado en múltiples congresos internacionales y es autora de varios artículos científicos sobre salud reproductiva. 
+Su enfoque empático y personalizado le ha permitido acompañar a cientos de pacientes en diferentes etapas de su vida, brindando siempre un trato humano y actualizado. 
+Además, colabora activamente con organizaciones sin fines de lucro para la educación y prevención de enfermedades ginecológicas en comunidades vulnerables. 
+En su consulta, la Dra. Criparni prioriza la comunicación clara y la toma de decisiones informadas, asegurando que cada paciente reciba la mejor atención posible basada en evidencia científica y las últimas tecnologías médicas.`,
     image: "",
     coordinates: { lat: 18.4655, lng: -69.9295 },
     availability: [
@@ -93,7 +106,12 @@ export const doctors: Doctor[] = [
     insurances: ["ARS Senasa"],
     experience: 8,
     specialties: ["Terapia Cognitiva", "Mindfulness"],
-    bio: "Psicoterapeuta con 9 años de experiencia en ansiedad, depresión y manejo del estrés.",
+    bio: `Psicoterapeuta con 9 años de experiencia en el tratamiento de ansiedad, depresión y manejo del estrés. 
+El Dr. Aleredo ha trabajado tanto en el sector público como privado, ayudando a pacientes de todas las edades a superar desafíos emocionales y psicológicos. 
+Es reconocido por su enfoque integrador, combinando técnicas de terapia cognitivo-conductual con prácticas de mindfulness y meditación. 
+Ha impartido talleres y conferencias sobre salud mental y autocuidado en diversas instituciones educativas y empresas. 
+Su compromiso con el bienestar emocional lo ha llevado a desarrollar programas de apoyo psicológico para comunidades vulnerables. 
+El Dr. Aleredo cree firmemente en la importancia de la escucha activa y la empatía, creando un espacio seguro donde los pacientes pueden expresar sus inquietudes y trabajar en su crecimiento personal.`,
     image:
       "https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=200&h=200&fit=crop&crop=face",
     coordinates: { lat: 18.4755, lng: -69.9195 },
@@ -122,7 +140,12 @@ export const doctors: Doctor[] = [
     insurances: ["ARS humano", "ARS Universal", "ARS Senasa"],
     experience: 8,
     specialties: ["Oftalmología General", "Cirugía Láser"],
-    bio: "Oftalmólogo con 8 años de experiencia en diagnóstico y tratamiento de enfermedades oculares.",
+    bio: `Oftalmólogo con 8 años de experiencia en el diagnóstico y tratamiento de enfermedades oculares. 
+El Dr. Ramírez Abreu se especializa en cirugía láser y procedimientos mínimamente invasivos para mejorar la visión y la salud ocular. 
+Ha realizado estudios de posgrado en Alemania y ha participado en investigaciones sobre nuevas tecnologías en oftalmología. 
+Es miembro activo de asociaciones médicas nacionales e internacionales, y ha sido invitado como ponente en congresos especializados. 
+Su trato cercano y profesional le ha permitido ganarse la confianza de sus pacientes, quienes destacan su dedicación y precisión en cada consulta. 
+El Dr. Ramírez Abreu está comprometido con la educación continua y la actualización constante en los avances de su especialidad.`,
     image:
       "https://images.unsplash.com/photo-1537368910025-700350fe46c7?w=200&h=200&fit=crop&crop=face",
     coordinates: { lat: 18.4855, lng: -69.9095 },
@@ -152,7 +175,12 @@ export const doctors: Doctor[] = [
     insurances: ["ARS humano", "ARS Universal", "ARS Senasa"],
     experience: 8,
     specialties: ["Dermatología Estética", "Tricología"],
-    bio: "Dermatólogo con 8 años de experiencia en piel, cabello y estética avanzada.",
+    bio: `Dermatólogo con 8 años de experiencia en el cuidado de la piel, cabello y estética avanzada. 
+El Dr. Saviñon Fernández ha desarrollado su carrera en reconocidos centros dermatológicos, especializándose en tratamientos innovadores para enfermedades cutáneas y procedimientos estéticos. 
+Ha publicado investigaciones sobre nuevas terapias en dermatología y participa activamente en congresos internacionales. 
+Su pasión por la medicina estética lo ha llevado a perfeccionar técnicas de rejuvenecimiento facial y tratamientos capilares. 
+Es conocido por su atención personalizada y su capacidad para explicar de manera clara los procedimientos a sus pacientes, generando confianza y tranquilidad. 
+El Dr. Saviñon Fernández también colabora en campañas de prevención y educación sobre el cuidado de la piel en la comunidad.`,
     image:
       "https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=200&h=200&fit=crop&crop=face",
     coordinates: { lat: 18.4555, lng: -69.9395 },

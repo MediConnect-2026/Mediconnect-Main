@@ -5,22 +5,31 @@ import type { Provider } from "@/data/providers";
 interface CompareModalProps {
   selectedProviders: Provider[];
   children: React.ReactNode | React.ComponentType;
+  onRemoveProvider?: (id: string) => void;
 }
 
-function CompareModal({ selectedProviders, children }: CompareModalProps) {
+function CompareModal({
+  selectedProviders,
+  children,
+  onRemoveProvider,
+}: CompareModalProps) {
   function modalTrigger(children: React.ReactNode | React.ComponentType) {
     return <>{children}</>;
   }
 
   return (
     <MCModalBase
-      id="23423432"
+      id="compare-modal"
       title="Comparar proveedores"
       trigger={modalTrigger(children)}
-      size="lg"
       triggerClassName="w-fit rounded-full"
+      size="wider"
+      actionOne={true}
     >
-      <CompareDoctorCards />
+      <CompareDoctorCards
+        selectedProviders={selectedProviders}
+        onRemoveProvider={onRemoveProvider}
+      />
     </MCModalBase>
   );
 }

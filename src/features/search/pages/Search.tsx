@@ -86,7 +86,7 @@ function Search() {
     setSelectedProviders((prev) =>
       prev.includes(id)
         ? prev.filter((pid) => pid !== id)
-        : prev.length < 3
+        : prev.length < 5 // Cambia el máximo a 5
           ? [...prev, id]
           : prev,
     );
@@ -101,6 +101,11 @@ function Search() {
   const handleViewProfile = (id: string) => {
     // Lógica para ver perfil
     console.log("Ver perfil de:", id);
+  };
+
+  // Add handler for removing providers from comparison
+  const handleRemoveFromComparison = (id: string) => {
+    setSelectedProviders((prev) => prev.filter((pid) => pid !== id));
   };
 
   return (
@@ -173,13 +178,13 @@ function Search() {
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 100, opacity: 0 }}
           transition={{ type: "spring", stiffness: 300, damping: 30 }}
-          className="fixed bottom-0 left-0 w-full z-50  bg-background dark:bg-bg-btn-secondary shadow-lg border border-primary/15  border-b-transparent flex items-center justify-between px-4 py-2.5 md:max-w-md md:left-1/2 md:-translate-x-1/2 rounded-t-2xl"
+          className="fixed bottom-0 left-0 w-full z-10  bg-background dark:bg-bg-btn-secondary shadow-lg border border-primary/15  border-b-transparent flex items-center justify-between px-4 py-2.5 md:max-w-md md:left-1/2 md:-translate-x-1/2 rounded-t-2xl"
           style={{ maxWidth: 480 }}
         >
           <span className="text-sm  text-primary">
             {t("search.selectedProviders", {
               count: selectedProviders.length,
-              max: 3,
+              max: 5,
               defaultValue: "{{count}} de {{max}} seleccionados para comparar",
             })}
           </span>
@@ -187,15 +192,15 @@ function Search() {
             selectedProviders={allProviders.filter((provider) =>
               selectedProviders.includes(provider.id),
             )}
+            onRemoveProvider={handleRemoveFromComparison}
           >
             <MCButton
-              className="w-fit
-              "
+              className={selectedProviders.length < 2 ? "hidden" : ""}
               size="sm"
               onClick={() => console.log("Comparar:", selectedProviders)}
             >
               {t("search.compare", "Comparar")}
-            </MCButton>{" "}
+            </MCButton>
           </CompareModal>
         </motion.div>
       )}

@@ -31,6 +31,7 @@ interface MCModalBaseProps {
   zIndex?: number;
   borderHeader?: boolean;
   borderFooter?: boolean;
+  actionOne?: boolean; // NUEVA PROP
 }
 
 export function MCModalBase({
@@ -51,6 +52,7 @@ export function MCModalBase({
   zIndex = 50,
   borderHeader = false,
   borderFooter = false,
+  actionOne = false, // NUEVO DEFAULT
 }: MCModalBaseProps) {
   const isControlled = isOpen !== undefined;
   const isMobile = useIsMobile();
@@ -78,8 +80,8 @@ export function MCModalBase({
     xl: isMobile ? "w-[98vw] h-[85vh]" : "w-[896px] h-[800px]",
     "2xl": isMobile ? "w-[100vw] h-[90vh]" : "w-[1152px] h-[900px]",
     wider: isMobile
-      ? "min-w-[220px] max-w-[98vw] h-[80vh] overflow-x-auto"
-      : "min-w-[320px] max-w-[1200px] h-[700px] overflow-x-auto",
+      ? "min-w-[220px] max-w-[98vw] h-[80vh] overflow-x-auto overflow-y-hidden"
+      : "min-w-[320px] max-w-[1200px] h-[95vh] overflow-x-auto overflow-y-hidden",
   };
 
   // Espaciado adaptativo para móvil
@@ -110,8 +112,11 @@ export function MCModalBase({
       )}
       <MorphingDialogContainer className={paddingClasses}>
         <MorphingDialogContent
-          className={`bg-bg-secondary rounded-3xl shadow-lg ${sizeClasses[size]} ${className} flex flex-col overflow-hidden`}
-          style={{ overflowX: size === "wider" ? "auto" : undefined }}
+          className={`bg-bg-secondary rounded-3xl shadow-lg ${sizeClasses[size]} ${className} flex flex-col`}
+          style={{
+            overflowX: size === "wider" ? "auto" : undefined,
+            overflowY: size === "wider" ? "hidden" : undefined,
+          }}
         >
           {/* Header */}
           {(title || typeclose) && (
@@ -150,15 +155,15 @@ export function MCModalBase({
           <MorphingDialogDescription
             className={`${contentPadding} flex-1 min-h-0 scrollbar-hide text-gray-600 dark:text-gray-300 ${
               size === "wider"
-                ? "min-w-[220px] max-w-[1200px] overflow-x-auto"
+                ? "min-w-[220px] max-w-[1200px] overflow-x-auto overflow-y-hidden"
                 : ""
-            }`}
+            } ${actionOne ? "pb-0" : ""}`}
           >
             {children}
           </MorphingDialogDescription>
 
           {/* Footer */}
-          {variant === "warning" && (
+          {!actionOne && variant === "warning" && (
             <div
               className={`flex gap-2 justify-end ${footerPadding} flex-shrink-0 ${
                 borderFooter
@@ -187,7 +192,7 @@ export function MCModalBase({
             </div>
           )}
 
-          {variant === "confirm" && (
+          {!actionOne && variant === "confirm" && (
             <div
               className={`flex justify-end ${footerPadding} flex-shrink-0 ${
                 borderFooter
@@ -206,7 +211,7 @@ export function MCModalBase({
             </div>
           )}
 
-          {variant === "decide" && (
+          {!actionOne && variant === "decide" && (
             <div
               className={`flex gap-2 justify-end ${footerPadding} flex-shrink-0 ${
                 borderFooter

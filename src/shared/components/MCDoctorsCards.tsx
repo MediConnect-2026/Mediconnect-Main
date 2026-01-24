@@ -1,4 +1,3 @@
-import React from "react";
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardTitle } from "@/shared/ui/card";
 import { Star, Languages, ShieldCheck, Stethoscope } from "lucide-react";
@@ -28,12 +27,8 @@ interface Doctor {
   urlImage?: string;
   variant?: DoctorCardVariant;
   lastAppointment?: string;
-  onToggleFavorite?: () => void; // <-- Nuevo prop
+  onToggleFavorite?: () => void;
 }
-
-/* =========================
-   VARIANT STYLES
-========================= */
 
 const VARIANT_STYLES = {
   s: {
@@ -73,7 +68,7 @@ function MCDoctorsCards({
   urlImage,
   variant = "default",
   lastAppointment,
-  onToggleFavorite, // <-- Recibe el prop
+  onToggleFavorite,
 }: Doctor) {
   const styles = VARIANT_STYLES[variant];
   const isMobile = useIsMobile();
@@ -81,15 +76,10 @@ function MCDoctorsCards({
 
   const userRole = useAppStore((state) => state.user?.role);
 
-  // Simula función para marcar favorito (debes implementar la lógica real)
-  const handleFavoriteClick = () => {
-    // Aquí va la lógica para marcar/desmarcar favorito
-    // Ejemplo: dispatch, mutate, etc.
-  };
+  const handleFavoriteClick = () => {};
 
   return (
     <Card className="rounded-3xl bg-transparent border border-primary/10 shadow-sm hover:shadow-lg transition-shadow h-full flex flex-col">
-      {/* IMAGE */}
       <div className="relative overflow-hidden rounded-3xl border border-primary/5">
         {urlImage ? (
           <img
