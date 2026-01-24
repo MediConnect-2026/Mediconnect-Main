@@ -29,7 +29,7 @@ export default function MapSelectLocation({
   const getLocationDetails = async (lng: number, lat: number) => {
     try {
       const response = await fetch(
-        `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${mapboxgl.accessToken}&language=es&types=address,place,neighborhood,district,postcode`
+        `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${mapboxgl.accessToken}&language=es&types=address,place,neighborhood,district,postcode`,
       );
       const data = await response.json();
 
@@ -60,7 +60,7 @@ export default function MapSelectLocation({
 
         // Parse the Dominican address
         const parsedAddress = ParseDominicanAddress(
-          address || "Dirección no encontrada"
+          address || "Dirección no encontrada",
         );
 
         // Llamar al callback con los detalles parseados

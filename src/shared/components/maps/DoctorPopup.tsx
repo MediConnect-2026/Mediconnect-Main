@@ -1,14 +1,27 @@
-import React, { useState } from "react";
-import { Star, MapPin, Globe, Heart, Building2, Video } from "lucide-react";
-import { Badge } from "@/shared/ui/badge";
+import React from "react";
+import { Star, MapPin, Globe, Shield, Phone } from "lucide-react";
 import { type Doctor } from "@/data/providers";
+import { Card, CardContent, CardTitle } from "@/shared/ui/card";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/tooltip";
+import { useAppStore } from "@/stores/useAppStore";
+import MCButton from "../forms/MCButton";
+import { fadeInUp, fadeInUpDelayed } from "@/lib/animations/commonAnimations";
+import { motion } from "framer-motion";
 
 type DoctorPopupProps = {
   provider: Doctor;
+  isConnected?: boolean;
+  onConnect?: (id: string) => void;
+  onViewProfile?: (id: string) => void;
 };
 
-const DoctorPopup: React.FC<DoctorPopupProps> = ({ provider }) => {
-  const [isFavorite, setIsFavorite] = useState(false);
+const DoctorPopup: React.FC<DoctorPopupProps> = ({
+  provider,
+  isConnected,
+  onConnect,
+  onViewProfile,
+}) => {
+  const userRole = useAppStore((state) => state.user?.role);
 
   // Manejo de ubicaciones
   const locations =
@@ -16,106 +29,126 @@ const DoctorPopup: React.FC<DoctorPopupProps> = ({ provider }) => {
       ? provider.address
       : [typeof provider.address === "string" ? provider.address : ""];
 
-  // Modalidad
-  const modalities = provider.modality.map((m) => m.toLowerCase());
-
-  // Disponibilidad simplificada para slots
-  const slots =
-    provider.availability?.map((slot) => ({
-      day: slot.dayName,
-      date: slot.date,
-      count: slot.slots,
-    })) ?? [];
-
   return (
-    <div className="group relative overflow-hidden rounded-xl bg-card shadow-sm hover:shadow-md transition-all duration-300 border border-border max-w-xs">
-      {/* Imagen */}
-      <div className="relative aspect-[4/3] overflow-hidden bg-muted">
-        <img
-          src={provider.image}
-          alt={provider.name}
-          className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
-        />
-        {/* Favorito */}
-        <button
-          onClick={() => setIsFavorite(!isFavorite)}
-          className="absolute top-2 right-2 w-7 h-7 rounded-lg bg-card/90 backdrop-blur-sm flex items-center justify-center shadow hover:bg-card transition-colors"
-        >
-          <Heart
-            className={`w-4 h-4 transition-colors ${
-              isFavorite
-                ? "fill-destructive text-destructive"
-                : "text-muted-foreground hover:text-destructive"
-            }`}
+    <motion.div {...fadeInUp}>
+      <Card className="rounded-3xl bg-background border border-primary/10 shadow-sm hover:shadow-lg transition-shadow h-full flex flex-col max-w-xs w-[500px]">
+        {/* Imagen */}
+        <div className="relative overflow-hidden rounded-xl border border-primary/5 h-35">
+          <img
+            src={provider.image}
+            alt={provider.name}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />
-        </button>
-        {/* Modalidad */}
-        <div className="absolute bottom-2 right-2 flex gap-1">
-          {modalities.includes("presencial") && (
-            <div
-              className="w-6 h-6 rounded bg-card/95 flex items-center justify-center shadow"
-              title="Presencial"
-            >
-              <Building2 className="w-3 h-3 text-foreground" />
-            </div>
-          )}
-          {modalities.includes("virtual") && (
-            <div
-              className="w-6 h-6 rounded bg-success/90 flex items-center justify-center shadow"
-              title="Virtual"
-            >
-              <Video className="w-3 h-3 text-success-foreground" />
-            </div>
-          )}
         </div>
-      </div>
-      {/* Contenido */}
-      <div className="p-2 space-y-2">
-        {/* Nombre y especialidad */}
-        <div>
-          <Badge className="text-[10px] mb-1">{provider.specialty}</Badge>
-          <h3 className="text-base font-semibold text-foreground leading-tight">
+        {/* Nombre y rating juntos debajo de la imagen */}
+        <div className="flex items-center justify-between px-2 pt-2">
+          <CardTitle className="text-base font-bold text-primary drop-shadow-none m-0">
             {provider.name}
-          </h3>
-        </div>
-        {/* Rating */}
-        <div className="flex items-center gap-1">
-          <Star className="w-3 h-3 fill-rating text-rating" />
-          <span className="text-xs font-bold text-foreground">
-            {provider.rating}
-          </span>
-          <span className="text-[10px] text-muted-foreground">
-            ({provider.reviewCount ?? 0})
-          </span>
-        </div>
-        {/* Ubicación */}
-        <div className="flex items-start gap-1.5 text-xs text-muted-foreground">
-          <MapPin className="w-3 h-3 mt-0.5 flex-shrink-0 text-medical" />
-          <span className="line-clamp-1">{locations[0]}</span>
-          {locations.length > 1 && (
-            <span className="text-medical font-medium flex-shrink-0">
-              +{locations.length - 1}
+          </CardTitle>
+          <div className="flex items-center gap-1">
+            <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
+            <span className="text-xs font-bold text-foreground">
+              {provider.rating}
             </span>
-          )}
-        </div>
-        {/* Idiomas */}
-        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-          <Globe className="w-3 h-3 flex-shrink-0 text-medical" />
-          <span>{provider.languages.join(", ")}</span>
-        </div>
-        {/* Seguros */}
-        <div className="pt-1 border-t border-border">
-          <p className="text-[10px] text-muted-foreground mb-1">Seguros:</p>
-          <div className="flex gap-1 overflow-x-auto pb-1 scrollbar-hide">
-            {provider.insurances.map((insurance, idx) => (
-              <Badge key={idx} className="text-[10px] whitespace-nowrap">
-                {insurance}
-              </Badge>
-            ))}
           </div>
         </div>
-      </div>
-    </div>
+        <CardContent className="px-2  py-1 space-y-2">
+          {/* Especialidad */}
+          <div className="text-xs text-muted-foreground font-medium mb-1">
+            {provider.specialty}
+          </div>
+          {/* Ubicación */}
+          <div className="flex items-start gap-1.5 text-xs text-muted-foreground">
+            <MapPin className="w-3 h-3 mt-0.5 flex-shrink-0 text-secondary" />
+            <span className="line-clamp-1">{locations[0]}</span>
+            {locations.length > 1 && (
+              <span className="text-secondary font-medium flex-shrink-0">
+                +{locations.length - 1}
+              </span>
+            )}
+          </div>
+          {/* Idiomas */}
+          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+            <Globe className="w-3 h-3 flex-shrink-0 text-secondary" />
+            <span>{provider.languages.join(", ")}</span>
+          </div>
+          {/* Teléfono si existe */}
+          {provider.phone && (
+            <a
+              href={`tel:${provider.phone}`}
+              className="flex items-center gap-1 text-xs text-secondary hover:text-secondary/80 font-semibold transition-colors"
+            >
+              <Phone className="w-3 h-3" />
+              <span className="text-primary font-normal">{provider.phone}</span>
+            </a>
+          )}
+          {/* Seguros con Tooltip */}
+          <div className="flex items-center gap-1 pt-1 border-t border-border mt-2">
+            <Shield className="w-3 h-3 text-secondary" />
+            <span className="text-xs text-muted-foreground font-medium">
+              Insurances:
+            </span>
+            {provider.insurances.length > 2 ? (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="cursor-pointer truncate text-xs text-foreground">
+                    {provider.insurances.slice(0, 2).join(", ")}
+                    <span className="text-secondary ml-1">
+                      +{provider.insurances.length - 2} more
+                    </span>
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <span>{provider.insurances.join(", ")}</span>
+                </TooltipContent>
+              </Tooltip>
+            ) : (
+              <span className="truncate text-xs text-foreground">
+                {provider.insurances.join(", ")}
+              </span>
+            )}
+          </div>
+          {/* Botones de acción */}
+          <div className="flex gap-2 mt-3">
+            {userRole === "CENTER" && (
+              <MCButton
+                variant={isConnected ? "primary" : "outline"}
+                size="xs"
+                className={
+                  isConnected
+                    ? "flex-1 bg-secondary hover:bg-secondary/90 text-white border-none active:bg-secondary/80"
+                    : "flex-1 border-secondary text-secondary hover:bg-secondary/10 hover:border-secondary/80 active:bg-secondary/20"
+                }
+                onClick={() => onConnect?.(provider.id)}
+              >
+                {isConnected ? "Connected" : "Connect"}
+              </MCButton>
+            )}
+            {userRole === "PATIENT" && (
+              <MCButton
+                variant="primary"
+                size="xs"
+                className="flex-1"
+                onClick={() => {
+                  // Aquí puedes poner la lógica para agendar cita
+                  alert("Agendar cita");
+                }}
+              >
+                Agendar cita
+              </MCButton>
+            )}
+            <MCButton
+              variant="outline"
+              size="xs"
+              className="flex-1"
+              onClick={() => onViewProfile?.(provider.id)}
+            >
+              View Profile
+            </MCButton>
+          </div>
+        </CardContent>
+      </Card>
+    </motion.div>
   );
 };
 

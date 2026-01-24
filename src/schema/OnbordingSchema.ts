@@ -145,10 +145,7 @@ export function DoctorOnboardingSchema(t: (key: string) => string) {
     exequatur: z.string().min(1, t("validation.exequaturRequired")),
     mainSpecialty: z.string().min(1, t("validation.mainSpecialtyRequired")),
     secondarySpecialties: z.array(z.string()).optional(),
-    phone: z
-      .string()
-      .min(1, t("validation.phoneRequired"))
-      .regex(/^\+1\s?\(\d{3}\)\s?\d{3}-\d{4}$/, t("validation.phoneInvalid")),
+    phone: z.string().min(1, t("validation.phoneRequired")),
     email: z
       .string()
       .min(1, t("validation.emailRequired"))
@@ -191,10 +188,7 @@ export function DoctorBasicInfoSchema(t: (key: string) => string) {
     identityDocument: z
       .string()
       .min(1, t("validation.identityDocumentRequired")),
-    phone: z
-      .string()
-      .min(1, t("validation.phoneRequired"))
-      .regex(/^\+1\s?\(\d{3}\)\s?\d{3}-\d{4}$/, t("validation.phoneInvalid")),
+    phone: z.string(),
   });
 }
 
@@ -273,10 +267,7 @@ export function CenterBasicInfoSchema(t: (key: string) => string) {
       }),
 
     centerType: z.string().min(1, t(" validation.centerTypeRequired")),
-    phone: z
-      .string()
-      .min(1, t("validation.phoneRequired"))
-      .regex(/^\+1\s?\(\d{3}\)\s?\d{3}-\d{4}$/, t("validation.phoneInvalid")),
+    phone: z.string().min(1, t("validation.phoneRequired")),
   });
 }
 

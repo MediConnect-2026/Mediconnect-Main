@@ -18,6 +18,8 @@ import {
 import MapSearchProviders from "@/shared/components/maps/MapSearchProviders";
 import { Button } from "@/shared/ui/button";
 import { useTranslation } from "react-i18next";
+import { fadeInUp, fadeInUpDelayed } from "@/lib/animations/commonAnimations";
+import { motion } from "framer-motion";
 
 const tipoProveedorOptions = [
   { value: "doctor", label: "Doctor" },
@@ -96,7 +98,10 @@ function Search() {
   return (
     <div className="min-h-screen px-4 py-8 flex flex-col items-center bg-background rouneded-2xl md:rounded-4xl shadow-sm ">
       {/* Barra de búsqueda */}
-      <div className="space-y-2  min-w-full rounded-2xl md:rounded-4xl p-6 md:p-12 flex flex-col items-center gap-2">
+      <motion.div
+        {...fadeInUp}
+        className="space-y-2  min-w-full rounded-2xl md:rounded-4xl p-6 md:p-12 flex flex-col items-center gap-2"
+      >
         <div className="w-full ">
           <DoctorSearchBar />
         </div>
@@ -137,11 +142,14 @@ function Search() {
             options={calificacionOptions}
           />
         </div>
-      </div>
+      </motion.div>
 
       {/* Contador de seleccionados */}
       {selectedProviders.length > 0 && (
-        <div className="flex items-center justify-between bg-primary/10 p-3 rounded-lg w-full max-w-5xl mb-4">
+        <motion.div
+          {...fadeInUpDelayed}
+          className="flex items-center justify-between bg-primary/10 p-3 rounded-lg w-full max-w-5xl mb-4"
+        >
           <span className="text-sm">
             {t("search.selectedProviders", {
               count: selectedProviders.length,
@@ -157,14 +165,15 @@ function Search() {
           >
             {t("search.compare", "Compare")}
           </Button>
-        </div>
+        </motion.div>
       )}
 
       {/* Contenido principal */}
       <main className="p-4 w-full">
         <div className="grid grid-cols-1 lg:grid-cols-[4fr_6fr] gap-4 h-[calc(100vh-200px)]">
           {/* Lista de proveedores - Izquierda */}
-          <div
+          <motion.div
+            {...fadeInUp}
             className="space-y-4 overflow-y-auto"
             style={{
               scrollbarWidth: "none", // Firefox
@@ -229,10 +238,13 @@ function Search() {
                 })
               )}
             </div>
-          </div>
+          </motion.div>
 
           {/* Mapa - Derecha */}
-          <div className="bg-card rounded-xl  border border-border">
+          <motion.div
+            {...fadeInUp}
+            className="bg-card rounded-xl border border-border h-full"
+          >
             <div className="h-full">
               <MapSearchProviders
                 providers={filteredProviders}
@@ -240,7 +252,7 @@ function Search() {
                 onProviderSelect={handleProviderSelect}
               />
             </div>
-          </div>
+          </motion.div>
         </div>
       </main>
     </div>
