@@ -44,6 +44,7 @@
     "languages": "Languages",
     "schedule": "Schedule",
     "rating": "Rating",
+    "yearsOfExperience": "Years of experience",
     "selectedProviders": "{{count}} of {{max}} providers selected for comparison",
     "compare": "Compare",
     "providersFound": "{{count}} providers found",

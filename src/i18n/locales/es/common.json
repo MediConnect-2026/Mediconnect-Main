@@ -45,10 +45,13 @@
     "languages": "Idiomas",
     "schedule": "Horario",
     "rating": "Calificación",
+    "yearsOfExperience": "Años de experiencia",
     "selectedProviders": "{{count}} de {{max}} proveedores seleccionados para comparar",
     "compare": "Comparar",
     "providersFound": "{{count}} proveedores encontrados",
     "noProvidersFound": "No se encontraron proveedores",
-    "noResultsDescription": "No hay resultados para los filtros seleccionados. Intenta cambiar los filtros o la búsqueda."
+    "noResultsDescription": "No hay resultados para los filtros seleccionados. Intenta cambiar los filtros o la búsqueda.",
+    "viewList": "Ver Lista",
+    "viewMap": "Ver Mapa"
   }
 }

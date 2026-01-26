@@ -67,7 +67,11 @@
     "add": "Add Medical Insurance",
     "select": "Select insurance",
     "remove": "Remove insurance",
-    "morePlans": "More insurance plans in the network. View all"
+    "morePlans": "More insurance plans in the network. View all",
+    "universal": "Universal Insurance",
+    "humano": "Humano Insurance",
+    "mapfre": "Mapfre Health",
+    "particular": "Private"
   },
   "validation": {
     "fullNameRequired": "Full name is required",
@@ -91,7 +95,13 @@
     "appointmentsCount": "{{count}} appointment",
     "appointmentsCount_plural": "{{count}} appointments",
     "emptyTitle": "No appointments scheduled",
-    "emptyDescription": "You have no appointments for this day. Select another date or schedule a new appointment."
+    "emptyDescription": "You have no appointments for this day. Select another date or schedule a new appointment.",
+    "schedule": "Schedule Appointment",
+    "reason": "Reason for Consultation",
+    "reasonPlaceholder": "Describe the reason for your consultation",
+    "patient": "Patient",
+    "patient_plural": "s",
+    "next": "Next"
   },
   "dashboard": {
     "searchTitle": "Search for doctors, specialties or nearby clinics"
@@ -125,7 +135,7 @@
     "insurances": {
       "senasa": "SeNaSa",
       "palic": "ARS Palic",
-      "humano": "Humano Seguros"
+      "humano": "Humano Insurance"
     },
     "experience": {
       "1": "1+ years",
@@ -162,16 +172,50 @@
     "noPlans": "No plans found"
   },
   "doctors": {
-    "emptyTitle": "No se encontraron doctores",
-    "emptyDescription": "Intenta ajustar tus filtros o criterios de búsqueda.",
+    "emptyTitle": "No doctors found",
+    "emptyDescription": "Try adjusting your filters or search criteria.",
     "lastAppointment": "Last appointment",
     "experience": "{{count}} year of experience",
     "experience_plural": "{{count}} years of experience",
     "noExperience": "Experience not specified",
     "noLanguages": "Languages not specified",
     "acceptedInsurances": "Accepted insurances",
-    "schedule": "Schedule",
-    "profile": "Profile",
+    "schedule": "Schedule Appointment",
+    "profile": "Dr. Cristiano Ronaldo",
+    "specialty": "Dermatology",
     "history": "History"
+  },
+  "appointment": {
+    "invalidDate": "Invalid date",
+    "timeRequired": "Time is required",
+    "modalityRequired": "Modality is required",
+    "sessionsMin": "You must schedule at least 1 session",
+    "sessionsMax": "You cannot schedule more than 5 sessions",
+    "reasonMin": "Reason must be at least 10 characters",
+    "reasonMax": "Reason cannot exceed 100 characters",
+    "insuranceRequired": "Insurance is required"
+  },
+  "serviceCards": {
+    "howWantAppointment": "How do you want your appointment?",
+    "inPerson": "In Person",
+    "virtual": "Telehealth",
+    "perPatient": "per patient"
+  },
+  "compareModal": {
+    "title": "Compare providers"
+  },
+  "compare": {
+    "noDoctors": "No doctors selected to compare",
+    "removeDoctor": "Remove doctor",
+    "experience": "Years of Experience",
+    "specialties": "Specialties",
+    "languages": "Languages",
+    "services": "Services Offered",
+    "insurance": "Accepted Insurances",
+    "biography": "Biography",
+    "scheduleAppointment": "Schedule Appointment",
+    "connected": "Connected",
+    "connect": "Connect",
+    "viewProfile": "View Profile"
   }
 }

@@ -53,7 +53,7 @@ export function MCFilterPopover({
         align={isMobile ? "center" : "end"}
         side="bottom"
         sideOffset={8}
-        avoidCollisions={true}
+        avoidCollisions={false}
       >
         <div className="space-y-3 sm:space-y-4">
           {/* Header */}

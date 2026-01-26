@@ -92,7 +92,13 @@
     "appointmentsCount": "{{count}} cita",
     "appointmentsCount_plural": "{{count}} citas",
     "emptyTitle": "Sin citas programadas",
-    "emptyDescription": "No tienes citas para este día. Selecciona otra fecha o agenda una nueva cita."
+    "emptyDescription": "No tienes citas para este día. Selecciona otra fecha o agenda una nueva cita.",
+    "schedule": "Agendar Cita",
+    "reason": "Motivo de Consulta",
+    "reasonPlaceholder": "Describe el motivo de tu consulta",
+    "patient": "Paciente",
+    "patient_plural": "s",
+    "next": "Siguiente"
   },
   "dashboard": {
     "searchTitle": "Busca médicos, especialidades o clínicas cercanas"
@@ -163,16 +169,49 @@
     "noPlans": "No se encontraron planes"
   },
   "doctors": {
-    "emptyTitle": "No doctors found",
-    "emptyDescription": "Try adjusting your filters or search criteria.",
+    "emptyTitle": "No se encontraron doctores",
+    "emptyDescription": "Intenta ajustar tus filtros o criterios de búsqueda.",
     "lastAppointment": "Última cita",
     "experience": "{{count}} año de experiencia",
     "experience_plural": "{{count}} años de experiencia",
     "noExperience": "Experiencia no especificada",
     "noLanguages": "Idiomas no especificados",
     "acceptedInsurances": "Seguros aceptados",
-    "schedule": "Agendar",
+    "schedule": "Agendar Cita",
     "profile": "Perfil",
     "history": "Historial"
+  },
+  "appointment": {
+    "invalidDate": "Fecha inválida",
+    "timeRequired": "La hora es requerida",
+    "modalityRequired": "La modalidad es requerida",
+    "sessionsMin": "Debes agendar al menos 1 sesión",
+    "sessionsMax": "No puedes agendar más de 5 sesiones",
+    "reasonMin": "El motivo debe tener al menos 10 caracteres",
+    "reasonMax": "El motivo no puede exceder 100 caracteres",
+    "insuranceRequired": "El seguro es requerido"
+  },
+  "serviceCards": {
+    "howWantAppointment": "¿Cómo quieres tu cita?",
+    "inPerson": "Presencial",
+    "virtual": "Tele Consulta",
+    "perPatient": "por paciente"
+  },
+  "compare": {
+    "noDoctors": "No hay doctores seleccionados para comparar",
+    "removeDoctor": "Eliminar doctor",
+    "experience": "Años de experiencia",
+    "specialties": "Especialidades",
+    "languages": "Idiomas",
+    "services": "Servicios ofrecidos",
+    "insurance": "Seguros aceptados",
+    "biography": "Biografía",
+    "scheduleAppointment": "Agendar Cita",
+    "connected": "Conectado",
+    "connect": "Conectar",
+    "viewProfile": "Ver perfil"
+  },
+  "compareModal": {
+    "title": "Comparar proveedores"
   }
 }

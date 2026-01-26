@@ -14,7 +14,7 @@ import MCFilterInput from "@/shared/components/filters/MCFilterInput";
 import PatientProfileBanner from "../components/PatientProfileBanner";
 import FilterMyDoctors from "../components/filters/FilterMyDoctors";
 import { type DoctorFiltersSlice } from "@/stores/filters/doctorFilters.slice";
-import { useFiltersStore } from "@/stores/ useFiltersStore";
+import { useFiltersStore } from "@/stores/useFiltersStore";
 import MedicalInfoCard from "@/features/patient/components/dashboard/MedicalInfoCard";
 import { fadeInUp } from "@/lib/animations/commonAnimations";
 

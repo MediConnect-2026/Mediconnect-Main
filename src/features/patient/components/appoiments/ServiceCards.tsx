@@ -1,7 +1,6 @@
-import React from "react";
 import MCButton from "@/shared/components/forms/MCButton";
 import { MapPin, Video } from "lucide-react";
-import { Button } from "@/shared/ui/button";
+import { useTranslation } from "react-i18next"; // <-- Agrega esto
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/tooltip";
 
 interface Service {
@@ -33,6 +32,8 @@ function ServiceCards({
   onTimeSlotSelect,
   onModalitySelect,
 }: ServiceCardsProps) {
+  const { t } = useTranslation("patient"); // <-- Agrega esto
+
   // Función para verificar si ya hay una hora seleccionada en otro servicio
   const hasTimeSlotInOtherService = (currentServiceId: string) => {
     return Object.keys(selectedTimeSlots).some(
@@ -87,7 +88,9 @@ function ServiceCards({
                 <div className="space-y-1 w-full ">
                   <p className="text-sm  text-primary">{service.description}</p>{" "}
                   <div className="flex  text-sm text-primary/65 gap-2 w-full ">
-                    <span>{service.price} por paciente</span>
+                    <span>
+                      {service.price} {t("serviceCards.perPatient")}
+                    </span>
                     <span>•</span>
                     <span>{service.duration}</span>
                     <span>•</span>
@@ -132,7 +135,7 @@ function ServiceCards({
             {timeSelected && (
               <div className="mt-4">
                 <div className="text-sm mb-2 text-primary font-medium">
-                  ¿Cómo quieres tu cita?
+                  {t("serviceCards.howWantAppointment")}
                 </div>
                 <div className="flex gap-2">
                   {(isMixta || isPresencial) && (
@@ -147,7 +150,7 @@ function ServiceCards({
                       onClick={() => onModalitySelect(service.id, "presencial")}
                     >
                       <MapPin className="w-4 h-4 mr-1" />
-                      Presencial
+                      {t("serviceCards.inPerson")}
                     </MCButton>
                   )}
                   {(isMixta || isVirtual) && (
@@ -164,7 +167,7 @@ function ServiceCards({
                       }
                     >
                       <Video className="w-4 h-4 mr-1" />
-                      Tele Consulta
+                      {t("serviceCards.virtual")}
                     </MCButton>
                   )}
                 </div>

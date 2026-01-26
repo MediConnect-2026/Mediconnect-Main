@@ -26,7 +26,7 @@ import { useIsMobile } from "@/lib/hooks/useIsMobile";
 import { Map as MapIcon, List as ListIcon } from "lucide-react";
 import { MCFilterPopover } from "@/shared/components/filters/MCFilterPopover";
 import FiltersSearchProviders from "../components/filters/FiltersSearchProviders";
-import { useFiltersStore } from "@/stores/ useFiltersStore";
+import { useFiltersStore } from "@/stores/useFiltersStore";
 
 function Search() {
   const { t } = useTranslation("common");
@@ -459,10 +459,7 @@ function Search() {
 
                   <MCFilterSelect
                     name="yearsOfExperience"
-                    placeholder={t(
-                      "search.yearsOfExperience",
-                      "Años de experiencia",
-                    )}
+                    placeholder={t("search.yearsOfExperience")}
                     options={yearsOfExperienceOptions}
                     multiple={false}
                     noBadges

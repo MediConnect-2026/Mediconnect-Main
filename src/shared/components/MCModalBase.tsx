@@ -1,5 +1,5 @@
 import type React from "react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import MCButton from "@/shared/components/forms/MCButton";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
 import {
@@ -36,7 +36,7 @@ interface MCModalBaseProps {
 
 export function MCModalBase({
   trigger,
-  isOpen,
+  isOpen: externalIsOpen,
   onClose,
   children,
   title,
@@ -54,21 +54,32 @@ export function MCModalBase({
   borderFooter = false,
   actionOne = false,
 }: MCModalBaseProps) {
-  const isControlled = isOpen !== undefined;
+  const isControlled = externalIsOpen !== undefined;
   const isMobile = useIsMobile();
 
+  // Estado interno para modo no controlado
+  const [internalIsOpen, setInternalIsOpen] = useState(false);
+
+  // Usar estado externo si está controlado, sino usar interno
+  const isOpen = isControlled ? externalIsOpen : internalIsOpen;
+  const setIsOpen = isControlled ? onClose : setInternalIsOpen;
+
   useEffect(() => {
-    if (!isControlled || !isOpen) return;
+    if (!isOpen) return;
 
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        onClose?.();
+        if (isControlled) {
+          onClose?.();
+        } else {
+          setInternalIsOpen(false);
+        }
       }
     };
 
     document.addEventListener("keydown", handleEscape);
     return () => document.removeEventListener("keydown", handleEscape);
-  }, [isControlled, isOpen, onClose]);
+  }, [isOpen, isControlled, onClose]);
 
   const sizeClasses = {
     sm: isMobile
@@ -90,10 +101,29 @@ export function MCModalBase({
 
   const handleConfirm = () => {
     onConfirm?.();
-    onClose?.();
+    if (isControlled) {
+      onClose?.();
+    } else {
+      setInternalIsOpen(false);
+    }
   };
 
-  if (isControlled && !isOpen) return null;
+  const handleSecondary = () => {
+    onSecondary?.();
+    if (isControlled) {
+      onClose?.();
+    } else {
+      setInternalIsOpen(false);
+    }
+  };
+
+  const handleCloseModal = () => {
+    if (isControlled) {
+      onClose?.();
+    } else {
+      setInternalIsOpen(false);
+    }
+  };
 
   return (
     <MorphingDialog
@@ -165,16 +195,14 @@ export function MCModalBase({
                   : ""
               } ${isMobile ? "flex-col-reverse" : ""}`}
             >
-              <MorphingDialogClose>
-                <MCButton
-                  variant="secondary"
-                  size={isMobile ? "l" : "m"}
-                  onClick={onSecondary}
-                  className={isMobile ? "w-full" : ""}
-                >
-                  {secondaryText}
-                </MCButton>
-              </MorphingDialogClose>
+              <MCButton
+                variant="secondary"
+                size={isMobile ? "l" : "m"}
+                onClick={handleSecondary}
+                className={isMobile ? "w-full" : ""}
+              >
+                {secondaryText}
+              </MCButton>
               <MCButton
                 variant="delete"
                 size={isMobile ? "l" : "m"}
@@ -213,16 +241,14 @@ export function MCModalBase({
                   : ""
               } ${isMobile ? "flex-col-reverse" : ""}`}
             >
-              <MorphingDialogClose>
-                <MCButton
-                  variant="secondary"
-                  size={isMobile ? "l" : "m"}
-                  onClick={onSecondary}
-                  className={isMobile ? "w-full" : ""}
-                >
-                  {secondaryText}
-                </MCButton>
-              </MorphingDialogClose>
+              <MCButton
+                variant="secondary"
+                size={isMobile ? "l" : "m"}
+                onClick={handleSecondary}
+                className={isMobile ? "w-full" : ""}
+              >
+                {secondaryText}
+              </MCButton>
               <MCButton
                 variant="primary"
                 size={isMobile ? "l" : "m"}

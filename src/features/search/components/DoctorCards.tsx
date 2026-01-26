@@ -388,15 +388,15 @@ export const DoctorCards = ({
                       >
                         <div
                           className={cn(
-                            "flex flex-col items-center px-1.5 sm:px-2 py-1 sm:py-1.5 rounded-lg text-xs doctor-slot flex-shrink-0 cursor-pointer",
-                            isMobile ? "min-w-[45px]" : "min-w-[50px]",
+                            "flex flex-col items-center justify-center px-1.5 sm:px-2 py-1 sm:py-1.5 rounded-lg text-xs doctor-slot flex-shrink-0 cursor-pointer",
+                            isMobile ? "w-fit h-[60px]" : "w-fit h-[70px]",
                             "bg-accent text-accent-foreground border-border transition-colors hover:border-primary hover:bg-accent/80 active:bg-accent/70",
                           )}
                         >
                           <span
                             className={cn(
                               "font-medium",
-                              isMobile && "text-[10px]",
+                              isMobile ? "text-[10px]" : "text-xs",
                             )}
                           >
                             {isMobile
@@ -424,8 +424,8 @@ export const DoctorCards = ({
                       <div
                         key={idx}
                         className={cn(
-                          "flex flex-col items-center px-1.5 sm:px-2 py-1 sm:py-1.5 rounded-lg text-xs doctor-slot flex-shrink-0",
-                          isMobile ? "min-w-[45px]" : "min-w-[50px]",
+                          "flex flex-col items-center justify-center px-1.5 sm:px-2 py-1 sm:py-1.5 rounded-lg text-xs doctor-slot flex-shrink-0",
+                          isMobile ? "w-fit h-[60px]" : "w-fit h-[70px]",
                           "bg-primary/5 dark:bg-primary/10 border-primary/10 text-primary/25 cursor-not-allowed",
                         )}
                         tabIndex={-1}
@@ -434,7 +434,7 @@ export const DoctorCards = ({
                         <span
                           className={cn(
                             "font-medium",
-                            isMobile && "text-[10px]",
+                            isMobile ? "text-[10px]" : "text-xs",
                           )}
                         >
                           {isMobile
@@ -462,34 +462,44 @@ export const DoctorCards = ({
                 {/* Botón "más" */}
                 {userRole === "PATIENT" ? (
                   <ScheduleAppointmentDialog idProvider={doctor.id}>
-                    <button
+                    <div
                       className={cn(
-                        "flex items-center justify-center px-2 sm:px-3 py-1.5 rounded-lg border border-primary/5 font-medium text-foreground transition-colors flex-shrink-0",
-                        isMobile
-                          ? "min-w-[45px] text-xs"
-                          : "min-w-[50px] text-sm",
+                        "flex flex-col items-center justify-center px-1.5 sm:px-2 py-1 sm:py-1.5 rounded-lg border border-primary/20 font-medium text-foreground transition-colors flex-shrink-0 cursor-pointer",
+                        isMobile ? "w-fit h-[60px]" : "w-fit h-[70px]",
                         "hover:bg-primary/10 hover:border-primary/40 hover:text-primary active:bg-primary/8 active:border-primary active:text-primary",
                       )}
                     >
-                      {t("doctorCard.more")}
-                    </button>
+                      <span
+                        className={cn(
+                          "text-center",
+                          isMobile ? "text-xs" : "text-sm",
+                        )}
+                      >
+                        {t("doctorCard.more")}
+                      </span>
+                    </div>
                   </ScheduleAppointmentDialog>
                 ) : (
-                  <button
+                  <div
                     onClick={(e) => {
                       e.stopPropagation();
                       onViewProfile(doctor.id);
                     }}
                     className={cn(
-                      "flex items-center justify-center px-2 sm:px-3 py-1.5 rounded-lg border border-primary/5 font-medium text-foreground transition-colors flex-shrink-0",
-                      isMobile
-                        ? "min-w-[45px] text-xs"
-                        : "min-w-[50px] text-sm",
-                      "hover:bg-primary/10 hover:border-primary/40 hover:text-primary active:bg-primary/8 active:border-primary active:text-primary",
+                      "flex flex-col items-center justify-center px-1.5 sm:px-2 py-1 sm:py-1.5 rounded-lg border border-primary/20 font-medium text-foreground transition-colors flex-shrink-0 cursor-pointer",
+                      isMobile ? "w-[50px] h-[60px]" : "w-[60px] h-[70px]",
+                      "bg-accent/50 hover:bg-accent hover:border-primary/40 hover:text-primary active:bg-accent/70 active:border-primary",
                     )}
                   >
-                    {t("doctorCard.more")}
-                  </button>
+                    <span
+                      className={cn(
+                        "text-center",
+                        isMobile ? "text-xs" : "text-sm",
+                      )}
+                    >
+                      {t("doctorCard.more")}
+                    </span>
+                  </div>
                 )}
               </div>
             </div>

@@ -6,7 +6,7 @@ import MCDoctorCard, {
 import { MCFilterPopover } from "@/shared/components/filters/MCFilterPopover";
 import MCFilterInput from "@/shared/components/filters/MCFilterInput";
 import FilterMyDoctors from "../filters/FilterMyDoctors";
-import { useFiltersStore } from "@/stores/ useFiltersStore";
+import { useFiltersStore } from "@/stores/useFiltersStore";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/shared/ui/button";

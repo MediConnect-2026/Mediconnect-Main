@@ -37,7 +37,7 @@ export type GlobalUISlice = {
   setAccessPage: (
     canAccess: boolean,
     pages: { page: string; reason: string }[],
-    reason: string
+    reason: string,
   ) => void;
   modalOpen: boolean;
   setModalOpen: (isOpen: boolean) => void;
@@ -81,7 +81,7 @@ export const createGlobalUISlice: StateCreator<GlobalUISlice> = (set, get) => ({
   setToast: (toast) => set({ toast }),
   canAccessPage: false,
   allowedPages: [],
-  setAccessPage: (canAccess, pages, reason) =>
+  setAccessPage: (canAccess, pages) =>
     set({ canAccessPage: canAccess, allowedPages: pages }),
   modalOpen: false,
   setModalOpen: (isOpen: boolean) => set({ modalOpen: isOpen }),

@@ -1,6 +1,7 @@
 import { MCModalBase } from "@/shared/components/MCModalBase";
 import CompareDoctorCards from "./CompareDoctorCards";
 import type { Provider } from "@/data/providers";
+import { useTranslation } from "react-i18next"; // <-- Agrega esto
 
 interface CompareModalProps {
   selectedProviders: Provider[];
@@ -13,6 +14,8 @@ function CompareModal({
   children,
   onRemoveProvider,
 }: CompareModalProps) {
+  const { t } = useTranslation("patient"); // <-- Agrega esto
+
   function modalTrigger(children: React.ReactNode | React.ComponentType) {
     return <>{children}</>;
   }
@@ -20,7 +23,7 @@ function CompareModal({
   return (
     <MCModalBase
       id="compare-modal"
-      title="Comparar proveedores"
+      title={t("compareModal.title")} // <-- Traducción aquí
       trigger={modalTrigger(children)}
       triggerClassName="w-fit rounded-full"
       size="wider"
