@@ -34,6 +34,7 @@ export const ROUTES = {
     SETTINGS: "/patient/settings",
     PATIENT_PROFILE_PRIVATE: "/patient/profile",
     PATIENT_PROFILE_PUBLIC: "/patient/profile/:patientId",
+    SCHEDULE_APPOINTMENT: "/patient/schedule-appointment",
   },
 
   // --- DASHBOARD DOCTOR ---

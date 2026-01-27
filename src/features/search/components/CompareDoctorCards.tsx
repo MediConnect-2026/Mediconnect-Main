@@ -14,6 +14,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/avatar";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
 import { useAppStore } from "@/stores/useAppStore";
 import ScheduleAppointmentDialog from "@/features/patient/components/appoiments/ScheduleAppointmentDialog";
+import { MCUserAvatar } from "@/shared/navigation/userMenu/MCUserAvatar";
 interface CompareDoctorCardsProps {
   selectedProviders: Provider[];
   onRemoveProvider?: (id: string) => void;
@@ -77,18 +78,19 @@ function CompareDoctorCards({
             <CardHeader className="text-center flex-shrink-0">
               <div className="flex flex-col items-center ">
                 <Avatar className="w-16 h-16 md:w-20 md:h-20 border border-primary/20 my-2">
-                  <AvatarImage
-                    src={doctor.image}
-                    alt={doctor.name}
-                    className="object-cover"
-                  />
-                  <AvatarFallback className="text-base md:text-lg">
-                    {doctor.name
-                      .split(" ")
-                      .map((n) => n[0])
-                      .join("")
-                      .slice(0, 2)}
-                  </AvatarFallback>
+                  {doctor.image ? (
+                    <AvatarImage
+                      src={doctor.image}
+                      alt={doctor.name}
+                      className="object-cover"
+                    />
+                  ) : (
+                    <MCUserAvatar
+                      name={doctor.name}
+                      size={80}
+                      className="w-full h-full"
+                    />
+                  )}
                 </Avatar>
 
                 <div>

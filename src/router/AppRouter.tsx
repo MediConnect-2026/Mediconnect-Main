@@ -24,6 +24,7 @@ import CenterDashboard from "@/features/center/pages/DashboardPage";
 
 import PatientProfilePage from "@/features/patient/pages/PatientProfilePage";
 import Search from "@/features/search/pages/Search";
+import ScheduleAppointment from "@/features/patient/pages/ScheduleAppointment";
 function AppRouter() {
   return (
     <BrowserRouter>
@@ -95,6 +96,10 @@ function AppRouter() {
             />
 
             <Route path={ROUTES.COMMON.GLOBAL_SEARCH} element={<Search />} />
+            <Route
+              path={ROUTES.PATIENT.SCHEDULE_APPOINTMENT}
+              element={<ScheduleAppointment />}
+            />
 
             <Route path={ROUTES.DOCTOR.HOME} element={<DoctorDashboard />} />
             <Route path={ROUTES.CENTER.HOME} element={<CenterDashboard />} />

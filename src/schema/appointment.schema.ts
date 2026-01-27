@@ -1,5 +1,17 @@
+// appointment.schema.ts
 import z, { number } from "zod";
 
+// Esquema base sin traducciones
+export const appointmentSchemaBase = z.object({
+  date: z.string(),
+  time: z.string().min(1),
+  selectedModality: z.enum(["presencial", "teleconsulta"]),
+  numberOfSessions: number().min(1).max(5).default(1),
+  reason: z.string().min(10).max(100),
+  insuranceProvider: z.string().min(1),
+});
+
+// Función que retorna el esquema con mensajes traducidos
 export const appointmentSchema = (t: (key: string) => string) =>
   z.object({
     date: z.string().refine((date) => !isNaN(Date.parse(date)), {

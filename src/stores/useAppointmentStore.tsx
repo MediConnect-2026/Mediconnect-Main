@@ -1,31 +1,23 @@
 import { create } from "zustand";
-import type { scheduleAppointment } from "@/types/AppointmentTypes";
+import { persist, createJSONStorage } from "zustand/middleware";
+import {
+  type AppointmentSlice,
+  createAppointmentSlice,
+} from "@/stores/useAppointmentSlice";
 
-type AppointmentStore = {
-  appointment: scheduleAppointment;
-  addAppointment: (appointment: scheduleAppointment) => void;
-  clearAppointments: () => void;
-};
+type AppointmentStore = AppointmentSlice;
 
-export const useAppointmentStore = create<AppointmentStore>((set) => ({
-  appointment: {
-    date: "",
-    time: "",
-    reason: "",
-    insuranceProvider: "",
-    selectedModality: "presencial",
-    numberOfSessions: 1,
-  },
-  addAppointment: (data) => set({ appointment: data }),
-  clearAppointments: () =>
-    set({
-      appointment: {
-        date: "",
-        time: "",
-        reason: "",
-        insuranceProvider: "",
-        selectedModality: "presencial",
-        numberOfSessions: 1,
-      },
+export const useAppointmentStore = create<AppointmentStore>()(
+  persist(
+    (...a) => ({
+      ...createAppointmentSlice(...a),
     }),
-}));
+    {
+      name: "appointment-storage",
+      storage: createJSONStorage(() => sessionStorage),
+      partialize: (state) => ({
+        appointment: state.appointment,
+      }),
+    },
+  ),
+);
