@@ -67,7 +67,9 @@
   /* Nuevos colores */
   --bg-secondary: #fbfbfb;
   --bg-btn-secondary: #f7f7f7;
-  --destructive: #ffebe9;
+  --destructive: #dc2626; /* Texto / iconos */
+  --destructive-hover: rgba(220, 38, 38, 0.1); /* Hover background */
+  --destructive-focus: rgba(220, 38, 38, 0.15); /* Focus background */
 
   /* Pie Chart Colors (Light Mode) */
   --chart-1: 120 86% 7%; /* #0B2C12 */
@@ -96,7 +98,9 @@
   --border: #1e1e1e;
   --input: #1e1e1e;
   --ring: #8bb1ca;
-  --destructive: #3b0a0a;
+  --destructive: #dc2626; /* Texto / iconos */
+  --destructive-hover: rgba(220, 38, 38, 0.1); /* Hover background */
+  --destructive-focus: rgba(220, 38, 38, 0.15); /* Focus background */
 
   /* Nuevos colores para dark */
   --bg-secondary: #0a0a0a;

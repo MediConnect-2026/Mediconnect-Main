@@ -389,7 +389,7 @@ export const DoctorCards = ({
                         <div
                           className={cn(
                             "flex flex-col items-center justify-center px-1.5 sm:px-2 py-1 sm:py-1.5 rounded-lg text-xs doctor-slot flex-shrink-0 cursor-pointer",
-                            isMobile ? "w-fit h-[60px]" : "w-fit h-[70px]",
+                            isMobile ? "w-16 h-[60px]" : "w-20 h-[70px]", // <-- menos ancho
                             "bg-accent text-accent-foreground border-border transition-colors hover:border-primary hover:bg-accent/80 active:bg-accent/70",
                           )}
                         >
@@ -425,7 +425,7 @@ export const DoctorCards = ({
                         key={idx}
                         className={cn(
                           "flex flex-col items-center justify-center px-1.5 sm:px-2 py-1 sm:py-1.5 rounded-lg text-xs doctor-slot flex-shrink-0",
-                          isMobile ? "w-fit h-[60px]" : "w-fit h-[70px]",
+                          isMobile ? "w-16 h-[60px]" : "w-20 h-[70px]", // <-- menos ancho
                           "bg-primary/5 dark:bg-primary/10 border-primary/10 text-primary/25 cursor-not-allowed",
                         )}
                         tabIndex={-1}

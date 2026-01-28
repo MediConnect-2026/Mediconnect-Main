@@ -17,6 +17,8 @@ export type VerificationContext =
   | "DELETE_ACCOUNT"
   | null;
 
+export type verficationContextStatus = "PENDING" | "VERIFIED" | "FAILED" | null;
+
 export type GlobalUISlice = {
   isloading: boolean;
   setIsLoading: (loading: boolean) => void;
@@ -30,14 +32,15 @@ export type GlobalUISlice = {
   setLanguage: (lang: string) => void;
   toast: {
     message: string;
-    type: "success" | "error" | "info";
+    type: "success" | "error" | "info" | "warning";
     open: boolean;
   };
   setToast: (toast: {
     message: string;
-    type: "success" | "error" | "info";
+    type: "success" | "error" | "info" | "warning";
     open: boolean;
   }) => void;
+  clearToast: () => void;
   canAccessPage: boolean;
   allowedPages: { page: string; reason: string }[];
   setAccessPage: (
@@ -52,6 +55,8 @@ export type GlobalUISlice = {
   verificationContext: VerificationContext;
   setVerificationContext: (context: VerificationContext) => void;
   resetVerificationContext: () => void;
+  verificationContextStatus: verficationContextStatus; // <-- NUEVO
+  setVerificationContextStatus: (status: verficationContextStatus) => void; // <-- NUEVO
 };
 
 export const createGlobalUISlice: StateCreator<GlobalUISlice> = (set, get) => ({
@@ -88,6 +93,7 @@ export const createGlobalUISlice: StateCreator<GlobalUISlice> = (set, get) => ({
     open: false,
   },
   setToast: (toast) => set({ toast }),
+  clearToast: () => set({ toast: { message: "", type: "info", open: false } }),
   canAccessPage: false,
   allowedPages: [],
   setAccessPage: (canAccess, pages) =>
@@ -99,4 +105,7 @@ export const createGlobalUISlice: StateCreator<GlobalUISlice> = (set, get) => ({
   verificationContext: null,
   setVerificationContext: (context) => set({ verificationContext: context }),
   resetVerificationContext: () => set({ verificationContext: null }),
+  verificationContextStatus: null, // <-- NUEVO
+  setVerificationContextStatus: (status) =>
+    set({ verificationContextStatus: status }), // <-- NUEVO
 });
