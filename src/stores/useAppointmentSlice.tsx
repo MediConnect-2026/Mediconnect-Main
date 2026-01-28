@@ -28,6 +28,7 @@ export const createAppointmentSlice: StateCreator<AppointmentSlice> = (
     selectedModality: "presencial",
     numberOfSessions: 1,
     serviceId: "", // <-- Agrega aquí
+    doctorId: "",
   },
   isAppointmentInProgress: false,
 
@@ -53,6 +54,7 @@ export const createAppointmentSlice: StateCreator<AppointmentSlice> = (
         selectedModality: "presencial",
         numberOfSessions: 1,
         serviceId: "", // <-- También aquí
+        doctorId: "",
       },
     }),
 });

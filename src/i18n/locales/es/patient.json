@@ -154,6 +154,15 @@
       "cancel": "Cancelar",
       "apply": "Aplicar",
       "open": "Abrir filtros"
+    },
+    "serviceTypes": {
+      "consulta": "Consulta",
+      "terapia": "Terapia",
+      "examen": "Examen"
+    },
+    "modalities": {
+      "presencial": "Presencial",
+      "online": "Online"
     }
   },
   "searchBar": {

@@ -1,31 +1,45 @@
 import React from "react";
 import MCFilterSelect from "@/shared/components/filters/MCFilterSelect";
 import { useFiltersStore } from "@/stores/useFiltersStore";
-
-// Opciones de ejemplo, reemplaza por tus datos reales
-const serviceTypeOptions = [
-  { value: "consulta", label: "Consulta" },
-  { value: "terapia", label: "Terapia" },
-  { value: "examen", label: "Examen" },
-];
-const specialtyOptions = [
-  { value: "cardiologia", label: "Cardiología" },
-  { value: "psicologia", label: "Psicología" },
-  { value: "nutricion", label: "Nutrición" },
-];
-const modalityOptions = [
-  { value: "presencial", label: "Presencial" },
-  { value: "online", label: "Online" },
-];
+import { useTranslation } from "react-i18next";
 
 function FilterAppointments() {
+  const { t } = useTranslation("patient");
   const { filters, setFilters } = useFiltersStore();
 
+  // Opciones traducidas
+  const serviceTypeOptions = [
+    {
+      value: "consulta",
+      label: t("filters.specialties.cardiology", "Consulta"),
+    },
+    { value: "terapia", label: t("filters.labels.languages", "Terapia") },
+    { value: "examen", label: t("filters.labels.experience", "Examen") },
+  ];
+  const specialtyOptions = [
+    {
+      value: "cardiologia",
+      label: t("filters.specialties.cardiology", "Cardiología"),
+    },
+    {
+      value: "psicologia",
+      label: t("filters.specialties.dermatology", "Psicología"),
+    },
+    {
+      value: "nutricion",
+      label: t("filters.specialties.pediatrics", "Nutrición"),
+    },
+  ];
+  const modalityOptions = [
+    { value: "presencial", label: t("serviceCards.inPerson", "Presencial") },
+    { value: "online", label: t("serviceCards.virtual", "Online") },
+  ];
+
   return (
-    <div className="flex flex-col gap-4">
+    <div className="grid grid-cols-2 gap-4">
       <MCFilterSelect
         name="serviceTypes"
-        label="Tipo de servicio"
+        label={t("filters.labels.specialty", "Tipo de servicio")}
         options={serviceTypeOptions}
         multiple
         value={filters.serviceTypes}
@@ -34,7 +48,7 @@ function FilterAppointments() {
       />
       <MCFilterSelect
         name="specialties"
-        label="Especialidad"
+        label={t("filters.labels.specialty", "Especialidad")}
         options={specialtyOptions}
         multiple
         value={filters.specialties}
@@ -43,15 +57,17 @@ function FilterAppointments() {
       />
       <MCFilterSelect
         name="modalities"
-        label="Modalidad"
+        label={t("filters.labels.modalities", "Modalidad")}
         options={modalityOptions}
         multiple
         value={filters.modalities}
         onChange={(vals) => setFilters({ modalities: vals as string[] })}
       />
-      {/* Ejemplo de filtro de rango de precio */}
+      {/* Filtro de rango de precio */}
       <div>
-        <label className="block mb-1 text-primary">Precio</label>
+        <label className="block mb-1 text-primary">
+          {t("filters.labels.experience", "Precio")}
+        </label>
         <input
           type="range"
           min={0}

@@ -157,6 +157,15 @@
       "cancel": "Cancel",
       "apply": "Apply",
       "open": "Open filters"
+    },
+    "serviceTypes": {
+      "consulta": "Consultation",
+      "terapia": "Therapy",
+      "examen": "Exam"
+    },
+    "modalities": {
+      "presencial": "In Person",
+      "online": "Online"
     }
   },
   "searchBar": {
@@ -180,8 +189,8 @@
     "noExperience": "Experience not specified",
     "noLanguages": "Languages not specified",
     "acceptedInsurances": "Accepted insurances",
-    "schedule": "Schedule Appointment",
-    "profile": "Dr. Cristiano Ronaldo",
+    "schedule": "Schedule",
+
     "specialty": "Dermatology",
     "history": "History"
   },

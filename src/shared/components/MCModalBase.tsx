@@ -32,6 +32,7 @@ interface MCModalBaseProps {
   borderHeader?: boolean;
   borderFooter?: boolean;
   actionOne?: boolean;
+  defaultOpen?: boolean; // <-- Añadido
 }
 
 export function MCModalBase({
@@ -53,12 +54,13 @@ export function MCModalBase({
   borderHeader = false,
   borderFooter = false,
   actionOne = false,
+  defaultOpen = false, // <-- Añadido
 }: MCModalBaseProps) {
   const isControlled = externalIsOpen !== undefined;
   const isMobile = useIsMobile();
 
-  // Estado interno para modo no controlado
-  const [internalIsOpen, setInternalIsOpen] = useState(false);
+  // Estado interno para modo no controlado, inicializado con defaultOpen
+  const [internalIsOpen, setInternalIsOpen] = useState(defaultOpen);
 
   // Usar estado externo si está controlado, sino usar interno
   const isOpen = isControlled ? externalIsOpen : internalIsOpen;

@@ -22,7 +22,6 @@ function DashboardLayout() {
         !currentPath.startsWith("/search")
       ) {
         resetAppointment();
-        setIsAppointmentInProgress?.(false);
       }
     };
     // Add setIsAppointmentInProgress to dependency array for completeness

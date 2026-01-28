@@ -19,60 +19,37 @@ import MapScheduleLocation from "@/shared/components/maps/MapScheduleLocation";
 import { Avatar, AvatarImage } from "@/shared/ui/avatar";
 import { MCUserAvatar } from "@/shared/navigation/userMenu/MCUserAvatar";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
-
+import ScheduleAppointmentDialog from "../components/appoiments/ScheduleAppointmentDialog";
 function ScheduleAppointment() {
-  const { t } = useTranslation();
+  const { t } = useTranslation("patient");
   const user = useAppStore((state) => state.user);
   const appointmentDetails = useAppointmentStore((state) => state.appointment);
-  const setAppointmentInProgress = useAppointmentStore(
-    (state) => state.setIsAppointmentInProgress,
-  );
 
   const navigate = useNavigate();
   const isMobile = useIsMobile();
 
   const isPatient = user?.role === "PATIENT";
-  const hasAppointmentData =
-    appointmentDetails?.date &&
-    appointmentDetails?.time &&
-    appointmentDetails?.selectedModality &&
-    appointmentDetails?.numberOfSessions &&
-    appointmentDetails?.reason &&
-    appointmentDetails?.insuranceProvider;
 
   useEffect(() => {
-    if (!isPatient || !hasAppointmentData) {
+    if (!isPatient) {
       navigate("/search", { replace: true });
     }
-  }, [isPatient, hasAppointmentData, navigate]);
+  }, [isPatient, navigate]);
 
-  // <-- NUEVO: Agregar este useEffect para asegurar que el scroll esté habilitado
   useEffect(() => {
-    // Remover cualquier clase que bloquee el scroll
     document.body.style.overflow = "unset";
     document.body.style.paddingRight = "0px";
     document.documentElement.style.overflow = "unset";
-
-    // Scroll al tope de la página
     window.scrollTo(0, 0);
-
     return () => {
-      // Cleanup si es necesario
       document.body.style.overflow = "unset";
       document.documentElement.style.overflow = "unset";
     };
   }, []);
 
-  if (!isPatient || !hasAppointmentData) {
+  if (!isPatient) {
     return null;
   }
-
-  // Handler para confirmar la cita
-  const handleConfirmAppointment = () => {
-    if (setAppointmentInProgress) {
-      setAppointmentInProgress(true);
-    }
-  };
 
   return (
     <div
@@ -87,18 +64,31 @@ function ScheduleAppointment() {
         <main
           className={`${isMobile ? "w-full" : "max-w-2xl"} flex flex-col gap-4`}
         >
-          <h1
-            className={`${isMobile ? "text-2xl" : "text-3xl"} font-semibold text-primary`}
-          >
-            Confirmar Cita
-          </h1>
+          <div className="flex items-center justify-between">
+            <h1
+              className={`${isMobile ? "text-2xl" : "text-3xl"} font-semibold text-primary`}
+            >
+              {t("appointments.details", "Confirm Appointment")}
+            </h1>
+            <p>prueba {appointmentDetails.doctorId}</p>
+            <div className="flex items-center gap-2">
+              <ScheduleAppointmentDialog
+                idProvider={appointmentDetails.doctorId}
+              >
+                <MCButton size="sm" variant="outline">
+                  {t("appointments.reschedule", "Edit Appointment")}
+                </MCButton>
+              </ScheduleAppointmentDialog>
+            </div>
+          </div>
+
           <div
             className={`grid ${isMobile ? "grid-cols-1" : "grid-cols-1 md:grid-cols-[4.5fr_5.5fr]"} gap-4 items-start`}
           >
             <div className="relative overflow-hidden rounded-2xl">
               <img
                 src="https://images.unsplash.com/photo-1511174511562-5f7f18b874f8?auto=format&fit=crop&w=400&q=80"
-                alt="Consulta médica"
+                alt={t("appointments.reason", "Medical Consultation")}
                 className={`w-full ${isMobile ? "h-48" : "h-60"} object-cover rounded-xl transition-transform duration-500 hover:scale-110`}
               />
             </div>
@@ -106,12 +96,13 @@ function ScheduleAppointment() {
               <h2
                 className={`${isMobile ? "text-lg" : "text-xl"} font-bold text-primary`}
               >
-                Consulta dermatológica general
+                {t("doctors.profile", "General Dermatology Consultation")}
               </h2>
               <p className="text-primary opacity-75 mb-4">
-                Evaluación completa de la piel para detectar y tratar manchas,
-                acné, lunares u otras afecciones. Incluye diagnóstico inicial y
-                recomendaciones personalizadas.
+                {t(
+                  "appointments.reasonPlaceholder",
+                  "Complete skin evaluation to detect and treat spots, acne, moles, or other conditions. Includes initial diagnosis and personalized recommendations.",
+                )}
               </p>
             </div>
           </div>
@@ -119,14 +110,18 @@ function ScheduleAppointment() {
             <h4
               className={`${isMobile ? "text-base" : "text-lg"} font-semibold text-primary`}
             >
-              Política de cancelación y reprogramación flexible
+              {t(
+                "appointments.cancellationPolicyTitle",
+                "Flexible cancellation and rescheduling policy",
+              )}
             </h4>
             <p
               className={`text-primary opacity-75 ${isMobile ? "text-sm" : ""}`}
             >
-              Puedes cancelar o reprogramar tu cita sin costo adicional si lo
-              haces con al menos 4 horas de antelación. Nuestro objetivo es
-              ofrecerte la mayor comodidad y flexibilidad en tu atención médica.
+              {t(
+                "appointments.cancellationPolicyDescription",
+                "You can cancel or reschedule your appointment at no additional cost if you do so at least 4 hours in advance. Our goal is to offer you the greatest comfort and flexibility in your medical care.",
+              )}
             </p>
           </div>
           <hr className="border-t border-primary opacity-15" />
@@ -136,7 +131,9 @@ function ScheduleAppointment() {
             <div className="flex flex-col items-start gap-2">
               <div className="flex items-center gap-2">
                 <Calendar size={20} className="text-secondary" />
-                <h5 className="font-semibold text-primary">Fecha</h5>
+                <h5 className="font-semibold text-primary">
+                  {t("appointments.date", "Date")}
+                </h5>
               </div>
               <div>
                 <span className="text-primary opacity-75">
@@ -147,7 +144,9 @@ function ScheduleAppointment() {
             <div className="flex flex-col items-start gap-2">
               <div className="flex items-center gap-2">
                 <Clock size={20} className="text-secondary" />
-                <h5 className="font-semibold text-primary">Horario</h5>
+                <h5 className="font-semibold text-primary">
+                  {t("appointments.time", "Time")}
+                </h5>
               </div>
               <div>
                 <span className="text-primary opacity-75">
@@ -158,11 +157,17 @@ function ScheduleAppointment() {
             <div className="flex flex-col items-start gap-2">
               <div className="flex items-center gap-2">
                 <PersonStanding size={20} className="text-secondary" />
-                <h5 className="font-semibold text-primary">Pacientes</h5>
+                <h5 className="font-semibold text-primary">
+                  {t("appointments.patient", "Patients")}
+                </h5>
               </div>
               <div>
                 <span className="text-primary opacity-75">
-                  {appointmentDetails.numberOfSessions} Paciente(s)
+                  {appointmentDetails.numberOfSessions}{" "}
+                  {t("appointments.patient", "Patient")}
+                  {appointmentDetails.numberOfSessions > 1
+                    ? t("appointments.patient_plural", "s")
+                    : ""}
                 </span>
               </div>
             </div>
@@ -171,7 +176,7 @@ function ScheduleAppointment() {
             <h4
               className={`${isMobile ? "text-base" : "text-lg"} font-semibold text-primary`}
             >
-              Motivo de la consulta
+              {t("appointments.reason", "Reason for Consultation")}
             </h4>
             <p
               className={`text-primary opacity-75 ${isMobile ? "text-sm" : ""}`}
@@ -188,7 +193,7 @@ function ScheduleAppointment() {
                   <h4
                     className={`${isMobile ? "text-base" : "text-lg"} font-semibold text-primary mb-1`}
                   >
-                    Ubicación
+                    {t("appointments.inPerson", "Location")}
                   </h4>
                 </div>
                 <MapScheduleLocation
@@ -203,14 +208,15 @@ function ScheduleAppointment() {
                 <h4
                   className={`${isMobile ? "text-base" : "text-lg"} font-semibold text-primary mb-1`}
                 >
-                  Plataforma para la consulta virtual
+                  {t("appointments.virtual", "Virtual consultation platform")}
                 </h4>
                 <p
                   className={`text-primary opacity-75 ${isMobile ? "text-sm" : ""}`}
                 >
-                  La consulta se realizará a través de nuestra plataforma segura
-                  de telemedicina. Recibirás un enlace por correo electrónico
-                  antes de la cita.
+                  {t(
+                    "appointments.virtualDescription",
+                    "The consultation will take place through our secure telemedicine platform. You will receive a link by email before the appointment.",
+                  )}
                 </p>
               </div>
             )}
@@ -219,7 +225,9 @@ function ScheduleAppointment() {
           <div className="flex flex-col gap-2">
             <div className="flex items-center gap-2">
               <Stethoscope size={20} className="text-secondary" />
-              <h4 className="text-primary font-semibold">Médico tratante</h4>
+              <h4 className="text-primary font-semibold">
+                {t("doctors.profile", "Attending Physician")}
+              </h4>
             </div>
             <div className="flex items-center gap-4">
               <div
@@ -229,12 +237,12 @@ function ScheduleAppointment() {
                   <img
                     src="https://i.pinimg.com/736x/28/c4/8d/28c48d2fbae708baff8261b51e30627b.jpg"
                     className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
-                    alt="Doctor"
+                    alt={t("doctors.profile", "Doctor")}
                   />
                 ) : (
                   <div className="flex items-center justify-center w-full h-full rounded-full">
                     <MCUserAvatar
-                      name={user.name || "Médico"}
+                      name={user.name || t("doctors.profile", "Doctor")}
                       size={isMobile ? 64 : 128}
                       className="w-full h-auto object-cover transition-transform duration-500 hover:scale-110"
                     />
@@ -245,12 +253,12 @@ function ScheduleAppointment() {
                 <h3
                   className={`font-semibold text-primary ${isMobile ? "text-base" : "text-lg"}`}
                 >
-                  {user.name || "DR. CRISTIANO RONALDO"}
+                  {user.name || t("doctors.profile", "DR. CRISTIANO RONALDO")}
                 </h3>
                 <p
                   className={`text-primary opacity-75 ${isMobile ? "text-xs" : "text-sm"}`}
                 >
-                  Especialista en Medicina Interna
+                  {t("doctors.specialty", "Internal Medicine Specialist")}
                 </p>
               </div>
             </div>
@@ -259,7 +267,9 @@ function ScheduleAppointment() {
               <span
                 className={`flex items-center text-primary ${isMobile ? "text-sm" : ""}`}
               >
-                <p className="mr-2 font-semibold">Seguro médico:</p>
+                <p className="mr-2 font-semibold">
+                  {t("insurance.title", "Medical Insurance")}:
+                </p>
                 {appointmentDetails.insuranceProvider}
               </span>
             </div>
@@ -271,7 +281,7 @@ function ScheduleAppointment() {
             <h1
               className={`${isMobile ? "text-xl" : "text-2xl"} font-semibold text-primary`}
             >
-              Total:
+              {t("appointments.total", "Total:")}
             </h1>
             <span
               className={`${isMobile ? "text-xl" : "text-2xl"} font-semibold text-primary`}
@@ -283,9 +293,8 @@ function ScheduleAppointment() {
             className="w-full"
             size={isMobile ? "xl" : "l"}
             variant="primary"
-            onClick={handleConfirmAppointment} // <-- Añade el handler aquí
           >
-            Confirmar cita
+            {t("appointments.schedule", "Confirm appointment")}
           </MCButton>
         </main>
         {!isMobile && <div />}

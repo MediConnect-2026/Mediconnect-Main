@@ -10,6 +10,7 @@ export const appointmentSchemaBase = z.object({
   reason: z.string().min(10).max(100),
   insuranceProvider: z.string().min(1),
   serviceId: z.string(),
+  doctorId: z.string(),
 });
 
 // Función que retorna el esquema con mensajes traducidos
@@ -34,4 +35,5 @@ export const appointmentSchema = (t: (key: string) => string) =>
       .string()
       .min(1, { message: t("appointment.insuranceRequired") }),
     serviceId: z.string().min(1, { message: t("appointment.serviceRequired") }),
+    doctorId: z.string().min(1, { message: t("appointment.doctorRequired") }),
   });

@@ -65,24 +65,46 @@ function useMorphingDialog() {
 export type MorphingDialogProviderProps = {
   children: React.ReactNode;
   transition?: Transition;
+  onOpenChange?: (isOpen: boolean) => void;
+  open?: boolean; // <-- NUEVO
 };
 
 function MorphingDialogProvider({
   children,
   transition,
+  onOpenChange,
+  open: controlledOpen, // <-- NUEVO
 }: MorphingDialogProviderProps) {
-  const [isOpen, setIsOpen] = useState(false);
+  const [internalIsOpen, setInternalIsOpen] = useState(false);
   const uniqueId = useId();
   const triggerRef = useRef<HTMLButtonElement>(null!);
+
+  // Determinar si es controlado o no
+  const isControlled = controlledOpen !== undefined;
+  const isOpen = isControlled ? controlledOpen : internalIsOpen;
+
+  // Wrapper que notifica cambios
+  const handleSetIsOpen = useCallback(
+    (value: boolean | ((prev: boolean) => boolean)) => {
+      const newValue = typeof value === "function" ? value(isOpen) : value;
+
+      if (!isControlled) {
+        setInternalIsOpen(newValue);
+      }
+
+      onOpenChange?.(newValue);
+    },
+    [onOpenChange, isControlled, isOpen],
+  );
 
   const contextValue = useMemo(
     () => ({
       isOpen,
-      setIsOpen,
+      setIsOpen: handleSetIsOpen,
       uniqueId,
       triggerRef,
     }),
-    [isOpen, uniqueId],
+    [isOpen, handleSetIsOpen, uniqueId],
   );
 
   return (
@@ -95,11 +117,22 @@ function MorphingDialogProvider({
 export type MorphingDialogProps = {
   children: React.ReactNode;
   transition?: Transition;
+  onOpenChange?: (isOpen: boolean) => void;
+  open?: boolean; // <-- NUEVO
 };
 
-function MorphingDialog({ children, transition }: MorphingDialogProps) {
+function MorphingDialog({
+  children,
+  transition,
+  onOpenChange,
+  open, // <-- NUEVO
+}: MorphingDialogProps) {
   return (
-    <MorphingDialogProvider>
+    <MorphingDialogProvider
+      transition={transition}
+      onOpenChange={onOpenChange}
+      open={open} // <-- PASAR A PROVIDER
+    >
       <MotionConfig transition={transition}>{children}</MotionConfig>
     </MorphingDialogProvider>
   );
