@@ -16,7 +16,7 @@ import { useAppointmentStore } from "@/stores/useAppointmentStore";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import MapScheduleLocation from "@/shared/components/maps/MapScheduleLocation";
-import { Avatar, AvatarImage } from "@/shared/ui/avatar";
+
 import { MCUserAvatar } from "@/shared/navigation/userMenu/MCUserAvatar";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
 import ScheduleAppointmentDialog from "../components/appoiments/ScheduleAppointmentDialog";
@@ -52,7 +52,10 @@ function ScheduleAppointment() {
   }
 
   return (
-    <div
+    <motion.div
+      initial="hidden"
+      animate="visible"
+      variants={fadeInUp}
       className={`bg-background min-h-screen ${isMobile ? "py-4 px-4" : "py-10"} flex gap-4 rounded-4xl`}
     >
       <div
@@ -299,7 +302,7 @@ function ScheduleAppointment() {
         </main>
         {!isMobile && <div />}
       </div>
-    </div>
+    </motion.div>
   );
 }
 

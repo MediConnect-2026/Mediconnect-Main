@@ -29,7 +29,7 @@ import FilterAppointments from "@/features/patient/components/filters/FilterAppo
 import { useNavigate } from "react-router-dom";
 
 import MCFormWrapper from "@/shared/components/forms/MCFormWrapper";
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { useFormContext } from "react-hook-form";
 import React from "react";
 
@@ -114,6 +114,7 @@ const INSURANCE_OPTIONS = [
 
 interface ScheduleAppointmentDialogProps {
   idProvider: string;
+  idAppointment?: string;
   children: React.ReactNode;
 }
 
@@ -132,22 +133,29 @@ const parseDateFromStorage = (dateString: string): Date => {
 };
 
 // Componente interno que usa el FormContext
-function ScheduleAppointmentForm() {
+function ScheduleAppointmentForm({
+  isRescheduling,
+}: {
+  isRescheduling: boolean;
+}) {
   const { t, i18n } = useTranslation("patient");
   const currentLocale = i18n.language === "es" ? es : enUS;
   const [calendarOpen, setCalendarOpen] = useState(false);
 
   // Estados locales para filtros con useState
-  const [appointmentFilters, setAppointmentFilters] = useState<AppointmentFilters>({
-    serviceTypes: [],
-    specialties: [],
-    modalities: [],
-    priceRange: [0, 10000],
-  });
+  const [appointmentFilters, setAppointmentFilters] =
+    useState<AppointmentFilters>({
+      serviceTypes: [],
+      specialties: [],
+      modalities: [],
+      priceRange: [0, 10000],
+    });
 
   // Función para actualizar filtros
-  const updateAppointmentFilters = (newFilters: Partial<AppointmentFilters>) => {
-    setAppointmentFilters(prev => ({ ...prev, ...newFilters }));
+  const updateAppointmentFilters = (
+    newFilters: Partial<AppointmentFilters>,
+  ) => {
+    setAppointmentFilters((prev) => ({ ...prev, ...newFilters }));
   };
 
   // Función para resetear filtros
@@ -166,7 +174,11 @@ function ScheduleAppointmentForm() {
     if (appointmentFilters.serviceTypes.length > 0) count++;
     if (appointmentFilters.specialties.length > 0) count++;
     if (appointmentFilters.modalities.length > 0) count++;
-    if (appointmentFilters.priceRange[0] !== 0 || appointmentFilters.priceRange[1] !== 10000) count++;
+    if (
+      appointmentFilters.priceRange[0] !== 0 ||
+      appointmentFilters.priceRange[1] !== 10000
+    )
+      count++;
     return count;
   };
 
@@ -458,7 +470,9 @@ function ScheduleAppointmentForm() {
       {/* Submit Button */}
       <MorphingDialogClose className="w-full">
         <MCButton type="submit" className="w-full" disabled={isSubmitDisabled}>
-          {t("appointments.next", "Siguiente")}
+          {isRescheduling
+            ? t("appointments.reschedule", "Reagendar Cita")
+            : t("appointments.next", "Siguiente")}
           <ChevronRight className="ml-2 h-5 w-5" />
         </MCButton>
       </MorphingDialogClose>
@@ -468,6 +482,7 @@ function ScheduleAppointmentForm() {
 
 function ScheduleAppointmentDialog({
   idProvider,
+  idAppointment,
   children,
 }: ScheduleAppointmentDialogProps) {
   const { t } = useTranslation("patient");
@@ -477,13 +492,32 @@ function ScheduleAppointmentDialog({
   const appointment = useAppointmentStore((s) => s.appointment);
   const resetAppointment = useAppointmentStore((s) => s.clearAppointments);
 
+  // Determinar si estamos en modo reagendar
+  const isRescheduling = !!idAppointment;
+
   // ✨ Esta función se ejecuta cada vez que se hace clic en el trigger
-  const handleTriggerClick = useCallback(() => {
+  const handleTriggerClick = useCallback(async () => {
+    // MODO REAGENDAR: Cargar datos de la cita desde la API
+    if (isRescheduling && idAppointment) {
+      // TODO: Aquí cargas los datos de la cita desde tu API
+      // const appointmentData = await fetchAppointment(idAppointment);
+
+      // Por ahora, usa datos de ejemplo o del store si ya existen
+      addAppointment({
+        ...appointment,
+        doctorId: idProvider,
+        appointmentId: idAppointment,
+      });
+      return;
+    }
+
+    // MODO CREAR NUEVA CITA
     // Si no hay doctor en el store, configurar el actual
     if (!appointment.doctorId) {
       addAppointment({
         ...appointment,
         doctorId: idProvider,
+        appointmentId: undefined,
       });
       return;
     }
@@ -500,26 +534,61 @@ function ScheduleAppointmentDialog({
         reason: "",
         insuranceProvider: "",
         serviceId: "",
+        appointmentId: undefined,
       });
     }
     // Si es el mismo doctor, no hacer nada (mantener formulario)
-  }, [idProvider, appointment, addAppointment, resetAppointment]);
+  }, [
+    idProvider,
+    appointment,
+    addAppointment,
+    resetAppointment,
+    isRescheduling,
+    idAppointment,
+  ]);
 
   const onSubmit = (data: scheduleAppointment) => {
-    addAppointment(data);
-    navigate("/patient/schedule-appointment");
+    if (isRescheduling && data.appointmentId) {
+      // MODO EDITAR: Actualizar la cita existente
+      console.log("Actualizando cita:", data.appointmentId, data);
+
+      // TODO: Aquí integrarás la llamada API para actualizar
+      // await updateAppointment(data.appointmentId, data);
+
+      addAppointment(data);
+      navigate("/patient/appointments");
+    } else {
+      // MODO CREAR: Flujo normal de crear nueva cita
+      addAppointment(data);
+      navigate("/patient/schedule-appointment");
+    }
   };
 
-  const formDefaultValues = {
-    date: appointment.date || formatDateForStorage(new Date()),
-    time: appointment.time || "",
-    selectedModality: appointment.selectedModality || "presencial",
-    numberOfSessions: appointment.numberOfSessions || 1,
-    reason: appointment.reason || "",
-    insuranceProvider: appointment.insuranceProvider || "",
-    serviceId: appointment.serviceId || "",
-    doctorId: appointment.doctorId || idProvider,
-  };
+  // Determinar valores por defecto según el modo
+  const formDefaultValues = useMemo(() => {
+    if (isRescheduling && idAppointment) {
+      // En modo reagendar, usar los datos del store (que fueron cargados en handleTriggerClick)
+      // o valores por defecto si aún no se han cargado
+      return {
+        ...appointment,
+        doctorId: idProvider,
+        appointmentId: idAppointment,
+      };
+    }
+
+    // Valores por defecto para nueva cita
+    return {
+      date: appointment.date || formatDateForStorage(new Date()),
+      time: appointment.time || "",
+      selectedModality: appointment.selectedModality || "presencial",
+      numberOfSessions: appointment.numberOfSessions || 1,
+      reason: appointment.reason || "",
+      insuranceProvider: appointment.insuranceProvider || "",
+      serviceId: appointment.serviceId || "",
+      doctorId: appointment.doctorId || idProvider,
+      appointmentId: undefined,
+    };
+  }, [isRescheduling, appointment, idProvider, idAppointment]);
 
   // ✨ Envolver el trigger para agregar el onClick
   const triggerWithHandler = React.isValidElement(children)
@@ -528,12 +597,21 @@ function ScheduleAppointmentDialog({
       })
     : children;
 
+  // Título dinámico según el modo
+  const modalTitle = isRescheduling
+    ? t("appointments.rescheduleTitle", "Reagendar Cita")
+    : t("appointments.schedule", "Agendar Cita");
+
   return (
     <MCModalBase
-      id="schedule-appointment-modal"
-      title={t("appointments.schedule", "Agendar Cita")}
+      id={
+        isRescheduling
+          ? `reschedule-appointment-${idAppointment}`
+          : "schedule-appointment-modal"
+      }
+      title={modalTitle}
       trigger={triggerWithHandler}
-      triggerClassName="w-full h-full"
+      triggerClassName="w-full h-full flex-1"
       size="wider"
     >
       <MCFormWrapper
@@ -542,7 +620,7 @@ function ScheduleAppointmentDialog({
         onValidationChange={() => {}}
         onSubmit={onSubmit}
       >
-        <ScheduleAppointmentForm />
+        <ScheduleAppointmentForm isRescheduling={isRescheduling} />
       </MCFormWrapper>
     </MCModalBase>
   );

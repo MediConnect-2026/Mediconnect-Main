@@ -17,9 +17,11 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/shared/ui/tooltip";
-
+import ScheduleAppointmentDialog from "@/features/patient/components/appoiments/ScheduleAppointmentDialog";
+import CancelAppointmentDialog from "@/features/patient/components/appoiments/CancelAppointmentDialog";
 export interface Appointment {
   id: string;
+  doctorId: string;
   doctorName: string;
   doctorAvatar: string;
   doctorSpecialty: string;
@@ -189,7 +191,7 @@ export function MyAppointmentsCards({
                 </MCButton>
               </>
             ) : (
-              <>
+              <div className="flex flex-1 gap-2">
                 <MCButton
                   onClick={() => onViewDetails?.(appointment.id)}
                   className="flex-1"
@@ -197,22 +199,24 @@ export function MyAppointmentsCards({
                 >
                   Ver detalles
                 </MCButton>
-                <MCButton
-                  variant="outline"
-                  onClick={() => onReschedule?.(appointment.id)}
-                  className="flex-1"
-                  size="sm"
+                <ScheduleAppointmentDialog
+                  idProvider={appointment.doctorId}
+                  idAppointment={appointment.id}
                 >
-                  Reagendar
-                </MCButton>
-                <MCButton
-                  variant="outlineDelete"
-                  onClick={() => onCancel?.(appointment.id)}
-                  size="sm"
-                >
-                  Cancelar
-                </MCButton>
-              </>
+                  <MCButton variant="outline" className="flex-1" size="sm">
+                    Reagendar
+                  </MCButton>
+                </ScheduleAppointmentDialog>
+                <CancelAppointmentDialog appointmentId={appointment.id}>
+                  <MCButton
+                    variant="outlineDelete"
+                    onClick={() => onCancel?.(appointment.id)}
+                    size="sm"
+                  >
+                    Cancelar
+                  </MCButton>
+                </CancelAppointmentDialog>
+              </div>
             )}
           </>
         ) : (

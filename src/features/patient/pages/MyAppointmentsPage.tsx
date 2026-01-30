@@ -15,10 +15,12 @@ import {
   PaginationPrevious,
   PaginationNext,
 } from "@/shared/ui/pagination";
-
+import MCGeneratePDF from "@/shared/components/MCGeneratePDF";
+import { useGlobalUIStore } from "@/stores/useGlobalUIStore";
 // Interfaz de cita
 export interface Appointment {
   id: string;
+  doctorId: string; // <-- Agrega este campo
   doctorName: string;
   doctorAvatar: string;
   doctorSpecialty: string;
@@ -45,6 +47,7 @@ interface AppointmentFilters {
 const mockAppointments: Appointment[] = [
   {
     id: "1",
+    doctorId: "d1", // <-- Agrega un id único para cada doctor
     doctorName: "Daniel Ramírez",
     doctorSpecialty: "Terapeuta",
     doctorAvatar:
@@ -58,6 +61,7 @@ const mockAppointments: Appointment[] = [
   },
   {
     id: "2",
+    doctorId: "d2",
     doctorName: "Mariana López",
     doctorSpecialty: "Terapeuta",
     doctorAvatar:
@@ -71,6 +75,7 @@ const mockAppointments: Appointment[] = [
   },
   {
     id: "3",
+    doctorId: "d3",
     doctorName: "Santiago Pérez",
     doctorSpecialty: "Terapeuta",
     doctorAvatar:
@@ -83,6 +88,7 @@ const mockAppointments: Appointment[] = [
   },
   {
     id: "4",
+    doctorId: "d4",
     doctorName: "Dr. Cristoforo Criparni",
     doctorSpecialty: "Ginecología",
     doctorAvatar:
@@ -98,6 +104,7 @@ const mockAppointments: Appointment[] = [
   },
   {
     id: "5",
+    doctorId: "d5",
     doctorName: "Sofía Torres",
     doctorSpecialty: "Terapeuta",
     doctorAvatar:
@@ -111,6 +118,7 @@ const mockAppointments: Appointment[] = [
   },
   {
     id: "6",
+    doctorId: "d6",
     doctorName: "Alejandro Díaz",
     doctorSpecialty: "Terapeuta",
     doctorAvatar:
@@ -124,6 +132,7 @@ const mockAppointments: Appointment[] = [
   },
   {
     id: "7",
+    doctorId: "d7",
     doctorName: "Dra. Laura Méndez",
     doctorSpecialty: "Cardiología",
     doctorAvatar:
@@ -138,6 +147,7 @@ const mockAppointments: Appointment[] = [
   },
   {
     id: "8",
+    doctorId: "d8",
     doctorName: "Dr. Roberto García",
     doctorSpecialty: "Medicina General",
     doctorAvatar:
@@ -150,6 +160,7 @@ const mockAppointments: Appointment[] = [
   },
   {
     id: "9",
+    doctorId: "d9",
     doctorName: "Dr. Pablo Herrera",
     doctorSpecialty: "Dermatología",
     doctorAvatar:
@@ -163,6 +174,7 @@ const mockAppointments: Appointment[] = [
   },
   {
     id: "10",
+    doctorId: "d10",
     doctorName: "Dra. Carla Jiménez",
     doctorSpecialty: "Pediatría",
     doctorAvatar:
@@ -175,6 +187,7 @@ const mockAppointments: Appointment[] = [
   },
   {
     id: "11",
+    doctorId: "d11",
     doctorName: "Dr. Luis Martínez",
     doctorSpecialty: "Oftalmología",
     doctorAvatar:
@@ -188,6 +201,7 @@ const mockAppointments: Appointment[] = [
   },
   {
     id: "12",
+    doctorId: "d12",
     doctorName: "Dra. Patricia Gómez",
     doctorSpecialty: "Endocrinología",
     doctorAvatar:
@@ -200,6 +214,7 @@ const mockAppointments: Appointment[] = [
   },
   {
     id: "13",
+    doctorId: "d13",
     doctorName: "Dr. Andrés Castro",
     doctorSpecialty: "Neurología",
     doctorAvatar:
@@ -222,6 +237,7 @@ function MyAppointmentsPage() {
   const [historicalPage, setHistoricalPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
 
+  const setIsLoading = useGlobalUIStore((state) => state.setIsLoading);
   // Estado de filtros local
   const [filters, setFilters] = useState<AppointmentFilters>({
     status: [],
@@ -473,8 +489,25 @@ function MyAppointmentsPage() {
 
   const pdfGeneratorComponent = (
     <MCPDFButton
-      onClick={() => {
-        console.log("Generate PDF");
+      onClick={async () => {
+        setIsLoading(true);
+        await MCGeneratePDF({
+          columns: [
+            { title: "Doctor", key: "doctorName" },
+            { title: "Especialidad", key: "doctorSpecialty" },
+            { title: "Tipo de Evaluación", key: "evaluationType" },
+            { title: "Fecha", key: "date" },
+            { title: "Hora", key: "time" },
+            { title: "Tipo de Cita", key: "appointmentType" },
+            { title: "Ubicación", key: "location" },
+            { title: "Estado", key: "status" },
+          ],
+          data: mockAppointments,
+          fileName: "mis-citas",
+          title: "Mis Citas",
+          subtitle: "Lista completa de citas médicas",
+        });
+        setIsLoading(false);
       }}
     />
   );

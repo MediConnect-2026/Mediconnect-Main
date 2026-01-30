@@ -1,18 +1,28 @@
 import { type StateCreator } from "zustand";
-import type { scheduleAppointment } from "@/types/AppointmentTypes";
+import type {
+  scheduleAppointment,
+  CancelAppointment,
+} from "@/types/AppointmentTypes";
 
 export interface AppointmentSlice {
   isAppointmentInProgress?: boolean;
-  appointment: scheduleAppointment & { selectedServiceId?: string }; // Agrega selectedServiceId opcional
+  appointment: scheduleAppointment & { selectedServiceId?: string };
+
+  cancelAppointment?: CancelAppointment;
+
+  setCancelAppointment?: (data: CancelAppointment) => void;
+
   addAppointment: (
     appointment: scheduleAppointment & { selectedServiceId?: string },
   ) => void;
+
   setAppointmentField?: <
     K extends keyof (scheduleAppointment & { selectedServiceId?: string }),
   >(
     field: K,
     value: (scheduleAppointment & { selectedServiceId?: string })[K],
   ) => void;
+
   setIsAppointmentInProgress?: (inProgress: boolean) => void;
   clearAppointments: () => void;
 }
@@ -27,9 +37,18 @@ export const createAppointmentSlice: StateCreator<AppointmentSlice> = (
     insuranceProvider: "",
     selectedModality: "presencial",
     numberOfSessions: 1,
-    serviceId: "", // <-- Agrega aquí
+    serviceId: "",
     doctorId: "",
+    // appointmentId es opcional - solo existe cuando editamos
+    appointmentId: undefined,
   },
+
+  cancelAppointment: {
+    cancellationReason: "",
+  },
+
+  setCancelAppointment: (data) => set({ cancelAppointment: data }),
+
   isAppointmentInProgress: false,
 
   setIsAppointmentInProgress: (inProgress) =>
@@ -42,6 +61,7 @@ export const createAppointmentSlice: StateCreator<AppointmentSlice> = (
         [field]: value,
       },
     })),
+
   addAppointment: (data) => set({ appointment: data }),
 
   clearAppointments: () =>
@@ -53,8 +73,9 @@ export const createAppointmentSlice: StateCreator<AppointmentSlice> = (
         insuranceProvider: "",
         selectedModality: "presencial",
         numberOfSessions: 1,
-        serviceId: "", // <-- También aquí
+        serviceId: "",
         doctorId: "",
+        appointmentId: undefined,
       },
     }),
 });

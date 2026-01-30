@@ -49,7 +49,7 @@
 
   /* Light Mode Colors */
   --background: #ffffff;
-  --foreground: #0b2c12;
+  --foreground: rgb(11, 44, 18);
   --primary: #0b2c12;
   --primary-foreground: #ffffff;
   --secondary: #8bb1ca;

@@ -9,8 +9,8 @@ interface MCTextAreaProps {
   placeholder?: string;
   value?: string;
   onChange?: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
-  onBlur?: (e: React.FocusEvent<HTMLTextAreaElement>) => void; // <-- Add this
-  onKeyDown?: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void; // <-- Add this
+  onBlur?: (e: React.FocusEvent<HTMLTextAreaElement>) => void;
+  onKeyDown?: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
   className?: string;
   required?: boolean;
   disabled?: boolean;
@@ -18,8 +18,10 @@ interface MCTextAreaProps {
   status?: "default" | "error" | "success" | "warning" | "loading";
   statusMessage?: string;
   autoFocus?: boolean;
-  charLimit?: number; // <-- Nuevo
-  showCharCount?: boolean; // <-- Nuevo
+  charLimit?: number;
+  showCharCount?: boolean;
+  maxRows?: number;
+  style?: React.CSSProperties;
 }
 
 function MCTextArea({
@@ -28,8 +30,8 @@ function MCTextArea({
   placeholder,
   value,
   onChange,
-  onBlur, // <-- Add this
-  onKeyDown, // <-- Add this
+  onBlur,
+  onKeyDown,
   className,
   required = false,
   disabled = false,
@@ -39,6 +41,8 @@ function MCTextArea({
   autoFocus = false,
   charLimit,
   showCharCount = false,
+  maxRows,
+  style,
 }: MCTextAreaProps) {
   const {
     register,
@@ -88,8 +92,16 @@ function MCTextArea({
           disabled={disabled}
           rows={rows}
           autoFocus={autoFocus}
-          onKeyDown={onKeyDown} // <-- Add this
+          onKeyDown={onKeyDown}
           maxLength={charLimit}
+          style={{
+            minHeight: `${rows * 2.5}em`, // Garantiza altura mínima basada en rows
+            height: `${rows * 2.5}em`, // Fuerza la altura inicial
+            ...(maxRows
+              ? { maxHeight: `${maxRows * 2.5}em`, overflowY: "auto" }
+              : {}),
+            ...style,
+          }}
           {...(() => {
             const field = register(name);
             return {

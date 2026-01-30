@@ -53,6 +53,7 @@ function MCFilterDates({
   const buttonClasses = cn(
     "w-full justify-start text-left font-normal rounded-4xl border-primary/50 focus:border-primary text-primary",
     "focus-visible:border-ring focus-visible:ring-accent/70 focus-visible:ring-[3px]",
+    " dark:bg-input/30 bg-bg-secondary", // Fondo con opacidad usando bg-primary/15
     getSizeClasses(),
     getVariantClasses(),
     className,
