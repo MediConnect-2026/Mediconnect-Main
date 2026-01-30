@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback, memo } from "react";
+import { useState, useMemo, useCallback, memo } from "react";
 import DoctorSearchBar from "@/features/patient/components/DoctorSearchBar";
 import MCFilterSelect from "@/shared/components/filters/MCFilterSelect";
 import { DoctorCards } from "../components/DoctorCards";
@@ -25,7 +25,20 @@ import { useIsMobile } from "@/lib/hooks/useIsMobile";
 import { Map as MapIcon, List as ListIcon } from "lucide-react";
 import { MCFilterPopover } from "@/shared/components/filters/MCFilterPopover";
 import FiltersSearchProviders from "../components/filters/FiltersSearchProviders";
-import { useFiltersStore } from "@/stores/useFiltersStore";
+
+// Interfaz para filtros de búsqueda
+interface SearchProviderFilters {
+  name: string;
+  insuranceAccepted: string[];
+  providerType: string[];
+  modality: string[];
+  specialty: string[];
+  gender: string[];
+  yearsOfExperience: number | null;
+  languages: string[];
+  scheduledAppointments: string[];
+  rating: number | null;
+}
 
 // ✅ OPTIMIZACIÓN 1: Mover constantes fuera del componente
 const TIPO_PROVEEDOR_OPTIONS = [
@@ -90,7 +103,10 @@ const YEARS_OF_EXPERIENCE_OPTIONS = [
 ];
 
 // ✅ OPTIMIZACIÓN 2: Función pura para filtrar (fuera del componente)
-const filterProvider = (provider: Provider, searchFilters: any): boolean => {
+const filterProvider = (
+  provider: Provider,
+  searchFilters: SearchProviderFilters,
+): boolean => {
   // Filtro por nombre
   if (
     searchFilters.name &&
@@ -338,7 +354,7 @@ const DesktopFilters = memo(
     onYearsChange,
     t,
   }: {
-    searchFilters: any;
+    searchFilters: SearchProviderFilters;
     onFilterChange: (key: string, values: string[]) => void;
     onYearsChange: (value: number | null) => void;
     t: any;
@@ -475,11 +491,19 @@ function Search() {
   const [selectedProviders, setSelectedProviders] = useState<string[]>([]);
   const [connectedClinics, setConnectedClinics] = useState<string[]>([]);
 
-  // Zustand store para filtros
-  const searchFilters = useFiltersStore((state) => state.SearchProviderFilters);
-  const setSearchFilters = useFiltersStore(
-    (state) => state.setSearchProviderFilters,
-  );
+  // Estados locales para filtros con useState
+  const [searchFilters, setSearchFilters] = useState<SearchProviderFilters>({
+    name: "",
+    insuranceAccepted: ["all"],
+    providerType: ["all"],
+    modality: ["all"],
+    specialty: ["all"],
+    gender: ["all"],
+    yearsOfExperience: null,
+    languages: ["all"],
+    scheduledAppointments: ["all"],
+    rating: null,
+  });
 
   // ✅ OPTIMIZACIÓN 7: Memoizar conteo de filtros activos
   const activeFiltersCount = useMemo(() => {
@@ -507,7 +531,15 @@ function Search() {
       scheduledAppointments: ["all"],
       rating: null,
     });
-  }, [setSearchFilters]);
+  }, []);
+
+  // Función para actualizar filtros
+  const updateSearchFilters = useCallback(
+    (newFilters: Partial<SearchProviderFilters>) => {
+      setSearchFilters((prev) => ({ ...prev, ...newFilters }));
+    },
+    [],
+  );
 
   // ✅ OPTIMIZACIÓN 9: Memoizar proveedores filtrados
   const filteredProviders = useMemo(() => {
@@ -543,22 +575,20 @@ function Search() {
 
   const handleFilterChange = useCallback(
     (filterKey: string, values: string[]) => {
-      setSearchFilters({
-        ...searchFilters,
+      updateSearchFilters({
         [filterKey]: values,
       });
     },
-    [searchFilters, setSearchFilters],
+    [updateSearchFilters],
   );
 
   const handleYearsChange = useCallback(
     (value: number | null) => {
-      setSearchFilters({
-        ...searchFilters,
+      updateSearchFilters({
         yearsOfExperience: value,
       });
     },
-    [searchFilters, setSearchFilters],
+    [updateSearchFilters],
   );
 
   const toggleMapView = useCallback(() => {
@@ -594,7 +624,7 @@ function Search() {
                 >
                   <FiltersSearchProviders
                     searchProviderFilters={searchFilters}
-                    setSearchProviderFilters={setSearchFilters}
+                    setSearchProviderFilters={updateSearchFilters}
                   />
                 </MCFilterPopover>
                 <MCButton

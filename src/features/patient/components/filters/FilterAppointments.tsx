@@ -1,11 +1,24 @@
 import React from "react";
 import MCFilterSelect from "@/shared/components/filters/MCFilterSelect";
-import { useFiltersStore } from "@/stores/useFiltersStore";
 import { useTranslation } from "react-i18next";
 
-function FilterAppointments() {
+interface AppointmentFilters {
+  serviceTypes: string[];
+  specialties: string[];
+  modalities: string[];
+  priceRange: [number, number];
+}
+
+interface FilterAppointmentsProps {
+  filters: AppointmentFilters;
+  onFiltersChange: (filters: Partial<AppointmentFilters>) => void;
+}
+
+function FilterAppointments({
+  filters,
+  onFiltersChange,
+}: FilterAppointmentsProps) {
   const { t } = useTranslation("patient");
-  const { filters, setFilters } = useFiltersStore();
 
   // Opciones traducidas
   const serviceTypeOptions = [
@@ -16,6 +29,7 @@ function FilterAppointments() {
     { value: "terapia", label: t("filters.labels.languages", "Terapia") },
     { value: "examen", label: t("filters.labels.experience", "Examen") },
   ];
+
   const specialtyOptions = [
     {
       value: "cardiologia",
@@ -30,6 +44,7 @@ function FilterAppointments() {
       label: t("filters.specialties.pediatrics", "Nutrición"),
     },
   ];
+
   const modalityOptions = [
     { value: "presencial", label: t("serviceCards.inPerson", "Presencial") },
     { value: "online", label: t("serviceCards.virtual", "Online") },
@@ -42,27 +57,33 @@ function FilterAppointments() {
         label={t("filters.labels.specialty", "Tipo de servicio")}
         options={serviceTypeOptions}
         multiple
+        noBadges
         value={filters.serviceTypes}
-        onChange={(vals) => setFilters({ serviceTypes: vals as string[] })}
+        onChange={(vals) => onFiltersChange({ serviceTypes: vals as string[] })}
         searchable
       />
+
       <MCFilterSelect
         name="specialties"
         label={t("filters.labels.specialty", "Especialidad")}
         options={specialtyOptions}
         multiple
+        noBadges
         value={filters.specialties}
-        onChange={(vals) => setFilters({ specialties: vals as string[] })}
+        onChange={(vals) => onFiltersChange({ specialties: vals as string[] })}
         searchable
       />
+
       <MCFilterSelect
         name="modalities"
         label={t("filters.labels.modalities", "Modalidad")}
         options={modalityOptions}
         multiple
+        noBadges
         value={filters.modalities}
-        onChange={(vals) => setFilters({ modalities: vals as string[] })}
+        onChange={(vals) => onFiltersChange({ modalities: vals as string[] })}
       />
+
       {/* Filtro de rango de precio */}
       <div>
         <label className="block mb-1 text-primary">
@@ -75,7 +96,7 @@ function FilterAppointments() {
           step={100}
           value={filters.priceRange[1]}
           onChange={(e) =>
-            setFilters({
+            onFiltersChange({
               priceRange: [filters.priceRange[0], Number(e.target.value)],
             })
           }

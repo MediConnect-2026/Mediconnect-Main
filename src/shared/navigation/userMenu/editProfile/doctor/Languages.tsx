@@ -42,7 +42,7 @@ function LanguagesTab() {
   };
 
   const availableLanguages = LANGUAGE_OPTIONS.filter(
-    (opt) => !languages.includes(opt.value)
+    (opt) => !languages.includes(opt.value),
   );
 
   const handleSubmit = () => {

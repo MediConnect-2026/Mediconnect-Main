@@ -11,6 +11,19 @@ export const appointmentSchemaBase = z.object({
   insuranceProvider: z.string().min(1),
   serviceId: z.string(),
   doctorId: z.string(),
+  // appointmentId es OPCIONAL - solo existe cuando editamos/reagendamos
+  appointmentId: z.string().optional(),
+});
+
+export const cancelAppointmentSchemaBase = z.object({
+  cancellationReason: z
+    .string()
+    .min(10, {
+      message: "La razón de cancelación debe tener al menos 10 caracteres.",
+    })
+    .max(200, {
+      message: "La razón de cancelación no puede exceder los 200 caracteres.",
+    }),
 });
 
 // Función que retorna el esquema con mensajes traducidos
@@ -36,4 +49,18 @@ export const appointmentSchema = (t: (key: string) => string) =>
       .min(1, { message: t("appointment.insuranceRequired") }),
     serviceId: z.string().min(1, { message: t("appointment.serviceRequired") }),
     doctorId: z.string().min(1, { message: t("appointment.doctorRequired") }),
+    // editamos/reagendamos
+    appointmentId: z.string().optional(),
+  });
+
+export const cancelAppointmentSchema = (t: (key: string) => string) =>
+  z.object({
+    cancellationReason: z
+      .string()
+      .min(10, {
+        message: t("appointment.cancellationReasonMin"),
+      })
+      .max(200, {
+        message: t("appointment.cancellationReasonMax"),
+      }),
   });

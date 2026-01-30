@@ -29,7 +29,7 @@ const MedicalInfoCard = ({
 
   return (
     <motion.div {...fadeInUp}>
-      <Card className="rounded-4xl border-0 h-full shadow-md bg-background">
+      <Card className="rounded-4xl border-0 h-full shadow-md bg-background p-2 lg:p-6">
         <CardContent className={isMobile ? "p-4" : "p-2"}>
           <h2
             className={`mb-6 ${isMobile ? "text-lg" : "text-3xl"} font-semibold text-foreground`}

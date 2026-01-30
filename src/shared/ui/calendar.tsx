@@ -249,10 +249,6 @@ function CalendarDayButton({
       )}
       {...props}
     >
-      {/* Solo muestra el dot si NO está en modo compacto */}
-      {modifiers.today && !compact && (
-        <span className="w-2 h-2 rounded-full bg-primary absolute -top-4"></span>
-      )}
       <span>{day.date.getDate()}</span>
       {appointmentCount > 0 && (
         <span className="absolute -top-1 -right-1 bg-accent text-accent-foreground text-xs rounded-full w-4 h-4 flex items-center justify-center">

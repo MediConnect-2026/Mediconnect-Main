@@ -13,11 +13,20 @@ import { MCFilterPopover } from "@/shared/components/filters/MCFilterPopover";
 import MCFilterInput from "@/shared/components/filters/MCFilterInput";
 import PatientProfileBanner from "../components/PatientProfileBanner";
 import FilterMyDoctors from "../components/filters/FilterMyDoctors";
-import { type DoctorFiltersSlice } from "@/stores/filters/doctorFilters.slice";
-import { useFiltersStore } from "@/stores/useFiltersStore";
 import MedicalInfoCard from "@/features/patient/components/dashboard/MedicalInfoCard";
 import { fadeInUp } from "@/lib/animations/commonAnimations";
 import { useNavigate } from "react-router-dom";
+
+// Interfaz para los filtros de doctores
+interface DoctorFilters {
+  specialty: string;
+  languages: string[];
+  acceptingInsurance: string[];
+  yearsOfExperience: number | null;
+  rating: number | null;
+  isFavorite: boolean | null;
+}
+
 const doctorsList = [
   {
     name: "Alexander Gil",
@@ -64,25 +73,20 @@ const doctorsList = [
   },
 ];
 
-function getActiveFilters(
-  filters: DoctorFiltersSlice["doctorFilters"],
-): string[] {
-  const active: string[] = [];
-  if (filters.specialty) active.push("filters.labels.specialty");
-  if (filters.languages.length) active.push("filters.labels.languages");
-  if (filters.acceptingInsurance.length)
-    active.push("filters.labels.insurances");
-  if (filters.yearsOfExperience) active.push("filters.labels.experience");
-  if (filters.rating && filters.rating > 0)
-    active.push("filters.labels.ranking");
-  if (filters.isFavorite) active.push("filters.labels.onlyFavorites");
-  return active;
-}
-
 function PatientProfilePage() {
   const [openSheet, setOpenSheet] = useState(false);
-  const [searchName, setSearchName] = useState(""); // Nuevo estado para el filtro por nombre
+  const [searchName, setSearchName] = useState("");
   const { t } = useTranslation("patient");
+
+  // Estados locales para filtros de doctores con useState
+  const [doctorFilters, setDoctorFilters] = useState<DoctorFilters>({
+    specialty: "",
+    languages: [],
+    acceptingInsurance: [],
+    yearsOfExperience: null,
+    rating: null,
+    isFavorite: null,
+  });
 
   const user = useAppStore((state) => state.user);
   const isMobile = useIsMobile();
@@ -97,9 +101,38 @@ function PatientProfilePage() {
     { name: "ARS Yunen" },
   ];
 
-  const doctorFilters = useFiltersStore((state) => state.doctorFilters);
-  const setDoctorFilters = useFiltersStore((state) => state.setDoctorFilters);
   const navigate = useNavigate();
+
+  // Función para actualizar filtros
+  const updateDoctorFilters = (newFilters: Partial<DoctorFilters>) => {
+    setDoctorFilters((prev) => ({ ...prev, ...newFilters }));
+  };
+
+  // Función para resetear filtros
+  const resetDoctorFilters = () => {
+    setDoctorFilters({
+      specialty: "",
+      languages: [],
+      acceptingInsurance: [],
+      yearsOfExperience: null,
+      rating: null,
+      isFavorite: null,
+    });
+    setSearchName("");
+  };
+
+  // Función para contar filtros activos
+  const getActiveFiltersCount = () => {
+    let count = 0;
+    if (doctorFilters.specialty) count++;
+    if (doctorFilters.languages.length > 0) count++;
+    if (doctorFilters.acceptingInsurance.length > 0) count++;
+    if (doctorFilters.yearsOfExperience) count++;
+    if (doctorFilters.rating && doctorFilters.rating > 0) count++;
+    if (doctorFilters.isFavorite) count++;
+    if (searchName) count++;
+    return count;
+  };
 
   // Filtrado de doctores usando doctorFilters y searchName
   const filteredDoctors = doctorsList.filter((doctor) => {
@@ -137,8 +170,6 @@ function PatientProfilePage() {
     if (doctorFilters.isFavorite === true && !doctor.isFavorite) return false;
     return true;
   });
-
-  const activeFilters = getActiveFilters(doctorFilters);
 
   return (
     <div
@@ -249,22 +280,12 @@ function PatientProfilePage() {
                   />
                 </div>
                 <MCFilterPopover
-                  activeFiltersCount={activeFilters.length}
-                  onClearFilters={() =>
-                    setDoctorFilters({
-                      name: "",
-                      specialty: "",
-                      yearsOfExperience: null,
-                      languages: [],
-                      acceptingInsurance: [],
-                      isFavorite: null,
-                      rating: null,
-                    })
-                  }
+                  activeFiltersCount={getActiveFiltersCount()}
+                  onClearFilters={resetDoctorFilters}
                 >
                   <FilterMyDoctors
-                    doctorFilters={doctorFilters}
-                    setDoctorFilters={setDoctorFilters}
+                    filters={doctorFilters}
+                    onFiltersChange={updateDoctorFilters}
                   />
                 </MCFilterPopover>
               </div>

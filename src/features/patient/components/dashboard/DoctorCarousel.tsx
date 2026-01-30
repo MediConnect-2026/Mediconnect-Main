@@ -6,13 +6,12 @@ import MCDoctorCard, {
 import { MCFilterPopover } from "@/shared/components/filters/MCFilterPopover";
 import MCFilterInput from "@/shared/components/filters/MCFilterInput";
 import FilterMyDoctors from "../filters/FilterMyDoctors";
-import { useFiltersStore } from "@/stores/useFiltersStore";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/shared/ui/button";
 import { motion } from "framer-motion";
 import { fadeInUp } from "@/lib/animations/commonAnimations";
-import { useTranslation } from "react-i18next"; // <--- Añade traducción
+import { useTranslation } from "react-i18next";
 import { Stethoscope } from "lucide-react";
 import {
   Empty,
@@ -23,6 +22,7 @@ import {
   EmptyTitle,
 } from "@/shared/ui/empty";
 import MCButton from "@/shared/components/forms/MCButton";
+
 interface Doctor {
   id: number;
   name: string;
@@ -43,6 +43,16 @@ interface DoctorCarouselProps {
   showSearch?: boolean;
 }
 
+// Interfaz para los filtros de doctores
+interface DoctorFilters {
+  specialty: string;
+  languages: string[];
+  acceptingInsurance: string[];
+  yearsOfExperience: number | null;
+  rating: number | null;
+  isFavorite: boolean | null;
+}
+
 export function DoctorCarousel({
   doctors,
   title,
@@ -51,19 +61,44 @@ export function DoctorCarousel({
 }: DoctorCarouselProps) {
   const scrollContainerRef = React.useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
-  const { t } = useTranslation("patient"); // <--- Hook de traducción
+  const { t } = useTranslation("patient");
 
-  // Obtener filtros y setters del store
-  const doctorFilters = useFiltersStore((state) => state.doctorFilters);
-  const setDoctorFilters = useFiltersStore((state) => state.setDoctorFilters);
+  // Estados locales con useState
+  const [searchTerm, setSearchTerm] = React.useState("");
+  const [doctorFilters, setDoctorFilters] = React.useState<DoctorFilters>({
+    specialty: "",
+    languages: [],
+    acceptingInsurance: [],
+    yearsOfExperience: null,
+    rating: null,
+    isFavorite: null,
+  });
 
-  // Nuevo estado local para los doctores
+  // Estado local para los doctores
   const [doctorList, setDoctorList] = React.useState(doctors);
 
   // Actualiza doctorList si cambia la prop doctors
   React.useEffect(() => {
     setDoctorList(doctors);
   }, [doctors]);
+
+  // Función para actualizar filtros
+  const updateDoctorFilters = (newFilters: Partial<DoctorFilters>) => {
+    setDoctorFilters((prev) => ({ ...prev, ...newFilters }));
+  };
+
+  // Función para resetear filtros
+  const resetDoctorFilters = () => {
+    setDoctorFilters({
+      specialty: "",
+      languages: [],
+      acceptingInsurance: [],
+      yearsOfExperience: null,
+      rating: null,
+      isFavorite: null,
+    });
+    setSearchTerm("");
+  };
 
   // Función para hacer toggle de favorito
   const handleToggleFavorite = (doctorId: number) => {
@@ -74,13 +109,24 @@ export function DoctorCarousel({
     );
   };
 
-  // Filtrar doctores según los filtros activos
+  // Filtrar doctores según los filtros activos y búsqueda
   const filteredDoctors = doctorList.filter((doctor) => {
+    // Filtro por búsqueda
+    if (
+      searchTerm &&
+      !doctor.name.toLowerCase().includes(searchTerm.toLowerCase())
+    ) {
+      return false;
+    }
+
+    // Filtro por especialidad
     if (
       doctorFilters.specialty &&
       doctor.specialty.toLowerCase() !== doctorFilters.specialty.toLowerCase()
     )
       return false;
+
+    // Filtro por idiomas
     if (
       doctorFilters.languages.length &&
       !doctorFilters.languages.some((lang: any) =>
@@ -88,6 +134,8 @@ export function DoctorCarousel({
       )
     )
       return false;
+
+    // Filtro por seguros
     if (
       doctorFilters.acceptingInsurance.length &&
       !doctorFilters.acceptingInsurance.some((ins) =>
@@ -95,26 +143,36 @@ export function DoctorCarousel({
       )
     )
       return false;
+
+    // Filtro por años de experiencia
     if (
       doctorFilters.yearsOfExperience &&
       (doctor.yearsOfExperience ?? 0) < doctorFilters.yearsOfExperience
     )
       return false;
+
+    // Filtro por rating
     if (doctorFilters.rating && doctor.rating < doctorFilters.rating)
       return false;
+
+    // Filtro por favoritos
     if (doctorFilters.isFavorite === true && !doctor.isFavorite) return false;
+
     return true;
   });
 
-  // Contar filtros activos
-  const activeFilters = [
-    doctorFilters.specialty,
-    doctorFilters.languages.length,
-    doctorFilters.acceptingInsurance.length,
-    doctorFilters.yearsOfExperience,
-    doctorFilters.rating,
-    doctorFilters.isFavorite,
-  ].filter(Boolean);
+  // Función para contar filtros activos
+  const getActiveFiltersCount = () => {
+    let count = 0;
+    if (doctorFilters.specialty) count++;
+    if (doctorFilters.languages.length > 0) count++;
+    if (doctorFilters.acceptingInsurance.length > 0) count++;
+    if (doctorFilters.yearsOfExperience) count++;
+    if (doctorFilters.rating && doctorFilters.rating > 0) count++;
+    if (doctorFilters.isFavorite) count++;
+    if (searchTerm) count++;
+    return count;
+  };
 
   const scroll = (direction: "left" | "right") => {
     if (scrollContainerRef.current) {
@@ -140,30 +198,26 @@ export function DoctorCarousel({
           {title || t("navbar.doctors")}
         </h2>
 
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
-          <div className="w-full sm:w-auto sm:min-w-[200px] lg:min-w-[250px]">
-            <MCFilterInput />
+        {showSearch && (
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+            <div className="w-full sm:w-auto sm:min-w-[200px] lg:min-w-[250px]">
+              <MCFilterInput
+                placeholder={t("filters.placeholders.name", "Search by name")}
+                value={searchTerm}
+                onChange={setSearchTerm}
+              />
+            </div>
+            <MCFilterPopover
+              activeFiltersCount={getActiveFiltersCount()}
+              onClearFilters={resetDoctorFilters}
+            >
+              <FilterMyDoctors
+                filters={doctorFilters}
+                onFiltersChange={updateDoctorFilters}
+              />
+            </MCFilterPopover>
           </div>
-          <MCFilterPopover
-            activeFiltersCount={activeFilters.length}
-            onClearFilters={() =>
-              setDoctorFilters({
-                name: "",
-                specialty: "",
-                yearsOfExperience: null,
-                languages: [],
-                acceptingInsurance: [],
-                isFavorite: null,
-                rating: null,
-              })
-            }
-          >
-            <FilterMyDoctors
-              doctorFilters={doctorFilters}
-              setDoctorFilters={setDoctorFilters}
-            />
-          </MCFilterPopover>
-        </div>
+        )}
       </div>
 
       {/* Carousel Container */}
@@ -188,7 +242,6 @@ export function DoctorCarousel({
           <Empty className="flex-1 my-6">
             <EmptyHeader>
               <EmptyMedia variant="icon">
-                {/* Puedes usar cualquier icono, por ejemplo: */}
                 <Stethoscope size={32} />
               </EmptyMedia>
               <EmptyTitle>
@@ -202,21 +255,7 @@ export function DoctorCarousel({
               </EmptyDescription>
             </EmptyHeader>
             <EmptyContent>
-              <MCButton
-                size="s"
-                variant="outline"
-                onClick={() =>
-                  setDoctorFilters({
-                    name: "",
-                    specialty: "",
-                    yearsOfExperience: null,
-                    languages: [],
-                    acceptingInsurance: [],
-                    isFavorite: null,
-                    rating: null,
-                  })
-                }
-              >
+              <MCButton size="s" variant="outline" onClick={resetDoctorFilters}>
                 {t("filters.popover.clear", "Clear filters")}
               </MCButton>
             </EmptyContent>
@@ -243,7 +282,7 @@ export function DoctorCarousel({
                   urlImage={doctor.urlImage}
                   variant={variant}
                   lastAppointment={doctor.lastAppointment}
-                  onToggleFavorite={() => handleToggleFavorite(doctor.id)} // <-- Nuevo prop
+                  onToggleFavorite={() => handleToggleFavorite(doctor.id)}
                 />
               </div>
             ))}

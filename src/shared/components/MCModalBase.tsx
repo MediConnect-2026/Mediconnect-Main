@@ -20,7 +20,7 @@ interface MCModalBaseProps {
   children: React.ReactNode;
   triggerClassName?: string;
   title?: string;
-  size?: "sm" | "md" | "lg" | "xl" | "2xl" | "wider";
+  size?: "sm" | "smWide" | "md" | "lg" | "xl" | "2xl" | "wider";
   className?: string;
   variant?: "warning" | "confirm" | "decide" | "info";
   onConfirm?: () => void;
@@ -32,7 +32,7 @@ interface MCModalBaseProps {
   borderHeader?: boolean;
   borderFooter?: boolean;
   actionOne?: boolean;
-  defaultOpen?: boolean; // <-- Añadido
+  defaultOpen?: boolean;
 }
 
 export function MCModalBase({
@@ -54,28 +54,35 @@ export function MCModalBase({
   borderHeader = false,
   borderFooter = false,
   actionOne = false,
-  defaultOpen = false, // <-- Añadido
+  defaultOpen = false,
 }: MCModalBaseProps) {
   const isControlled = externalIsOpen !== undefined;
   const isMobile = useIsMobile();
 
-  // Estado interno para modo no controlado, inicializado con defaultOpen
   const [internalIsOpen, setInternalIsOpen] = useState(defaultOpen);
 
-  // Usar estado externo si está controlado, sino usar interno
   const isOpen = isControlled ? externalIsOpen : internalIsOpen;
-  const setIsOpen = isControlled ? onClose : setInternalIsOpen;
+
+  const handleOpenChange = (open: boolean) => {
+    if (!open) {
+      if (isControlled) {
+        onClose?.();
+      } else {
+        setInternalIsOpen(false);
+      }
+    } else {
+      if (!isControlled) {
+        setInternalIsOpen(true);
+      }
+    }
+  };
 
   useEffect(() => {
     if (!isOpen) return;
 
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        if (isControlled) {
-          onClose?.();
-        } else {
-          setInternalIsOpen(false);
-        }
+        handleOpenChange(false);
       }
     };
 
@@ -87,6 +94,9 @@ export function MCModalBase({
     sm: isMobile
       ? "w-full max-w-[95vw] mx-2 max-h-[70vh]"
       : "max-w-md max-h-[60vh] w-full",
+    smWide: isMobile
+      ? "w-full max-w-[95vw] mx-2 max-h-[70vh]"
+      : "max-w-xl w-[1600px]  h-full max-h-[500px]",
     md: isMobile ? "w-[95vw] h-[70vh]" : "w-[512px] h-[600px]",
     lg: isMobile ? "w-[95vw] h-[80vh]" : "w-[672px] h-[700px]",
     xl: isMobile ? "w-[98vw] h-[85vh]" : "w-[896px] h-[800px]",
@@ -103,32 +113,18 @@ export function MCModalBase({
 
   const handleConfirm = () => {
     onConfirm?.();
-    if (isControlled) {
-      onClose?.();
-    } else {
-      setInternalIsOpen(false);
-    }
+    handleOpenChange(false);
   };
 
   const handleSecondary = () => {
     onSecondary?.();
-    if (isControlled) {
-      onClose?.();
-    } else {
-      setInternalIsOpen(false);
-    }
-  };
-
-  const handleCloseModal = () => {
-    if (isControlled) {
-      onClose?.();
-    } else {
-      setInternalIsOpen(false);
-    }
+    handleOpenChange(false);
   };
 
   return (
     <MorphingDialog
+      open={isOpen}
+      onOpenChange={handleOpenChange}
       transition={{
         type: "spring",
         stiffness: 200,
@@ -163,17 +159,10 @@ export function MCModalBase({
                   </h2>
                 </MorphingDialogTitle>
               )}
-              {typeclose === "Arrow" ? (
-                <MorphingDialogClose
-                  typeclose="Arrow"
-                  className="text-primary dark:text-primary-dark flex-shrink-0"
-                />
-              ) : (
-                <MorphingDialogClose
-                  typeclose={typeclose}
-                  className="text-primary dark:text-primary-dark flex-shrink-0"
-                />
-              )}
+              <MorphingDialogClose
+                typeclose={typeclose}
+                className="text-primary dark:text-primary-dark flex-shrink-0"
+              />
             </div>
           )}
 

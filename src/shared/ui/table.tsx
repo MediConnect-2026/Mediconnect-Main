@@ -42,7 +42,7 @@ function TableFooter({ className, ...props }: React.ComponentProps<"tfoot">) {
       data-slot="table-footer"
       className={cn(
         "bg-muted/50 border-t font-medium [&>tr]:last:border-b-0",
-        className
+        className,
       )}
       {...props}
     />
@@ -54,8 +54,9 @@ function TableRow({ className, ...props }: React.ComponentProps<"tr">) {
     <tr
       data-slot="table-row"
       className={cn(
-        "hover:bg-muted/50 data-[state=selected]:bg-muted border-b transition-colors",
-        className
+        // Cambios: borde con color primary/15
+        "hover:bg-muted/50 data-[state=selected]:bg-muted border-b border-primary/15 transition-colors",
+        className,
       )}
       {...props}
     />
@@ -74,16 +75,11 @@ function TableHead({ className, ...props }: React.ComponentProps<"th">) {
         const index = cells.indexOf(ref.current);
         const totalCells = cells.length;
 
-        // Primera columna: alinear a la izquierda
         if (index === 0) {
           setAlignment("text-start");
-        }
-        // Última columna: alinear a la derecha
-        else if (index === totalCells - 1) {
+        } else if (index === totalCells - 1) {
           setAlignment("text-end");
-        }
-        // Columnas del medio: centrar
-        else {
+        } else {
           setAlignment("text-center");
         }
       }
@@ -95,9 +91,10 @@ function TableHead({ className, ...props }: React.ComponentProps<"th">) {
       ref={ref}
       data-slot="table-head"
       className={cn(
-        "text-foreground h-10 px-2 align-middle font-medium whitespace-nowrap [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
+        // Quitado bg-primary/10
+        "text-foreground h-12 px-2 align-middle font-bold whitespace-nowrap text-base [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
         alignment,
-        className
+        className,
       )}
       {...props}
     />
@@ -116,16 +113,11 @@ function TableCell({ className, ...props }: React.ComponentProps<"td">) {
         const index = cells.indexOf(ref.current);
         const totalCells = cells.length;
 
-        // Primera columna: alinear a la izquierda
         if (index === 0) {
           setAlignment("text-start");
-        }
-        // Última columna: alinear a la derecha
-        else if (index === totalCells - 1) {
+        } else if (index === totalCells - 1) {
           setAlignment("text-end");
-        }
-        // Columnas del medio: centrar
-        else {
+        } else {
           setAlignment("text-center");
         }
       }
@@ -139,7 +131,7 @@ function TableCell({ className, ...props }: React.ComponentProps<"td">) {
       className={cn(
         "p-2 align-middle whitespace-nowrap [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
         alignment,
-        className
+        className,
       )}
       {...props}
     />

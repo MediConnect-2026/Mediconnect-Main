@@ -22,7 +22,7 @@ function Insurance() {
   const isMobile = useIsMobile();
 
   const setPatientInsurance = useProfileStore(
-    (state) => state.setPatientInsurance
+    (state) => state.setPatientInsurance,
   );
 
   const patientInsurance = useProfileStore((state) => state.patientInsurance);
@@ -48,7 +48,7 @@ function Insurance() {
   };
 
   const availableInsurances = INSURANCE_OPTIONS.filter(
-    (opt) => !insurances.includes(opt.value)
+    (opt) => !insurances.includes(opt.value),
   );
 
   const handleSubmit = () => {

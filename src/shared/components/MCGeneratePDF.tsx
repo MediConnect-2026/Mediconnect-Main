@@ -1,0 +1,395 @@
+import { jsPDF } from "jspdf";
+import autoTable from "jspdf-autotable";
+import MediConnectLogo from "@/assets/MediConnectLanding-green.png";
+
+// Type definitions
+interface Column {
+  title: string;
+  key: string;
+  dataIndex?: string | string[];
+}
+
+interface TableColumn {
+  header: string;
+  dataKey: string;
+}
+
+interface NotificationSystem {
+  success: (title: string, message: string) => void;
+  error: (title: string, message: string) => void;
+}
+
+interface Translations {
+  date: string;
+  time: string;
+  reportIntro: string;
+  tableInfo: string;
+  confidential: string;
+  page: string;
+  of: string;
+  generatedBy: string;
+  [key: string]: string;
+}
+
+interface TranslationsMap {
+  es: Translations;
+  [key: string]: Translations;
+}
+
+interface ExportOptions<T = any> {
+  columns?: Column[];
+  data?: T[];
+  fileName?: string;
+  title?: string;
+  subtitle?: string;
+  transformData?: (data: T[]) => T[];
+  onSuccess?: () => void;
+  onError?: () => void;
+  notificationSystem?: NotificationSystem;
+}
+
+// Extend jsPDF type to include autoTable
+declare module "jspdf" {
+  interface jsPDF {
+    autoTable: (options: any) => jsPDF;
+    lastAutoTable?: {
+      finalY: number;
+    };
+  }
+}
+
+const translations: TranslationsMap = {
+  es: {
+    date: "Fecha",
+    time: "Hora",
+    reportIntro: "Este reporte fue generado el",
+    tableInfo: "A continuación se presenta la información solicitada.",
+    confidential: "Documento Confidencial - Uso Interno",
+    page: "Página",
+    of: "de",
+    generatedBy: "Generado por MediConnect",
+  },
+};
+
+export const MCGeneratePDF = async <T extends Record<string, any>>({
+  columns = [],
+  data = [],
+  fileName = "table-export",
+  title = "Table Export",
+  subtitle = "",
+  transformData,
+  onSuccess,
+  onError,
+  notificationSystem,
+}: ExportOptions<T>): Promise<boolean> => {
+  const t: Translations = translations.es;
+  const primaryColor: [number, number, number] = [11, 44, 18];
+
+  try {
+    // Prepare table columns
+    const tableColumns: TableColumn[] = columns
+      .filter(
+        (col) =>
+          col.key !== "actions" &&
+          col.dataIndex !== "actions" &&
+          col.key !== "acciones",
+      )
+      .map((col) => ({
+        header: col.title,
+        dataKey: Array.isArray(col.dataIndex)
+          ? col.dataIndex.join(".")
+          : col.dataIndex || col.key,
+      }));
+
+    // Process data
+    let processedData: T[] = transformData ? transformData(data) : data;
+
+    // Map data to table format
+    const tableData: Record<string, string>[] = processedData.map((record) => {
+      const row: Record<string, string> = {};
+      tableColumns.forEach((col) => {
+        const dataKey: string = col.dataKey;
+
+        if (dataKey === "estado") {
+          const statusValue = record[dataKey] as string;
+          row[dataKey] = t[statusValue] || statusValue;
+          return;
+        }
+
+        if (dataKey === "asignadoA") {
+          const assignedTo = record[dataKey] as { nombre?: string } | null;
+          row[dataKey] =
+            assignedTo && assignedTo.nombre ? assignedTo.nombre : "-";
+          return;
+        }
+
+        if (dataKey.includes(".")) {
+          const keys: string[] = dataKey.split(".");
+          let value: any = record;
+          for (const key of keys) {
+            value = value && value[key];
+          }
+
+          if (value && typeof value === "object" && value.nombre) {
+            row[dataKey] = value.nombre;
+          } else {
+            row[dataKey] =
+              value !== undefined && value !== null ? String(value) : "";
+          }
+        } else {
+          const value: any = record[dataKey];
+
+          if (value && typeof value === "object" && value.nombre) {
+            row[dataKey] = value.nombre;
+          } else {
+            row[dataKey] =
+              value !== undefined && value !== null ? String(value) : "";
+          }
+        }
+      });
+      return row;
+    });
+
+    // Create PDF document
+    const doc = new jsPDF({
+      orientation: "landscape",
+      unit: "mm",
+      format: "a4",
+    });
+
+    // Set white background
+    doc.setFillColor(255, 255, 255);
+    doc.rect(
+      0,
+      0,
+      doc.internal.pageSize.getWidth(),
+      doc.internal.pageSize.getHeight(),
+      "F",
+    );
+
+    doc.setTextColor(30, 30, 30);
+
+    // Get current date and time
+    const now = new Date();
+    const formattedDate: string = now.toLocaleDateString("es-ES", {
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+    });
+    const formattedTime: string = now.toLocaleTimeString("es-ES");
+
+    // Add logo
+    try {
+      const loadImage = (src: string): Promise<string | null> => {
+        return new Promise((resolve) => {
+          const img = new Image();
+          img.crossOrigin = "Anonymous";
+          img.onload = () => {
+            const canvas = document.createElement("canvas");
+            canvas.width = img.width;
+            canvas.height = img.height;
+            const ctx = canvas.getContext("2d");
+            if (ctx) {
+              ctx.drawImage(img, 0, 0);
+              resolve(canvas.toDataURL("image/png"));
+            } else {
+              resolve(null);
+            }
+          };
+          img.onerror = () => {
+            console.error("Error loading image:", src);
+            resolve(null);
+          };
+          img.src = src;
+        });
+      };
+
+      const logoBase64 = await loadImage(MediConnectLogo);
+      if (logoBase64) {
+        doc.addImage(logoBase64, "PNG", 10, 10, 40, 20);
+      }
+    } catch (error) {
+      console.error("Error loading logo:", error);
+    }
+
+    // Add watermark
+    // try {
+    //   const loadImage = (src: string): Promise<string | null> => {
+    //     return new Promise((resolve) => {
+    //       const img = new Image();
+    //       img.crossOrigin = "Anonymous";
+    //       img.onload = () => {
+    //         const canvas = document.createElement("canvas");
+    //         canvas.width = img.width;
+    //         canvas.height = img.height;
+    //         const ctx = canvas.getContext("2d");
+    //         if (ctx) {
+    //           ctx.globalAlpha = 0.05;
+    //           ctx.drawImage(img, 0, 0);
+    //           resolve(canvas.toDataURL("image/png"));
+    //         } else {
+    //           resolve(null);
+    //         }
+    //       };
+    //       img.onerror = () => {
+    //         console.error("Error loading image:", src);
+    //         resolve(null);
+    //       };
+    //       img.src = src;
+    //     });
+    //   };
+
+    //   const watermarkBase64 = await loadImage(MediConnectLogo);
+    //   if (watermarkBase64) {
+    //     const pageWidth = doc.internal.pageSize.getWidth();
+    //     const pageHeight = doc.internal.pageSize.getHeight();
+
+    //     // Add watermark in center of page - made smaller and more elongated (taller than wide)
+    //     doc.addImage(
+    //       watermarkBase64,
+    //       "PNG",
+    //       pageWidth / 2 - 25, // Adjusted x position for narrower width
+    //       pageHeight / 2 - 75, // Adjusted y position for taller height
+    //       40, // Narrower width
+    //       10, // Taller height for more elongation
+    //     );
+    //   }
+    // } catch (error) {
+    //   console.error("Error adding watermark:", error);
+    // }
+
+    // Add title
+    doc.setFontSize(24);
+    doc.setFont("helvetica", "bold");
+    doc.text(title, doc.internal.pageSize.getWidth() / 2, 20, {
+      align: "center",
+    });
+
+    // Add subtitle
+    if (subtitle) {
+      doc.setFontSize(16);
+      doc.setFont("helvetica", "normal");
+      doc.text(subtitle, doc.internal.pageSize.getWidth() / 2, 28, {
+        align: "center",
+      });
+    }
+
+    // Add date and time
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.text(
+      `${t.date}: ${formattedDate}`,
+      doc.internal.pageSize.getWidth() - 20,
+      15,
+      { align: "right" },
+    );
+    doc.text(
+      `${t.time}: ${formattedTime}`,
+      doc.internal.pageSize.getWidth() - 20,
+      20,
+      { align: "right" },
+    );
+
+    // Add introduction
+    doc.setFontSize(11);
+    doc.setFont("helvetica", "normal");
+    doc.text(
+      `${t.reportIntro} ${formattedDate} ${t.time.toLowerCase()} ${formattedTime}.`,
+      15,
+      40,
+    );
+    doc.text(t.tableInfo, 15, 47);
+
+    // Add confidential notice
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "italic");
+    doc.text(t.confidential, doc.internal.pageSize.getWidth() / 2, 55, {
+      align: "center",
+    });
+
+    // Create table using autoTable - CORRECTED HERE
+    autoTable(doc, {
+      startY: 60,
+      head: [tableColumns.map((col) => col.header)],
+      body: tableData.map((row) =>
+        tableColumns.map((col) => row[col.dataKey] || ""),
+      ),
+      headStyles: {
+        fillColor: primaryColor,
+        textColor: [255, 255, 255] as [number, number, number],
+        fontStyle: "bold" as const,
+      },
+      bodyStyles: {
+        textColor: [50, 50, 50] as [number, number, number],
+        fillColor: [255, 255, 255] as [number, number, number],
+      },
+      alternateRowStyles: {
+        fillColor: [251, 253, 248] as [number, number, number],
+      },
+      didDrawPage: (data: any) => {
+        const pageCount = (doc as any).internal.getNumberOfPages();
+        const currentPage = data.pageNumber;
+        doc.setFontSize(8);
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(30, 30, 30);
+        doc.text(
+          `${t.page} ${currentPage} ${t.of} ${pageCount} - ${t.generatedBy}`,
+          doc.internal.pageSize.getWidth() / 2,
+          doc.internal.pageSize.getHeight() - 10,
+          { align: "center" },
+        );
+      },
+      margin: { top: 60, bottom: 20 },
+      styles: {
+        fontSize: 9,
+        cellPadding: 3,
+        lineColor: [200, 200, 200] as [number, number, number],
+        lineWidth: 0.1,
+      },
+      showHead: "everyPage" as const,
+      tableWidth: "auto" as const,
+      theme: "striped" as const,
+    });
+
+    // Add summary
+    const finalY: number = (doc as any).lastAutoTable?.finalY || 60;
+    if (finalY + 20 < doc.internal.pageSize.getHeight()) {
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "bold");
+      doc.text(`Total ${title}: ${tableData.length}`, 15, finalY + 10);
+    }
+
+    // Save PDF
+    doc.save(`${fileName}.pdf`);
+
+    if (notificationSystem) {
+      notificationSystem.success(
+        "PDF Generado",
+        "El documento PDF ha sido generado exitosamente",
+      );
+    }
+
+    if (onSuccess) {
+      onSuccess();
+    }
+
+    return true;
+  } catch (error) {
+    console.error("Error generating PDF:", error);
+
+    if (notificationSystem) {
+      notificationSystem.error(
+        "Error",
+        "Error al generar el PDF. Por favor, intente nuevamente.",
+      );
+    }
+
+    if (onError) {
+      onError();
+    }
+
+    return false;
+  }
+};
+
+export default MCGeneratePDF;

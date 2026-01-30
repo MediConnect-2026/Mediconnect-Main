@@ -125,7 +125,7 @@ export function AppointmentsCalendar() {
       : "appointments.appointmentsCount_plural";
 
   return (
-    <div className="w-full h-full grid grid-cols-1 lg:grid-cols-[40%_auto_1fr] gap-6">
+    <div className="w-full h-full grid grid-cols-1 lg:grid-cols-[40%_auto_1fr] gap-6 p-2 lg:p-6">
       {/* Calendar Section */}
       <motion.div
         {...fadeInUp}

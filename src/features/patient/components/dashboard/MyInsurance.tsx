@@ -43,7 +43,10 @@ function MyInsurance() {
   const scrollable = insurances.length > scrollLimit;
 
   return (
-    <motion.div {...fadeInUp} className="w-full h-full flex flex-col">
+    <motion.div
+      {...fadeInUp}
+      className="w-full h-full flex flex-col p-2 lg:p-6"
+    >
       <h2
         className={`mb-6 ${
           isMobile ? "text-lg" : "text-3xl"

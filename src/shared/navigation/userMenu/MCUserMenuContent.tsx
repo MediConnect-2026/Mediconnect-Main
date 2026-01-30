@@ -34,7 +34,6 @@ import {
   X,
   FileCheck,
   Inbox,
-  HelpCircle,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import flagSpain from "@/assets/flag-spain.png";
