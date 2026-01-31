@@ -1,5 +1,6 @@
 import { useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { useSequentialShortcuts } from "@/lib/hooks/useSequentialShortcuts";
 import {
   DropdownMenuContent,
   DropdownMenuGroup,
@@ -116,6 +117,73 @@ export function MCUserMenuContent({
     }
   };
 
+  // Setup sequential shortcuts
+  const shortcuts = [
+    // Ctrl+E for Edit Profile (single shortcut, not sequential)
+    {
+      sequence: ["ctrl+e"],
+      action: () => setIsEditProfileOpen(true),
+    },
+    // G → P for View Profile
+    {
+      sequence: ["g", "p"],
+      action: () => navigate(getProfileRoute()),
+    },
+    // O → S for Settings
+    {
+      sequence: ["o", "s"],
+      action: () => {
+        navigate(ROUTES.SETTINGS.ROOT);
+        setOpen(false);
+      },
+    },
+    // O → P for Privacy
+    {
+      sequence: ["o", "p"],
+      action: () => {
+        navigate(ROUTES.PRIVACY.ROOT);
+        setOpen(false);
+      },
+    },
+    // G → A for Logout (Adios)
+    {
+      sequence: ["g", "a"],
+      action: () => {
+        // Aquí deberías llamar a tu función de logout
+        console.log("Logout triggered");
+      },
+    },
+    // G → D for Verification Docs (if applicable)
+    ...(userRole === "DOCTOR" || userRole === "CENTER"
+      ? [
+          {
+            sequence: ["g", "d"],
+            action: () => {
+              console.log("Navigate to verification docs");
+            },
+          },
+        ]
+      : []),
+    // G → R for Requests (if doctor)
+    ...(userRole === "DOCTOR"
+      ? [
+          {
+            sequence: ["g", "r"],
+            action: () => {
+              console.log("Navigate to requests");
+            },
+          },
+        ]
+      : []),
+  ];
+
+  // Enable shortcuts
+  useSequentialShortcuts({
+    shortcuts,
+    enabled: true,
+    timeout: 2000, // 2 seconds to complete sequence
+  });
+
   const languages = [
     {
       code: "es",
@@ -142,6 +210,7 @@ export function MCUserMenuContent({
         icon: <Moon className="w-4 h-4 text-primary" />,
       },
     ];
+
   // Componente para submenú móvil
   const MobileSubMenu = ({
     title,
@@ -188,7 +257,7 @@ export function MCUserMenuContent({
       {
         icon: <User className="w-4 h-4 mr-2" />,
         label: t("userMenu.viewProfile"),
-        shortcut: !isMobile ? `⇧${cmdOrCtrl}+P` : undefined,
+        shortcut: !isMobile ? "G → P" : undefined,
         action: (e: Event) => {
           e.preventDefault();
           navigate(getProfileRoute());
@@ -210,6 +279,7 @@ export function MCUserMenuContent({
       baseItems.push({
         icon: <FileCheck className="w-4 h-4 mr-2" />,
         label: t("userMenu.verificationDocs"),
+        shortcut: !isMobile ? "G → D" : undefined,
         badge: "1",
         action: () => {},
       });
@@ -219,6 +289,7 @@ export function MCUserMenuContent({
       baseItems.push({
         icon: <Inbox className="w-4 h-4 mr-2" />,
         label: t("userMenu.requests"),
+        shortcut: !isMobile ? "G → R" : undefined,
         action: () => {},
       });
     }
@@ -413,9 +484,7 @@ export function MCUserMenuContent({
           >
             <Settings className="w-4 h-4 mr-2" />
             {t("userMenu.settings")}
-            {!isMobile && (
-              <DropdownMenuShortcut>{cmdOrCtrl}+S</DropdownMenuShortcut>
-            )}
+            {!isMobile && <DropdownMenuShortcut>O → S</DropdownMenuShortcut>}
           </DropdownMenuItem>
           <DropdownMenuItem
             onSelect={() => {
@@ -425,9 +494,7 @@ export function MCUserMenuContent({
           >
             <Shield className="w-4 h-4 mr-2" />
             {t("userMenu.privacy")}
-            {!isMobile && (
-              <DropdownMenuShortcut>{cmdOrCtrl}+P</DropdownMenuShortcut>
-            )}
+            {!isMobile && <DropdownMenuShortcut>O → P</DropdownMenuShortcut>}
           </DropdownMenuItem>
         </DropdownMenuGroup>
 
@@ -437,9 +504,7 @@ export function MCUserMenuContent({
         <DropdownMenuItem variant="destructive">
           <LogOut className="w-4 h-4 mr-2" />
           {t("userMenu.logout")}
-          {!isMobile && (
-            <DropdownMenuShortcut>⇧{cmdOrCtrl}+Q</DropdownMenuShortcut>
-          )}
+          {!isMobile && <DropdownMenuShortcut>G → A</DropdownMenuShortcut>}
         </DropdownMenuItem>
       </DropdownMenuContent>
 
