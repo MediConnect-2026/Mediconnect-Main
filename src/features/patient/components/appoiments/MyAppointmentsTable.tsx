@@ -1,4 +1,5 @@
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/avatar";
 import { Button } from "@/shared/ui/button";
 import {
@@ -52,6 +53,7 @@ const truncate = (text: string | undefined, maxLength: number = 30): string => {
 };
 
 export function MyAppointmentsTable({ data }: MyAppointmentsTableProps) {
+  const { t } = useTranslation("patient");
   const [page, setPage] = React.useState(1);
 
   const totalPages = Math.ceil(data.length / PAGE_SIZE);
@@ -71,12 +73,24 @@ export function MyAppointmentsTable({ data }: MyAppointmentsTableProps) {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-[250px]">Doctor</TableHead>
-            <TableHead className="w-[200px]">Evaluación</TableHead>
-            <TableHead className="w-[150px]">Fecha</TableHead>
-            <TableHead className="w-[180px]">Tipo / Ubicación</TableHead>
-            <TableHead className="w-[120px]">Estado</TableHead>
-            <TableHead className="w-[80px]">Acciones</TableHead>
+            <TableHead className="w-[250px]">
+              {t("appointments.table.doctor")}
+            </TableHead>
+            <TableHead className="w-[200px]">
+              {t("appointments.table.evaluation")}
+            </TableHead>
+            <TableHead className="w-[150px]">
+              {t("appointments.table.date")}
+            </TableHead>
+            <TableHead className="w-[180px]">
+              {t("appointments.table.typeLocation")}
+            </TableHead>
+            <TableHead className="w-[120px]">
+              {t("appointments.table.status")}
+            </TableHead>
+            <TableHead className="w-[80px]">
+              {t("appointments.table.actions")}
+            </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -132,10 +146,10 @@ export function MyAppointmentsTable({ data }: MyAppointmentsTableProps) {
                 </TableCell>
                 <TableCell className="w-[180px]">
                   {row.appointmentType === "virtual" ? (
-                    "Virtual"
+                    t("appointments.table.virtual")
                   ) : (
                     <>
-                      Presencial
+                      {t("appointments.table.inPerson")}
                       {row.location && (
                         <div className="text-xs text-muted-foreground">
                           {row.location}
@@ -157,7 +171,7 @@ export function MyAppointmentsTable({ data }: MyAppointmentsTableProps) {
           ) : (
             <TableRow>
               <TableCell colSpan={6} className="text-center">
-                No hay citas.
+                {t("appointments.table.noAppointments")}
               </TableCell>
             </TableRow>
           )}

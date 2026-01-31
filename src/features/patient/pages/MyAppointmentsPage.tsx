@@ -1,4 +1,6 @@
 import React, { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { MyAppointmentsCards } from "../components/appoiments/MyAppointmentsCards";
 import { MyAppointmentsTable } from "../components/appoiments/MyAppointmentsTable";
 import MCTablesLayouts from "@/shared/components/tables/MCTablesLayouts";
@@ -17,6 +19,16 @@ import {
 } from "@/shared/ui/pagination";
 import MCGeneratePDF from "@/shared/components/MCGeneratePDF";
 import { useGlobalUIStore } from "@/stores/useGlobalUIStore";
+import {
+  Empty,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyDescription,
+  EmptyContent,
+} from "@/shared/ui/empty";
+import MCButton from "@/shared/components/forms/MCButton";
+import { Filter, CalendarX } from "lucide-react";
+
 // Interfaz de cita
 export interface Appointment {
   id: string;
@@ -231,6 +243,8 @@ const mockAppointments: Appointment[] = [
 const ITEMS_PER_PAGE = 6;
 
 function MyAppointmentsPage() {
+  const navigate = useNavigate();
+  const { t } = useTranslation();
   // Estados locales con useState
   const [showCards, setShowCards] = useState(true);
   const [upcomingPage, setUpcomingPage] = useState(1);
@@ -372,20 +386,9 @@ function MyAppointmentsPage() {
     return { totalPages, currentItems };
   }, [historicalAppointments, historicalPage]);
 
-  const handleViewDetails = (id: string) => {
-    console.log("View details:", id);
-  };
-
-  const handleReschedule = (id: string) => {
-    console.log("Reschedule:", id);
-  };
-
-  const handleCancel = (id: string) => {
-    console.log("Cancel:", id);
-  };
-
-  const handleJoin = (id: string) => {
-    console.log("Join:", id);
+  // Función para navegar a búsqueda
+  const handleScheduleAppointment = () => {
+    navigate("/search");
   };
 
   // Componente de paginación reutilizable
@@ -446,11 +449,79 @@ function MyAppointmentsPage() {
     const pagination = isUpcoming ? upcomingPagination : historicalPagination;
     const setPage = isUpcoming ? setUpcomingPage : setHistoricalPage;
 
+    // Verificar si hay filtros activos
+    const hasActiveFilters = getActiveFiltersCount() > 0;
+    const originalAppointments = isUpcoming
+      ? mockAppointments.filter((apt) =>
+          ["scheduled", "pending", "in_progress"].includes(apt.status),
+        )
+      : mockAppointments.filter((apt) =>
+          ["completed", "cancelled"].includes(apt.status),
+        );
+
     if (appointments.length === 0) {
+      const sectionKey = isUpcoming ? "upcomingSection" : "historySection";
+
       return (
-        <p className="text-muted-foreground text-center py-8">
-          No hay citas en esta sección
-        </p>
+        <Empty>
+          <EmptyHeader>
+            <div className="flex flex-col items-center gap-2">
+              <span className="flex items-center justify-center gap-2 text-primary">
+                {hasActiveFilters ? (
+                  <Filter className="w-7 h-7" />
+                ) : (
+                  <CalendarX className="w-7 h-7" />
+                )}
+                <EmptyTitle className="text-xl font-semibold">
+                  {hasActiveFilters
+                    ? t("patient:myAppointments.noResults")
+                    : isUpcoming
+                      ? t("patient:myAppointments.noUpcoming")
+                      : t("patient:myAppointments.noHistory")}
+                </EmptyTitle>
+              </span>
+              <EmptyDescription className="text-muted-foreground text-center max-w-md mx-auto">
+                {hasActiveFilters
+                  ? originalAppointments.length > 0
+                    ? t("patient:myAppointments.noResultsDescription", {
+                        count: originalAppointments.length,
+                        section: t(`patient:myAppointments.${sectionKey}`),
+                      })
+                    : isUpcoming
+                      ? t("patient:myAppointments.noUpcomingRegistered")
+                      : t("patient:myAppointments.noHistoryRegistered")
+                  : isUpcoming
+                    ? t("patient:myAppointments.noUpcomingDescription")
+                    : t("patient:myAppointments.noHistoryDescription")}
+              </EmptyDescription>
+            </div>
+          </EmptyHeader>
+          <EmptyContent>
+            <div className="flex flex-col items-center gap-3">
+              {hasActiveFilters && originalAppointments.length > 0 ? (
+                <MCButton
+                  variant="outline"
+                  onClick={resetFilters}
+                  className="px-6 py-2"
+                >
+                  {t("patient:myAppointments.clearFilters")}
+                </MCButton>
+              ) : null}
+
+              {(!hasActiveFilters || originalAppointments.length === 0) &&
+                isUpcoming && (
+                  <MCButton
+                    variant="primary"
+                    onClick={handleScheduleAppointment}
+                    className="px-6 py-2"
+                    size="sm"
+                  >
+                    {t("patient:myAppointments.scheduleNew")}
+                  </MCButton>
+                )}
+            </div>
+          </EmptyContent>
+        </Empty>
       );
     }
 
@@ -493,19 +564,37 @@ function MyAppointmentsPage() {
         setIsLoading(true);
         await MCGeneratePDF({
           columns: [
-            { title: "Doctor", key: "doctorName" },
-            { title: "Especialidad", key: "doctorSpecialty" },
-            { title: "Tipo de Evaluación", key: "evaluationType" },
-            { title: "Fecha", key: "date" },
-            { title: "Hora", key: "time" },
-            { title: "Tipo de Cita", key: "appointmentType" },
-            { title: "Ubicación", key: "location" },
-            { title: "Estado", key: "status" },
+            {
+              title: t("patient:myAppointments.pdfColumns.doctor"),
+              key: "doctorName",
+            },
+            {
+              title: t("patient:myAppointments.pdfColumns.specialty"),
+              key: "doctorSpecialty",
+            },
+            {
+              title: t("patient:myAppointments.pdfColumns.evaluationType"),
+              key: "evaluationType",
+            },
+            { title: t("patient:myAppointments.pdfColumns.date"), key: "date" },
+            { title: t("patient:myAppointments.pdfColumns.time"), key: "time" },
+            {
+              title: t("patient:myAppointments.pdfColumns.appointmentType"),
+              key: "appointmentType",
+            },
+            {
+              title: t("patient:myAppointments.pdfColumns.location"),
+              key: "location",
+            },
+            {
+              title: t("patient:myAppointments.pdfColumns.status"),
+              key: "status",
+            },
           ],
           data: mockAppointments,
           fileName: "mis-citas",
-          title: "Mis Citas",
-          subtitle: "Lista completa de citas médicas",
+          title: t("patient:myAppointments.pdfTitle"),
+          subtitle: t("patient:myAppointments.pdfSubtitle"),
         });
         setIsLoading(false);
       }}
@@ -524,7 +613,7 @@ function MyAppointmentsPage() {
   const searchInput = (
     <div className="w-full sm:w-auto sm:min-w-[200px] lg:min-w-[250px]">
       <MCFilterInput
-        placeholder="Buscar por nombre de doctor..."
+        placeholder={t("patient:myAppointments.searchPlaceholder")}
         value={searchTerm}
         onChange={(value: string) => setSearchTerm(value)}
       />
@@ -537,7 +626,7 @@ function MyAppointmentsPage() {
       {/* Sección: Próximas Citas */}
       <section>
         <h2 className="text-2xl font-semibold mb-6 text-foreground">
-          Próximas Citas
+          {t("patient:myAppointments.upcomingTitle")}
         </h2>
         {renderAppointments(upcomingAppointments, "upcoming")}
       </section>
@@ -545,7 +634,7 @@ function MyAppointmentsPage() {
       {/* Sección: Historial de Citas */}
       <section>
         <h2 className="text-2xl font-semibold mb-6 text-foreground">
-          Historial de Citas
+          {t("patient:myAppointments.historyTitle")}
         </h2>
         {renderAppointments(historicalAppointments, "historical")}
       </section>
@@ -554,7 +643,7 @@ function MyAppointmentsPage() {
 
   return (
     <MCTablesLayouts
-      title="Mis Citas"
+      title={t("patient:myAppointments.title")}
       tableComponent={tableComponent}
       toogleView={toggleView}
       searchComponent={searchInput}

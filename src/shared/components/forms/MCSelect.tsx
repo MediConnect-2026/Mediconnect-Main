@@ -10,6 +10,7 @@ import {
 import { useFormContext } from "react-hook-form";
 import { cn } from "@/lib/utils";
 import { X, Search } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 type LabelPosition = "left" | "center" | "right";
 
@@ -28,13 +29,13 @@ interface MCSelectProps {
   variant?: "edit";
   searchable?: boolean;
   onChange?: (value: string | string[]) => void;
-  labelPosition?: LabelPosition; // <-- Add this line
+  labelPosition?: LabelPosition;
 }
 
 function MCSelect({
   name,
   label,
-  placeholder = "Seleccionar...",
+  placeholder,
   options,
   className,
   required = false,
@@ -46,8 +47,10 @@ function MCSelect({
   variant,
   searchable = false,
   onChange,
-  labelPosition = "left", // <-- Add this line
+  labelPosition = "left",
 }: MCSelectProps) {
+  const { t } = useTranslation("common");
+
   const {
     register,
     setValue,
@@ -58,6 +61,9 @@ function MCSelect({
   const [selectedValues, setSelectedValues] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const currentValue = watch(name);
+
+  // Use translation for default placeholder
+  const defaultPlaceholder = placeholder || t("ui.select.placeholder");
 
   const handleStatusColor = () => {
     switch (status) {
@@ -117,13 +123,13 @@ function MCSelect({
 
   const getDisplayValue = () => {
     if (multiple && selectedValues.length > 0) {
-      return `${selectedValues.length} seleccionado(s)`;
+      return `${selectedValues.length} ${t("ui.select.selected")}`;
     }
     if (!multiple && currentValue) {
       const option = options.find((opt) => opt.value === currentValue);
-      return option?.label || placeholder;
+      return option?.label || defaultPlaceholder;
     }
-    return placeholder;
+    return defaultPlaceholder;
   };
 
   // Filtrar opciones basado en la búsqueda
@@ -182,7 +188,7 @@ function MCSelect({
               className,
             )}
           >
-            <SelectValue placeholder={placeholder}>
+            <SelectValue placeholder={defaultPlaceholder}>
               {getDisplayValue()}
             </SelectValue>
           </SelectTrigger>
@@ -203,7 +209,7 @@ function MCSelect({
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Buscar..."
+                    placeholder={t("ui.select.search")}
                     className="w-full pl-9 pr-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 bg-background text-primary"
                     onClick={(e) => e.stopPropagation()}
                   />
@@ -233,7 +239,7 @@ function MCSelect({
                 ))
               ) : (
                 <div className="px-2 py-6 text-center text-sm text-primary/50">
-                  No se encontraron resultados
+                  {t("ui.select.noResults")}
                 </div>
               )}
             </SelectGroup>

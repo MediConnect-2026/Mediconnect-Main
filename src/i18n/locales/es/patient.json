@@ -6,16 +6,16 @@
     "calendar": "Calendario"
   },
   "profileForm": {
-    "editProfile": "Editar perfil",
+    "editProfile": "Editar Perfil",
     "editProfileDescription": "Modifica tu información personal y médica",
     "generalInfo": "Información General",
     "clinicalHistory": "Historial Clínico",
-    "insurance": "Seguros Médicos",
-    "bannerImage": "Imagen de Portada",
+    "insurance": "Seguro Médico",
+    "bannerImage": "Imagen de Banner",
     "changeImage": "Cambiar imagen",
-    "deleteBanner": "Eliminar portada",
-    "confirmDeleteBannerTitle": "¿Eliminar imagen de portada?",
-    "confirmDeleteBannerDescription": "Esta acción no se puede deshacer. La imagen de portada será eliminada permanentemente.",
+    "deleteBanner": "Eliminar banner",
+    "confirmDeleteBannerTitle": "¿Eliminar imagen de banner?",
+    "confirmDeleteBannerDescription": "Esta acción no se puede deshacer. La imagen de banner será eliminada permanentemente.",
     "profilePhoto": "Foto de Perfil",
     "recommended": "Recomendado: 400x400px, formato JPG o PNG",
     "deleteProfilePhoto": "Eliminar foto de perfil",
@@ -23,27 +23,27 @@
     "confirmDeleteDescription": "Esta acción no se puede deshacer. La foto de perfil será eliminada permanentemente.",
     "fullName": "Nombre Completo",
     "fullNamePlaceholder": "Ingresa tu nombre completo",
-    "identityDocument": "Cédula",
+    "identityDocument": "Número de Cédula",
     "identityDocumentPlaceholder": "000-0000000-0",
     "email": "Correo Electrónico",
     "emailPlaceholder": "correo@ejemplo.com",
     "age": "Edad",
-    "agePlaceholder": "45",
+    "agePlaceholder": "Ingresa tu edad",
     "height": "Altura (cm)",
-    "heightPlaceholder": "175",
+    "heightPlaceholder": "Ingresa tu altura",
     "weight": "Peso (kg)",
-    "weightPlaceholder": "80",
+    "weightPlaceholder": "Ingresa tu peso",
     "bloodType": "Tipo de Sangre",
-    "bloodTypePlaceholder": "O+",
+    "bloodTypePlaceholder": "Selecciona tipo de sangre",
     "saveChanges": "Guardar cambios",
     "cancel": "Cancelar",
-    "cropBanner": "Recortar portada",
+    "cropBanner": "Recortar banner",
     "cropProfilePhoto": "Recortar foto de perfil",
     "patientSince": "Paciente desde:",
     "menu": {
       "history": "Ver historial completo",
       "settings": "Configuración",
-      "privacy": "Privacidad y seguridad",
+      "privacy": "Privacidad y Seguridad",
       "copyProfile": "Copiar perfil",
       "logout": "Cerrar sesión"
     }
@@ -52,7 +52,7 @@
     "importantTitle": "Historial Clínico Importante",
     "importantDescription": "Mantén tu información médica actualizada para recibir una atención más segura y personalizada.",
     "allergies": "Alergias",
-    "addAllergy": "Agregar Alergias",
+    "addAllergy": "Agregar Alergia",
     "selectAllergy": "Selecciona una alergia",
     "removeAllergy": "Eliminar alergia",
     "conditions": "Condiciones",
@@ -61,44 +61,60 @@
     "conditionPlaceholder": "Describe tu condición"
   },
   "insurance": {
-    "title": "Seguros Médicos",
-    "description": "Agrega tus seguros médicos actuales para facilitar tu atención.",
+    "title": "Seguro Médico",
+    "description": "Agrega tu seguro médico actual para facilitar tu atención.",
     "list": "Tus Seguros",
     "add": "Agregar Seguro Médico",
-    "select": "Selecciona un seguro",
+    "select": "Seleccionar seguro",
     "remove": "Eliminar seguro",
-    "morePlans": "Más planes de Seguros dentro de la red. Ver todo"
+    "morePlans": "Más planes de seguro en la red. Ver todos",
+    "universal": "Seguro Universal",
+    "humano": "Seguro Humano",
+    "mapfre": "Mapfre Salud",
+    "particular": "Particular"
   },
   "validation": {
     "fullNameRequired": "El nombre completo es requerido",
-    "identityDocumentRequired": "La cédula es requerida",
+    "identityDocumentRequired": "El número de cédula es requerido",
     "identityDocumentInvalid": "Formato de cédula inválido",
-    "emailInvalid": "Dirección de correo electrónico inválida",
+    "emailInvalid": "Dirección de correo inválida",
     "ageInvalid": "Entrada inválida: se esperaba un número",
     "heightInvalid": "Entrada inválida: se esperaba un número",
     "weightInvalid": "Entrada inválida: se esperaba un número",
-    "bloodTypeInvalid": "Opción inválida: se esperaba A+, A-, B+, B-, AB+, AB-, O+ u O-"
+    "bloodTypeInvalid": "Opción inválida: se esperaba A+, A-, B+, B-, AB+, AB-, O+ o O-"
   },
-
   "appointments": {
-    "reschedule": "Reprogramar",
+    "table": {
+      "doctor": "Doctor",
+      "evaluation": "Evaluación",
+      "date": "Fecha",
+      "typeLocation": "Tipo / Ubicación",
+      "status": "Estado",
+      "actions": "Acciones",
+      "noAppointments": "Sin citas.",
+      "virtual": "Virtual",
+      "inPerson": "Presencial"
+    },
+    "schedule": "Agendar Cita",
+    "reschedule": "Reagendar",
     "cancel": "Cancelar",
-    "join": "Unirse",
-    "details": "Detalles",
+    "rescheduleTitle": "Reagendar Cita",
+    "reason": "Motivo de la visita",
+    "reasonPlaceholder": "Describe el motivo de tu visita...",
+    "patient": "paciente",
+    "patient_plural": "s",
+    "next": "Siguiente",
+    "details": "Ver detalles",
     "viewDetails": "Ver detalles",
     "virtual": "Virtual",
     "inPerson": "Presencial",
+    "virtualPlatform": "Plataforma de consulta virtual",
     "appointmentsForDate": "Citas para {{date}}",
     "appointmentsCount": "{{count}} cita",
     "appointmentsCount_plural": "{{count}} citas",
-    "emptyTitle": "Sin citas programadas",
-    "emptyDescription": "No tienes citas para este día. Selecciona otra fecha o agenda una nueva cita.",
-    "schedule": "Agendar Cita",
-    "reason": "Motivo de Consulta",
-    "reasonPlaceholder": "Describe el motivo de tu consulta",
-    "patient": "Paciente",
-    "patient_plural": "s",
-    "next": "Siguiente"
+    "emptyTitle": "No hay citas programadas",
+    "emptyDescription": "No tienes citas para este día. Selecciona otra fecha o programa una nueva cita.",
+    "join": "Unirse"
   },
   "dashboard": {
     "searchTitle": "Busca médicos, especialidades o clínicas cercanas"
@@ -109,13 +125,22 @@
       "languages": "Idiomas",
       "insurances": "Seguros aceptados",
       "experience": "Años de experiencia",
-      "ranking": "Ranking mínimo",
+      "ranking": "Puntuación mínima",
       "onlyFavorites": "Solo favoritos"
+    },
+    "placeholders": {
+      "specialty": "Seleccionar especialidad",
+      "languages": "Seleccionar idiomas",
+      "insurances": "Seleccionar seguros",
+      "yearsOfExperience": "Seleccionar años de experiencia",
+      "ranking": "Seleccionar puntuación",
+      "name": "Buscar por nombre"
     },
     "specialties": {
       "cardiology": "Cardiología",
       "dermatology": "Dermatología",
-      "pediatrics": "Pediatría"
+      "pediatrics": "Pediatría",
+      "endocrinology": "Endocrinología"
     },
     "languages": {
       "es": "Español",
@@ -125,7 +150,11 @@
     "insurances": {
       "senasa": "SeNaSa",
       "palic": "ARS Palic",
-      "humano": "Humano Seguros"
+      "humano": "Seguro Humano",
+      "mapfre": "MAPFRE ARS",
+      "universal": "ARS Universal",
+      "crecer": "Seguros Crecer",
+      "yunen": "ARS Yunen"
     },
     "experience": {
       "1": "1+ años",
@@ -139,13 +168,6 @@
       "3_5": "Mayor a 3.5",
       "3": "Mayor a 3",
       "all": "Todos"
-    },
-    "placeholders": {
-      "specialty": "Selecciona especialidad",
-      "languages": "Selecciona idiomas",
-      "insurances": "Selecciona seguros",
-      "yearsOfExperience": "Selecciona años de experiencia",
-      "ranking": "Selecciona ranking"
     },
     "popover": {
       "title": "Filtros de Búsqueda",
@@ -162,7 +184,34 @@
     },
     "modalities": {
       "presencial": "Presencial",
-      "online": "Online"
+      "online": "En Línea"
+    },
+    "history": {
+      "services": "Servicios",
+      "timeRange": "Horario",
+      "locations": "Ubicación",
+      "dateRange": "Rango de Fechas"
+    },
+    "services": {
+      "cardiology": "Consulta Cardiología",
+      "physicalTherapy": "Terapia Física",
+      "generalConsultation": "Consulta General",
+      "dermatology": "Dermatología",
+      "gynecology": "Ginecología",
+      "pediatrics": "Pediatría",
+      "ophthalmology": "Oftalmología"
+    },
+    "timeRanges": {
+      "morning": "Mañana (6:00 - 12:00)",
+      "afternoon": "Tarde (12:00 - 18:00)",
+      "evening": "Noche (18:00 - 24:00)"
+    },
+    "locations": {
+      "northMedicalCenter": "Centro Médico Norte",
+      "generalHospital": "Hospital General",
+      "santaMariaClinic": "Clínica Santa María",
+      "specializedCenter": "Centro Especializado",
+      "virtualConsultation": "Consulta Virtual"
     }
   },
   "searchBar": {
@@ -170,8 +219,8 @@
     "searchPlaceholderMobile": "Doctor, especialidad...",
     "searchPlaceholderDesktop": "Nombre del doctor, centro de salud o especialidad",
     "insuranceLabel": "Seguro",
-    "insurancePlaceholderMobile": "Plan de seguros...",
-    "insurancePlaceholderDesktop": "Agregar plan de seguros",
+    "insurancePlaceholderMobile": "Plan de seguro...",
+    "insurancePlaceholderDesktop": "Agregar plan de seguro",
     "searchButton": "Buscar",
     "popularPlans": "Planes populares",
     "allPlans": "Todos los planes",
@@ -187,40 +236,120 @@
     "noLanguages": "Idiomas no especificados",
     "acceptedInsurances": "Seguros aceptados",
     "schedule": "Agendar",
-    "profile": "Perfil",
-    "history": "Historial"
+    "clearFilters": "Limpiar"
   },
   "appointment": {
-    "invalidDate": "Fecha inválida",
-    "timeRequired": "La hora es requerida",
-    "modalityRequired": "La modalidad es requerida",
-    "sessionsMin": "Debes agendar al menos 1 sesión",
-    "sessionsMax": "No puedes agendar más de 5 sesiones",
-    "reasonMin": "El motivo debe tener al menos 10 caracteres",
-    "reasonMax": "El motivo no puede exceder 100 caracteres",
-    "insuranceRequired": "El seguro es requerido"
+    "detailsTitle": "Detalles de la Cita",
+    "detailsTab": "Detalles de la cita",
+    "historyTab": "Historial",
+    "service": "Servicio",
+    "specialty": "Especialidad",
+    "date": "Fecha",
+    "schedule": "Horario",
+    "price": "Precio",
+    "numberOfPatients": "Número de Pacientes",
+    "modality": "Modalidad",
+    "doctor": "Doctor",
+    "description": "Descripción",
+    "location": "Ubicación",
+    "medicalHistory": "Historial Médico",
+    "consultation": "consulta",
+    "consultation_plural": "consultas",
+    "of": "de",
+    "noResultsFound": "No se encontraron resultados",
+    "noResultsDescription": "No se encontraron consultas con los filtros aplicados. Intenta ajustar los filtros para ver más resultados.",
+    "noHistoryAvailable": "No hay historial disponible",
+    "noHistoryDescription": "No hay historial disponible para esta cita. Las consultas previas aparecerán aquí una vez registradas.",
+    "status": {
+      "scheduled": "Programada",
+      "pending": "Pendiente",
+      "in_progress": "En Progreso",
+      "completed": "Completada",
+      "cancelled": "Cancelada"
+    },
+    "cancelTitle": "Cancelar Cita",
+    "cancellationReason": "Motivo de cancelación",
+    "cancellationReasonPlaceholder": "Describe el motivo de la cancelación...",
+    "confirmCancellation": "Confirmar",
+    "cancelAction": "Cancelar",
+    "doctorNotification": "El Doctor será notificado automáticamente de esta cancelación.",
+    "cancellationSuccess": "Cita cancelada correctamente.",
+    "cancellationAborted": "Cancelación de cita abortada."
   },
   "serviceCards": {
     "howWantAppointment": "¿Cómo quieres tu cita?",
     "inPerson": "Presencial",
-    "virtual": "Tele Consulta",
+    "virtual": "Telemedicina",
     "perPatient": "por paciente"
+  },
+  "compareModal": {
+    "title": "Comparar proveedores"
   },
   "compare": {
     "noDoctors": "No hay doctores seleccionados para comparar",
     "removeDoctor": "Eliminar doctor",
-    "experience": "Años de experiencia",
+    "experience": "Años de Experiencia",
     "specialties": "Especialidades",
     "languages": "Idiomas",
-    "services": "Servicios ofrecidos",
-    "insurance": "Seguros aceptados",
+    "services": "Servicios Ofrecidos",
+    "insurance": "Seguros Aceptados",
     "biography": "Biografía",
     "scheduleAppointment": "Agendar Cita",
     "connected": "Conectado",
     "connect": "Conectar",
-    "viewProfile": "Ver perfil"
+    "viewProfile": "Ver Perfil"
   },
-  "compareModal": {
-    "title": "Comparar proveedores"
+  "myAppointments": {
+    "title": "Mis Citas",
+    "upcomingTitle": "Próximas Citas",
+    "historyTitle": "Historial de Citas",
+    "searchPlaceholder": "Buscar por nombre del doctor...",
+    "noResults": "No se encontraron resultados",
+    "noUpcoming": "No hay próximas citas",
+    "noHistory": "No hay historial de citas",
+    "noResultsDescription": "Tienes {{count}} {{section}}, pero ninguna coincide con los filtros aplicados. Intenta ajustar tus criterios de búsqueda.",
+    "noUpcomingDescription": "Actualmente no tienes citas programadas. Agenda una nueva cita con nuestros especialistas para comenzar tu atención médica.",
+    "noHistoryDescription": "Aún no has completado o cancelado ninguna cita. Una vez que finalices citas, aparecerán aquí.",
+    "noUpcomingRegistered": "No tienes próximas citas registradas. Agenda una nueva cita para comenzar.",
+    "noHistoryRegistered": "No tienes historial de citas. Las citas completadas o canceladas aparecerán aquí.",
+    "upcomingSection": "próximas citas",
+    "historySection": "citas en historial",
+    "clearFilters": "Limpiar",
+    "scheduleNew": "Agendar Nueva Cita",
+    "pdfTitle": "Mis Citas",
+    "pdfSubtitle": "Lista completa de citas médicas",
+    "pdfColumns": {
+      "doctor": "Doctor",
+      "specialty": "Especialidad",
+      "evaluationType": "Tipo de Evaluación",
+      "date": "Fecha",
+      "time": "Hora",
+      "appointmentType": "Tipo de Cita",
+      "location": "Ubicación",
+      "status": "Estado"
+    }
+  },
+  "services": {
+    "consultation": "Consulta general",
+    "treatment": "Tratamiento",
+    "evaluation": "Evaluación completa",
+    "laser": "Tratamiento especializado",
+    "mixed": "Modalidad Mixta",
+    "duration": "minutos"
+  },
+  "pdf": {
+    "date": "Fecha",
+    "time": "Hora",
+    "reportIntro": "Este reporte fue generado el",
+    "tableInfo": "A continuación se presenta la información solicitada.",
+    "confidential": "Documento Confidencial - Uso Interno",
+    "page": "Página",
+    "of": "de",
+    "generatedBy": "Generado por MediConnect",
+    "total": "Total",
+    "success": "PDF Generado",
+    "successMessage": "El documento PDF ha sido generado exitosamente",
+    "error": "Error",
+    "errorMessage": "Error al generar el PDF. Por favor, intente nuevamente."
   }
 }

@@ -9,6 +9,7 @@ import {
 } from "@/shared/ui/select";
 import { cn } from "@/lib/utils";
 import { X, Search } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface MCFilterSelectOption {
   value: string;
@@ -31,13 +32,13 @@ interface MCFilterSelectProps {
   searchable?: boolean;
   value?: string | string[];
   onChange?: (value: string | string[]) => void;
-  noBadges?: boolean; // <-- NUEVA PROP
+  noBadges?: boolean;
 }
 
 function MCFilterSelect({
   name,
   label,
-  placeholder = "Seleccionar...",
+  placeholder,
   options,
   className,
   required = false,
@@ -50,10 +51,14 @@ function MCFilterSelect({
   searchable = false,
   value,
   onChange,
-  noBadges = false, // <-- NUEVA PROP CON VALOR POR DEFECTO
+  noBadges = false,
 }: MCFilterSelectProps) {
+  const { t } = useTranslation("common");
   const [selectedValues, setSelectedValues] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
+
+  // Use translation for default placeholder
+  const defaultPlaceholder = placeholder || t("ui.select.placeholder");
 
   // Sincronizar estado interno con prop value
   useEffect(() => {
@@ -124,14 +129,14 @@ function MCFilterSelect({
 
   const getDisplayValue = () => {
     if (multiple && selectedValues.length > 0) {
-      if (selectedValues.includes("all")) return "Todos";
-      return `${selectedValues.length} seleccionado(s)`;
+      if (selectedValues.includes("all")) return t("ui.filters.all");
+      return `${selectedValues.length} ${t("ui.select.selected")}`;
     }
     if (!multiple && value) {
       const option = options.find((opt) => opt.value === value);
-      return option?.label || placeholder;
+      return option?.label || defaultPlaceholder;
     }
-    return placeholder;
+    return defaultPlaceholder;
   };
 
   const filteredOptions = searchable
@@ -179,7 +184,7 @@ function MCFilterSelect({
               className,
             )}
           >
-            <SelectValue placeholder={placeholder}>
+            <SelectValue placeholder={defaultPlaceholder}>
               {getDisplayValue()}
             </SelectValue>
           </SelectTrigger>
@@ -189,7 +194,7 @@ function MCFilterSelect({
             className="bg-background"
           >
             {searchable && (
-              <div className="px-2 py-2 border-b mb-2  ">
+              <div className="px-2 py-2 border-b mb-2">
                 <div className="relative">
                   <Search
                     className="absolute left-3 top-1/2 transform -translate-y-1/2 text-primary/50"
@@ -199,7 +204,7 @@ function MCFilterSelect({
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Buscar..."
+                    placeholder={t("ui.select.search")}
                     className="w-full pl-9 pr-3 py-2 text-sm border rounded-full focus:outline-none focus:ring-2 focus:ring-primary/20 bg-background text-primary"
                     onClick={(e) => e.stopPropagation()}
                   />
@@ -226,7 +231,7 @@ function MCFilterSelect({
                 ))
               ) : (
                 <div className="px-2 py-6 text-center text-sm text-primary/50">
-                  No se encontraron resultados
+                  {t("ui.select.noResults")}
                 </div>
               )}
             </SelectGroup>

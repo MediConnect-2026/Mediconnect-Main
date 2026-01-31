@@ -28,13 +28,13 @@
     "email": "Email",
     "emailPlaceholder": "email@example.com",
     "age": "Age",
-    "agePlaceholder": "45",
+    "agePlaceholder": "Enter age",
     "height": "Height (cm)",
-    "heightPlaceholder": "175",
+    "heightPlaceholder": "Enter height",
     "weight": "Weight (kg)",
-    "weightPlaceholder": "80",
+    "weightPlaceholder": "Enter weight",
     "bloodType": "Blood Type",
-    "bloodTypePlaceholder": "O+",
+    "bloodTypePlaceholder": "Select blood type",
     "saveChanges": "Save changes",
     "cancel": "Cancel",
     "cropBanner": "Crop banner",
@@ -84,24 +84,37 @@
     "bloodTypeInvalid": "Invalid option: expected A+, A-, B+, B-, AB+, AB-, O+ or O-"
   },
   "appointments": {
+    "table": {
+      "doctor": "Doctor",
+      "evaluation": "Evaluation",
+      "date": "Date",
+      "typeLocation": "Type / Location",
+      "status": "Status",
+      "actions": "Actions",
+      "noAppointments": "No appointments.",
+      "virtual": "Virtual",
+      "inPerson": "In Person"
+    },
+    "schedule": "Schedule Appointment",
     "reschedule": "Reschedule",
     "cancel": "Cancel",
-    "join": "Join",
-    "details": "Details",
+    "rescheduleTitle": "Reschedule Appointment",
+    "reason": "Reason for visit",
+    "reasonPlaceholder": "Describe the reason for your visit...",
+    "patient": "patient",
+    "patient_plural": "s",
+    "next": "Next",
+    "details": "View details",
     "viewDetails": "View details",
     "virtual": "Virtual",
     "inPerson": "In Person",
+    "virtualPlatform": "Virtual consultation platform",
     "appointmentsForDate": "Appointments for {{date}}",
     "appointmentsCount": "{{count}} appointment",
     "appointmentsCount_plural": "{{count}} appointments",
     "emptyTitle": "No appointments scheduled",
     "emptyDescription": "You have no appointments for this day. Select another date or schedule a new appointment.",
-    "schedule": "Schedule Appointment",
-    "reason": "Reason for Consultation",
-    "reasonPlaceholder": "Describe the reason for your consultation",
-    "patient": "Patient",
-    "patient_plural": "s",
-    "next": "Next"
+    "join": "Join"
   },
   "dashboard": {
     "searchTitle": "Search for doctors, specialties or nearby clinics"
@@ -120,12 +133,14 @@
       "languages": "Select languages",
       "insurances": "Select insurances",
       "yearsOfExperience": "Select years of experience",
-      "ranking": "Select ranking"
+      "ranking": "Select ranking",
+      "name": "Search by name"
     },
     "specialties": {
       "cardiology": "Cardiology",
       "dermatology": "Dermatology",
-      "pediatrics": "Pediatrics"
+      "pediatrics": "Pediatrics",
+      "endocrinology": "Endocrinology"
     },
     "languages": {
       "es": "Spanish",
@@ -135,7 +150,11 @@
     "insurances": {
       "senasa": "SeNaSa",
       "palic": "ARS Palic",
-      "humano": "Humano Insurance"
+      "humano": "Humano Insurance",
+      "mapfre": "MAPFRE ARS",
+      "universal": "ARS Universal",
+      "crecer": "Seguros Crecer",
+      "yunen": "ARS Yunen"
     },
     "experience": {
       "1": "1+ years",
@@ -166,6 +185,33 @@
     "modalities": {
       "presencial": "In Person",
       "online": "Online"
+    },
+    "history": {
+      "services": "Services",
+      "timeRange": "Time Range",
+      "locations": "Location",
+      "dateRange": "Date Range"
+    },
+    "services": {
+      "cardiology": "Cardiology Consultation",
+      "physicalTherapy": "Physical Therapy",
+      "generalConsultation": "General Consultation",
+      "dermatology": "Dermatology",
+      "gynecology": "Gynecology",
+      "pediatrics": "Pediatrics",
+      "ophthalmology": "Ophthalmology"
+    },
+    "timeRanges": {
+      "morning": "Morning (6:00 - 12:00)",
+      "afternoon": "Afternoon (12:00 - 18:00)",
+      "evening": "Evening (18:00 - 24:00)"
+    },
+    "locations": {
+      "northMedicalCenter": "North Medical Center",
+      "generalHospital": "General Hospital",
+      "santaMariaClinic": "Santa Maria Clinic",
+      "specializedCenter": "Specialized Center",
+      "virtualConsultation": "Virtual Consultation"
     }
   },
   "searchBar": {
@@ -190,19 +236,45 @@
     "noLanguages": "Languages not specified",
     "acceptedInsurances": "Accepted insurances",
     "schedule": "Schedule",
-
-    "specialty": "Dermatology",
-    "history": "History"
+    "clearFilters": "Clear"
   },
   "appointment": {
-    "invalidDate": "Invalid date",
-    "timeRequired": "Time is required",
-    "modalityRequired": "Modality is required",
-    "sessionsMin": "You must schedule at least 1 session",
-    "sessionsMax": "You cannot schedule more than 5 sessions",
-    "reasonMin": "Reason must be at least 10 characters",
-    "reasonMax": "Reason cannot exceed 100 characters",
-    "insuranceRequired": "Insurance is required"
+    "detailsTitle": "Appointment Details",
+    "detailsTab": "Appointment Details",
+    "historyTab": "History",
+    "service": "Service",
+    "specialty": "Specialty",
+    "date": "Date",
+    "schedule": "Schedule",
+    "price": "Price",
+    "numberOfPatients": "Number of Patients",
+    "modality": "Modality",
+    "doctor": "Doctor",
+    "description": "Description",
+    "location": "Location",
+    "medicalHistory": "Medical History",
+    "consultation": "consultation",
+    "consultation_plural": "consultations",
+    "of": "of",
+    "noResultsFound": "No results found",
+    "noResultsDescription": "No consultations found with the applied filters. Try adjusting the filters to see more results.",
+    "noHistoryAvailable": "No history available",
+    "noHistoryDescription": "No history available for this appointment. Previous consultations will appear here once recorded.",
+    "status": {
+      "scheduled": "Scheduled",
+      "pending": "Pending",
+      "in_progress": "In Progress",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    },
+    "cancelTitle": "Cancel Appointment",
+    "cancellationReason": "Reason for cancellation",
+    "cancellationReasonPlaceholder": "Describe the reason for cancellation...",
+    "confirmCancellation": "Confirm",
+    "cancelAction": "Cancel",
+    "doctorNotification": "The Doctor will be automatically notified of this cancellation.",
+    "cancellationSuccess": "Appointment cancelled successfully.",
+    "cancellationAborted": "Appointment cancellation aborted."
   },
   "serviceCards": {
     "howWantAppointment": "How do you want your appointment?",
@@ -226,5 +298,58 @@
     "connected": "Connected",
     "connect": "Connect",
     "viewProfile": "View Profile"
+  },
+  "myAppointments": {
+    "title": "My Appointments",
+    "upcomingTitle": "Upcoming Appointments",
+    "historyTitle": "Appointment History",
+    "searchPlaceholder": "Search by doctor name...",
+    "noResults": "No results found",
+    "noUpcoming": "No upcoming appointments",
+    "noHistory": "No appointment history",
+    "noResultsDescription": "You have {{count}} {{section}}, but none match the applied filters. Try adjusting your search criteria.",
+    "noUpcomingDescription": "You currently have no scheduled appointments. Schedule a new appointment with our specialists to begin your medical care.",
+    "noHistoryDescription": "You haven't completed or cancelled any appointments yet. Once you have finalized appointments, they will appear here.",
+    "noUpcomingRegistered": "You have no upcoming appointments registered. Schedule a new appointment to get started.",
+    "noHistoryRegistered": "You have no appointment history. Completed or cancelled appointments will appear here.",
+    "upcomingSection": "upcoming appointments",
+    "historySection": "appointments in history",
+    "clearFilters": "Clear",
+    "scheduleNew": "Schedule New Appointment",
+    "pdfTitle": "My Appointments",
+    "pdfSubtitle": "Complete list of medical appointments",
+    "pdfColumns": {
+      "doctor": "Doctor",
+      "specialty": "Specialty",
+      "evaluationType": "Evaluation Type",
+      "date": "Date",
+      "time": "Time",
+      "appointmentType": "Appointment Type",
+      "location": "Location",
+      "status": "Status"
+    }
+  },
+  "services": {
+    "consultation": "General consultation",
+    "treatment": "Treatment",
+    "evaluation": "Complete evaluation",
+    "laser": "Specialized treatment",
+    "mixed": "Mixed Modality",
+    "duration": "minutes"
+  },
+  "pdf": {
+    "date": "Date",
+    "time": "Time",
+    "reportIntro": "This report was generated on",
+    "tableInfo": "The requested information is presented below.",
+    "confidential": "Confidential Document - Internal Use",
+    "page": "Page",
+    "of": "of",
+    "generatedBy": "Generated by MediConnect",
+    "total": "Total",
+    "success": "PDF Generated",
+    "successMessage": "The PDF document has been generated successfully",
+    "error": "Error",
+    "errorMessage": "Error generating PDF. Please try again."
   }
 }

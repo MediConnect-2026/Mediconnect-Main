@@ -1,6 +1,7 @@
 import React from "react";
 import { ToggleGroup, ToggleGroupItem } from "@/shared/ui/toggle-group";
 import { List, LayoutGrid } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface MCToogleProps {
   value: "list" | "card";
@@ -8,6 +9,8 @@ interface MCToogleProps {
 }
 
 function MCToogle({ value, onChange }: MCToogleProps) {
+  const { t } = useTranslation("common");
+
   return (
     <ToggleGroup
       type="single"
@@ -17,7 +20,7 @@ function MCToogle({ value, onChange }: MCToogleProps) {
     >
       <ToggleGroupItem
         value="list"
-        aria-label="Vista de tabla"
+        aria-label={t("ui.toggle.tableView")}
         className={`flex items-center gap-2 text-primary rounded-full px-3 
           bg-bg-btn-secondary  text-primary/35
           data-[state=on]:bg-transparent data-[state=on]:text-primary data-[state=on]:rounded-full data-[state=on]:border-secondary
@@ -26,11 +29,11 @@ function MCToogle({ value, onChange }: MCToogleProps) {
           transition-colors duration-150`}
       >
         <List className="h-4 w-4" />
-        <span className="hidden sm:inline">Tabla</span>
+        <span className="hidden sm:inline">{t("ui.toggle.table")}</span>
       </ToggleGroupItem>
       <ToggleGroupItem
         value="card"
-        aria-label="Vista de tarjetas"
+        aria-label={t("ui.toggle.cardView")}
         className={`flex items-center gap-2 text-primary rounded-full px-3
           bg-bg-btn-secondary text-primary/35
           data-[state=on]:bg-transparent    data-[state=on]:text-primary  data-[state=on]:rounded-full   data-[state=on]:border-secondary
@@ -39,7 +42,7 @@ function MCToogle({ value, onChange }: MCToogleProps) {
           transition-colors duration-150`}
       >
         <LayoutGrid className="h-4 w-4" />
-        <span className="hidden sm:inline">Tarjetas</span>
+        <span className="hidden sm:inline">{t("ui.toggle.cards")}</span>
       </ToggleGroupItem>
     </ToggleGroup>
   );

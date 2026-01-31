@@ -3,7 +3,7 @@ import MCTextArea from "@/shared/components/forms/MCTextArea";
 import { useAppointmentStore } from "@/stores/useAppointmentStore";
 import { MCModalBase } from "@/shared/components/MCModalBase";
 import { useTranslation } from "react-i18next";
-import { cancelAppointmentSchema } from "@/schema/appointment.schema"; // Ajusta la ruta si es necesario
+import { cancelAppointmentSchema } from "@/schema/appointment.schema";
 import MCFormWrapper from "@/shared/components/forms/MCFormWrapper";
 import { TriangleAlert } from "lucide-react";
 import { useGlobalUIStore } from "@/stores/useGlobalUIStore";
@@ -17,12 +17,13 @@ function CancelAppointmentDialog({
   children,
   appointmentId,
 }: CancelAppointmentDialogProps) {
-  const { t } = useTranslation();
+  const { t } = useTranslation("patient");
   const setCancelAppointment = useAppointmentStore(
     (state) => state.setCancelAppointment,
   );
 
   const setToast = useGlobalUIStore((state) => state.setToast);
+
   const onSubmit = (data: { cancellationReason: string }) => {
     if (setCancelAppointment) {
       setCancelAppointment({
@@ -34,7 +35,7 @@ function CancelAppointmentDialog({
   // Funciones para los botones del modal
   const handleConfirm = () => {
     setToast({
-      message: "Cita cancelada correctamente.",
+      message: t("appointment.cancellationSuccess"),
       type: "success",
       open: true,
     });
@@ -43,7 +44,7 @@ function CancelAppointmentDialog({
 
   const handleSecondary = () => {
     setToast({
-      message: "Cancelación de cita abortada.",
+      message: t("appointment.cancellationAborted"),
       type: "info",
       open: true,
     });
@@ -53,15 +54,15 @@ function CancelAppointmentDialog({
   return (
     <MCModalBase
       id={appointmentId}
-      title={t("appointment.cancelTitle") || "Cancelar cita"}
+      title={t("appointment.cancelTitle")}
       trigger={children}
       triggerClassName="w-full flex-1"
       variant="warning"
       size="smWide"
       onConfirm={handleConfirm}
       onSecondary={handleSecondary}
-      confirmText="Confirmar"
-      secondaryText="Cancelar"
+      confirmText={t("appointment.confirmCancellation")}
+      secondaryText={t("appointment.cancelAction")}
     >
       <MCFormWrapper
         defaultValues={{
@@ -71,21 +72,18 @@ function CancelAppointmentDialog({
         onSubmit={onSubmit}
         className="flex flex-col gap-4 justify-center items-center"
       >
-        {/* <div className="flex items-center space-x-2 w-[98%] bg-[#E1791D]/10 py-3 px-3 rounded-2xl">
+        <div className="flex items-center space-x-2 w-[98%] bg-[#E1791D]/10 py-3 px-3 rounded-2xl">
           <div className="flex items-center justify-center size-8 rounded-full bg-[#E1791D]/15 text-[#E1791D]">
             <TriangleAlert size={20} />
           </div>
           <div className="text-[#E1791D]">
-            El Doctor será notificado automáticamente de esta cancelación.
+            {t("appointment.doctorNotification")}
           </div>
-        </div> */}
+        </div>
         <MCTextArea
           name="cancellationReason"
-          label={t("appointment.cancellationReason") || "Motivo de cancelación"}
-          placeholder={
-            t("appointment.cancellationReasonPlaceholder") ||
-            "Describe el motivo de la cancelación..."
-          }
+          label={t("appointment.cancellationReason")}
+          placeholder={t("appointment.cancellationReasonPlaceholder")}
           required
           charLimit={200}
           showCharCount

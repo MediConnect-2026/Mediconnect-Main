@@ -16,6 +16,15 @@ import FilterMyDoctors from "../components/filters/FilterMyDoctors";
 import MedicalInfoCard from "@/features/patient/components/dashboard/MedicalInfoCard";
 import { fadeInUp } from "@/lib/animations/commonAnimations";
 import { useNavigate } from "react-router-dom";
+import {
+  Empty,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyDescription,
+  EmptyContent,
+} from "@/shared/ui/empty";
+import MCButton from "@/shared/components/forms/MCButton";
+import { Filter } from "lucide-react";
 
 // Interfaz para los filtros de doctores
 interface DoctorFilters {
@@ -92,13 +101,13 @@ function PatientProfilePage() {
   const isMobile = useIsMobile();
 
   const insuranceLogos = [
-    { name: "SeNaSa" },
-    { name: "ARS Palic" },
-    { name: "Humano Seguros" },
-    { name: "MAPFRE ARS" },
-    { name: "ARS Universal" },
-    { name: "Seguros Crecer" },
-    { name: "ARS Yunen" },
+    { name: t("filters.insurances.senasa") },
+    { name: t("filters.insurances.palic") },
+    { name: t("filters.insurances.humano") },
+    { name: t("filters.insurances.mapfre") },
+    { name: t("filters.insurances.universal") },
+    { name: t("filters.insurances.crecer") },
+    { name: t("filters.insurances.yunen") },
   ];
 
   const navigate = useNavigate();
@@ -294,20 +303,33 @@ function PatientProfilePage() {
 
           <CardContent className={isMobile ? "p-4 pt-2" : "p-6 pt-4"}>
             {filteredDoctors.length === 0 ? (
-              <div className="flex items-center justify-center w-full h-64">
-                <div className="flex flex-col items-center justify-center py-8 w-full rounded-lg gap-2">
-                  <AlertTriangle className="w-10 h-10 text-muted-foreground mb-2" />
-                  <span className="text-lg font-semibold text-muted-foreground">
-                    {t("doctors.emptyTitle", "No doctors found")}
-                  </span>
-                  <span className="text-sm text-muted-foreground">
-                    {t(
-                      "doctors.emptyDescription",
-                      "Try adjusting your filters or search criteria.",
-                    )}
-                  </span>
-                </div>
-              </div>
+              <Empty>
+                <EmptyHeader>
+                  <div className="flex flex-col items-center gap-2">
+                    <span className="flex items-center gap-2 text-primary">
+                      <Filter className="w-7 h-7" />
+                      <EmptyTitle className="text-lg font-semibold">
+                        {t("doctors.emptyTitle")}
+                      </EmptyTitle>
+                    </span>
+                    <EmptyDescription className="text-muted-foreground text-center max-w-md mx-auto">
+                      {t("doctors.emptyDescription")}
+                    </EmptyDescription>
+                  </div>
+                </EmptyHeader>
+                <EmptyContent>
+                  {getActiveFiltersCount() > 0 && (
+                    <MCButton
+                      variant="outline"
+                      onClick={resetDoctorFilters}
+                      className="px-6 py-2"
+                      size="sm"
+                    >
+                      {t("doctors.clearFilters")}
+                    </MCButton>
+                  )}
+                </EmptyContent>
+              </Empty>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
                 {filteredDoctors.map((doctor, idx) => (

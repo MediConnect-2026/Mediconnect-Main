@@ -52,15 +52,16 @@ interface AppointmentFilters {
   priceRange: [number, number];
 }
 
-const SERVICES: Service[] = [
+// Actualiza los servicios con traducciones
+const getServices = (t: any): Service[] => [
   {
     id: "1",
-    name: "Consulta dermatológica general",
-    description: "Evaluación completa de la piel",
+    name: t("services.consultation"),
+    description: t("services.evaluation"),
     price: "RD$1500",
-    duration: "30 minutos",
-    modality: "Modalidad Mixta",
-    location: "Av. Principal 123, San José",
+    duration: `30 ${t("services.duration")}`,
+    modality: t("services.mixed"),
+    location: t("services.location"),
     timeSlots: [
       "10:00 a.m.",
       "10:30 a.m.",
@@ -80,12 +81,12 @@ const SERVICES: Service[] = [
   },
   {
     id: "2",
-    name: "Tratamiento de rejuvenecimiento facial",
-    description: "Tratamiento con láser y productos especializados",
+    name: t("services.treatment"),
+    description: t("services.laser"),
     price: "RD$1500",
-    duration: "30 minutos",
-    modality: "Modalidad Mixta",
-    location: "Av. Principal 123, San José",
+    duration: `30 ${t("services.duration")}`,
+    modality: t("services.mixed"),
+    location: t("services.location"),
     timeSlots: [
       "10:00 a.m.",
       "10:30 a.m.",
@@ -105,11 +106,12 @@ const SERVICES: Service[] = [
   },
 ];
 
-const INSURANCE_OPTIONS = [
-  { value: "universal", label: "Seguro Universal" },
-  { value: "humano", label: "Humano Seguros" },
-  { value: "mapfre", label: "Mapfre Salud" },
-  { value: "particular", label: "Particular" },
+// Actualiza las opciones de seguro con traducciones
+const getInsuranceOptions = (t: any) => [
+  { value: "universal", label: t("insurance.universal") },
+  { value: "humano", label: t("insurance.humano") },
+  { value: "mapfre", label: t("insurance.mapfre") },
+  { value: "particular", label: t("insurance.particular") },
 ];
 
 interface ScheduleAppointmentDialogProps {
@@ -141,6 +143,10 @@ function ScheduleAppointmentForm({
   const { t, i18n } = useTranslation("patient");
   const currentLocale = i18n.language === "es" ? es : enUS;
   const [calendarOpen, setCalendarOpen] = useState(false);
+
+  // Obtener servicios y seguros traducidos
+  const SERVICES = useMemo(() => getServices(t), [t]);
+  const INSURANCE_OPTIONS = useMemo(() => getInsuranceOptions(t), [t]);
 
   // Estados locales para filtros con useState
   const [appointmentFilters, setAppointmentFilters] =
@@ -379,10 +385,7 @@ function ScheduleAppointmentForm({
         <MCSelect
           name="insuranceProvider"
           label={t("insurance.title")}
-          options={INSURANCE_OPTIONS.map((option) => ({
-            value: option.value,
-            label: t(`insurance.${option.value}`, option.label),
-          }))}
+          options={INSURANCE_OPTIONS}
           placeholder={t("insurance.select")}
           required
         />
@@ -471,8 +474,8 @@ function ScheduleAppointmentForm({
       <MorphingDialogClose className="w-full">
         <MCButton type="submit" className="w-full" disabled={isSubmitDisabled}>
           {isRescheduling
-            ? t("appointments.reschedule", "Reagendar Cita")
-            : t("appointments.next", "Siguiente")}
+            ? t("appointments.reschedule")
+            : t("appointments.next")}
           <ChevronRight className="ml-2 h-5 w-5" />
         </MCButton>
       </MorphingDialogClose>
@@ -599,8 +602,8 @@ function ScheduleAppointmentDialog({
 
   // Título dinámico según el modo
   const modalTitle = isRescheduling
-    ? t("appointments.rescheduleTitle", "Reagendar Cita")
-    : t("appointments.schedule", "Agendar Cita");
+    ? t("appointments.rescheduleTitle")
+    : t("appointments.schedule");
 
   return (
     <MCModalBase

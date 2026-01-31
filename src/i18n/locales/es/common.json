@@ -158,5 +158,56 @@
     "patient": "Paciente",
     "doctor": "Doctor",
     "center": "Centro"
+  },
+  "ui": {
+    "toggle": {
+      "table": "Tabla",
+      "cards": "Tarjetas",
+      "tableView": "Vista de tabla",
+      "cardView": "Vista de tarjetas"
+    },
+    "buttons": {
+      "generatePDF": "Generar PDF",
+      "generatingPDF": "Generando PDF..."
+    },
+    "errors": {
+      "pdfGenerationError": "Error al generar PDF"
+    },
+    "select": {
+      "placeholder": "Seleccionar...",
+      "search": "Buscar...",
+      "noResults": "No se encontraron resultados",
+      "selected": "seleccionado(s)"
+    },
+    "filters": {
+      "all": "Todos"
+    },
+    "pagination": {
+      "previous": "Anterior",
+      "next": "Siguiente",
+      "goToPrevious": "Ir a la página anterior",
+      "goToNext": "Ir a la página siguiente",
+      "morePages": "Más páginas",
+      "navigation": "navegación de páginas"
+    },
+    "dates": {
+      "startDate": "Fecha de inicio",
+      "endDate": "Fecha de fin"
+    }
+  },
+  "pdf": {
+    "date": "Fecha",
+    "time": "Hora",
+    "reportIntro": "Este reporte fue generado el",
+    "tableInfo": "A continuación se presenta la información solicitada.",
+    "confidential": "Documento Confidencial - Uso Interno",
+    "page": "Página",
+    "of": "de",
+    "generatedBy": "Generado por MediConnect",
+    "total": "Total",
+    "success": "PDF Generado",
+    "successMessage": "El documento PDF ha sido generado exitosamente",
+    "error": "Error",
+    "errorMessage": "Error al generar el PDF. Por favor, intente nuevamente."
   }
 }

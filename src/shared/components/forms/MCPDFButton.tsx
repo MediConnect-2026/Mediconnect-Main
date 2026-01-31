@@ -2,6 +2,7 @@ import React from "react";
 import { Button } from "@/shared/ui/button";
 import { FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 
 interface MCPDFButtonProps {
   onClick?: () => void | Promise<void>;
@@ -14,6 +15,7 @@ function MCPDFButton({
   loading = false,
   className,
 }: MCPDFButtonProps) {
+  const { t } = useTranslation("common");
   const [isGenerating, setIsGenerating] = React.useState(false);
 
   const handleClick = async () => {
@@ -23,7 +25,7 @@ function MCPDFButton({
       setIsGenerating(true);
       await onClick();
     } catch (error) {
-      console.error("Error al generar PDF:", error);
+      console.error(t("ui.errors.pdfGenerationError"), error);
     } finally {
       setIsGenerating(false);
     }
@@ -49,7 +51,11 @@ function MCPDFButton({
       )}
     >
       <FileText className={cn("w-4 h-4", isLoading && "animate-pulse")} />
-      <span>{isLoading ? "Generando PDF..." : "Generar PDF"}</span>
+      <span>
+        {isLoading
+          ? t("ui.buttons.generatingPDF")
+          : t("ui.buttons.generatePDF")}
+      </span>
     </Button>
   );
 }

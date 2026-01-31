@@ -4,8 +4,9 @@ import { Button } from "@/shared/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/shared/ui/popover";
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
-import { es } from "date-fns/locale";
+import { es, enUS } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 
 interface MCFilterDatesProps {
   label?: string;
@@ -24,14 +25,22 @@ function MCFilterDates({
   label,
   value,
   onChange,
-  placeholder = {
-    start: "Fecha de inicio",
-    end: "Fecha de fin",
-  },
+  placeholder,
   className = "",
   size = "small",
   variant,
 }: MCFilterDatesProps) {
+  const { t, i18n } = useTranslation("common");
+
+  // Get the appropriate locale for date formatting
+  const dateLocale = i18n.language === "es" ? es : enUS;
+
+  // Always use translation placeholders, ignore the prop placeholders
+  const fixedPlaceholders = {
+    start: t("ui.dates.startDate"),
+    end: t("ui.dates.endDate"),
+  };
+
   const getSizeClasses = () => {
     switch (size) {
       case "small":
@@ -53,7 +62,7 @@ function MCFilterDates({
   const buttonClasses = cn(
     "w-full justify-start text-left font-normal rounded-4xl border-primary/50 focus:border-primary text-primary",
     "focus-visible:border-ring focus-visible:ring-accent/70 focus-visible:ring-[3px]",
-    " dark:bg-input/30 bg-bg-secondary", // Fondo con opacidad usando bg-primary/15
+    " dark:bg-input/30 bg-bg-secondary",
     getSizeClasses(),
     getVariantClasses(),
     className,
@@ -85,9 +94,11 @@ function MCFilterDates({
             <Button variant="outline" className={buttonClasses}>
               <CalendarIcon className="mr-2 h-4 w-4" />
               {value?.[0] ? (
-                format(value[0], "PPP", { locale: es })
+                format(value[0], "PPP", { locale: dateLocale })
               ) : (
-                <span className="text-primary/50">{placeholder.start}</span>
+                <span className="text-primary/50">
+                  {fixedPlaceholders.start}
+                </span>
               )}
             </Button>
           </PopoverTrigger>
@@ -116,9 +127,9 @@ function MCFilterDates({
             <Button variant="outline" className={buttonClasses}>
               <CalendarIcon className="mr-2 h-4 w-4" />
               {value?.[1] ? (
-                format(value[1], "PPP", { locale: es })
+                format(value[1], "PPP", { locale: dateLocale })
               ) : (
-                <span className="text-primary/50">{placeholder.end}</span>
+                <span className="text-primary/50">{fixedPlaceholders.end}</span>
               )}
             </Button>
           </PopoverTrigger>
