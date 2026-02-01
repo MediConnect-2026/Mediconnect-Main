@@ -1,15 +1,3 @@
-/**
- * INSTRUCCIONES DE INSTALACIÓN:
- *
- * 1. Guarda este archivo en: src/hooks/useSequentialShortcuts.ts
- *
- * 2. Si no existe la carpeta src/hooks/, créala primero
- *
- * 3. Si tu proyecto usa una estructura diferente, ajusta el import en MCUserMenuContent.tsx:
- *    - Si guardas en src/shared/hooks: import { useSequentialShortcuts } from "@/shared/hooks/useSequentialShortcuts";
- *    - Si guardas en src/hooks: import { useSequentialShortcuts } from "@/hooks/useSequentialShortcuts";
- */
-
 import { useEffect, useRef, useCallback } from "react";
 
 interface ShortcutConfig {
