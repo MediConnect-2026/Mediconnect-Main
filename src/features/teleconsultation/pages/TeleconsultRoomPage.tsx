@@ -33,12 +33,12 @@ function TeleconsultRoomPage() {
       )}
 
       {/* Normal Layout */}
-      <MCDashboardContent mainWidth="100%" isTele noBg>
+      <MCDashboardContent mainWidth="w-[100%]" noBg>
         <div className="flex gap-4 h-[calc(100vh-theme(spacing.20))]">
           {/* Columna izquierda: Video arriba, Info abajo */}
           <div className="flex-1 flex flex-col gap-4 min-w-0">
             {/* Video - ocupa más espacio */}
-            <div className="flex-[2] min-h-0">
+            <div className="flex-[2] min-h-0 ">
               <VideoCall
                 onEndCall={handleEndCall}
                 onToggleFullscreen={toggleFullscreen}
@@ -50,7 +50,7 @@ function TeleconsultRoomPage() {
           </div>
 
           {/* Columna derecha: ChatPanel ocupa todo el alto */}
-          <div className="w-[400px] flex-shrink-0 h-full">
+          <div className="w-[450px] h-full">
             <ChatPanel />
           </div>
         </div>

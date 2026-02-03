@@ -6,6 +6,7 @@ import { MessageBubble } from "./MessageBubble";
 import { ChatInput } from "./ChatInput";
 import { FilePreviewSection } from "./FilePreviewSection";
 import { FileViewerModal } from "./FileViewerModal";
+import Prescription from "./Prescription"; // <-- Importa el componente
 
 interface Message {
   id: number;
@@ -60,6 +61,9 @@ export const ChatPanel = () => {
   });
   const [isAtBottom, setIsAtBottom] = useState(true);
   const [isOnline, setIsOnline] = useState(true);
+  const [currentView, setCurrentView] = useState<"chat" | "prescription">(
+    "chat",
+  );
 
   const messagesAreaRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -377,123 +381,135 @@ export const ChatPanel = () => {
   return (
     <div className="flex flex-col h-full bg-background rounded-xl border border-primary/15 shadow-sm">
       {/* Header */}
-      <ChatHeader isTyping={isTyping} isOnline={isOnline} />
+      <ChatHeader
+        isTyping={isTyping}
+        isOnline={isOnline}
+        currentView={currentView}
+        onViewChange={setCurrentView}
+      />
 
-      {/* Messages area */}
-      <div
-        className="flex-1 p-4 overflow-y-auto relative"
-        ref={messagesAreaRef}
-      >
-        {!isAtBottom && (
-          <div className="absolute bottom-0 left-0 w-full h-10 pointer-events-none bg-gradient-to-t from-background/90 to-transparent z-10" />
-        )}
-        {messages.length === 0 ? (
-          <div className="h-full flex items-center justify-center text-muted-foreground text-sm">
-            No hay mensajes aún
+      {/* Panel condicional */}
+      {currentView === "chat" ? (
+        <>
+          {/* Messages area */}
+          <div
+            className="flex-1 p-4 overflow-y-auto overflow-x-auto relative"
+            ref={messagesAreaRef}
+          >
+            {!isAtBottom && (
+              <div className="absolute bottom-0 left-0 w-full h-10 pointer-events-none bg-gradient-to-t from-background/90 to-transparent z-10" />
+            )}
+            {messages.length === 0 ? (
+              <div className="h-full flex items-center justify-center text-muted-foreground text-sm">
+                No hay mensajes aún
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <AnimatePresence mode="popLayout">
+                  {messages.map((message) => (
+                    <MessageBubble
+                      key={message.id}
+                      message={message}
+                      onViewFile={handleViewFile}
+                      onDownloadFile={handleDownloadFile}
+                      getFileIcon={getFileIcon}
+                      formatFileSize={formatFileSize}
+                      formatDuration={formatDuration}
+                    />
+                  ))}
+                </AnimatePresence>
+
+                {/* Indicador de "escribiendo..." */}
+                <AnimatePresence>
+                  {isTyping && (
+                    <motion.div
+                      variants={typingVariants}
+                      initial="hidden"
+                      animate="visible"
+                      exit="hidden"
+                      className="flex items-start gap-3"
+                    >
+                      <Avatar className="w-8 h-8 flex-shrink-0">
+                        <AvatarImage src="https://i.pinimg.com/736x/6b/8b/0a/6b8b0aa412e8b2f5b7587c0e87a2f46e.jpg" />
+                        <AvatarFallback>DR</AvatarFallback>
+                      </Avatar>
+                      <div className="bg-muted rounded-2xl rounded-bl-sm px-5 py-4">
+                        <div className="flex gap-2">
+                          <motion.div
+                            className="w-2 h-2 bg-muted-foreground/40 rounded-full"
+                            animate={{ y: [0, -8, 0] }}
+                            transition={{
+                              duration: 0.6,
+                              repeat: Infinity,
+                              delay: 0,
+                            }}
+                          />
+                          <motion.div
+                            className="w-2 h-2 bg-muted-foreground/40 rounded-full"
+                            animate={{ y: [0, -8, 0] }}
+                            transition={{
+                              duration: 0.6,
+                              repeat: Infinity,
+                              delay: 0.2,
+                            }}
+                          />
+                          <motion.div
+                            className="w-2 h-2 bg-muted-foreground/40 rounded-full"
+                            animate={{ y: [0, -8, 0] }}
+                            transition={{
+                              duration: 0.6,
+                              repeat: Infinity,
+                              delay: 0.4,
+                            }}
+                          />
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                <div ref={messagesEndRef} />
+              </div>
+            )}
           </div>
-        ) : (
-          <div className="space-y-4">
-            <AnimatePresence mode="popLayout">
-              {messages.map((message) => (
-                <MessageBubble
-                  key={message.id}
-                  message={message}
-                  onViewFile={handleViewFile}
-                  onDownloadFile={handleDownloadFile}
-                  getFileIcon={getFileIcon}
-                  formatFileSize={formatFileSize}
-                  formatDuration={formatDuration}
-                />
-              ))}
-            </AnimatePresence>
 
-            {/* Indicador de "escribiendo..." */}
-            <AnimatePresence>
-              {isTyping && (
-                <motion.div
-                  variants={typingVariants}
-                  initial="hidden"
-                  animate="visible"
-                  exit="hidden"
-                  className="flex items-start gap-3"
-                >
-                  <Avatar className="w-8 h-8 flex-shrink-0">
-                    <AvatarImage src="https://i.pinimg.com/736x/6b/8b/0a/6b8b0aa412e8b2f5b7587c0e87a2f46e.jpg" />
-                    <AvatarFallback>DR</AvatarFallback>
-                  </Avatar>
-                  <div className="bg-muted rounded-2xl rounded-bl-sm px-5 py-4">
-                    <div className="flex gap-2">
-                      <motion.div
-                        className="w-2 h-2 bg-muted-foreground/40 rounded-full"
-                        animate={{ y: [0, -8, 0] }}
-                        transition={{
-                          duration: 0.6,
-                          repeat: Infinity,
-                          delay: 0,
-                        }}
-                      />
-                      <motion.div
-                        className="w-2 h-2 bg-muted-foreground/40 rounded-full"
-                        animate={{ y: [0, -8, 0] }}
-                        transition={{
-                          duration: 0.6,
-                          repeat: Infinity,
-                          delay: 0.2,
-                        }}
-                      />
-                      <motion.div
-                        className="w-2 h-2 bg-muted-foreground/40 rounded-full"
-                        animate={{ y: [0, -8, 0] }}
-                        transition={{
-                          duration: 0.6,
-                          repeat: Infinity,
-                          delay: 0.4,
-                        }}
-                      />
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+          {/* File Previews */}
+          <FilePreviewSection
+            previewImage={previewImage}
+            filePreview={filePreview}
+            onClearImagePreview={() => setPreviewImage(null)}
+            onClearFilePreview={() => setFilePreview(null)}
+            getFileIcon={getFileIcon}
+            formatFileSize={formatFileSize}
+          />
 
-            <div ref={messagesEndRef} />
-          </div>
-        )}
-      </div>
+          {/* Input area */}
+          <ChatInput
+            inputValue={inputValue}
+            setInputValue={setInputValue}
+            isRecording={isRecording}
+            recordingTime={recordingTime}
+            previewImage={previewImage}
+            filePreview={filePreview}
+            onSendMessage={handleSendMessage}
+            onImageSelect={handleImageSelect}
+            onFileSelect={handleFileSelect}
+            onStartRecording={startRecording}
+            onStopRecording={stopRecording}
+            formatDuration={formatDuration}
+          />
 
-      {/* File Previews */}
-      <FilePreviewSection
-        previewImage={previewImage}
-        filePreview={filePreview}
-        onClearImagePreview={() => setPreviewImage(null)}
-        onClearFilePreview={() => setFilePreview(null)}
-        getFileIcon={getFileIcon}
-        formatFileSize={formatFileSize}
-      />
-
-      {/* Input area */}
-      <ChatInput
-        inputValue={inputValue}
-        setInputValue={setInputValue}
-        isRecording={isRecording}
-        recordingTime={recordingTime}
-        previewImage={previewImage}
-        filePreview={filePreview}
-        onSendMessage={handleSendMessage}
-        onImageSelect={handleImageSelect}
-        onFileSelect={handleFileSelect}
-        onStartRecording={startRecording}
-        onStopRecording={stopRecording}
-        formatDuration={formatDuration}
-      />
-
-      {/* File Viewer Modal */}
-      <FileViewerModal
-        viewerModal={viewerModal}
-        onOpenChange={(open) => setViewerModal({ ...viewerModal, open })}
-        onDownloadFile={handleDownloadFile}
-        getFileIcon={getFileIcon}
-      />
+          {/* File Viewer Modal */}
+          <FileViewerModal
+            viewerModal={viewerModal}
+            onOpenChange={(open) => setViewerModal({ ...viewerModal, open })}
+            onDownloadFile={handleDownloadFile}
+            getFileIcon={getFileIcon}
+          />
+        </>
+      ) : (
+        <Prescription />
+      )}
     </div>
   );
 };

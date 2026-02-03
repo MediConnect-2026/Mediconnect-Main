@@ -38,7 +38,7 @@ const MCDashboardContent: React.FC<Props> = ({
           isMobile
             ? "flex flex-col"
             : isTele
-              ? "grid grid-cols-[1fr_9fr_0.5fr]"
+              ? "grid grid-cols-[0.5fr_9fr_0.5fr]"
               : "grid grid-cols-[1fr_8fr_1fr]"
         } justify-items-center `}
       >
