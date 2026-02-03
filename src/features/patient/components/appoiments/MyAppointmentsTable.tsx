@@ -33,6 +33,7 @@ import {
   PopoverAnchor,
 } from "@/shared/ui/popover";
 import AppointmentActions from "./AppointmentActions";
+import { MCUserAvatar } from "@/shared/navigation/userMenu/MCUserAvatar";
 
 export interface Appointment {
   id: string;
@@ -107,18 +108,30 @@ export function MyAppointmentsTable({ data }: MyAppointmentsTableProps) {
               <TableRow key={row.id}>
                 <TableCell className="w-[250px]">
                   <div className="flex items-center gap-2">
-                    <Avatar className="h-16 w-16">
-                      <AvatarImage
-                        src={row.doctorAvatar}
-                        alt={row.doctorName}
-                      />
-                      <AvatarFallback>
-                        {row.doctorName
-                          .split(" ")
-                          .map((n) => n[0])
-                          .join("")}
-                      </AvatarFallback>
-                    </Avatar>
+                    <div className="h-16 w-16 relative overflow-hidden rounded-full border border-primary/10 bg-muted flex items-center justify-center">
+                      {row.doctorAvatar ? (
+                        <Avatar className="h-16 w-16 rounded-full overflow-hidden">
+                          <AvatarImage
+                            src={row.doctorAvatar}
+                            alt={row.doctorName}
+                            className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
+                          />
+                          <AvatarFallback className="bg-muted text-muted-foreground">
+                            {row.doctorName
+                              .split(" ")
+                              .map((n) => n[0])
+                              .join("")}
+                          </AvatarFallback>
+                        </Avatar>
+                      ) : (
+                        <MCUserAvatar
+                          name={row.doctorName}
+                          square
+                          size={64}
+                          className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
+                        />
+                      )}
+                    </div>
                     <div>
                       <div className="font-medium">{row.doctorName}</div>
                       <div className="text-xs text-muted-foreground">

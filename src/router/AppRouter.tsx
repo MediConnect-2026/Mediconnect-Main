@@ -25,6 +25,8 @@ import CenterDashboard from "@/features/center/pages/DashboardPage";
 import PatientProfilePage from "@/features/patient/pages/PatientProfilePage";
 import Search from "@/features/search/pages/Search";
 import ScheduleAppointment from "@/features/patient/pages/ScheduleAppointment";
+import TeleconsultConfirmPage from "@/features/teleconsultation/pages/TeleconsultConfirmPage";
+import TeleconsultRoomPage from "@/features/teleconsultation/pages/TeleconsultRoomPage";
 
 //Settings and Privacy Pages Imports
 import AccountOverviewPage from "@/features/account/settings/pages/AccountOverviewPage";
@@ -39,6 +41,7 @@ import ProfileVisibilityPage from "@/features/account/privacy/pages/ProfileVisib
 import BlockedUsersPage from "@/features/account/privacy/pages/BlockedUsersPage";
 import MessagesPrivacyPage from "@/features/account/privacy/pages/MessagesPrivacyPage";
 import MyAppointmentsPage from "@/features/patient/pages/MyAppointmentsPage";
+
 function AppRouter() {
   return (
     <BrowserRouter>
@@ -170,6 +173,14 @@ function AppRouter() {
             <Route
               path={ROUTES.PRIVACY.BLOCKED_USERS}
               element={<BlockedUsersPage />}
+            />
+            <Route
+              path={ROUTES.TELECONSULT.CONFIRM}
+              element={<TeleconsultConfirmPage />}
+            />
+            <Route
+              path={ROUTES.TELECONSULT.ROOM}
+              element={<TeleconsultRoomPage />}
             />
           </Route>
         </Route>

@@ -76,8 +76,7 @@ const mockAppointments: Appointment[] = [
     doctorId: "d2",
     doctorName: "Mariana López",
     doctorSpecialty: "Terapeuta",
-    doctorAvatar:
-      "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=150&h=150&fit=crop&crop=face",
+    doctorAvatar: "",
     evaluationType: "Evaluación Cardíaca Integral",
     date: "28 Oct, 2025",
     time: "10:30 AM",
@@ -245,8 +244,20 @@ const ITEMS_PER_PAGE = 6;
 function MyAppointmentsPage() {
   const navigate = useNavigate();
   const { t } = useTranslation();
+
+  // Lee la preferencia de vista del localStorage (por defecto "card")
+  const [showCards, setShowCards] = useState(() => {
+    const saved = localStorage.getItem("appointmentsView");
+    return saved ? saved === "card" : true;
+  });
+
+  // Guarda la preferencia cada vez que cambia
+  const handleToggleView = (val: string) => {
+    setShowCards(val === "card");
+    localStorage.setItem("appointmentsView", val);
+  };
+
   // Estados locales con useState
-  const [showCards, setShowCards] = useState(true);
   const [upcomingPage, setUpcomingPage] = useState(1);
   const [historicalPage, setHistoricalPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
@@ -552,10 +563,7 @@ function MyAppointmentsPage() {
 
   // Componentes
   const toggleView = (
-    <MCToogle
-      value={showCards ? "card" : "list"}
-      onChange={(val) => setShowCards(val === "card")}
-    />
+    <MCToogle value={showCards ? "card" : "list"} onChange={handleToggleView} />
   );
 
   const pdfGeneratorComponent = (

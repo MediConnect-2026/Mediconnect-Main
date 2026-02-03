@@ -36,6 +36,7 @@ export interface Appointment {
   location?: string;
   status: "scheduled" | "pending" | "in_progress" | "completed" | "cancelled";
 }
+import { MCUserAvatar } from "@/shared/navigation/userMenu/MCUserAvatar";
 
 interface MyAppointmentsCardsProps {
   appointment: Appointment;
@@ -68,18 +69,30 @@ export function MyAppointmentsCards({
     <Card className="p-4 flex flex-col gap-3 min-h-[260px] border rounded-3xl bg-bg-secondary border-primary/15">
       <CardHeader className="flex flex-row items-center justify-between gap-2 p-0">
         <div className="flex items-center gap-2">
-          <Avatar className="h-20 w-20">
-            <AvatarImage
-              src={appointment.doctorAvatar}
-              alt={appointment.doctorName}
-            />
-            <AvatarFallback className="bg-muted text-muted-foreground">
-              {appointment.doctorName
-                .split(" ")
-                .map((n) => n[0])
-                .join("")}
-            </AvatarFallback>
-          </Avatar>
+          <div className="h-20 w-20 relative overflow-hidden rounded-full border border-primary/10 bg-muted flex items-center justify-center">
+            {appointment.doctorAvatar ? (
+              <Avatar className="h-20 w-20 rounded-full overflow-hidden">
+                <AvatarImage
+                  src={appointment.doctorAvatar}
+                  alt={appointment.doctorName}
+                  className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
+                />
+                <AvatarFallback className="bg-muted text-muted-foreground">
+                  {appointment.doctorName
+                    .split(" ")
+                    .map((n) => n[0])
+                    .join("")}
+                </AvatarFallback>
+              </Avatar>
+            ) : (
+              <MCUserAvatar
+                name={appointment.doctorName}
+                square
+                size={96}
+                className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
+              />
+            )}
+          </div>
           <div>
             {appointment.doctorName.length > 20 ? (
               <TooltipProvider>
@@ -192,14 +205,16 @@ export function MyAppointmentsCards({
                   >
                     {t("appointments.join")}
                   </MCButton>
-                  <MCButton
-                    variant="outline"
-                    onClick={() => onViewDetails?.(appointment.id)}
-                    className="flex-1 w-full"
-                    size="sm"
-                  >
-                    {t("appointments.viewDetails")}
-                  </MCButton>
+                  <ViewDetailsAppointmentDialog appointmentId={appointment.id}>
+                    <MCButton
+                      variant="outline"
+                      onClick={() => onViewDetails?.(appointment.id)}
+                      className="flex-1 w-full"
+                      size="sm"
+                    >
+                      {t("appointments.viewDetails")}
+                    </MCButton>{" "}
+                  </ViewDetailsAppointmentDialog>
                 </>
               ) : (
                 // Presencial + en progreso: solo Ver detalles

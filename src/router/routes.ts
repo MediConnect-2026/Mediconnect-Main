@@ -23,6 +23,11 @@ export const ROUTES = {
   RESET_PASSWORD: "/reset-password",
   PASSWORD_SUCCESS: "/password-success",
 
+  TELECONSULT: {
+    CONFIRM: "/teleconsult/:appointmentId/confirm",
+    ROOM: "/teleconsult/:appointmentId/room",
+  },
+
   // --- DASHBOARD PACIENTE ---
   PATIENT: {
     HOME: "/patient/dashboard",
