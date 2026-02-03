@@ -26,9 +26,17 @@ import {
   PaginationPrevious,
   PaginationNext,
 } from "@/shared/ui/pagination";
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+  PopoverAnchor,
+} from "@/shared/ui/popover";
+import AppointmentActions from "./AppointmentActions";
 
 export interface Appointment {
   id: string;
+  doctorId: string;
   doctorName: string;
   doctorAvatar: string;
   doctorSpecialty: string;
@@ -162,9 +170,20 @@ export function MyAppointmentsTable({ data }: MyAppointmentsTableProps) {
                   <MCAppointmentsStatus status={row.status} />
                 </TableCell>
                 <TableCell className="w-[80px]">
-                  <Button variant="ghost" size="icon">
-                    <Ellipsis className="h-4 w-4" />
-                  </Button>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="bg-bg-btn-secondary rounded-full transition-colors hover:bg-primary/10 active:bg-primary/20 group"
+                      >
+                        <Ellipsis className="h-4 w-4 text-primary group-hover:text-primary/80 group-active:text-primary/60" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent isTablet placement="left">
+                      <AppointmentActions appointment={row} />
+                    </PopoverContent>
+                  </Popover>
                 </TableCell>
               </TableRow>
             ))

@@ -71,7 +71,9 @@ function ScheduleAppointment() {
             <h1
               className={`${isMobile ? "text-2xl" : "text-3xl"} font-semibold text-primary`}
             >
-              {t("appointments.details", "Confirm Appointment")}
+              {appointmentDetails.appointmentId
+                ? t("appointments.reschedule", "Reschedule Appointment")
+                : t("appointments.details", "Confirm Appointment")}
             </h1>
             <p>prueba {appointmentDetails.doctorId}</p>
             <div className="flex items-center gap-2">
@@ -297,7 +299,9 @@ function ScheduleAppointment() {
             size={isMobile ? "xl" : "l"}
             variant="primary"
           >
-            {t("appointments.schedule", "Confirm appointment")}
+            {appointmentDetails.appointmentId
+              ? t("appointments.reschedule", "Reschedule appointment")
+              : t("appointments.schedule", "Confirm appointment")}
           </MCButton>
         </main>
         {!isMobile && <div />}

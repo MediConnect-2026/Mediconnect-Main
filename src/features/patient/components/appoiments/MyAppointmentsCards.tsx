@@ -181,36 +181,49 @@ export function MyAppointmentsCards({
       <CardFooter className="flex flex-wrap gap-2 pt-2 p-0 mt-auto">
         {isUpcoming ? (
           <>
-            {isInProgress && isVirtual ? (
-              <>
+            {isInProgress ? (
+              isVirtual ? (
+                // Virtual + en progreso: Unirse y Ver detalles
+                <>
+                  <MCButton
+                    onClick={() => onJoin?.(appointment.id)}
+                    className="flex-1 w-full"
+                    size="sm"
+                  >
+                    {t("appointments.join")}
+                  </MCButton>
+                  <MCButton
+                    variant="outline"
+                    onClick={() => onViewDetails?.(appointment.id)}
+                    className="flex-1 w-full"
+                    size="sm"
+                  >
+                    {t("appointments.viewDetails")}
+                  </MCButton>
+                </>
+              ) : (
+                // Presencial + en progreso: solo Ver detalles
                 <MCButton
-                  onClick={() => onJoin?.(appointment.id)}
-                  className="flex-1 w-full"
-                  size="sm"
-                >
-                  {t("appointments.join")}
-                </MCButton>
-                <MCButton
-                  variant="outline"
+                  variant="primary"
                   onClick={() => onViewDetails?.(appointment.id)}
                   className="flex-1 w-full"
                   size="sm"
                 >
                   {t("appointments.viewDetails")}
                 </MCButton>
-              </>
+              )
             ) : (
+              // Otros estados: todos los botones
               <div className="flex w-full gap-2">
                 <ViewDetailsAppointmentDialog appointmentId={appointment.id}>
                   <MCButton
                     onClick={() => onViewDetails?.(appointment.id)}
                     size="sm"
-                    className="w-full flex-1  "
+                    className="w-full flex-1"
                   >
                     {t("appointments.viewDetails")}
                   </MCButton>
                 </ViewDetailsAppointmentDialog>
-
                 <ScheduleAppointmentDialog
                   idProvider={appointment.doctorId}
                   idAppointment={appointment.id}
@@ -240,7 +253,7 @@ export function MyAppointmentsCards({
           <ViewDetailsAppointmentDialog appointmentId={appointment.id}>
             <MCButton
               onClick={() => onViewDetails?.(appointment.id)}
-              className="w-full flex-1  "
+              className="w-full flex-1"
               size="sm"
             >
               {t("appointments.viewDetails")}

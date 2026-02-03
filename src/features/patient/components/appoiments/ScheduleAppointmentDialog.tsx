@@ -503,7 +503,7 @@ function ScheduleAppointmentDialog({
   const onSubmit = (data: scheduleAppointment) => {
     if (isRescheduling && data.appointmentId) {
       addAppointment(data);
-      navigate("/patient/appointments");
+      navigate("/patient/schedule-appointment");
     } else {
       addAppointment(data);
       navigate("/patient/schedule-appointment");
