@@ -38,7 +38,7 @@ export const VideoCall = ({
       {onToggleFullscreen && (
         <button
           onClick={onToggleFullscreen}
-          className="absolute top-4 right-4 p-3 rounded-lg bg-black/30 hover:bg-black/50 transition-colors backdrop-blur-sm border border-white/10 z-10"
+          className="absolute top-4 right-4 p-3 rounded-full bg-black/30 hover:bg-black/50 transition-colors backdrop-blur-sm border border-white/10 z-10"
           title={
             isFullscreen ? "Salir de pantalla completa" : "Pantalla completa"
           }
@@ -53,7 +53,7 @@ export const VideoCall = ({
 
       {/* Self video preview */}
       <div
-        className={`absolute ${isFullscreen ? "bottom-24 right-8 w-48 h-36" : "bottom-20 right-6 w-32 h-24"} rounded-lg overflow-hidden shadow-2xl border border-white/20 transition-all duration-300`}
+        className={`absolute ${isFullscreen ? "bottom-24 right-8 w-48 h-48" : "bottom-20 right-6 w-32 h-32"} rounded-lg overflow-hidden shadow-2xl border border-white/20 transition-all duration-300`}
       >
         <img
           src="https://i.pinimg.com/736x/6b/8b/0a/6b8b0aa412e8b2f5b7587c0e87a2f46e.jpg"
@@ -96,20 +96,6 @@ export const VideoCall = ({
           title="Finalizar llamada"
         >
           <PhoneOff className="w-5 h-5 text-white" />
-        </button>
-
-        <button
-          className="p-4 rounded-full bg-black/40 hover:bg-black/60 transition-all backdrop-blur-sm border border-white/10"
-          title="Mensajes"
-        >
-          <MessageSquare className="w-5 h-5 text-white" />
-        </button>
-
-        <button
-          className="p-4 rounded-full bg-black/40 hover:bg-black/60 transition-all backdrop-blur-sm border border-white/10"
-          title="Compartir pantalla"
-        >
-          <Share2 className="w-5 h-5 text-white" />
         </button>
       </div>
     </div>

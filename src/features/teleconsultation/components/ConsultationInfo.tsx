@@ -33,7 +33,6 @@ export const ConsultationInfo = () => {
   return (
     <div className="bg-background p-6 rounded-2xl border border-primary/15 shadow-sm">
       <div className="grid md:grid-cols-2 gap-8">
-        {/* Left column - Consultation info */}
         <div>
           <h3 className="text-lg font-semibold mb-4">
             Información de la consulta
@@ -72,36 +71,35 @@ export const ConsultationInfo = () => {
             </div>
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-2">
             <div className="flex items-center gap-3 text-sm">
-              <Calendar className="w-4 h-4 text-muted-foreground" />
+              <Calendar className="w-4 h-4 text-secondary" />
               <span>{consultationData.date}</span>
             </div>
             <div className="flex items-center gap-3 text-sm">
-              <Clock className="w-4 h-4 text-muted-foreground" />
+              <Clock className="w-4 h-4 text-secondary" />
               <span>{consultationData.time}</span>
             </div>
             <div className="flex items-center gap-3 text-sm">
-              <Stethoscope className="w-4 h-4 text-muted-foreground" />
+              <Stethoscope className="w-4 h-4 text-secondary" />
               <span>{consultationData.type}</span>
             </div>
             <div className="flex items-center gap-3 text-sm">
-              <MapPin className="w-4 h-4 text-muted-foreground" />
+              <MapPin className="w-4 h-4 text-secondary" />
               <span>{consultationData.location}</span>
             </div>
           </div>
         </div>
 
-        {/* Right column - Additional sections */}
         <div>
           <h3 className="text-lg font-semibold mb-4">Secciones Adicionales</h3>
-          <div className="space-y-3">
+          <div className="space-y-4">
             {additionalSections.map((section, index) => (
               <button
                 key={index}
                 className="flex items-center gap-3 text-sm text-muted-foreground hover:text-foreground transition-colors w-full text-left"
               >
-                <section.icon className="w-4 h-4" />
+                <section.icon className="w-4 h-4 text-secondary" />
                 <span>{section.label}</span>
               </button>
             ))}

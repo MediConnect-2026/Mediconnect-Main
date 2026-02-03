@@ -23,7 +23,7 @@ interface MCDialogBaseProps {
   onConfirm?: () => void;
   onSecondary?: () => void;
   variant?: "warning" | "confirm" | "decide" | "info";
-  size?: "sm" | "md" | "lg" | "xl" | "2xl";
+  size?: "sm" | "md" | "lg" | "xl" | "2xl" | "image-preview";
   className?: string;
   zIndex?: number;
   borderHeader?: boolean;
@@ -78,6 +78,9 @@ export function MCDialogBase({
     lg: isMobile ? "w-[95vw] h-[80vh]" : "w-[672px] h-[700px]",
     xl: isMobile ? "w-[98vw] h-[85vh]" : "w-[896px] h-[800px]",
     "2xl": isMobile ? "w-[100vw] h-[90vh]" : "w-[1152px] h-[900px]",
+    "image-preview": isMobile
+      ? "w-auto max-w-[98vw] h-auto max-h-[80vh]"
+      : "w-auto max-w-[520px] h-auto max-h-[80vh]",
   };
 
   // Espaciado adaptativo para móvil
@@ -94,19 +97,13 @@ export function MCDialogBase({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className={`bg-bg-secondary rounded-3xl shadow-lg ${sizeClasses[size]} ${className} flex flex-col overflow-hidden p-0`}
+        className={`bg-bg-secondary rounded-3xl  border-2 border-transparent  dark:border-white/15 shadow-lg ${sizeClasses[size]} ${className} flex flex-col overflow-hidden p-0`}
         style={{ zIndex }}
       >
         {/* Header */}
         {(title || description) && (
           <DialogHeader
-            className={`flex justify-between items-start ${headerPadding} flex-shrink-0
-              ${
-                borderHeader
-                  ? "border-b border-gray-100 dark:border-neutral-800"
-                  : ""
-              }
-            `}
+            className={`flex justify-between items-start ${headerPadding} flex-shrink-0`}
           >
             <div className="flex-1">
               {title && (
