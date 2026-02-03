@@ -5,7 +5,7 @@ import MCDashboardContent from "@/shared/layout/MCDashboardContent";
 import { VideoCall } from "../components/VideoCall";
 import { teleconsultAppointment } from "@/data/teleconsult";
 import { ConsultationInfo } from "../components/ConsultationInfo";
-import { ChatPanel } from "../components/ChatPanel";
+import { ChatPanel } from "../components/chatPanel/ChatPanel";
 
 function TeleconsultRoomPage() {
   const { appointmentId } = useParams();
@@ -46,7 +46,7 @@ function TeleconsultRoomPage() {
               />
             </div>
 
-            <ConsultationInfo />
+            <ConsultationInfo appointmentId={appointmentId || ""} />
           </div>
 
           {/* Columna derecha: ChatPanel ocupa todo el alto */}

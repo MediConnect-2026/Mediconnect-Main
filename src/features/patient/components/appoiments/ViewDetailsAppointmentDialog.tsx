@@ -33,6 +33,7 @@ interface ViewDetailsAppointmentDialogProps {
   appointmentDetails?: React.ReactNode;
   hospitalDetails?: React.ReactNode;
   status?: string;
+  preview?: "details" | "history";
 }
 
 function DetailsTabContent({ appointment }: { appointment: Appointment }) {
@@ -347,6 +348,7 @@ function ViewDetailsAppointmentDialog({
   appointmentId,
   appointmentDetails,
   hospitalDetails,
+  preview = "details",
   status = "pending",
 }: ViewDetailsAppointmentDialogProps) {
   const { t } = useTranslation("patient");
@@ -394,12 +396,12 @@ function ViewDetailsAppointmentDialog({
       size="xl"
       variant="info"
     >
-      <Tabs defaultValue="details">
+      <Tabs defaultValue={preview}>
         <TabsList variant="line" className="mb-4">
           <TabsTrigger value="details" className="text-lg">
             {t("appointment.detailsTab")}
           </TabsTrigger>
-          <TabsTrigger value="hospital" className="text-lg">
+          <TabsTrigger value="history" className="text-lg">
             {t("appointment.historyTab")}
           </TabsTrigger>
         </TabsList>
@@ -422,7 +424,7 @@ function ViewDetailsAppointmentDialog({
             </div>
           )}
         </TabsContent>
-        <TabsContent value="hospital">
+        <TabsContent value="history">
           {hospitalDetails ? (
             hospitalDetails
           ) : (

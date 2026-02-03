@@ -10,6 +10,10 @@ import {
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/avatar";
 import { MCUserAvatar } from "@/shared/navigation/userMenu/MCUserAvatar";
+import ViewDetailsAppointmentDialog from "@/features/patient/components/appoiments/ViewDetailsAppointmentDialog";
+import MedicalPrescriptionDialog from "@/features/patient/components/appoiments/MedicalPrescriptionDialog";
+import { useAppStore } from "@/stores/useAppStore";
+import { mockAppointments } from "@/data/appointments"; // Adjust path if needed
 const consultationData = {
   doctor: {
     name: "Dr. Cristiano Ronaldo",
@@ -29,7 +33,21 @@ const additionalSections = [
   { icon: File, label: "Detalles de la cita" },
 ];
 
-export const ConsultationInfo = () => {
+interface ConsultationInfoProps {
+  // Puedes agregar props si es necesario
+  appointmentId: string;
+}
+
+export const ConsultationInfo = (props: ConsultationInfoProps) => {
+  const userRole = useAppStore((state) => state.user?.role);
+
+  // Find the appointment and get the last historyId
+  const appointment = mockAppointments.find(
+    (a) => a.id === props.appointmentId,
+  );
+  const mostRecentHistoryId =
+    appointment?.history?.[appointment.history.length - 1]?.id;
+
   return (
     <div className="bg-background p-6 rounded-2xl border border-primary/15 shadow-sm">
       <div className="grid md:grid-cols-2 gap-8">
@@ -93,16 +111,66 @@ export const ConsultationInfo = () => {
 
         <div>
           <h3 className="text-lg font-semibold mb-4">Secciones Adicionales</h3>
-          <div className="space-y-4">
-            {additionalSections.map((section, index) => (
-              <button
-                key={index}
-                className="flex items-center gap-3 text-sm text-muted-foreground hover:text-foreground transition-colors w-full text-left"
-              >
-                <section.icon className="w-4 h-4 text-secondary" />
-                <span>{section.label}</span>
-              </button>
-            ))}
+          <div className="space-y-2">
+            {additionalSections.map((section, index) => {
+              if (section.label === "Detalles de la cita") {
+                return (
+                  <ViewDetailsAppointmentDialog
+                    appointmentId={props.appointmentId}
+                    preview="details"
+                    key={index}
+                  >
+                    <button className="flex items-center gap-3 text-sm text-muted-foreground hover:text-foreground hover:bg-bg-btn-secondary w-fit p-2 transition-colors rounded-full text-left">
+                      <section.icon className="w-4 h-4 text-secondary" />
+                      <span>{section.label}</span>
+                    </button>
+                  </ViewDetailsAppointmentDialog>
+                );
+              }
+              if (section.label === "Citas pasadas") {
+                return (
+                  <ViewDetailsAppointmentDialog
+                    appointmentId={props.appointmentId}
+                    preview="history"
+                    key={index}
+                  >
+                    <button className="flex items-center gap-3 text-sm text-muted-foreground hover:text-foreground hover:bg-bg-btn-secondary w-fit p-2 transition-colors rounded-full text-left">
+                      <section.icon className="w-4 h-4 text-secondary" />
+                      <span>{section.label}</span>
+                    </button>
+                  </ViewDetailsAppointmentDialog>
+                );
+              }
+              if (
+                section.label === "Detalle del Paciente" &&
+                userRole === "PATIENT"
+              ) {
+                return null; // Hide for patients
+              }
+              if (section.label === "Última Consulta" && mostRecentHistoryId) {
+                return (
+                  <MedicalPrescriptionDialog
+                    appointmentId={props.appointmentId}
+                    historyId={mostRecentHistoryId}
+                    key={index}
+                  >
+                    <button className="flex items-center gap-3 text-sm text-muted-foreground hover:text-foreground hover:bg-bg-btn-secondary w-fit p-2 transition-colors rounded-full text-left">
+                      <section.icon className="w-4 h-4 text-secondary" />
+                      <span>{section.label}</span>
+                    </button>
+                  </MedicalPrescriptionDialog>
+                );
+              }
+              return (
+                <button
+                  key={index}
+                  className="flex items-center gap-3 text-sm text-muted-foreground hover:text-foreground hover:bg-bg-btn-secondary w-fit p-2 transition-colors rounded-full text-left"
+                >
+                  <section.icon className="w-4 h-4 text-secondary" />
+                  <span>{section.label}</span>
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>
