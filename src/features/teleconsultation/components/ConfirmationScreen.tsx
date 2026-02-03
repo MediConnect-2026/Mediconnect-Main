@@ -1,7 +1,156 @@
-import React from "react";
+import { Calendar, Clock, Stethoscope, Video } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/avatar";
+import MCButton from "@/shared/components/forms/MCButton";
+import { MCUserAvatar } from "@/shared/navigation/userMenu/MCUserAvatar";
+import { useIsMobile } from "@/lib/hooks/useIsMobile";
+import { useNavigate } from "react-router-dom";
 
-function ConfirmationScreen() {
-  return <div>ConfirmationScreen</div>;
+interface ConfirmationScreenProps {
+  onJoinCall: () => void;
+  appointment?: {
+    doctorAvatar?: string;
+    doctorName: string;
+    doctorSpecialty: string;
+    date: string;
+    time: string;
+    service: string;
+  };
 }
 
-export default ConfirmationScreen;
+export const ConfirmationScreen = ({
+  onJoinCall,
+  appointment,
+}: ConfirmationScreenProps) => {
+  const doctorName = appointment?.doctorName || "Dr. Cristiano Ronaldo";
+  const doctorAvatar = appointment?.doctorAvatar;
+  const doctorSpecialty =
+    appointment?.doctorSpecialty || "Especialista en Medicina Interna";
+  const date = appointment?.date || "15 de octubre, 2025";
+  const time = appointment?.time || "10:00 AM - 10:45 AM";
+  const service = appointment?.service || "Plan Nutricional";
+  const isMobile = useIsMobile();
+
+  return (
+    <div className="flex items-center justify-center p-4 min-h-screen md:min-h-0">
+      <div className="w-full max-w-2xl">
+        {/* Header */}
+        <div className="w-full flex flex-col justify-center items-center text-primary text-center mb-6 md:mb-8">
+          <h1 className="text-2xl md:text-4xl font-semibold mb-2">
+            Confirmación de Teleconsulta
+          </h1>
+          <p className="opacity-80 text-base md:text-lg">
+            Estás a punto de iniciar una videollamada
+          </p>
+        </div>
+
+        {/* Doctor info card */}
+        <div className="bg-background border border-primary/10 p-4 md:p-8 rounded-2xl md:rounded-3xl mb-6">
+          {/* Mobile: Vertical layout */}
+          <div className="flex flex-col md:hidden space-y-4">
+            {/* Doctor avatar and basic info */}
+            <div className="flex items-center gap-3">
+              <div className="h-16 w-16 relative overflow-hidden rounded-full border border-primary/10 bg-muted flex items-center justify-center flex-shrink-0">
+                {doctorAvatar ? (
+                  <Avatar className="h-16 w-16 rounded-full overflow-hidden">
+                    <AvatarImage
+                      src={doctorAvatar}
+                      alt={doctorName}
+                      className="w-full h-full object-cover"
+                    />
+                    <AvatarFallback className="bg-muted text-muted-foreground">
+                      {doctorName
+                        .split(" ")
+                        .map((n) => n[0])
+                        .join("")}
+                    </AvatarFallback>
+                  </Avatar>
+                ) : (
+                  <MCUserAvatar
+                    name={doctorName}
+                    square
+                    size={64}
+                    className="w-full h-full object-cover"
+                  />
+                )}
+              </div>
+              <div className="text-left flex-1 min-w-0">
+                <p className="font-semibold text-base truncate">{doctorName}</p>
+                <p className="text-sm text-muted-foreground line-clamp-2">
+                  {doctorSpecialty}
+                </p>
+              </div>
+            </div>
+
+            {/* Appointment details */}
+            <div className="space-y-2.5 pl-1">
+              <div className="flex items-center gap-2.5 text-sm text-muted-foreground">
+                <Calendar className="w-4 h-4 flex-shrink-0" />
+                <span>{date}</span>
+              </div>
+              <div className="flex items-center gap-2.5 text-sm text-muted-foreground">
+                <Clock className="w-4 h-4 flex-shrink-0" />
+                <span>{time}</span>
+              </div>
+              <div className="flex items-center gap-2.5 text-sm text-muted-foreground">
+                <Stethoscope className="w-4 h-4 flex-shrink-0" />
+                <span>{service}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Desktop: Horizontal layout */}
+          <div className="hidden md:flex items-center gap-4">
+            <div className="h-20 w-20 relative overflow-hidden rounded-full border border-primary/10 bg-muted flex items-center justify-center flex-shrink-0">
+              {doctorAvatar ? (
+                <Avatar className="h-20 w-20 rounded-full overflow-hidden">
+                  <AvatarImage
+                    src={doctorAvatar}
+                    alt={doctorName}
+                    className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
+                  />
+                  <AvatarFallback className="bg-muted text-muted-foreground">
+                    {doctorName
+                      .split(" ")
+                      .map((n) => n[0])
+                      .join("")}
+                  </AvatarFallback>
+                </Avatar>
+              ) : (
+                <MCUserAvatar
+                  name={doctorName}
+                  square
+                  size={96}
+                  className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
+                />
+              )}
+            </div>
+            <div className="text-left">
+              <p className="font-semibold">{doctorName}</p>
+              <p className="text-sm text-muted-foreground">{doctorSpecialty}</p>
+            </div>
+            <div className="ml-auto text-left space-y-2">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Calendar className="w-4 h-4" />
+                <span>{date}</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Clock className="w-4 h-4" />
+                <span>{time}</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Stethoscope className="w-4 h-4" />
+                <span>{service}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Join button */}
+        <MCButton onClick={onJoinCall} className="w-full gap-2" size="l">
+          <Video className="w-5 h-5" />
+          <span className="text-sm md:text-base">Unirse a la teleconsulta</span>
+        </MCButton>
+      </div>
+    </div>
+  );
+};

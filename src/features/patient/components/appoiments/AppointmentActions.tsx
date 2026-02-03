@@ -1,5 +1,7 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
+import { ROUTES } from "@/router/routes";
 import ScheduleAppointmentDialog from "@/features/patient/components/appoiments/ScheduleAppointmentDialog";
 import CancelAppointmentDialog from "@/features/patient/components/appoiments/CancelAppointmentDialog";
 import ViewDetailsAppointmentDialog from "./ViewDetailsAppointmentDialog";
@@ -22,6 +24,13 @@ export default function AppointmentActions({
   );
   const isVirtual = appointment.appointmentType === "virtual";
   const isInProgress = appointment.status === "in_progress";
+  const navigate = useNavigate();
+
+  const handleJoin = (appointmentId: string) => {
+    navigate(
+      ROUTES.TELECONSULT.CONFIRM.replace(":appointmentId", appointmentId),
+    );
+  };
 
   if (isUpcoming) {
     if (isInProgress) {
@@ -31,7 +40,7 @@ export default function AppointmentActions({
           <div className="flex flex-col gap-1 py-1">
             <div
               className="p-1 cursor-pointer rounded-lg hover:bg-accent/70 transition dark:hover:text-background text-sm flex items-center justify-center"
-              onClick={() => alert("Joining appointment...")}
+              onClick={() => handleJoin(appointment.id)}
             >
               {t("appointments.join")}
             </div>

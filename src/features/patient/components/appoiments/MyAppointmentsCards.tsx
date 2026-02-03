@@ -37,7 +37,8 @@ export interface Appointment {
   status: "scheduled" | "pending" | "in_progress" | "completed" | "cancelled";
 }
 import { MCUserAvatar } from "@/shared/navigation/userMenu/MCUserAvatar";
-
+import { useNavigate } from "react-router-dom";
+import { ROUTES } from "@/router/routes";
 interface MyAppointmentsCardsProps {
   appointment: Appointment;
   onViewDetails?: (id: string) => void;
@@ -58,12 +59,19 @@ export function MyAppointmentsCards({
   onJoin,
 }: MyAppointmentsCardsProps) {
   const { t } = useTranslation("patient");
+  const navigate = useNavigate();
 
   const isUpcoming = ["scheduled", "pending", "in_progress"].includes(
     appointment.status,
   );
   const isVirtual = appointment.appointmentType === "virtual";
   const isInProgress = appointment.status === "in_progress";
+
+  const handleJoin = (appointmentId: string) => {
+    navigate(
+      ROUTES.TELECONSULT.CONFIRM.replace(":appointmentId", appointmentId),
+    );
+  };
 
   return (
     <Card className="p-4 flex flex-col gap-3 min-h-[260px] border rounded-3xl bg-bg-secondary border-primary/15">
@@ -199,7 +207,7 @@ export function MyAppointmentsCards({
                 // Virtual + en progreso: Unirse y Ver detalles
                 <>
                   <MCButton
-                    onClick={() => onJoin?.(appointment.id)}
+                    onClick={() => handleJoin(appointment.id)}
                     className="flex-1 w-full"
                     size="sm"
                   >
