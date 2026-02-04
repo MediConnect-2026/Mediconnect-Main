@@ -101,22 +101,57 @@ function DoctorProfilePage() {
       title: "Laboratorios clínicos",
       description:
         "Evaluación médica completa con laboratorios ambulatorios realizados por laboratoristas profesionales y con las autorizaciones correspondientes.",
-      duration: "Presencial • 1 cita",
+      duration: "1 hora",
       price: "RD$800",
       type: "presencial" as const,
-      image: "/api/placeholder/300/200",
+      image:
+        "https://i.pinimg.com/736x/26/96/86/2696865c46c902b5a2a0cdd58b98ba95.jpg",
+      rating: 4.7,
+      reviews: 12,
+      status: "active",
     },
     {
       id: "2",
       title: "Consulta virtual",
       description:
         "Consulta médica por videollamada para seguimiento y evaluación de síntomas.",
-      duration: "Virtual • 30 min",
+      duration: "30 min",
       price: "RD$1,200",
       type: "virtual" as const,
-      image: "/api/placeholder/300/200",
+      image:
+        "https://i.pinimg.com/736x/5a/be/8f/5abe8ff7a562514b3a552a78369e0ed7.jpg",
+      rating: 4.9,
+      reviews: 20,
+      status: "active",
     },
-    // Agregar más servicios según necesites
+    {
+      id: "3",
+      title: "Chequeo general anual",
+      description:
+        "Evaluación médica completa anual para monitorear la salud general y prevenir enfermedades.",
+      duration: "1 hora",
+      price: "RD$2,500",
+      type: "presencial" as const,
+      image:
+        "https://i.pinimg.com/736x/2d/79/92/2d799226aaefb127794b72128c3889cd.jpg",
+      rating: 4.8,
+      reviews: 15,
+      status: "active",
+    },
+    {
+      id: "4",
+      title: "Consulta de seguimiento",
+      description:
+        "Consulta médica para seguimiento de condiciones crónicas o tratamiento en curso.",
+      duration: "30 min",
+      price: "RD$1,000",
+      type: "mixta" as const,
+      image:
+        "https://i.pinimg.com/736x/16/51/d6/1651d6e629be1f7033e364dda83a83cd.jpg",
+      rating: 4.6,
+      reviews: 8,
+      status: "inactive",
+    },
   ];
 
   const isMyProfile = user?.id === doctorId;

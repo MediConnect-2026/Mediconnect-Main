@@ -62,12 +62,12 @@ function DoctorProfileBanner({
 
   return (
     <div className="w-[90%] shadow-md rounded-4xl border-0 mx-auto">
-      <div className="relative h-60 flex items-end rounded-t-4xl bg-background ">
+      <div className="relative h-60 flex items-end rounded-t-4xl  ">
         {doctor?.banner ? (
           <img
             src={doctor.banner}
             alt={t("profileForm.bannerImage")}
-            className="absolute top-0 left-0 w-full h-full object-cover rounded-t-4xl"
+            className="absolute top-0 left-0 w-full h-full object-cover rounded-t-4xl "
             style={{ zIndex: 1 }}
           />
         ) : (

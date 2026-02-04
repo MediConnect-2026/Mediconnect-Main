@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { Card, CardContent, CardTitle } from "@/shared/ui/card";
+import { Card, CardContent, CardFooter, CardTitle } from "@/shared/ui/card";
 import { Star, Languages, ShieldCheck, Stethoscope } from "lucide-react";
 import MCButton from "./forms/MCButton";
 import {
@@ -237,9 +237,9 @@ function MCDoctorsCards({
         </div>
       </CardContent>
 
-      <div className="grid grid-cols-3 gap-2 ">
+      <div className=" flex justify-between  gap-3">
         <ScheduleAppointmentDialog idProvider={id?.toString() ?? ""}>
-          <MCButton size={styles.buttonSize}>
+          <MCButton size={styles.buttonSize} className=" w-full">
             {t("doctors.schedule", "Schedule")}
           </MCButton>
         </ScheduleAppointmentDialog>
@@ -247,12 +247,17 @@ function MCDoctorsCards({
         <MCButton
           size={styles.buttonSize}
           variant="secondary"
+          className=" w-full"
           onClick={handleProfileClick}
         >
           {t("doctors.profile", "Profile")}
         </MCButton>
         <HistoryDialog doctorId={id?.toString() ?? ""}>
-          <MCButton size={styles.buttonSize} variant="secondary">
+          <MCButton
+            size={styles.buttonSize}
+            className="w-full"
+            variant="secondary"
+          >
             {t("doctors.history", "History")}
           </MCButton>{" "}
         </HistoryDialog>

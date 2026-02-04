@@ -299,6 +299,7 @@ function HistoryDialog({ children, doctorId }: HistoryDialogProps) {
       title={t("appointment.medicalHistory")}
       trigger={children}
       size="xl"
+      triggerClassName="w-full "
       variant="info"
     >
       <HistoryContent appointments={doctorAppointments} />
