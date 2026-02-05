@@ -71,7 +71,18 @@
     "biography": "Biography",
     "biographyPlaceholder": "Describe your experience, medical approach, and areas of interest...",
     "saveChanges": "Save Changes",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "editProfile": "Edit Profile",
+    "sendMessage": "Send Message",
+    "menu": {
+      "settings": "Settings",
+      "privacy": "Privacy",
+      "copyProfile": "Copy Profile",
+      "logout": "Logout",
+      "shareProfile": "Share Profile",
+      "mute": "Mute",
+      "block": "Block"
+    }
   },
 
   "specialties": {
@@ -168,6 +179,125 @@
   },
 
   "common": {
-    "close": "Close"
+    "close": "Close",
+    "connected": "Connected",
+    "connect": "Connect",
+    "disconnect": "Disconnect",
+    "viewDetails": "View details",
+    "reviews": "reviews",
+    "review": "review"
+  },
+
+  "profile": {
+    "about": {
+      "title": "About the doctor"
+    },
+    "education": {
+      "title": "Academic Education"
+    },
+    "experience": {
+      "title": "Professional Experience"
+    },
+    "insurance": {
+      "title": "Accepted Medical Insurance",
+      "question": "Is this doctor within your insurance network?",
+      "morePlans": "More Insurance Plans within the network - View all"
+    },
+    "services": {
+      "title": "Services offered",
+      "search": "Search service...",
+      "noResults": "No services found.",
+      "details": "View details",
+      "reviews": "reviews",
+      "menu": {
+        "view": "View service",
+        "edit": "Edit service",
+        "deactivate": "Deactivate service",
+        "delete": "Delete service"
+      }
+    },
+    "centers": {
+      "title": "Medical centers",
+      "search": "Search center...",
+      "noResults": "No centers found.",
+      "connected": "Connected",
+      "connect": "Connect",
+      "disconnect": "Disconnect",
+      "viewDetails": "View details",
+      "reviews": "reviews"
+    }
+  },
+
+  "filters": {
+    "labels": {
+      "serviceType": "Service type",
+      "priceRange": "Price range",
+      "duration": "Duration",
+      "rating": "Rating",
+      "status": "Status",
+      "centerType": "Center type",
+      "onlyConnected": "Only connected"
+    },
+    "placeholders": {
+      "serviceType": "Select type",
+      "priceRange": "Select range",
+      "duration": "Select duration",
+      "rating": "Minimum rating",
+      "status": "Select status",
+      "centerType": "Select type"
+    },
+    "serviceTypes": {
+      "presencial": "In-person",
+      "virtual": "Virtual",
+      "mixta": "Mixed"
+    },
+    "priceRanges": {
+      "0_1000": "RD$0 - RD$1,000",
+      "1000_3000": "RD$1,000 - RD$3,000",
+      "3000_5000": "RD$3,000 - RD$5,000",
+      "5000_plus": "RD$5,000+"
+    },
+    "duration": {
+      "15": "15 min",
+      "30": "30 min",
+      "60": "1 hour",
+      "120": "2+ hours"
+    },
+    "status": {
+      "all": "All",
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "rating": {
+      "4_5": "4.5+",
+      "4": "4.0+",
+      "3_5": "3.5+",
+      "all": "All ratings"
+    },
+    "centerTypes": {
+      "hospital": "Hospital",
+      "clinic": "Clinic",
+      "laboratory": "Laboratory",
+      "imaging": "Imaging Center",
+      "pharmacy": "Pharmacy"
+    }
+  },
+
+  "cards": {
+    "service": {
+      "details": "View details",
+      "book": "Book",
+      "reviews": "reviews",
+      "review": "review"
+    },
+    "center": {
+      "connect": "Connect",
+      "disconnect": "Disconnect",
+      "connected": "Connected",
+      "viewDetails": "View details",
+      "call": "Call",
+      "reviews": "reviews",
+      "review": "review"
+    }
   }
 }

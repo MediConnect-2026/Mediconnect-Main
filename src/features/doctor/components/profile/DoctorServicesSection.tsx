@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader } from "@/shared/ui/card";
 import { useTranslation } from "react-i18next";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
 import MCServiceCards from "@/shared/components/MCServiceCards";
-import FiltersServices from "./filters/FiltersServices";
+import FiltersServices from "../filters/FiltersServices";
 import { MCFilterPopover } from "@/shared/components/filters/MCFilterPopover";
 import MCFilterInput from "@/shared/components/filters/MCFilterInput";
 

@@ -32,7 +32,7 @@ const MCCentersCards = ({
   onDetails,
   onToggleConnection,
 }: MCCenterCardProps) => {
-  const { t } = useTranslation("common");
+  const { t } = useTranslation("doctor"); // <-- Cambia "common" por "doctor"
   const isMobile = useIsMobile();
   const userRole = useAppStore((state) => state.user?.role);
 
@@ -96,7 +96,9 @@ const MCCentersCards = ({
             />
             <span className="font-medium">{rating}</span>
             <span className="text-muted-foreground">
-              {reviewCount ? `(${reviewCount} ${t("reviews", "reseñas")})` : ""}
+              {reviewCount
+                ? `(${reviewCount} ${t("cards.center.reviews", "reviews")})`
+                : ""}
             </span>
           </div>
 
@@ -127,8 +129,8 @@ const MCCentersCards = ({
                 onClick={handleToggleConnection}
               >
                 {connected
-                  ? t("connected", "Conectado")
-                  : t("connect", "Conectar")}
+                  ? t("cards.center.connected", "Connected")
+                  : t("cards.center.connect", "Connect")}
               </MCButton>
               <MCButton
                 className="flex-1 rounded-full"
@@ -136,7 +138,7 @@ const MCCentersCards = ({
                 onClick={onDetails}
                 size={isMobile ? "xs" : "sm"}
               >
-                {t("viewDetails", "Ver detalles")}
+                {t("cards.center.viewDetails", "View details")}
               </MCButton>
             </>
           ) : (
@@ -146,7 +148,7 @@ const MCCentersCards = ({
               onClick={onDetails}
               size={isMobile ? "xs" : "sm"}
             >
-              {t("viewDetails", "Ver detalles")}
+              {t("cards.center.viewDetails", "Ver detalles")}
             </MCButton>
           )}
         </div>

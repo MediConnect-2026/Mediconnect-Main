@@ -71,7 +71,18 @@
     "biography": "Biografía",
     "biographyPlaceholder": "Describe tu experiencia, enfoque médico y áreas de interés...",
     "saveChanges": "Guardar Cambios",
-    "cancel": "Cancelar"
+    "cancel": "Cancelar",
+    "editProfile": "Editar Perfil",
+    "sendMessage": "Enviar Mensaje",
+    "menu": {
+      "settings": "Configuración",
+      "privacy": "Privacidad",
+      "copyProfile": "Copiar Perfil",
+      "logout": "Cerrar Sesión",
+      "shareProfile": "Compartir Perfil",
+      "mute": "Silenciar",
+      "block": "Bloquear"
+    }
   },
 
   "specialties": {
@@ -168,6 +179,125 @@
   },
 
   "common": {
-    "close": "Cerrar"
+    "close": "Cerrar",
+    "connected": "Conectado",
+    "connect": "Conectar",
+    "disconnect": "Desconectar",
+    "viewDetails": "Ver detalles",
+    "reviews": "reseñas",
+    "review": "reseña"
+  },
+
+  "profile": {
+    "about": {
+      "title": "Acerca del doctor"
+    },
+    "education": {
+      "title": "Formación Académica"
+    },
+    "experience": {
+      "title": "Experiencia Profesional"
+    },
+    "insurance": {
+      "title": "Seguros Médicos Aceptados",
+      "question": "¿Este doctor está dentro de su red de seguros?",
+      "morePlans": "Más planes de Seguros dentro de la red - Ver todo"
+    },
+    "services": {
+      "title": "Servicios ofrecidos",
+      "search": "Buscar servicio...",
+      "noResults": "No se encontraron servicios.",
+      "details": "Ver detalles",
+      "reviews": "reseñas",
+      "menu": {
+        "view": "Ver servicio",
+        "edit": "Editar servicio",
+        "deactivate": "Desactivar servicio",
+        "delete": "Eliminar servicio"
+      }
+    },
+    "centers": {
+      "title": "Centros médicos",
+      "search": "Buscar centro...",
+      "noResults": "No se encontraron centros.",
+      "connected": "Conectado",
+      "connect": "Conectar",
+      "disconnect": "Desconectar",
+      "viewDetails": "Ver detalles",
+      "reviews": "reseñas"
+    }
+  },
+
+  "filters": {
+    "labels": {
+      "serviceType": "Tipo de servicio",
+      "priceRange": "Rango de precio",
+      "duration": "Duración",
+      "rating": "Calificación",
+      "status": "Estado",
+      "centerType": "Tipo de centro",
+      "onlyConnected": "Solo conectados"
+    },
+    "placeholders": {
+      "serviceType": "Seleccionar tipo",
+      "priceRange": "Seleccionar rango",
+      "duration": "Seleccionar duración",
+      "rating": "Calificación mínima",
+      "status": "Seleccionar estado",
+      "centerType": "Seleccionar tipo"
+    },
+    "serviceTypes": {
+      "presencial": "Presencial",
+      "virtual": "Virtual",
+      "mixta": "Mixta"
+    },
+    "priceRanges": {
+      "0_1000": "RD$0 - RD$1,000",
+      "1000_3000": "RD$1,000 - RD$3,000",
+      "3000_5000": "RD$3,000 - RD$5,000",
+      "5000_plus": "RD$5,000+"
+    },
+    "duration": {
+      "15": "15 min",
+      "30": "30 min",
+      "60": "1 hora",
+      "120": "2+ horas"
+    },
+    "status": {
+      "all": "Todos",
+      "active": "Activos",
+      "inactive": "Inactivos"
+    },
+    "rating": {
+      "4_5": "4.5+",
+      "4": "4.0+",
+      "3_5": "3.5+",
+      "all": "Todas las calificaciones"
+    },
+    "centerTypes": {
+      "hospital": "Hospital",
+      "clinic": "Clínica",
+      "laboratory": "Laboratorio",
+      "imaging": "Centro de Imagen",
+      "pharmacy": "Farmacia"
+    }
+  },
+
+  "cards": {
+    "service": {
+      "details": "Ver detalles",
+      "book": "Reservar",
+      "reviews": "reseñas",
+      "review": "reseña"
+    },
+    "center": {
+      "connect": "Conectar",
+      "disconnect": "Desconectar",
+      "connected": "Conectado",
+      "viewDetails": "Ver detalles",
+      "call": "Llamar",
+      "reviews": "reseñas",
+      "review": "reseña"
+    }
   }
 }

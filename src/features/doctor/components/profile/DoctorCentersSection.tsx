@@ -6,7 +6,7 @@ import { useIsMobile } from "@/lib/hooks/useIsMobile";
 import MCCentersCards from "@/shared/components/MCCentersCards";
 import MCFilterInput from "@/shared/components/filters/MCFilterInput";
 import { MCFilterPopover } from "@/shared/components/filters/MCFilterPopover";
-import FilterCenters from "./filters/FilterCenters";
+import FilterCenters from "../filters/FilterCenters";
 
 interface Center {
   id: string | number;
