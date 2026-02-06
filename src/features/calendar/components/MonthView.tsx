@@ -91,7 +91,7 @@ export const MonthView = ({
                 !isCurrentMonth && "opacity-40",
                 isWeekendDay &&
                   isCurrentMonth &&
-                  "bg-accent/40 dark:bg-accent/20",
+                  "bg-accent/0 dark:bg-accent/0",
                 isDayToday && "calendar-cell-today",
                 isSelected && "ring-2 ring-primary ring-offset-2",
               )}

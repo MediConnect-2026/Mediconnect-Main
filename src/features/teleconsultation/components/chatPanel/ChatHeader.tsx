@@ -4,7 +4,7 @@ import { useAppStore } from "@/stores/useAppStore";
 import { MessageCircle, FileText } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
-
+import { MCUserAvatar } from "@/shared/navigation/userMenu/MCUserAvatar";
 interface ChatHeaderProps {
   isTyping: boolean;
   isOnline: boolean;
@@ -25,10 +25,31 @@ export const ChatHeader = ({
   return (
     <div className="p-3 md:p-4 border-b border-primary/10 flex items-center justify-between gap-2">
       <div className="flex items-center gap-2 md:gap-3 min-w-0 flex-1">
-        <Avatar className="w-8 h-8 md:w-10 md:h-10 flex-shrink-0">
-          <AvatarImage src="https://i.pinimg.com/736x/6b/8b/0a/6b8b0aa412e8b2f5b7587c0e87a2f46e.jpg" />
-          <AvatarFallback>CR</AvatarFallback>
-        </Avatar>
+        <div className="w-10 h-10 md:w-12 md:h-12 relative overflow-hidden rounded-full border border-primary/10 bg-muted flex items-center justify-center">
+          {/* Replace with dynamic avatar logic */}
+          {isDoctor && useAppStore((state) => state.user?.avatar) ? (
+            <Avatar className="w-full h-full rounded-full overflow-hidden">
+              <AvatarImage
+                src={useAppStore((state) => state.user?.avatar)!}
+                alt={t("chatHeader.doctorName")}
+                className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
+              />
+              <AvatarFallback className="bg-muted text-muted-foreground">
+                {t("chatHeader.doctorName")
+                  .split(" ")
+                  .map((n) => n[0])
+                  .join("")}
+              </AvatarFallback>
+            </Avatar>
+          ) : (
+            <MCUserAvatar
+              name={t("chatHeader.doctorName")}
+              square={false}
+              size={40}
+              className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
+            />
+          )}
+        </div>
         <div className="min-w-0 flex-1">
           <h3 className="font-semibold text-sm md:text-base truncate">
             {t("chatHeader.doctorName")}

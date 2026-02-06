@@ -3,7 +3,7 @@ import MCNavbar from "@/shared/navigation/MCNavbar";
 import MCNavbarMobile from "@/shared/navigation/MCMobileNavbar";
 import { useAppointmentStore } from "@/stores/useAppointmentStore";
 import { useEffect } from "react";
-import { useGlobalUIStore } from "@/stores/useGlobalUIStore"; // Agrega este import
+import { useGlobalUIStore } from "@/stores/useGlobalUIStore";
 
 function DashboardLayout() {
   const location = useLocation();
@@ -41,16 +41,28 @@ function DashboardLayout() {
     resetVerificationContext,
   ]);
 
+  // Detectar si estamos en la ruta del chat
+  const isChatPage = location.pathname.includes("/chat");
+
   return (
-    <div className="min-h-screen px-4 py-6 bg-bg-btn-secondary flex flex-col gap-6">
-      <div className="block md:hidden sticky top-0 z-30 animate-fade-in">
+    <div
+      className={
+        isChatPage
+          ? "h-screen px-4 py-6 bg-bg-btn-secondary flex flex-col gap-6 "
+          : "min-h-screen px-4 py-6 bg-bg-btn-secondary flex flex-col gap-6 "
+      }
+    >
+      {/* Navbar */}
+      <div className="block md:hidden flex-shrink-0 animate-fade-in">
         <MCNavbarMobile />
       </div>
 
-      <div className="hidden md:block sticky top-5 z-30 animate-fade-in">
+      <div className="hidden md:block flex-shrink-0 animate-fade-in">
         <MCNavbar />
       </div>
-      <div className="w-full h-full">
+
+      {/* Content - Ocupa el espacio restante */}
+      <div className={isChatPage ? "flex-1 overflow-hidden" : "w-full h-full "}>
         <Outlet />
       </div>
     </div>

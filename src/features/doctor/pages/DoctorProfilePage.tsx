@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import MCBackButton from "@/shared/components/forms/MCBackButton";
 import MCSheetProfile from "@/shared/navigation/userMenu/editProfile/MCSheetProfile";
 import { useAppStore } from "@/stores/useAppStore";
-import { Card, CardContent, CardHeader } from "@/shared/ui/card";
+
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
 import { fadeInUp } from "@/lib/animations/commonAnimations";
 import { useNavigate, useParams } from "react-router-dom";

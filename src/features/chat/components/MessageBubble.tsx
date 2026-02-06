@@ -1,39 +1,27 @@
+import type { Message } from "@/types/ChatTypes";
+import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
-import { Check, CheckCheck, Download, Play } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/avatar";
+import { ChatAvatar } from "./ChatAvatar";
+import { Download, Check, CheckCheck, Play } from "lucide-react";
 import { useTranslation } from "react-i18next";
-
-interface Message {
-  id: number;
-  type: "text" | "image" | "voice" | "file";
-  content: string;
-  sender: "user" | "doctor";
-  time: string;
-  status?: "sent" | "delivered" | "read";
-  caption?: string;
-  duration?: number;
-  fileName?: string;
-  fileType?: string;
-  fileSize?: number;
-}
 
 interface MessageBubbleProps {
   message: Message;
-  onViewFile?: (message: Message) => void;
-  onDownloadFile?: (url: string, fileName: string) => void;
-  getFileIcon?: (fileType: string) => string;
-  formatFileSize?: (bytes: number) => string;
-  formatDuration?: (seconds: number) => string;
+  onViewFile?: (msg: Message) => void;
+  onDownloadFile?: (url: string, name: string) => void;
+  getFileIcon?: (type: string) => string;
+  formatFileSize?: (size: number) => string;
+  formatDuration?: (duration: number) => string;
 }
 
-export const MessageBubble = ({
+export function MessageBubble({
   message,
   onViewFile,
   onDownloadFile,
   getFileIcon,
   formatFileSize,
   formatDuration,
-}: MessageBubbleProps) => {
+}: MessageBubbleProps) {
   const { t } = useTranslation("common");
   const messageVariants = {
     hidden: { opacity: 0, y: 20, scale: 0.95 },
@@ -41,17 +29,9 @@ export const MessageBubble = ({
       opacity: 1,
       y: 0,
       scale: 1,
-      transition: {
-        type: "spring" as "spring",
-        stiffness: 500,
-        damping: 30,
-      },
+      transition: { type: "spring" as const, stiffness: 500, damping: 30 },
     },
-    exit: {
-      opacity: 0,
-      scale: 0.95,
-      transition: { duration: 0.2 },
-    },
+    exit: { opacity: 0, scale: 0.95, transition: { duration: 0.2 } },
   };
 
   return (
@@ -61,23 +41,19 @@ export const MessageBubble = ({
       initial="hidden"
       animate="visible"
       exit="exit"
-      className={`flex items-start gap-3 ${
-        message.sender === "user" ? "flex-row-reverse" : ""
-      }`}
+      className={cn(
+        "flex items-start gap-3",
+        message.sender === "user" ? "flex-row-reverse" : "",
+      )}
     >
-      <Avatar className="w-8 h-8 flex-shrink-0">
-        <AvatarImage src="https://i.pinimg.com/736x/6b/8b/0a/6b8b0aa412e8b2f5b7587c0e87a2f46e.jpg" />
-        <AvatarFallback>
-          {message.sender === "user" ? "U" : "DR"}
-        </AvatarFallback>
-      </Avatar>
-
+      <ChatAvatar name={message.sender === "user" ? "User" : "Doctor"} />
       <div
-        className={`max-w-[75%] rounded-2xl px-4 py-2 ${
+        className={cn(
+          "max-w-[75%] rounded-2xl px-4 py-2",
           message.sender === "user"
             ? "bg-accent/75 text-primary rounded-br-sm"
-            : "bg-bg-btn-secondary text-primary rounded-bl-sm"
-        }`}
+            : "bg-bg-btn-secondary text-primary rounded-bl-sm",
+        )}
       >
         {/* Mensaje de texto */}
         {message.type === "text" && (
@@ -95,19 +71,17 @@ export const MessageBubble = ({
                 onClick={() => onViewFile?.(message)}
                 style={{ objectFit: "cover" }}
               />
-              {/* Botón de descarga que aparece en hover */}
-              {onDownloadFile && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onDownloadFile(message.content, `imagen_${message.id}.jpg`);
-                  }}
-                  className="absolute top-2 right-2 bg-black/60 text-white rounded-full p-2 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/80 shadow-lg"
-                  title={t("messageBubble.download") || "Descargar"}
-                >
-                  <Download size={14} />
-                </button>
-              )}
+              {/* Botón de descarga en hover */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDownloadFile?.(message.content, `imagen_${message.id}.jpg`);
+                }}
+                className="absolute top-2 right-2 bg-black/60 text-white rounded-full p-2 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/80"
+                title={t("messageBubble.download") || "Descargar"}
+              >
+                <Download size={14} />
+              </button>
             </div>
             {message.caption && (
               <p className="text-sm break-words mt-2">{message.caption}</p>
@@ -130,27 +104,22 @@ export const MessageBubble = ({
                   {message.fileName}
                 </p>
                 <p className="text-xs opacity-70">
-                  {message.fileSize && formatFileSize
-                    ? formatFileSize(message.fileSize)
-                    : ""}
+                  {message.fileSize ? formatFileSize?.(message.fileSize) : ""}
                 </p>
               </div>
-              {/* Botón de descarga que aparece en hover */}
-              {onDownloadFile && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onDownloadFile(
-                      message.content,
-                      message.fileName || "archivo",
-                    );
-                  }}
-                  className="flex-shrink-0 p-2 hover:bg-background/70 rounded-full transition-colors opacity-0 group-hover:opacity-100"
-                  title={t("messageBubble.download") || "Descargar"}
-                >
-                  <Download size={16} />
-                </button>
-              )}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDownloadFile?.(
+                    message.content,
+                    message.fileName || "archivo",
+                  );
+                }}
+                className="flex-shrink-0 p-2 hover:bg-background/70 rounded-full transition-colors opacity-0 group-hover:opacity-100"
+                title={t("messageBubble.download") || "Descargar"}
+              >
+                <Download size={16} />
+              </button>
             </div>
             {message.caption && (
               <p className="text-sm break-words mt-2">{message.caption}</p>
@@ -168,16 +137,17 @@ export const MessageBubble = ({
               <div className="h-full bg-primary/40 w-0 rounded-full" />
             </div>
             <span className="text-xs font-medium">
-              {formatDuration ? formatDuration(message.duration || 0) : "0:00"}
+              {formatDuration?.(message.duration || 0)}
             </span>
           </div>
         )}
 
         {/* Hora y estado */}
         <div
-          className={`flex items-center gap-1 mt-1 text-xs opacity-70 ${
-            message.sender === "user" ? "justify-end" : ""
-          }`}
+          className={cn(
+            "flex items-center gap-1 mt-1 text-xs opacity-70",
+            message.sender === "user" ? "justify-end" : "",
+          )}
         >
           <span>{message.time}</span>
           {message.sender === "user" && message.status && (
@@ -197,4 +167,4 @@ export const MessageBubble = ({
       </div>
     </motion.div>
   );
-};
+}

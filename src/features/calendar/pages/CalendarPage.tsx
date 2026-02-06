@@ -23,7 +23,8 @@ import { AppointmentDetails } from "../components/AppointmentDetails";
 import MCButton from "@/shared/components/forms/MCButton";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
 import { cn } from "@/lib/utils";
-
+import { fadeInUp } from "@/lib/animations/commonAnimations";
+import { motion } from "framer-motion";
 export const CalendarPage = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -106,18 +107,40 @@ export const CalendarPage = () => {
   };
 
   return (
-    <div className="min-h-screen rounded-4xl bg-background transition-all duration-300 ease-in-out">
-      <div
+    <motion.div
+      className="min-h-screen rounded-4xl bg-background transition-all duration-300 ease-in-out"
+      initial={fadeInUp.initial}
+      animate={fadeInUp.animate}
+      exit={fadeInUp.exit}
+      transition={fadeInUp.transition}
+    >
+      <motion.div
         className={cn(
           "flex h-screen transition-all  rounded-4xl  duration-300",
           isMobile ? "flex-col" : "",
         )}
+        initial={fadeInUp.initial}
+        animate={fadeInUp.animate}
+        exit={fadeInUp.exit}
+        transition={fadeInUp.transition}
       >
         {/* Main content */}
-        <div className="flex-1 flex flex-col transition-all   rounded-4xl  duration-300">
+        <motion.div
+          className="flex-1 flex flex-col transition-all   rounded-4xl  duration-300"
+          initial={fadeInUp.initial}
+          animate={fadeInUp.animate}
+          exit={fadeInUp.exit}
+          transition={fadeInUp.transition}
+        >
           {/* Mobile Header */}
           {isMobile && (
-            <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm  rounded-4xl   p-4">
+            <motion.div
+              className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm  rounded-4xl   p-4"
+              initial={fadeInUp.initial}
+              animate={fadeInUp.animate}
+              exit={fadeInUp.exit}
+              transition={fadeInUp.transition}
+            >
               {/* Título arriba */}
               <h1 className="text-lg font-semibold truncate max-w-full mb-2">
                 {getTitle()}
@@ -157,12 +180,18 @@ export const CalendarPage = () => {
                   {t("calendar.today", { defaultValue: "Hoy" })}
                 </MCButton>
               </div>
-            </div>
+            </motion.div>
           )}
 
           {/* Desktop Header */}
           {!isMobile && (
-            <div className="p-6 pb-4">
+            <motion.div
+              className="p-6 pb-4"
+              initial={fadeInUp.initial}
+              animate={fadeInUp.animate}
+              exit={fadeInUp.exit}
+              transition={fadeInUp.transition}
+            >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <h1 className="text-2xl font-bold capitalize transition-all duration-300">
@@ -202,15 +231,19 @@ export const CalendarPage = () => {
                   <ViewSelector currentView={view} onViewChange={setView} />
                 </div>
               </div>
-            </div>
+            </motion.div>
           )}
 
           {/* Calendar Views */}
-          <div
+          <motion.div
             className={cn(
               "flex flex-1 min-h-0 transition-all duration-300",
               isMobile ? "flex-col px-4 pb-4" : "px-6",
             )}
+            initial={fadeInUp.initial}
+            animate={fadeInUp.animate}
+            exit={fadeInUp.exit}
+            transition={fadeInUp.transition}
           >
             <div className="flex-1 flex flex-col min-h-0">
               <div className="flex-1 overflow-hidden rounded-2xl  backdrop-blur-sm">
@@ -250,22 +283,34 @@ export const CalendarPage = () => {
 
             {/* Desktop Details panel */}
             {!isMobile && (
-              <div className="w-[380px] h-full ml-4">
+              <motion.div
+                className="w-[380px] min-h-0 ml-4 py-2 "
+                initial={fadeInUp.initial}
+                animate={fadeInUp.animate}
+                exit={fadeInUp.exit}
+                transition={fadeInUp.transition}
+              >
                 <div className="h-full overflow-y-auto scrollbar-hide rounded-2xl  backdrop-blur-sm transition-all duration-300">
                   <AppointmentDetails
                     appointment={selectedAppointment}
                     onClose={() => setSelectedAppointment(null)}
                   />
                 </div>
-              </div>
+              </motion.div>
             )}
-          </div>
-        </div>
-      </div>
+          </motion.div>
+        </motion.div>
+      </motion.div>
 
       {/* Mobile Details Modal */}
       {isMobile && showMobileDetails && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm">
+        <motion.div
+          className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
+          initial={fadeInUp.initial}
+          animate={fadeInUp.animate}
+          exit={fadeInUp.exit}
+          transition={fadeInUp.transition}
+        >
           <div className="fixed inset-x-0 bottom-0 h-[90vh] bg-background rounded-t-3xl animate-in slide-in-from-bottom duration-300 flex flex-col">
             {selectedAppointment ? (
               <AppointmentDetails
@@ -280,8 +325,8 @@ export const CalendarPage = () => {
               </div>
             )}
           </div>
-        </div>
+        </motion.div>
       )}
-    </div>
+    </motion.div>
   );
 };

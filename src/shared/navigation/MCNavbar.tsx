@@ -1,7 +1,7 @@
 import LogoImg from "@/assets/MediConnectLanding-green.png";
 import LogoImgdDark from "@/assets/MediConnectLanding.png";
 import MCUserMenu from "./userMenu/MCUserMenu"; // Cambiar import
-import { Search } from "lucide-react";
+import { Search, MessageCircle } from "lucide-react";
 import {
   NavigationMenu,
   NavigationMenuItem,
@@ -84,6 +84,22 @@ function MCNavbar() {
           <Search
             className={`h-7 w-7 transition-colors duration-300 stroke-[1.5px] group-hover:text-primary ${
               location.pathname === "/search"
+                ? "text-background"
+                : "text-primary/70"
+            }`}
+          />
+        </Link>
+        {/* Mensajes */}
+        <Link
+          to="/chat"
+          className={`relative rounded-full p-3 transition-transform duration-300 h-14 w-14 flex items-center justify-center group
+            hover:bg-accent/70 text-primary
+            ${location.pathname.startsWith("/chat") ? "bg-primary text-primary-foreground" : "bg-bg-btn-secondary"}
+          `}
+        >
+          <MessageCircle
+            className={`h-7 w-7 transition-colors duration-300 stroke-[1.5px] group-hover:text-primary ${
+              location.pathname.startsWith("/chat")
                 ? "text-background"
                 : "text-primary/70"
             }`}
