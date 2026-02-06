@@ -6,31 +6,54 @@ import ProviderPopup from "./ProviderPopup";
 import { Expand, Minimize, Plus, Minus, Cuboid } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/tooltip";
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
-import { AnimatePresence, motion } from "framer-motion"; // Corrige el import, debe ser de "framer-motion"
+import { AnimatePresence, motion } from "framer-motion";
 import { useGlobalUIStore } from "@/stores/useGlobalUIStore";
+import { useNavigate } from "react-router-dom";
+import { TooltipProvider } from "@/shared/ui/tooltip";
+
 interface MapSearchProvidersProps {
   providers: Provider[];
   selectedProviders?: string[];
   onProviderSelect?: (id: string) => void;
 }
 
+// Componente auxiliar para capturar el navigate
+const PopupContent: React.FC<{
+  provider: Provider;
+  isSelected: boolean;
+  onSelect?: (id: string) => void;
+  navigateFn: (path: string) => void;
+}> = ({ provider, isSelected, onSelect, navigateFn }) => {
+  return (
+    <TooltipProvider>
+      <ProviderPopup
+        provider={provider}
+        isSelected={isSelected}
+        onSelect={onSelect ?? (() => {})}
+        navigateFn={navigateFn}
+      />
+    </TooltipProvider>
+  );
+};
+
 export default function MapSearchProviders({
   providers,
   selectedProviders = [],
   onProviderSelect,
 }: MapSearchProvidersProps) {
+  const navigate = useNavigate(); // Capturar navigate aquí
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const normalContainerRef = useRef<HTMLDivElement | null>(null);
   const fullscreenContainerRef = useRef<HTMLDivElement | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [is3D, setIs3D] = useState(true); // Estado para el 3D
+  const [is3D, setIs3D] = useState(true);
   const setisLoading = useGlobalUIStore((state) => state.setIsLoading);
   const isdarkMode = useGlobalUIStore((state) => state.theme);
   const [userLocation, setUserLocation] = useState<[number, number] | null>(
     null,
   );
-  const [locationDenied, setLocationDenied] = useState(false); // Nuevo estado
+  const [locationDenied, setLocationDenied] = useState(false);
 
   useEffect(() => {
     const container = isFullscreen
@@ -48,17 +71,14 @@ export default function MapSearchProviders({
     mapRef.current = new mapboxgl.Map({
       container,
       style: mapStyle,
-      center: userLocation ?? [-69.93, 18.48], // <-- Aquí elige la ubicación del usuario si existe
+      center: userLocation ?? [-69.93, 18.48],
       zoom: 12,
-      pitch: is3D ? 60 : 0, // Cambia el pitch según el estado 3D
+      pitch: is3D ? 60 : 0,
       bearing: is3D ? -17.6 : 0,
       antialias: true,
-      // Habilitar rotación con drag/touch cuando esté en 3D
       dragRotate: is3D,
-      // Configuraciones adicionales para mejor experiencia táctil
       touchPitch: is3D,
       pitchWithRotate: is3D,
-      // Configurar límites de pitch para mejor control
       maxPitch: is3D ? 85 : 60,
       minPitch: is3D ? 0 : 0,
     });
@@ -66,16 +86,11 @@ export default function MapSearchProviders({
     mapRef.current.on("load", () => {
       setisLoading(false);
 
-      // Configurar controles de navegación según el modo 3D
       if (is3D) {
-        // Habilitar rotación con teclas también
         mapRef.current!.keyboard.enable();
         mapRef.current!.dragRotate.enable();
-        // touchRotate is not a valid property; touch rotation is enabled via dragRotate and map options
 
-        // Agregar instrucciones de uso en dispositivos táctiles
         if ("ontouchstart" in window) {
-          // Mostrar brevemente las instrucciones de rotación
           setTimeout(() => {
             const instructionDiv = document.createElement("div");
             instructionDiv.className = "mapbox-rotation-hint";
@@ -108,7 +123,6 @@ export default function MapSearchProviders({
             `;
             container.appendChild(instructionDiv);
 
-            // Remover el elemento después de 3 segundos
             setTimeout(() => {
               if (instructionDiv.parentNode) {
                 instructionDiv.parentNode.removeChild(instructionDiv);
@@ -117,7 +131,6 @@ export default function MapSearchProviders({
           }, 1000);
         }
 
-        // Terreno 3D
         mapRef.current!.addSource("mapbox-dem", {
           type: "raster-dem",
           url: "mapbox://mapbox.mapbox-terrain-dem-v1",
@@ -126,7 +139,6 @@ export default function MapSearchProviders({
         });
         mapRef.current!.setTerrain({ source: "mapbox-dem", exaggeration: 1.5 });
 
-        // Edificios 3D
         mapRef.current!.addLayer(
           {
             id: "3d-buildings",
@@ -170,7 +182,7 @@ export default function MapSearchProviders({
     // Agrega el marcador rojo si hay ubicación del usuario
     if (userLocation && mapRef.current) {
       const userMarker = new mapboxgl.Marker({
-        color: "#e11d48", // rojo
+        color: "#e11d48",
         scale: 1.3,
       })
         .setLngLat(userLocation)
@@ -185,10 +197,11 @@ export default function MapSearchProviders({
       const popupNode = document.createElement("div");
       const root = createRoot(popupNode);
       root.render(
-        <ProviderPopup
+        <PopupContent
           provider={provider}
           isSelected={isSelected}
           onSelect={(id) => onProviderSelect?.(id)}
+          navigateFn={navigate}
         />,
       );
 
@@ -261,7 +274,7 @@ export default function MapSearchProviders({
         },
         () => {
           setUserLocation(null);
-          setLocationDenied(true); // Si el usuario niega, mostramos mensaje
+          setLocationDenied(true);
         },
       );
     }

@@ -9,7 +9,8 @@ interface Service {
   description: string;
   price: string;
   duration: string;
-  modality: string;
+  modality: "mixta" | "presencial" | "teleconsulta"; // valor fijo
+  modalityLabel: string; // texto traducido
   location: string;
   timeSlots: string[];
 }

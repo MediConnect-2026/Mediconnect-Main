@@ -5,143 +5,164 @@ import { Card, CardContent, CardTitle } from "@/shared/ui/card";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/tooltip";
 import { useAppStore } from "@/stores/useAppStore";
 import MCButton from "../forms/MCButton";
-import { fadeInUp, fadeInUpDelayed } from "@/lib/animations/commonAnimations";
+import { fadeInUp } from "@/lib/animations/commonAnimations";
 import { motion } from "framer-motion";
+import ScheduleAppointmentDialog from "@/features/patient/components/appoiments/ScheduleAppointmentDialog";
+import { useIsMobile } from "@/lib/hooks/useIsMobile";
 
 type DoctorPopupProps = {
   provider: Doctor;
   isConnected?: boolean;
   onConnect?: (id: string) => void;
-  onViewProfile?: (id: string) => void;
+  navigateFn?: (path: string) => void;
 };
 
 const DoctorPopup: React.FC<DoctorPopupProps> = ({
   provider,
   isConnected,
   onConnect,
-  onViewProfile,
+  navigateFn,
 }) => {
   const userRole = useAppStore((state) => state.user?.role);
+  const isMobile = useIsMobile();
 
-  // Manejo de ubicaciones
-  const locations =
-    Array.isArray(provider.address) && provider.address.length > 0
-      ? provider.address
-      : [typeof provider.address === "string" ? provider.address : ""];
+  const locations = Array.isArray(provider.address)
+    ? provider.address
+    : [provider.address];
+
+  const cardSize = isMobile ? "w-[260px] rounded-2xl" : "w-[480px] rounded-3xl";
+  const imgHeight = isMobile ? "h-28" : "h-36";
+  const textXs = isMobile ? "text-[11px]" : "text-xs";
+
+  const handleProfileClick = () => {
+    if (provider.id && navigateFn) {
+      navigateFn(`/doctor/profile/${provider.id}`);
+    }
+  };
 
   return (
     <motion.div {...fadeInUp}>
-      <Card className="rounded-3xl bg-background border border-primary/10 shadow-sm hover:shadow-lg transition-shadow h-full flex flex-col max-w-xs w-[500px]">
+      <Card
+        className={`bg-background border border-primary/10 shadow-sm hover:shadow-lg transition-shadow flex flex-col ${cardSize}`}
+      >
         {/* Imagen */}
-        <div className="relative overflow-hidden rounded-xl border border-primary/5 h-35">
+        <div
+          className={`overflow-hidden rounded-xl border border-primary/5 ${imgHeight}`}
+        >
           <img
             src={provider.image}
             alt={provider.name}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            className="w-full h-full object-cover transition-transform hover:scale-105"
           />
         </div>
-        {/* Nombre y rating juntos debajo de la imagen */}
-        <div className="flex items-center justify-between px-2 pt-2">
-          <CardTitle className="text-base font-bold text-primary drop-shadow-none m-0">
+
+        {/* Nombre + rating */}
+        <div className="flex justify-between px-3 pt-2">
+          <CardTitle
+            className={
+              isMobile ? "text-sm font-semibold" : "text-base font-bold"
+            }
+          >
             {provider.name}
           </CardTitle>
           <div className="flex items-center gap-1">
             <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
-            <span className="text-xs font-bold text-foreground">
-              {provider.rating}
-            </span>
+            <span className="text-xs font-bold">{provider.rating}</span>
           </div>
         </div>
-        <CardContent className="px-2  py-1 space-y-2">
-          {/* Especialidad */}
-          <div className="text-xs text-muted-foreground font-medium mb-1">
+
+        <CardContent className="p-2 space-y-2">
+          <div className={`${textXs} text-muted-foreground font-medium`}>
             {provider.specialty}
           </div>
-          {/* Ubicación */}
-          <div className="flex items-start gap-1.5 text-xs text-muted-foreground">
-            <MapPin className="w-3 h-3 mt-0.5 flex-shrink-0 text-secondary" />
-            <span className="line-clamp-1">{locations[0]}</span>
-            {locations.length > 1 && (
-              <span className="text-secondary font-medium flex-shrink-0">
-                +{locations.length - 1}
-              </span>
-            )}
-          </div>
+
+          {/* Ubicaciones */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div
+                className={`flex gap-1.5 cursor-pointer ${textXs} text-muted-foreground`}
+              >
+                <MapPin className="w-3 h-3 mt-0.5 text-secondary" />
+                <span className="truncate">{locations[0]}</span>
+                {locations.length > 1 && (
+                  <span className="text-secondary">
+                    +{locations.length - 1}
+                  </span>
+                )}
+              </div>
+            </TooltipTrigger>
+            <TooltipContent className="max-w-xs">
+              {locations.join(" • ")}
+            </TooltipContent>
+          </Tooltip>
+
           {/* Idiomas */}
-          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-            <Globe className="w-3 h-3 flex-shrink-0 text-secondary" />
-            <span>{provider.languages.join(", ")}</span>
-          </div>
-          {/* Teléfono si existe */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div
+                className={`flex gap-1 cursor-pointer ${textXs} text-muted-foreground`}
+              >
+                <Globe className="w-3 h-3 text-secondary" />
+                <span className="truncate max-w-[150px]">
+                  {provider.languages.join(", ")}
+                </span>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>{provider.languages.join(", ")}</TooltipContent>
+          </Tooltip>
+
+          {/* Teléfono */}
           {provider.phone && (
             <a
               href={`tel:${provider.phone}`}
-              className="flex items-center gap-1 text-xs text-secondary hover:text-secondary/80 font-semibold transition-colors"
+              className={`flex gap-1 ${textXs} text-secondary`}
             >
               <Phone className="w-3 h-3" />
-              <span className="text-primary font-normal">{provider.phone}</span>
+              <span className="text-primary">{provider.phone}</span>
             </a>
           )}
-          {/* Seguros con Tooltip */}
-          <div className="flex items-center gap-1 pt-1 border-t border-border mt-2">
-            <Shield className="w-3 h-3 text-secondary" />
-            <span className="text-xs text-muted-foreground font-medium">
-              Insurances:
-            </span>
-            {provider.insurances.length > 2 ? (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <span className="cursor-pointer truncate text-xs text-foreground">
-                    {provider.insurances.slice(0, 2).join(", ")}
-                    <span className="text-secondary ml-1">
-                      +{provider.insurances.length - 2} more
-                    </span>
-                  </span>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <span>{provider.insurances.join(", ")}</span>
-                </TooltipContent>
-              </Tooltip>
-            ) : (
-              <span className="truncate text-xs text-foreground">
-                {provider.insurances.join(", ")}
-              </span>
-            )}
-          </div>
-          {/* Botones de acción */}
-          <div className="flex gap-2 mt-3">
+
+          {/* Seguros */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div
+                className={`flex gap-1 cursor-pointer pt-1 border-t ${textXs}`}
+              >
+                <Shield className="w-3 h-3 text-secondary" />
+                <span className="truncate max-w-[150px]">
+                  {provider.insurances.join(", ")}
+                </span>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>{provider.insurances.join(", ")}</TooltipContent>
+          </Tooltip>
+
+          {/* Botones */}
+          <div className={`flex gap-2 mt-3 ${isMobile && "flex-col"}`}>
             {userRole === "CENTER" && (
               <MCButton
-                variant={isConnected ? "primary" : "outline"}
                 size="xs"
-                className={
-                  isConnected
-                    ? "flex-1 bg-secondary hover:bg-secondary/90 text-white border-none active:bg-secondary/80"
-                    : "flex-1 border-secondary text-secondary hover:bg-secondary/10 hover:border-secondary/80 active:bg-secondary/20"
-                }
+                variant={isConnected ? "primary" : "outline"}
+                className="flex-1"
                 onClick={() => onConnect?.(provider.id)}
               >
                 {isConnected ? "Connected" : "Connect"}
               </MCButton>
             )}
+
             {userRole === "PATIENT" && (
-              <MCButton
-                variant="primary"
-                size="xs"
-                className="flex-1"
-                onClick={() => {
-                  // Aquí puedes poner la lógica para agendar cita
-                  alert("Agendar cita");
-                }}
-              >
-                Agendar cita
-              </MCButton>
+              <ScheduleAppointmentDialog idProvider={provider.id}>
+                <MCButton size="xs" variant="primary" className="w-full">
+                  Agendar cita
+                </MCButton>
+              </ScheduleAppointmentDialog>
             )}
+
             <MCButton
-              variant="outline"
               size="xs"
-              className="flex-1"
-              onClick={() => onViewProfile?.(provider.id)}
+              variant="outline"
+              className="w-full"
+              onClick={handleProfileClick}
             >
               View Profile
             </MCButton>

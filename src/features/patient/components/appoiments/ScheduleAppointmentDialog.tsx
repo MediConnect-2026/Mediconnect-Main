@@ -26,7 +26,6 @@ import type { scheduleAppointment } from "@/types/AppointmentTypes";
 import { MCFilterPopover } from "@/shared/components/filters/MCFilterPopover";
 import ServiceCards from "./ServiceCards";
 import FilterAppointments from "@/features/patient/components/filters/FilterAppointments";
-import { useNavigate } from "react-router-dom";
 import MCFormWrapper from "@/shared/components/forms/MCFormWrapper";
 import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { useFormContext } from "react-hook-form";
@@ -38,7 +37,8 @@ interface Service {
   description: string;
   price: string;
   duration: string;
-  modality: string;
+  modality: "mixta" | "presencial" | "teleconsulta";
+  modalityLabel: string;
   location: string;
   timeSlots: string[];
 }
@@ -57,7 +57,8 @@ const getServices = (t: any): Service[] => [
     description: t("services.evaluation"),
     price: "RD$1500",
     duration: `30 ${t("services.duration")}`,
-    modality: t("services.mixed"),
+    modality: "presencial",
+    modalityLabel: t("services.presencial"),
     location: t("services.location"),
     timeSlots: [
       "10:00 a.m.",
@@ -82,7 +83,8 @@ const getServices = (t: any): Service[] => [
     description: t("services.laser"),
     price: "RD$1500",
     duration: `30 ${t("services.duration")}`,
-    modality: t("services.mixed"),
+    modality: "mixta",
+    modalityLabel: t("services.mixed"),
     location: t("services.location"),
     timeSlots: [
       "10:00 a.m.",
@@ -220,10 +222,15 @@ function ScheduleAppointmentForm({
     const hasModality = !!formValues.selectedModality;
     const hasRequiredFields =
       formValues.date && formValues.insuranceProvider && formValues.reason;
-    if (!isRescheduling)
+
+    if (!isRescheduling) {
+      // Para citas nuevas, requerir todos los campos incluyendo horario y modalidad
       return !hasRequiredFields || !hasTimeSlot || !hasModality;
+    }
+
     const hasAllFields = hasRequiredFields && hasTimeSlot && hasModality;
     if (!initialValuesRef.current) return true;
+
     const hasChanges =
       formValues.date !== initialValuesRef.current.date ||
       formValues.time !== initialValuesRef.current.time ||
@@ -235,6 +242,7 @@ function ScheduleAppointmentForm({
       formValues.insuranceProvider !==
         initialValuesRef.current.insuranceProvider ||
       formValues.serviceId !== initialValuesRef.current.serviceId;
+
     return !hasAllFields || !hasChanges;
   }, [formValues, isRescheduling]);
 
@@ -262,8 +270,10 @@ function ScheduleAppointmentForm({
     } else {
       setValue("time", convertTimeToHour(time));
       setValue("serviceId", serviceId);
-      if (formValues.serviceId && formValues.serviceId !== serviceId)
+      // Establecer modalidad por defecto cuando se selecciona un horario
+      if (!formValues.selectedModality || formValues.serviceId !== serviceId) {
         setValue("selectedModality", "presencial");
+      }
     }
   };
 
@@ -451,7 +461,6 @@ function ScheduleAppointmentDialog({
   children,
 }: ScheduleAppointmentDialogProps) {
   const { t } = useTranslation("patient");
-  const navigate = useNavigate();
   const addAppointment = useAppointmentStore((s) => s.addAppointment);
   const appointment = useAppointmentStore((s) => s.appointment);
   const resetAppointment = useAppointmentStore((s) => s.clearAppointments);
@@ -507,10 +516,10 @@ function ScheduleAppointmentDialog({
   const onSubmit = (data: scheduleAppointment) => {
     if (isRescheduling && data.appointmentId) {
       addAppointment(data);
-      navigate("/patient/schedule-appointment");
+      window.location.href = "/patient/schedule-appointment";
     } else {
       addAppointment(data);
-      navigate("/patient/schedule-appointment");
+      window.location.href = "/patient/schedule-appointment";
     }
   };
 
