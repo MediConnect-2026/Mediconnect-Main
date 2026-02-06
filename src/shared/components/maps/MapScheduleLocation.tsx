@@ -14,9 +14,13 @@ import { useTranslation } from "react-i18next";
 
 interface mapScheduleLocationProps {
   initialLocation?: { lat: number; lng: number };
+  fontSizeVariant?: "xs" | "s" | "m" | "l";
 }
 
-function MapScheduleLocation({ initialLocation }: mapScheduleLocationProps) {
+function MapScheduleLocation({
+  initialLocation,
+  fontSizeVariant = "m",
+}: mapScheduleLocationProps) {
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const normalContainerRef = useRef<HTMLDivElement | null>(null);
   const fullscreenContainerRef = useRef<HTMLDivElement | null>(null);
@@ -172,6 +176,15 @@ function MapScheduleLocation({ initialLocation }: mapScheduleLocationProps) {
     return parts.join(", ");
   };
 
+  // Font size classes
+  const fontSizeMap = {
+    xs: "text-xs",
+    s: "text-sm",
+    m: "text-lg",
+    l: "text-xl",
+  };
+  const fontSizeClass = fontSizeMap[fontSizeVariant];
+
   return (
     <>
       {/* Modal para fullscreen */}
@@ -211,7 +224,7 @@ function MapScheduleLocation({ initialLocation }: mapScheduleLocationProps) {
                   } z-[10001] bg-background shadow-lg rounded-full px-4 py-2 border border-primary/75`}
                 >
                   <p
-                    className={`${isMobile ? "text-xs" : "text-sm"} text-foreground font-medium ${isMobile ? "truncate" : ""}`}
+                    className={`${fontSizeClass} text-foreground font-medium ${isMobile ? "truncate" : ""}`}
                   >
                     {getFormattedAddress()}
                   </p>
@@ -371,7 +384,9 @@ function MapScheduleLocation({ initialLocation }: mapScheduleLocationProps) {
                     {t("search.address", "Address")}
                   </h5>
                 </div>
-                <span className="text-lg text-primary font-medium break-words max-w-xs">
+                <span
+                  className={`${fontSizeClass} text-primary font-medium break-words max-w-xs`}
+                >
                   {address?.direccion || "-"}
                 </span>
               </div>
@@ -381,7 +396,9 @@ function MapScheduleLocation({ initialLocation }: mapScheduleLocationProps) {
                     {t("search.province", "Province")}
                   </h5>
                 </div>
-                <span className="text-lg text-primary font-medium break-words max-w-xs">
+                <span
+                  className={`${fontSizeClass} text-primary font-medium break-words max-w-xs`}
+                >
                   {address?.provincia || "-"}
                 </span>
               </div>
@@ -391,7 +408,9 @@ function MapScheduleLocation({ initialLocation }: mapScheduleLocationProps) {
                     {t("search.municipality", "Municipality")}
                   </h5>
                 </div>
-                <span className="text-lg text-primary font-medium break-words max-w-xs">
+                <span
+                  className={`${fontSizeClass} text-primary font-medium break-words max-w-xs`}
+                >
                   {address?.municipio || "-"}
                 </span>
               </div>
@@ -404,7 +423,9 @@ function MapScheduleLocation({ initialLocation }: mapScheduleLocationProps) {
                     {t("search.address", "Address")}
                   </h5>
                 </div>
-                <span className="text-lg text-primary font-medium break-words max-w-xs">
+                <span
+                  className={`${fontSizeClass} text-primary font-medium break-words max-w-xs`}
+                >
                   {address?.direccion || "-"}
                 </span>
               </div>
@@ -414,7 +435,9 @@ function MapScheduleLocation({ initialLocation }: mapScheduleLocationProps) {
                     {t("search.province", "Province")}
                   </h5>
                 </div>
-                <span className="text-lg text-primary font-medium break-words max-w-xs">
+                <span
+                  className={`${fontSizeClass} text-primary font-medium break-words max-w-xs`}
+                >
                   {address?.provincia || "-"}
                 </span>
               </div>
@@ -424,7 +447,9 @@ function MapScheduleLocation({ initialLocation }: mapScheduleLocationProps) {
                     {t("search.municipality", "Municipality")}
                   </h5>
                 </div>
-                <span className="text-lg text-primary font-medium break-words max-w-xs">
+                <span
+                  className={`${fontSizeClass} text-primary font-medium break-words max-w-xs`}
+                >
                   {address?.municipio || "-"}
                 </span>
               </div>

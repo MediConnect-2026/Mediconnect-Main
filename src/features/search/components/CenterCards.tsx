@@ -3,7 +3,6 @@ import { type Clinic } from "@/data/providers";
 import { cn } from "@/lib/utils";
 import { useAppStore } from "@/stores/useAppStore";
 import MCButton from "@/shared/components/forms/MCButton";
-import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/tooltip";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
@@ -20,7 +19,6 @@ export const CenterCards = ({
   clinic,
   isConnected,
   onConnect,
-  onViewProfile,
 }: ClinicCardProps) => {
   const userRole = useAppStore((state) => state.user?.role);
   const navigate = useNavigate();

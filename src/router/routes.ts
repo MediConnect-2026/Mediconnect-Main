@@ -38,7 +38,7 @@ export const ROUTES = {
     INSURANCE: "/patient/my-insurance",
     SETTINGS: "/patient/settings",
     PATIENT_PROFILE_PRIVATE: "/patient/profile",
-    PATIENT_PROFILE_PUBLIC: "/profile/:patientId",
+    PATIENT_PROFILE_PUBLIC: "/patient/profile/:patientId",
     SCHEDULE_APPOINTMENT: "/patient/schedule-appointment",
     MY_DOCTORS: "/patient/my-doctors", // <-- "Mis doctores" para paciente
     MY_CALENDAR: "/patient/my-calendar", // <-- "Calendario" personalizado paciente
@@ -90,6 +90,7 @@ export const ROUTES = {
 
   COMMON: {
     CHAT: "/chat",
+    CHAT_WITH: "/chat/:conversationId",
     GLOBAL_SEARCH: "/search",
     CALENDAR: "/calendar",
     SERVICE: "/service/:serviceId",

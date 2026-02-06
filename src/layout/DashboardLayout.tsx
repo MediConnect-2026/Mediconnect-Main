@@ -2,11 +2,14 @@ import { Outlet, useLocation } from "react-router-dom";
 import MCNavbar from "@/shared/navigation/MCNavbar";
 import MCNavbarMobile from "@/shared/navigation/MCMobileNavbar";
 import { useAppointmentStore } from "@/stores/useAppointmentStore";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useGlobalUIStore } from "@/stores/useGlobalUIStore";
 
 function DashboardLayout() {
   const location = useLocation();
+  const [showNavbar, setShowNavbar] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
+
   const setIsAppointmentInProgress = useAppointmentStore(
     (state) => state.setIsAppointmentInProgress,
   );
@@ -14,13 +17,34 @@ function DashboardLayout() {
     (state) => state.clearAppointments,
   );
 
-  // Reset de verificación si sale de /settings
   const resetVerificationContext = useGlobalUIStore(
     (state) => state.resetVerificationContext,
   );
 
+  // Manejo del scroll
   useEffect(() => {
-    // Reset de appointments si sale de schedule-appointment o search
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+
+      if (currentScrollY < lastScrollY) {
+        // Scroll hacia arriba - mostrar navbar
+        setShowNavbar(true);
+      } else if (currentScrollY > lastScrollY && currentScrollY > 50) {
+        // Scroll hacia abajo - ocultar navbar (después de 50px)
+        setShowNavbar(false);
+      }
+
+      setLastScrollY(currentScrollY);
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, [lastScrollY]);
+
+  useEffect(() => {
     const currentPath = window.location.pathname;
     if (
       !currentPath.startsWith("/patient/schedule-appointment") &&
@@ -29,11 +53,9 @@ function DashboardLayout() {
       resetAppointment();
     }
 
-    // Reset de verificación si sale de settings
     if (!currentPath.startsWith("/settings")) {
       resetVerificationContext?.();
     }
-    // eslint-disable-next-line
   }, [
     location.pathname,
     resetAppointment,
@@ -41,28 +63,36 @@ function DashboardLayout() {
     resetVerificationContext,
   ]);
 
-  // Detectar si estamos en la ruta del chat
   const isChatPage = location.pathname.includes("/chat");
 
   return (
     <div
       className={
         isChatPage
-          ? "h-screen px-4 py-6 bg-bg-btn-secondary flex flex-col gap-6 "
-          : "min-h-screen px-4 py-6 bg-bg-btn-secondary flex flex-col gap-6 "
+          ? "h-screen px-4 py-6 bg-bg-btn-secondary flex flex-col gap-6"
+          : "min-h-screen px-4 py-6 bg-bg-btn-secondary flex flex-col gap-6"
       }
     >
-      {/* Navbar */}
-      <div className="block md:hidden flex-shrink-0 animate-fade-in">
-        <MCNavbarMobile />
+      {/* Navbar - Fixed con transición suave */}
+      <div
+        className={`fixed top-0 left-0 right-0 z-50 px-4 pt-4 bg-transparent transition-transform duration-300 ${
+          showNavbar ? "translate-y-0" : "-translate-y-full"
+        }`}
+      >
+        <div className="block md:hidden animate-fade-in">
+          <MCNavbarMobile />
+        </div>
+
+        <div className="hidden md:block animate-fade-in">
+          <MCNavbar />
+        </div>
       </div>
 
-      <div className="hidden md:block flex-shrink-0 animate-fade-in">
-        <MCNavbar />
-      </div>
+      {/* Spacer para compensar el navbar fixed */}
+      <div className="h-[60px] md:h-[80px] flex-shrink-0" />
 
-      {/* Content - Ocupa el espacio restante */}
-      <div className={isChatPage ? "flex-1 overflow-hidden" : "w-full h-full "}>
+      {/* Content */}
+      <div className={isChatPage ? "flex-1 overflow-hidden" : "w-full h-full"}>
         <Outlet />
       </div>
     </div>

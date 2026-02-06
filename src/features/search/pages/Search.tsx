@@ -40,7 +40,6 @@ interface SearchProviderFilters {
   rating: number | null;
 }
 
-// ✅ OPTIMIZACIÓN 1: Mover constantes fuera del componente
 const TIPO_PROVEEDOR_OPTIONS = [
   { value: "all", label: "Todos" },
   { value: "doctor", label: "Doctor" },

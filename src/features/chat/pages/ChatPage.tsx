@@ -1,16 +1,36 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ChatSidebar } from "../components/ChatSidebar";
 import { ChatPanel } from "../components/ChatPanel";
 import { mockConversations } from "@/data/mockConversations";
 import type { Conversation, Message } from "@/types/ChatTypes";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
-
+import {
+  Empty,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyDescription,
+  EmptyContent,
+  EmptyMedia,
+} from "@/shared/ui/empty";
+import { useParams, useNavigate } from "react-router-dom";
 const ChatPage = () => {
   const [conversations, setConversations] =
     useState<Conversation[]>(mockConversations);
+  const { conversationId } = useParams<{ conversationId: string }>();
+  const navigate = useNavigate();
+
   const [activeConversationId, setActiveConversationId] = useState<
     string | null
-  >(mockConversations[0]?.id || null);
+  >(
+    conversationId || null, // <-- solo null si no hay conversationId
+  );
+
+  useEffect(() => {
+    if (conversationId) {
+      setActiveConversationId(conversationId);
+    }
+  }, [conversationId]);
+
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const isMobile = useIsMobile();
 
@@ -114,11 +134,11 @@ const ChatPage = () => {
     if (isMobile) {
       setSidebarOpen(true);
     }
+    navigate("/");
   };
 
   return (
     <div className="h-full w-full flex bg-background rounded-2xl md:rounded-4xl overflow-hidden relative">
-      {/* Sidebar - En mobile se muestra solo cuando no hay conversación activa o cuando sidebarOpen es true */}
       <ChatSidebar
         conversations={conversations}
         activeConversationId={activeConversationId}
@@ -127,13 +147,27 @@ const ChatPage = () => {
         onClose={() => setSidebarOpen(false)}
       />
 
-      {/* Panel de chat - En mobile se muestra solo cuando hay conversación activa */}
-      {(!isMobile || (isMobile && activeConversationId && !sidebarOpen)) && (
+      {/* Si no hay conversación seleccionada, muestra Empty */}
+      {!isMobile || (isMobile && activeConversationId && !sidebarOpen) ? (
         <ChatPanel
           conversation={activeConversation}
           onSendMessage={handleSendMessage}
           onBack={isMobile ? handleBackToList : undefined}
         />
+      ) : (
+        <div className="flex-1 flex items-center justify-center bg-background">
+          <Empty>
+            <EmptyHeader>
+              <EmptyMedia />
+              <EmptyTitle>Selecciona un chat</EmptyTitle>
+              <EmptyDescription>
+                Elige una conversación en la barra lateral para comenzar a
+                chatear.
+              </EmptyDescription>
+            </EmptyHeader>
+            <EmptyContent />
+          </Empty>
+        </div>
       )}
     </div>
   );

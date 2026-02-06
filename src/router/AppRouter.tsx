@@ -114,6 +114,10 @@ function AppRouter() {
               path={ROUTES.PATIENT.PATIENT_PROFILE_PRIVATE}
               element={<PatientProfilePage />}
             />
+            <Route
+              path={ROUTES.PATIENT.PATIENT_PROFILE_PUBLIC}
+              element={<PatientProfilePage />}
+            />
 
             <Route path={ROUTES.COMMON.GLOBAL_SEARCH} element={<Search />} />
             <Route
@@ -202,6 +206,7 @@ function AppRouter() {
               element={<DoctorProfilePage />}
             />
             <Route path={ROUTES.COMMON.CHAT} element={<ChatPage />} />
+            <Route path={ROUTES.COMMON.CHAT_WITH} element={<ChatPage />} />
             <Route path={ROUTES.COMMON.SERVICE} element={<ServicesPage />} />
           </Route>
         </Route>

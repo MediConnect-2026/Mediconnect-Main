@@ -113,6 +113,7 @@ const getInsuranceOptions = (t: any) => [
 interface ScheduleAppointmentDialogProps {
   idProvider: string;
   idAppointment?: string;
+  idService?: string;
   children: React.ReactNode;
 }
 
@@ -130,8 +131,10 @@ const parseDateFromStorage = (dateString: string): Date => {
 
 function ScheduleAppointmentForm({
   isRescheduling,
+  idService,
 }: {
   isRescheduling: boolean;
+  idService?: string;
 }) {
   const { t, i18n } = useTranslation("patient");
   const currentLocale = i18n.language === "es" ? es : enUS;
@@ -444,6 +447,7 @@ function ScheduleAppointmentForm({
 function ScheduleAppointmentDialog({
   idProvider,
   idAppointment,
+  idService,
   children,
 }: ScheduleAppointmentDialogProps) {
   const { t } = useTranslation("patient");

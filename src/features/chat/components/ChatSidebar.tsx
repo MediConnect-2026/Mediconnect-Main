@@ -7,6 +7,7 @@ import { ScrollArea } from "@/shared/ui/scroll-area";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
 import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
+import { useNavigate } from "react-router-dom";
 
 interface ChatSidebarProps {
   conversations: Conversation[];
@@ -26,6 +27,7 @@ export function ChatSidebar({
   const [searchQuery, setSearchQuery] = useState("");
   const isMobile = useIsMobile();
   const { t } = useTranslation("common");
+  const navigate = useNavigate();
 
   const filteredConversations = conversations.filter((conv) =>
     conv.name.toLowerCase().includes(searchQuery.toLowerCase()),
@@ -33,6 +35,7 @@ export function ChatSidebar({
 
   const handleSelectConversation = (id: string) => {
     onSelectConversation(id);
+    navigate(`/chat/${id}`); // <-- Navega a la ruta del chat
     if (isMobile && onClose) {
       onClose();
     }
