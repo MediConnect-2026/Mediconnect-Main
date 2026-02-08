@@ -10,12 +10,14 @@ type MCFilterPopoverProps = {
   children: React.ReactNode;
   activeFiltersCount: number;
   onClearFilters: () => void;
+  compact?: boolean; // nueva prop
 };
 
 export function MCFilterPopover({
   children,
   activeFiltersCount,
   onClearFilters,
+  compact = false, // valor por defecto
 }: MCFilterPopoverProps) {
   const [open, setOpen] = React.useState(false);
   const isMobile = useIsMobile();
@@ -45,9 +47,9 @@ export function MCFilterPopover({
       <PopoverContent
         className={cn(
           "p-4 sm:p-5 bg-bg-secondary shadow-lg z-50 border border-primary/20 rounded-xl sm:rounded-2xl",
-          "w-[calc(100vw-2rem)] sm:w-auto",
-          "min-w-0 sm:min-w-[400px] md:min-w-[500px] lg:min-w-[600px]",
-          "max-w-[calc(100vw-2rem)] sm:max-w-none",
+          compact
+            ? "w-[220px] min-w-[220px] max-w-[220px]"
+            : "w-[calc(100vw-2rem)] sm:w-auto min-w-0 sm:min-w-[400px] md:min-w-[500px] lg:min-w-[600px] max-w-[calc(100vw-2rem)] sm:max-w-none",
           "max-h-[calc(100vh-8rem)] overflow-y-auto",
         )}
         align={isMobile ? "center" : "end"}

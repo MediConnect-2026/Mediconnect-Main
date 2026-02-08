@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { ValidateDominicanID } from "@/utils/ValidateDominicanID";
+import { ValidateDominicanID } from "@/ValidateDominicanID";
 import { ValidateDominicanRNC } from "@/utils/ValidateDominicanRNC";
 
 // Schema para archivos subidos

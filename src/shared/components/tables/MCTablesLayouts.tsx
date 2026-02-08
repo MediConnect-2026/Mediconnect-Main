@@ -39,12 +39,18 @@ function MCTablesLayouts({
 
   return (
     <div
-      className={`bg-background ${!isDashboard ? "min-h-screen" : ""} flex gap-4 rounded-4xl ${isMobile ? "py-4 px-4" : "p-10"}`}
+      className={`bg-background ${!isDashboard ? "min-h-screen" : ""} flex gap-4 rounded-4xl ${
+        isDashboard ? "py-4 px-4" : isMobile ? "py-4 px-4" : "p-10"
+      }`}
     >
       <motion.main {...fadeInUp} className={`w-full flex flex-col gap-6`}>
         {/* Título y acciones en la misma fila */}
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-          <h1 className="text-3xl font-bold text-foreground">{title}</h1>
+          <h1
+            className={`${isDashboard ? "text-2xl" : "text-3xl"} font-bold text-foreground`}
+          >
+            {title}
+          </h1>
           {(searchComponent ||
             filterComponent ||
             toogleView ||

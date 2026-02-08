@@ -205,7 +205,7 @@ export function AppointmentsCalendar({
       <div className="w-full h-full flex flex-col p-3 overflow-hidden">
         {/* Calendar Section - Más compacto */}
         <motion.div {...fadeInUp} className="flex-shrink-0">
-          <h2 className="mb-2 flex-shrink-0 text-3xl font-semibold text-foreground">
+          <h2 className="mb-2 flex-shrink-0 text-2xl font-semibold text-foreground">
             {t("navbar.calendar")}
           </h2>
           <Calendar
