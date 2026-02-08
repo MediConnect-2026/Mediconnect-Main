@@ -94,5 +94,6 @@ export const ROUTES = {
     GLOBAL_SEARCH: "/search",
     CALENDAR: "/calendar",
     SERVICE: "/service/:serviceId",
+    DASHBOARD: "/dashboard",
   },
 };

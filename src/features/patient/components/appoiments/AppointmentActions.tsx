@@ -5,6 +5,7 @@ import { ROUTES } from "@/router/routes";
 import ScheduleAppointmentDialog from "@/features/patient/components/appoiments/ScheduleAppointmentDialog";
 import CancelAppointmentDialog from "@/features/patient/components/appoiments/CancelAppointmentDialog";
 import ViewDetailsAppointmentDialog from "./ViewDetailsAppointmentDialog";
+import { useAppStore } from "@/stores/useAppStore";
 
 interface AppointmentActionsProps {
   appointment: {
@@ -19,12 +20,18 @@ export default function AppointmentActions({
   appointment,
 }: AppointmentActionsProps) {
   const { t } = useTranslation("patient");
+  const navigate = useNavigate();
+  const userRole = useAppStore((state) => state.user?.role);
+
   const isUpcoming = ["scheduled", "pending", "in_progress"].includes(
     appointment.status,
   );
   const isVirtual = appointment.appointmentType === "virtual";
   const isInProgress = appointment.status === "in_progress";
-  const navigate = useNavigate();
+  const isPending = appointment.status === "pending";
+  const isScheduled = appointment.status === "scheduled";
+  const isCompleted = appointment.status === "completed";
+  const isCancelled = appointment.status === "cancelled";
 
   const handleJoin = (appointmentId: string) => {
     navigate(
@@ -32,20 +39,150 @@ export default function AppointmentActions({
     );
   };
 
+  const handleAcceptAppointment = (appointmentId: string) => {
+    // Lógica para aceptar cita
+    console.log("Accepting appointment:", appointmentId);
+  };
+
+  const handleCompleteAppointment = (appointmentId: string) => {
+    // Lógica para marcar como completada
+    console.log("Completing appointment:", appointmentId);
+  };
+
+  const handleContinueConsultation = (appointmentId: string) => {
+    // Lógica para continuar consulta presencial
+    console.log("Continuing consultation:", appointmentId);
+  };
+
+  // Acciones para DOCTOR
+  if (userRole === "DOCTOR") {
+    if (isPending) {
+      // PENDING: Ver Detalles, Aceptar Cita, Cancelar Cita
+      return (
+        <div className="flex flex-col gap-1 p-2">
+          <ViewDetailsAppointmentDialog appointmentId={appointment.id}>
+            <div className="p-2 cursor-pointer rounded-lg hover:bg-accent/70 dark:hover:text-background transition text-sm">
+              {t("appointments.viewDetails")}
+            </div>
+          </ViewDetailsAppointmentDialog>
+          <div
+            className="p-2 cursor-pointer rounded-lg hover:bg-green-500/10 text-green-600 transition text-sm"
+            onClick={() => handleAcceptAppointment(appointment.id)}
+          >
+            {t("appointments.accept")}
+          </div>
+          <CancelAppointmentDialog appointmentId={appointment.id}>
+            <div className="p-2 cursor-pointer rounded-lg hover:bg-destructive/10 text-destructive transition text-sm">
+              {t("appointments.cancel")}
+            </div>
+          </CancelAppointmentDialog>
+        </div>
+      );
+    }
+
+    if (isScheduled) {
+      // SCHEDULED: Ver Cita, Reprogramar, Cancelar
+      return (
+        <div className="flex flex-col gap-1 p-2">
+          <ViewDetailsAppointmentDialog appointmentId={appointment.id}>
+            <div className="p-2 cursor-pointer rounded-lg hover:bg-accent/70 dark:hover:text-background transition text-sm">
+              {t("appointments.viewAppointment")}
+            </div>
+          </ViewDetailsAppointmentDialog>
+          <ScheduleAppointmentDialog
+            idProvider={appointment.doctorId}
+            idAppointment={appointment.id}
+          >
+            <div className="p-2 cursor-pointer rounded-lg hover:bg-accent/70 dark:hover:text-background transition text-sm">
+              {t("appointments.reschedule")}
+            </div>
+          </ScheduleAppointmentDialog>
+          <CancelAppointmentDialog appointmentId={appointment.id}>
+            <div className="p-2 cursor-pointer rounded-lg hover:bg-destructive/10 text-destructive transition text-sm">
+              {t("appointments.cancel")}
+            </div>
+          </CancelAppointmentDialog>
+        </div>
+      );
+    }
+
+    if (isCompleted || isCancelled) {
+      // COMPLETED/CANCELLED: Solo Ver Detalles
+      return (
+        <ViewDetailsAppointmentDialog appointmentId={appointment.id}>
+          <div className="p-2 cursor-pointer rounded-lg hover:bg-primary/10 transition text-sm">
+            {t("appointments.viewDetails")}
+          </div>
+        </ViewDetailsAppointmentDialog>
+      );
+    }
+
+    if (isInProgress) {
+      if (isVirtual) {
+        // IN_PROGRESS + VIRTUAL: Ver Cita, Unirse a Teleconsulta, Marcar Completada
+        return (
+          <div className="flex flex-col gap-1 p-2">
+            <ViewDetailsAppointmentDialog appointmentId={appointment.id}>
+              <div className="p-2 cursor-pointer rounded-lg hover:bg-accent/70 dark:hover:text-background transition text-sm">
+                {t("appointments.viewAppointment")}
+              </div>
+            </ViewDetailsAppointmentDialog>
+            <div
+              className="p-2 cursor-pointer rounded-lg hover:bg-blue-500/10 text-blue-600 transition text-sm flex items-center justify-center"
+              onClick={() => handleJoin(appointment.id)}
+            >
+              {t("appointments.joinTeleconsult")}
+            </div>
+            <div
+              className="p-2 cursor-pointer rounded-lg hover:bg-green-500/10 text-green-600 transition text-sm"
+              onClick={() => handleCompleteAppointment(appointment.id)}
+            >
+              {t("appointments.markCompleted")}
+            </div>
+          </div>
+        );
+      } else {
+        // IN_PROGRESS + PRESENCIAL: Ver Cita, Continuar Consulta, Marcar Completada
+        return (
+          <div className="flex flex-col gap-1 p-2">
+            <ViewDetailsAppointmentDialog appointmentId={appointment.id}>
+              <div className="p-2 cursor-pointer rounded-lg hover:bg-accent/70 dark:hover:text-background transition text-sm">
+                {t("appointments.viewAppointment")}
+              </div>
+            </ViewDetailsAppointmentDialog>
+            <div
+              className="p-2 cursor-pointer rounded-lg hover:bg-blue-500/10 text-blue-600 transition text-sm"
+              onClick={() => handleContinueConsultation(appointment.id)}
+            >
+              {t("appointments.continueConsultation")}
+            </div>
+            <div
+              className="p-2 cursor-pointer rounded-lg hover:bg-green-500/10 text-green-600 transition text-sm"
+              onClick={() => handleCompleteAppointment(appointment.id)}
+            >
+              {t("appointments.markCompleted")}
+            </div>
+          </div>
+        );
+      }
+    }
+  }
+
+  // Acciones para PACIENTE (lógica original)
   if (isUpcoming) {
     if (isInProgress) {
       if (isVirtual) {
         // Virtual + en progreso: Unirse y Ver detalles
         return (
-          <div className="flex flex-col gap-1 py-1">
+          <div className="flex flex-col gap-1 p-2">
             <div
-              className="p-1 cursor-pointer rounded-lg hover:bg-accent/70 transition dark:hover:text-background text-sm flex items-center justify-center"
+              className="p-2 cursor-pointer rounded-lg hover:bg-blue-500/10 text-blue-600 transition text-sm flex items-center justify-center"
               onClick={() => handleJoin(appointment.id)}
             >
               {t("appointments.join")}
             </div>
             <ViewDetailsAppointmentDialog appointmentId={appointment.id}>
-              <div className="p-1 cursor-pointer rounded-lg hover:bg-accent/70 dark:hover:text-background transition text-sm">
+              <div className="p-2 cursor-pointer rounded-lg hover:bg-accent/70 dark:hover:text-background transition text-sm">
                 {t("appointments.viewDetails")}
               </div>
             </ViewDetailsAppointmentDialog>
@@ -55,7 +192,7 @@ export default function AppointmentActions({
         // Presencial + en progreso: solo Ver detalles
         return (
           <ViewDetailsAppointmentDialog appointmentId={appointment.id}>
-            <div className="p-1 cursor-pointer rounded-lg hover:bg-accent/70 dark:hover:text-background transition text-sm">
+            <div className="p-2 cursor-pointer rounded-lg hover:bg-accent/70 dark:hover:text-background transition text-sm">
               {t("appointments.viewDetails")}
             </div>
           </ViewDetailsAppointmentDialog>
@@ -64,9 +201,9 @@ export default function AppointmentActions({
     }
     // Otros estados: todos los botones
     return (
-      <div className="flex flex-col gap-1 py-1">
+      <div className="flex flex-col gap-1 p-2">
         <ViewDetailsAppointmentDialog appointmentId={appointment.id}>
-          <div className="p-1 cursor-pointer rounded-lg hover:bg-accent/70 dark:hover:text-background transition text-sm">
+          <div className="p-2 cursor-pointer rounded-lg hover:bg-accent/70 dark:hover:text-background transition text-sm">
             {t("appointments.viewDetails")}
           </div>
         </ViewDetailsAppointmentDialog>
@@ -74,12 +211,12 @@ export default function AppointmentActions({
           idProvider={appointment.doctorId}
           idAppointment={appointment.id}
         >
-          <div className="p-1 cursor-pointer rounded-lg hover:bg-accent/70 dark:hover:text-background transition text-sm">
+          <div className="p-2 cursor-pointer rounded-lg hover:bg-accent/70 dark:hover:text-background transition text-sm">
             {t("appointments.reschedule")}
           </div>
         </ScheduleAppointmentDialog>
         <CancelAppointmentDialog appointmentId={appointment.id}>
-          <div className="p-1 cursor-pointer rounded-lg hover:bg-destructive/10 text-destructive transition text-sm">
+          <div className="p-2 cursor-pointer rounded-lg hover:bg-destructive/10 text-destructive transition text-sm">
             {t("appointments.cancel")}
           </div>
         </CancelAppointmentDialog>
@@ -89,7 +226,7 @@ export default function AppointmentActions({
   // Si no es upcoming, solo Ver detalles
   return (
     <ViewDetailsAppointmentDialog appointmentId={appointment.id}>
-      <div className="px-4 py-2 cursor-pointer rounded-lg hover:bg-primary/10 transition text-sm">
+      <div className="p-2 cursor-pointer rounded-lg hover:bg-primary/10 transition text-sm">
         {t("appointments.viewDetails")}
       </div>
     </ViewDetailsAppointmentDialog>

@@ -21,6 +21,7 @@ interface MCTablesLayoutsProps {
   toogleView?: React.ReactNode;
   filtersInlineWithTitle?: boolean;
   pdfGeneratorComponent?: React.ReactNode;
+  isDashboard?: boolean;
 }
 
 function MCTablesLayouts({
@@ -31,13 +32,14 @@ function MCTablesLayouts({
   tableComponent,
   toogleView,
   filtersInlineWithTitle = false,
+  isDashboard = false,
   pdfGeneratorComponent,
 }: MCTablesLayoutsProps) {
   const isMobile = useIsMobile();
 
   return (
     <div
-      className={`bg-background min-h-screen flex gap-4 rounded-4xl ${isMobile ? "py-4 px-4" : "p-10"}`}
+      className={`bg-background ${!isDashboard ? "min-h-screen" : ""} flex gap-4 rounded-4xl ${isMobile ? "py-4 px-4" : "p-10"}`}
     >
       <motion.main {...fadeInUp} className={`w-full flex flex-col gap-6`}>
         {/* Título y acciones en la misma fila */}

@@ -1,30 +1,30 @@
 // config/navbar.config.ts
 export const NAVBAR_CONFIG = {
   PATIENT: {
-    home: "/patient/dashboard",
+    home: "/dashboard",
     menu: [
-      { label: "home", href: "/patient/dashboard" },
+      { label: "home", href: "/dashboard" },
       { label: "appointments", href: "/patient/my-appointments" },
       { label: "doctors", href: "/patient/my-doctors" },
-      { label: "calendar", href: "/patient/my-calendar" },
+      { label: "calendar", href: "/calendar" },
     ],
   },
 
   DOCTOR: {
-    home: "/doctor/dashboard",
+    home: "/dashboard",
     menu: [
-      { label: "home", href: "/doctor/dashboard" },
+      { label: "home", href: "/dashboard" },
       { label: "patients", href: "/doctor/my-patients" },
       { label: "appointments", href: "/doctor/appointments" },
       { label: "services", href: "/doctor/services" },
-      { label: "schedule", href: "/doctor/schedule" },
+      { label: "schedule", href: "/calendar" },
     ],
   },
 
   CENTER: {
-    home: "/center/dashboard",
+    home: "/dashboard",
     menu: [
-      { label: "home", href: "/center/dashboard" },
+      { label: "home", href: "/dashboard" },
       { label: "doctors", href: "/center/staff" },
       { label: "requests", href: "/center/requests" },
     ],

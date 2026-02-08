@@ -44,8 +44,13 @@ import MessagesPrivacyPage from "@/features/account/privacy/pages/MessagesPrivac
 import MyAppointmentsPage from "@/features/patient/pages/MyAppointmentsPage";
 import MyDoctorsPage from "@/features/patient/pages/MyDoctorsPage";
 import { CalendarPage } from "@/features/calendar/pages/CalendarPage";
+import MyServicesPage from "@/features/doctor/pages/MyServicesPage";
+import MyPatientsPage from "@/features/doctor/pages/PatientsPage";
+import AppointmentsPage from "@/features/doctor/pages/AppointmentsPage";
+import { useAppStore } from "@/stores/useAppStore";
 
 function AppRouter() {
+  const userRole = useAppStore((state) => state.user?.role);
   return (
     <BrowserRouter>
       {" "}
@@ -109,7 +114,26 @@ function AppRouter() {
         </Route>
         <Route element={<DarkLayout />}>
           <Route element={<DashboardLayout />}>
-            <Route path={ROUTES.PATIENT.HOME} element={<PatientDashboard />} />
+            {/* Conditional Dashboard Route */}
+            {userRole === "PATIENT" && (
+              <Route
+                path={ROUTES.COMMON.DASHBOARD}
+                element={<PatientDashboard />}
+              />
+            )}
+            {userRole === "DOCTOR" && (
+              <Route
+                path={ROUTES.COMMON.DASHBOARD}
+                element={<DoctorDashboard />}
+              />
+            )}
+            {userRole === "CENTER" && (
+              <Route
+                path={ROUTES.COMMON.DASHBOARD}
+                element={<CenterDashboard />}
+              />
+            )}
+
             <Route
               path={ROUTES.PATIENT.PATIENT_PROFILE_PRIVATE}
               element={<PatientProfilePage />}
@@ -124,9 +148,6 @@ function AppRouter() {
               path={ROUTES.PATIENT.SCHEDULE_APPOINTMENT}
               element={<ScheduleAppointment />}
             />
-
-            <Route path={ROUTES.DOCTOR.HOME} element={<DoctorDashboard />} />
-            <Route path={ROUTES.CENTER.HOME} element={<CenterDashboard />} />
 
             {/* SETTINGS */}
             <Route
@@ -193,10 +214,7 @@ function AppRouter() {
               path={ROUTES.PATIENT.MY_DOCTORS}
               element={<MyDoctorsPage />}
             />
-            <Route
-              path={ROUTES.PATIENT.MY_CALENDAR}
-              element={<CalendarPage />}
-            />
+            <Route path={ROUTES.COMMON.CALENDAR} element={<CalendarPage />} />
             <Route
               path={ROUTES.DOCTOR.DOCTOR_PROFILE_PUBLIC}
               element={<DoctorProfilePage />}
@@ -205,6 +223,13 @@ function AppRouter() {
               path={ROUTES.DOCTOR.DOCTOR_PROFILE_PRIVATE}
               element={<DoctorProfilePage />}
             />
+            <Route
+              path={ROUTES.DOCTOR.APPOINTMENTS}
+              element={<AppointmentsPage />}
+            />
+            <Route path={ROUTES.DOCTOR.SERVICES} element={<MyServicesPage />} />
+            <Route path={ROUTES.DOCTOR.PATIENTS} element={<MyPatientsPage />} />
+
             <Route path={ROUTES.COMMON.CHAT} element={<ChatPage />} />
             <Route path={ROUTES.COMMON.CHAT_WITH} element={<ChatPage />} />
             <Route path={ROUTES.COMMON.SERVICE} element={<ServicesPage />} />

@@ -25,7 +25,7 @@ const MCMetricCard: React.FC<MCMetricCardProps> = ({
     >
       <div className="flex items-start gap-4 mb-5">
         <div className="flex items-center justify-center rounded-full w-15 h-15 bg-accent flex-shrink-0">
-          <span className="text-xl text-accent-accent-foreground flex items-center justify-center">
+          <span className="text-xl text-primary  dark:text-background flex items-center justify-center">
             {icon}
           </span>
         </div>

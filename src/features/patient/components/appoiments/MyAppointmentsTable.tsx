@@ -26,12 +26,7 @@ import {
   PaginationPrevious,
   PaginationNext,
 } from "@/shared/ui/pagination";
-import {
-  Popover,
-  PopoverTrigger,
-  PopoverContent,
-  PopoverAnchor,
-} from "@/shared/ui/popover";
+import { Popover, PopoverTrigger, PopoverContent } from "@/shared/ui/popover";
 import AppointmentActions from "./AppointmentActions";
 import { MCUserAvatar } from "@/shared/navigation/userMenu/MCUserAvatar";
 

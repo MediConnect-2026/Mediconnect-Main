@@ -106,7 +106,8 @@ export function AppointmentCard({ appointment, index }: AppointmentCardProps) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.1, duration: 0.3 }}
-      className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 p-3 sm:p-2 rounded-xl bg-none border-b sm:border-b-0 border-border/50 last:border-b-0"
+      className={`w-full flex flex-col gap-3 p-3 bg-none border-b border-primary/15 last:border-b-0 hide-scrollbar  `}
+      // Elimina sm:flex-row y sm:items-center para forzar vertical
     >
       {/* Contenido principal */}
       <div className="flex items-start sm:items-center gap-3 sm:gap-4">
