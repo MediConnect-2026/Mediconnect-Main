@@ -1,0 +1,327 @@
+openapi: 3.0.0
+info:
+  title: MediConnect API
+  version: 1.0.0
+  description: Documentación oficial del API de MediConnect.
+  contact:
+    name: Equipo de Desarrollo MediConnect
+servers:
+  - url: http://localhost:3000/api
+    description: Servidor de Desarrollo Local
+
+tags:
+  - name: Autenticación
+    description: Login (email/contraseña y Google), registro (OTP, token) y completar registro de paciente/doctor
+  - name: Traductor
+    description: Endpoints de traducción del sistema
+  - name: Utilidades de Traducción
+    description: Endpoints para gestionar y monitorear el sistema de traducción automática
+  - name: Provincias
+    description: Endpoints para gestionar provincias
+  - name: Municipios
+    description: Endpoints para gestionar municipios
+  - name: DistritosMunicipales
+    description: Endpoints para gestionar distritos municipales
+  - name: Secciones
+    description: Endpoints para gestionar secciones
+  - name: Barrios
+    description: Endpoints para gestionar barrios
+  - name: SubBarrios
+    description: Endpoints para gestionar SubBarrios
+  - name: Ubicaciones
+    description: Endpoints para gestionar ubicaciones
+  - name: Horarios
+    description: Endpoints para gestionar horarios
+  - name: ServiciosHorarios
+    description: Endpoints para gestionar relaciones entre servicios y horarios
+  - name: TiposServicios
+    description: Endpoints para gestionar tipos de servicios
+  - name: TiposCentrosSalud
+    description: Endpoints para gestionar tipos de centros de salud
+  - name: Profesiones
+    description: Endpoints para gestionar profesiones
+  - name: ExperienciasLaborales
+    description: Endpoints para gestionar experiencias laborales de doctores
+  - name: Autenticación
+    description: Endpoints para autenticación y gestión de tokens JWT
+  - name: Notificaciones
+    description: Endpoints para gestión de notificaciones en tiempo real
+  - name: Conversaciones
+    description: Endpoints para gestión de conversaciones de chat entre usuarios
+  - name: Mensajes
+    description: Endpoints para gestión de mensajes dentro de conversaciones
+
+# --- RUTAS (ENDPOINTS) ---
+paths:
+  /auth/login:
+    post:
+      summary: Login con email y contraseña
+      tags:
+        - Autenticación
+      description: Permite a un usuario (Doctor, Paciente o Admin) iniciar sesión con email y contraseña. Devuelve JWT de sesión y datos del usuario.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: usuario@mediconnect.com
+                  description: Correo electrónico del usuario.
+                password:
+                  type: string
+                  minLength: 6
+                  description: Contraseña (mínimo 6 caracteres).
+      responses:
+        '200':
+          description: Login exitoso. Devuelve JWT y datos del usuario.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  token:
+                    type: string
+                    description: JWT de sesión (Authorization Bearer para rutas protegidas).
+                  usuario:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        example: 1
+                      email:
+                        type: string
+                        format: email
+                      rol:
+                        type: string
+                        example: Paciente
+                        description: Paciente, Doctor o Administrador.
+                      fotoPerfil:
+                        type: string
+                        nullable: true
+        '400':
+          description: Datos inválidos (email/password mal formateados).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Credenciales inválidas.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Usuario inactivo o bloqueado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Error interno del servidor.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/google:
+    post:
+      summary: Login con Google (OAuth)
+      tags:
+        - Autenticación
+      description: |
+        Recibe el **idToken** obtenido del frontend (Google Sign-In) y realiza una de tres acciones:
+        1. **Login:** Si el usuario ya tiene su cuenta de Google vinculada, devuelve el JWT de sesión.
+        2. **Vincular:** Si el email ya existe en la BD pero no tiene Google vinculado, vincula la cuenta y devuelve el JWT.
+        3. **Registro rápido:** Si el usuario es nuevo, crea un usuario básico + cuenta social y devuelve el JWT.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - idToken
+              properties:
+                idToken:
+                  type: string
+                  description: Token ID de Google (obtenido del cliente con Google Sign-In).
+                id_token:
+                  type: string
+                  description: Alternativa al campo idToken (mismo valor).
+      responses:
+        '200':
+          description: Login/vincular/registro exitoso. Devuelve JWT de sesión y datos del usuario.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  token:
+                    type: string
+                    description: JWT de sesión (incluir en Authorization Bearer para rutas protegidas).
+                  user:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        example: 1
+                      email:
+                        type: string
+                        format: email
+                        example: usuario@gmail.com
+                      rol:
+                        type: string
+                        example: Paciente
+                      fotoPerfil:
+                        type: string
+                        nullable: true
+                        description: URL de la foto de perfil (p. ej. de Google).
+        '400':
+          description: Falta idToken o solicitud inválida.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Token de Google inválido o expirado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Error del servidor (p. ej. GOOGLE_CLIENT_ID no configurado).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/registro/solicitar-codigo:
+    post:
+      summary: Solicitar código OTP para registro
+      tags:
+        - Autenticación
+      description: Solicita un código OTP que será enviado al correo electrónico del usuario para validar su identidad antes de completar el registro.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: "usuario@mediconnect.com"
+                  description: Correo electrónico del usuario que desea registrarse.
+              required:
+                - email
+      responses:
+        '200':
+          description: Código OTP enviado exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Código de registro enviado al correo electrónico.
+        '400':
+          description: Solicitud inválida (por ejemplo, falta el email).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: El correo ya está registrado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Error interno del servidor.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/registro/validar-codigo:
+    post:
+      summary: Validar código OTP y generar token de registro
+      tags:
+        - Autenticación
+      description: Valida el código OTP enviado al correo electrónico del usuario y genera un token de registro temporal.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: "usuario@mediconnect.com"
+                  description: Correo electrónico del usuario.
+                codigo:
+                  type: string
+                  example: "123456"
+                  description: Código OTP enviado al correo electrónico.
+              required:
+                - email
+                - codigo
+      responses:
+        '200':
+          description: Código validado correctamente y token de registro generado.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Código validado correctamente.
+                  data:
+                    type: object
+                    properties:
+                      token:
+                        type: string
+                        example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                        description: Token de registro temporal para completar el registro.
+        '400':
+          description: Solicitud inválida (por ejemplo, falta el email o el código).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Código OTP inválido o expirado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Error interno del servidor.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'

@@ -23,17 +23,21 @@ export const useAppStore = create<AppStore>()(
       name: "app-storage",
       storage: createJSONStorage(() => sessionStorage),
       partialize: (state) => ({
+        // AuthSlice
         isAuthenticated: state.isAuthenticated,
         token: state.token,
-        verifyEmail: state.verifyEmail,
+        user: state.user,
 
+        // AuthFlowSlice
+        verifyEmail: state.verifyEmail,
+        forgotPassword: state.forgotPassword,
+        otp: state.otp,
+
+        // OnboardingSlice
         selectedRole: state.selectedRole,
         patientOnboardingData: state.patientOnboardingData,
         doctorOnboardingData: state.doctorOnboardingData,
         centerOnboardingData: state.centerOnboardingData,
-
-        forgotPassword: state.forgotPassword,
-        otp: state.otp,
       }),
     },
   ),

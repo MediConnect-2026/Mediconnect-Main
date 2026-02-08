@@ -60,7 +60,7 @@
     "passwordRequired": "La contraseña es obligatoria",
     "confirmPasswordRequired": "Debes confirmar la contraseña",
     "passwordsDoNotMatch": "Las contraseñas no coinciden",
-    "otpLength": "El código OTP debe tener 4 dígitos",
+    "otpLength": "El código OTP debe tener 6 dígitos",
     "otpNumeric": "El código OTP debe ser numérico",
     "visibilityRequired": "La visibilidad del perfil es obligatoria",
     "privacyConsentRequired": "Debes aceptar la política de privacidad",

@@ -60,7 +60,7 @@
     "passwordRequired": "Password is required",
     "confirmPasswordRequired": "You must confirm the password",
     "passwordsDoNotMatch": "Passwords do not match",
-    "otpLength": "OTP code must be 4 digits",
+    "otpLength": "OTP code must be 6 digits",
     "otpNumeric": "OTP code must be numeric",
     "visibilityRequired": "Profile visibility is required",
     "privacyConsentRequired": "You must accept the privacy policy",

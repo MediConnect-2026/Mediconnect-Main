@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import MCFormWrapper from "@/shared/components/forms/MCFormWrapper";
 import AuthContentContainer from "@/features/auth/components/AuthContentContainer";
 import MCInput from "@/shared/components/forms/MCInput";
@@ -7,10 +7,13 @@ import { useAppStore } from "@/stores/useAppStore";
 import { useTranslation } from "react-i18next";
 import AuthFooterContainer from "@/features/auth/components/AuthFooterContainer";
 import { useNavigate } from "react-router-dom";
+import { authService } from "@/services/auth/auth.service";
+import { toast } from "sonner";
 
 function RegEmailVerificationPage() {
   const { t } = useTranslation("auth");
   const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
 
   const selectedRole = useAppStore((state) => state.selectedRole);
   const patientBasicInfo = useAppStore((state) => state.patientOnboardingData);
@@ -22,6 +25,7 @@ function RegEmailVerificationPage() {
   const centerBasicInfo = useAppStore((state) => state.centerOnboardingData);
   const setEmailCenter = useAppStore((state) => state.setCenterOnboardingData);
   const setVerifyEmail = useAppStore((state) => state.setVerifyEmail);
+  
   useEffect(() => {
     if (!selectedRole) {
       console.log("No role selected, redirecting...");
@@ -29,31 +33,60 @@ function RegEmailVerificationPage() {
     }
   }, [selectedRole, navigate]);
 
-  const handlesubmit = (data: { email: string }) => {
-    setVerifyEmail({ email: data.email, verified: true }); // <-- Guarda email y verified: false
-
-    if (selectedRole === "Doctor" && setEmailDoctor && doctorBasicInfo) {
-      setEmailDoctor({
-        ...doctorBasicInfo,
-        email: data.email ?? "",
+  const handlesubmit = async (data: { email: string }) => {
+    setIsLoading(true);
+    
+    try {
+      // Llamar a la API para solicitar código OTP
+      // Si el email ya existe, el backend devolverá un error
+      const response = await authService.solicitarCodigoRegistro({
+        email: data.email,
       });
-      navigate("/auth/otp-verification", { replace: true });
-    }
 
-    if (selectedRole === "Patient" && setPatientEmail && patientBasicInfo) {
-      setPatientEmail({
-        ...patientBasicInfo,
-        email: data.email ?? "",
-      });
-      navigate("/auth/otp-verification", { replace: true });
-    }
+      if (response.success) {
+        // Guardar email y estado de verificación
+        setVerifyEmail({ email: data.email, verified: false });
 
-    if (selectedRole === "Center" && setEmailCenter && centerBasicInfo) {
-      setEmailCenter({
-        ...centerBasicInfo,
-        email: data.email ?? "",
-      });
-      navigate("/auth/otp-verification", { replace: true });
+        // Guardar email según el rol seleccionado
+        if (selectedRole === "Doctor" && setEmailDoctor && doctorBasicInfo) {
+          setEmailDoctor({
+            ...doctorBasicInfo,
+            email: data.email ?? "",
+          });
+        }
+
+        if (selectedRole === "Patient" && setPatientEmail && patientBasicInfo) {
+          setPatientEmail({
+            ...patientBasicInfo,
+            email: data.email ?? "",
+          });
+        }
+
+        if (selectedRole === "Center" && setEmailCenter && centerBasicInfo) {
+          setEmailCenter({
+            ...centerBasicInfo,
+            email: data.email ?? "",
+          });
+        }
+
+        // Mostrar mensaje de éxito
+        toast.success(response.message || "Código enviado correctamente");
+        
+        // Navegar a la página de verificación OTP
+        navigate("/auth/otp-verification", { replace: true });
+      }
+    } catch (error: any) {
+      console.error("Error al solicitar código OTP:", error);
+      
+      // Mostrar mensaje de error (incluye si el email ya está registrado)
+      const errorMessage = 
+        error?.response?.data?.message || 
+        error?.message || 
+        "Error al enviar el código. Por favor, intenta de nuevo.";
+      
+      toast.error(errorMessage);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -87,22 +120,21 @@ function RegEmailVerificationPage() {
             type="email"
             label={t("forgotPassword.emailLabel")}
             placeholder={t("forgotPassword.emailPlaceholder")}
+            disabled={isLoading}
           />
-          <p className="text-center mt-2 w-full">
-            {selectedRole === "Patient"
-              ? patientBasicInfo?.email
-              : doctorBasicInfo?.email}
-          </p>
         </div>
         <AuthFooterContainer
           backButtonProps={{
             onClick: () => {
               navigate("/auth/register");
             },
+            disabled: isLoading,
+          }}
+          continueButtonProps={{
+            disabled: isLoading,
           }}
         />
       </MCFormWrapper>
-      <p>{selectedRole}</p>
     </AuthContentContainer>
   );
 }

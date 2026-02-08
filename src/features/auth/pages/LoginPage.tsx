@@ -11,13 +11,16 @@ import { useAppStore } from "@/stores/useAppStore";
 import { type LoginSchemaType } from "@/types/AuthTypes";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
 import { useTranslation } from "react-i18next";
-import LanguageDropDown from "../components/LanguageDropDown";
 import { useNavigate } from "react-router-dom";
 import OAuthProvider from "../components/OAuthProvider";
 import { useGlobalUIStore } from "@/stores/useGlobalUIStore";
 import EnIMG from "@/assets/flag-usa.png";
 import EsIMG from "@/assets/flag-spain.png";
 import { ToggleGroup, ToggleGroupItem } from "@/shared/ui/toggle-group";
+
+import { useLogin } from "@/lib/hooks/auth";
+
+
 function LoginPage() {
   const { t } = useTranslation("auth");
   const isMobile = useIsMobile();
@@ -26,6 +29,8 @@ function LoginPage() {
   const navigate = useNavigate();
   const setLanguage = useGlobalUIStore((state) => state.setLanguage);
   const currentLanguage = useGlobalUIStore((state) => state.language);
+
+  const { loginUser, isPending } = useLogin();
 
   const containerRef = useRef<HTMLElement>(null);
   const logoRef = useRef<HTMLImageElement>(null);
@@ -58,12 +63,14 @@ function LoginPage() {
   );
 
   const handleSubmit = (data: LoginSchemaType) => {
-    if (data.email && data.password) {
-      setLoginCredentials({ email: data.email, password: data.password });
-      navigate("/admin/dashboard");
-    } else {
-      alert(t("login.errorFields"));
-    }
+    setLoginCredentials({ email: data.email, password: data.password });
+    
+    // Hacer login con la API
+    loginUser({
+      email: data.email,
+      password: data.password
+    });
+    
   };
 
   return (
@@ -152,15 +159,16 @@ function LoginPage() {
                 placeholder={t("login.passwordPlaceholder", "Password")}
               />
               <div className="flex justify-end w-full mb-4">
-                <a
-                  className="text-base text-primary font-semibold hover:underline"
+                <button
+                  type="button"
+                  className="text-base text-primary font-semibold hover:underline cursor-pointer"
                   onClick={() => navigate("/auth/forgot-password")}
                 >
                   {t("login.forgot", "Forgot your password?")}
-                </a>
+                </button>
               </div>
-              <MCButton type="submit" className="w-full" variant="primary">
-                {t("login.submit", "Sign In")}
+              <MCButton type="submit" className="w-full" variant="primary" disabled={isPending}>
+                {isPending ? t("login.loading", "Loading...") : t("login.submit", "Sign In")}
               </MCButton>
 
               <div className="flex items-center my-4">

@@ -18,7 +18,7 @@ export function OtpSchema(t: (key: string) => string) {
   return z.object({
     otp: z
       .string()
-      .length(4, t("validation.otpLength"))
+      .length(6, t("validation.otpLength"))
       .regex(/^\d+$/, t("validation.otpNumeric")),
   });
 }
