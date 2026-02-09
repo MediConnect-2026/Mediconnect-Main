@@ -280,8 +280,7 @@ export function MCUserMenuContent({
         icon: <FileCheck className="w-4 h-4 mr-2" />,
         label: t("userMenu.verificationDocs"),
         shortcut: !isMobile ? "G → D" : undefined,
-        badge: "1",
-        action: () => {},
+        action: () => navigate("/verify-info"),
       });
     }
 

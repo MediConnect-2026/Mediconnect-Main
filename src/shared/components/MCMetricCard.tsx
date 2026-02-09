@@ -19,7 +19,7 @@ const MCMetricCard: React.FC<MCMetricCardProps> = ({
 }) => {
   return (
     <div
-      className={`relative flex flex-col justify-start w-full rounded-3xl bg-background shadow-sm   p-4 transition-colors ${
+      className={`relative flex flex-col justify-start w-full rounded-4xl bg-background shadow-sm   p-4 transition-colors ${
         bordered ? "border border-primary/10" : ""
       }`}
     >

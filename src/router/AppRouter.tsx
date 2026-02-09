@@ -48,6 +48,7 @@ import MyServicesPage from "@/features/doctor/pages/MyServicesPage";
 import MyPatientsPage from "@/features/doctor/pages/PatientsPage";
 import AppointmentsPage from "@/features/doctor/pages/AppointmentsPage";
 import { useAppStore } from "@/stores/useAppStore";
+import VerifyInfo from "@/features/verifyInfo/pages/VerifyInfo";
 
 function AppRouter() {
   const userRole = useAppStore((state) => state.user?.role);
@@ -226,6 +227,10 @@ function AppRouter() {
             <Route
               path={ROUTES.DOCTOR.APPOINTMENTS}
               element={<AppointmentsPage />}
+            />
+            <Route
+              path={ROUTES.VERIFY_INFO.VERIFY_INFO}
+              element={<VerifyInfo />}
             />
             <Route path={ROUTES.DOCTOR.SERVICES} element={<MyServicesPage />} />
             <Route path={ROUTES.DOCTOR.PATIENTS} element={<MyPatientsPage />} />

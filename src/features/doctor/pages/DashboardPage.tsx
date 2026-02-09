@@ -97,10 +97,10 @@ function DashboardPage() {
           </div>
 
           {/* Calendar */}
-          <Card className="rounded-2xl md:rounded-4xl h-[500px] lg:h-full overflow-hidden">
-            <AppointmentsCalendar
-              orientation={isMobile ? "horizontal" : "vertical"}
-            />
+          <Card
+            className={`rounded-2xl md:rounded-4xl ${!isMobile ? "h-[500px]" : ""} lg:h-full overflow-hidden`}
+          >
+            <AppointmentsCalendar orientation={"vertical"} />
           </Card>
         </main>
 

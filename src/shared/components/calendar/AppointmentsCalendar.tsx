@@ -202,23 +202,36 @@ export function AppointmentsCalendar({
 
   if (isVertical) {
     return (
-      <div className="w-full h-full flex flex-col p-3 overflow-hidden">
-        {/* Calendar Section - Más compacto */}
-        <motion.div {...fadeInUp} className="flex-shrink-0">
+      <div
+        className="w-full h-full flex flex-col p-3"
+        style={{
+          overflow: "hidden",
+          maxHeight: "100%",
+          position: "relative",
+        }}
+      >
+        {/* Calendar Section - Con altura máxima */}
+        <motion.div
+          {...fadeInUp}
+          className="flex-shrink-0"
+          style={{ maxHeight: "45%" }}
+        >
           <h2 className="mb-2 flex-shrink-0 text-2xl font-semibold text-foreground">
             {t("navbar.calendar")}
           </h2>
-          <Calendar
-            mode="single"
-            selected={selectedDate}
-            onSelect={(date) => date && setSelectedDate(date)}
-            locale={calendarLocale}
-            className="w-full"
-            modifiers={{
-              hasAppointment: appointmentDates,
-            }}
-            appointmentCounts={appointmentCounts}
-          />
+          <div style={{ overflow: "auto", maxHeight: "calc(100% - 2.5rem)" }}>
+            <Calendar
+              mode="single"
+              selected={selectedDate}
+              onSelect={(date) => date && setSelectedDate(date)}
+              locale={calendarLocale}
+              className="w-full"
+              modifiers={{
+                hasAppointment: appointmentDates,
+              }}
+              appointmentCounts={appointmentCounts}
+            />
+          </div>
         </motion.div>
 
         {/* Divider más compacto */}
@@ -227,7 +240,12 @@ export function AppointmentsCalendar({
         {/* Appointments Section - Ocupa el resto del espacio */}
         <motion.div
           {...fadeInUpDelayed}
-          className="flex flex-col flex-1 min-h-0 overflow-hidden"
+          className="flex flex-col flex-1"
+          style={{
+            minHeight: 0,
+            overflow: "hidden",
+            maxHeight: "50%",
+          }}
         >
           <div className="flex items-center justify-between pb-2 flex-shrink-0">
             <h2 className="text-sm font-semibold text-foreground">
@@ -238,7 +256,15 @@ export function AppointmentsCalendar({
             </span>
           </div>
 
-          <div className="flex-1 min-h-0 overflow-y-auto hide-scrollbar">
+          <div
+            className="flex-1 hide-scrollbar"
+            style={{
+              minHeight: 0,
+              overflow: "auto",
+              WebkitOverflowScrolling: "touch",
+              maxHeight: "100%",
+            }}
+          >
             <AnimatePresence mode="wait">
               {appointmentsForDate.length > 0 ? (
                 <motion.div
@@ -247,6 +273,7 @@ export function AppointmentsCalendar({
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   className="space-y-2"
+                  style={{ paddingBottom: "0.5rem" }}
                 >
                   {appointmentsForDate.map((appointment, index) => (
                     <AppointmentCard
@@ -262,7 +289,8 @@ export function AppointmentsCalendar({
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.95 }}
-                  className="flex flex-col items-center justify-center h-full text-center py-4"
+                  className="flex flex-col items-center justify-center text-center py-4"
+                  style={{ height: "100%" }}
                 >
                   <div className="w-10 h-10 rounded-full bg-sage-light flex items-center justify-center mb-2">
                     <CalendarDays className="h-5 w-5 text-primary" />
@@ -296,13 +324,13 @@ export function AppointmentsCalendar({
         <h2 className="mb-6 flex-shrink-0 text-3xl font-semibold text-foreground">
           {t("navbar.calendar")}
         </h2>
-        <div className="flex-1 w-full min-h-0 overflow-auto">
+        <div className="w-full overflow-auto">
           <Calendar
             mode="single"
             selected={selectedDate}
             onSelect={(date) => date && setSelectedDate(date)}
             locale={calendarLocale}
-            className="w-full h-fit"
+            className="w-full min-h-0"
             modifiers={{
               hasAppointment: appointmentDates,
             }}
@@ -337,7 +365,7 @@ export function AppointmentsCalendar({
           </span>
         </div>
 
-        <div className="space-y-4 w-full flex-1 min-h-0 overflow-y-auto hide-scrollbar max-h-[400px]">
+        <div className="space-y-4 w-full overflow-y-auto hide-scrollbar ">
           <AnimatePresence mode="wait">
             {appointmentsForDate.length > 0 ? (
               <motion.div
@@ -361,7 +389,7 @@ export function AppointmentsCalendar({
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className="flex flex-col items-center justify-center h-[300px] text-center"
+                className="flex flex-col items-center justify-center  text-center"
               >
                 <div className="w-16 h-16 rounded-full bg-sage-light flex items-center justify-center mb-4">
                   <CalendarDays className="h-8 w-8 text-primary" />
