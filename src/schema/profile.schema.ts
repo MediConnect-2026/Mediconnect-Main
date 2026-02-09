@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { ValidateDominicanID } from "@/ValidateDominicanID";
+import { ValidateDominicanID } from "@/utils/ValidateDominicanID";
 import { UploadedFileSchema } from "./OnbordingSchema";
 import { ValidateDominicanRNC } from "@/utils/ValidateDominicanRNC";
 

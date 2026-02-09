@@ -10,7 +10,7 @@ type MCOtpInputProps = {
 
 function MCOtpInput({
   id = "otp",
-  maxLength = 4,
+  maxLength = 6,
   disabled,
   onChange,
 }: MCOtpInputProps) {

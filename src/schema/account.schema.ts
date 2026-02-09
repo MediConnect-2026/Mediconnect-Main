@@ -14,7 +14,7 @@ export function changeEmailSchema(t: (key: string) => string) {
       .email({ message: t("validation.emailInvalid") }),
     otp: z
       .string()
-      .length(4, { message: t("validation.otpLength") })
+      .length(6, { message: t("validation.otpLength") })
       .regex(/^\d+$/, { message: t("validation.otpNumeric") }),
   });
 }

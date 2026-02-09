@@ -88,6 +88,10 @@ export const ROUTES = {
     BLOCKED_USERS: "/privacy/blocked-users",
   },
 
+  VERIFY_INFO: {
+    VERIFY_INFO: "/verify-info",
+  },
+
   COMMON: {
     CHAT: "/chat",
     CHAT_WITH: "/chat/:conversationId",
