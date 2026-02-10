@@ -8,6 +8,9 @@ import {
 } from "@/schema/verifyInfo.schema";
 import VerificationProgressSidebar from "../components/VerificationProgressSidebar";
 import IdentificationCard from "../components/Identificationcard";
+import DocumentsSection from "../components/DocumentsSection";
+import DoctorDocumentsView from "../components/DoctorDocuments";
+import CenterDocumentsView from "../components/CenterDocuments";
 import type { VerificationStatus } from "../components/Verificationconstants";
 import { mockDoctorData, mockCenterData } from "@/data/verifyInfoMock";
 
@@ -18,8 +21,14 @@ function VerifyInfo() {
   const userRole = useAppStore((state) => state.user?.role);
   const isDoctor = userRole === "DOCTOR";
 
-  const { doctorInfo, centerInfo, setDoctorInfo, setCenterInfo } =
-    useVerifyInfoStore();
+  const {
+    doctorInfo,
+    centerInfo,
+    doctorDocuments,
+    centerDocuments,
+    setDoctorInfo,
+    setCenterInfo,
+  } = useVerifyInfoStore();
 
   // Usar datos del store o datos mock según el rol
   const currentInfo = isDoctor
@@ -27,6 +36,39 @@ function VerifyInfo() {
     : centerInfo || mockCenterData;
 
   const currentStatus: VerificationStatus = currentInfo.verificationStatus;
+
+  // Calcular el estado general de documentos basado en documentos individuales
+  const getDocumentsStatus = (): VerificationStatus => {
+    if (isDoctor && doctorDocuments) {
+      // ✅ Recopilar estados de documentos con verificación individual
+      const docStatuses = [
+        doctorDocuments.identityDocumentFile?.verificationStatus,
+        doctorDocuments.academicTitle?.verificationStatus,
+        // ✅ Para certificaciones, usar el estado del PADRE
+        doctorDocuments.certificationsStatus,
+      ].filter(Boolean) as VerificationStatus[];
+
+      if (docStatuses.length === 0) return "PENDING";
+
+      const hasRejected = docStatuses.some((status) => status === "REJECTED");
+      const hasPending = docStatuses.some((status) => status === "PENDING");
+      const allApproved = docStatuses.every((status) => status === "APPROVED");
+
+      if (hasRejected) return "REJECTED";
+      if (hasPending) return "PENDING";
+      if (allApproved) return "APPROVED";
+
+      return "PENDING";
+    } else if (!isDoctor && centerDocuments) {
+      return (
+        centerDocuments.healthCertificateFile?.verificationStatus || "PENDING"
+      );
+    }
+
+    return "PENDING";
+  };
+
+  const documentsStatus = getDocumentsStatus();
 
   const handleStartEdit = () => {
     setIsEditing(true);
@@ -47,7 +89,6 @@ function VerifyInfo() {
     } else {
       setCenterInfo(updatedData as CenterPersonalInfo);
     }
-
     setIsEditing(false);
   };
 
@@ -74,6 +115,15 @@ function VerifyInfo() {
                   onCancelEdit={handleCancelEdit}
                   onSubmit={handleSubmit}
                 />
+              )}
+
+              {activeTab === "documentos" && (
+                <DocumentsSection
+                  isDoctor={isDoctor}
+                  currentStatus={documentsStatus}
+                >
+                  {isDoctor ? <DoctorDocumentsView /> : <CenterDocumentsView />}
+                </DocumentsSection>
               )}
             </main>
           </section>

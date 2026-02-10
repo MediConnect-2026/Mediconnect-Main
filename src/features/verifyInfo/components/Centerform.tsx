@@ -58,7 +58,13 @@ function CenterForm() {
         size="small"
       />
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <MCInput name="rnc" label="RNC" placeholder="000000000" size="small" />
+        <MCInput
+          name="rnc"
+          label="RNC"
+          placeholder="000000000"
+          size="small"
+          variant="cedula"
+        />
         <MCSelect
           name="centerType"
           label="Tipo de Centro"

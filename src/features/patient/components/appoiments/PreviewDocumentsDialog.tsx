@@ -1,5 +1,4 @@
 import React from "react";
-import { X } from "lucide-react";
 import { MCModalBase } from "@/shared/components/MCModalBase";
 
 interface PreviewDocumentsDialogProps {
@@ -24,21 +23,54 @@ function PreviewDocumentsDialog({
       );
     }
 
-    // Check if it's an image
-    if (documentUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i)) {
+    // Verificar si es imagen usando documentType primero, luego la extensión como fallback
+    const isImage =
+      documentType?.startsWith("image/") ||
+      documentUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i);
+
+    if (isImage) {
       return (
         <div className="flex items-center justify-center max-h-[90vh] overflow-hidden">
           <img
             src={documentUrl}
-            alt={documentName || "Document preview"}
+            alt={documentName || "Vista previa del documento"}
             className="max-w-full max-h-full object-contain rounded-lg"
           />
         </div>
       );
     }
 
-    // Check if it's a PDF
-    if (documentUrl.match(/\.pdf$/i)) {
+    // Verificar si es PDF usando documentType primero, luego la extensión
+    const isPdf =
+      documentType === "application/pdf" || documentUrl.match(/\.pdf$/i);
+
+    if (isPdf) {
+      // Si es un blob local o file local, solo mostrar botón para abrir en nueva pestaña
+      if (documentUrl.startsWith("blob:") || documentUrl.startsWith("file:")) {
+        return (
+          <div className="flex flex-col items-center justify-center h-[90vh] gap-4">
+            <div className="text-6xl text-muted-foreground">📄</div>
+            <div className="text-center">
+              <h3 className="text-lg font-semibold mb-2">
+                {documentName || "Documento PDF"}
+              </h3>
+              <p className="text-muted-foreground mb-4">
+                Los archivos PDF subidos localmente no se pueden previsualizar
+                aquí. Haz clic para abrirlo en una nueva pestaña.
+              </p>
+              <a
+                href={documentUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+              >
+                Abrir PDF en nueva pestaña
+              </a>
+            </div>
+          </div>
+        );
+      }
+      // Si es una URL pública, mostrar en iframe
       return (
         <div className="h-[90vh] w-full bg-transparent rounded-lg overflow-hidden">
           <iframe
@@ -51,7 +83,7 @@ function PreviewDocumentsDialog({
       );
     }
 
-    // For other file types, show download option
+    // Otros tipos de archivo
     return (
       <div className="flex flex-col items-center justify-center h-[90vh] gap-4">
         <div className="text-6xl text-muted-foreground">📄</div>
@@ -78,7 +110,7 @@ function PreviewDocumentsDialog({
   return (
     <MCModalBase
       id="previewDocumentsDialog"
-      title={documentName || "Preview Document"}
+      title={documentName || "Vista previa del documento"}
       trigger={children}
       size="xl"
     >

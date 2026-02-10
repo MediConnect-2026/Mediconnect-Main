@@ -3,7 +3,7 @@ import { MCModalBase } from "@/shared/components/MCModalBase";
 import { useTranslation } from "react-i18next";
 import { mockAppointments } from "@/data/appointments";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
-import type { Appointment } from "@/data/appointments";
+
 import {
   Empty,
   EmptyHeader,
@@ -15,7 +15,7 @@ import {
 import { AlertCircle, Download } from "lucide-react";
 import PreviewDocumentsDialog from "./PreviewDocumentsDialog";
 import { Separator } from "@/shared/ui/separator";
-
+import { ImageCarouselModal } from "@/features/doctor/components/healthService/ImageCarouselModal";
 import {
   Tooltip,
   TooltipTrigger,
@@ -36,6 +36,8 @@ function MedicalPrescriptionDialog({
 }: MedicalPrescriptionDialogProps) {
   const { t } = useTranslation("patient");
   const isMobile = useIsMobile();
+  const [carouselOpen, setCarouselOpen] = useState(false);
+  const [carouselStartIndex, setCarouselStartIndex] = useState(0);
 
   // Encontrar la appointment y el historial específico
   const appointment = mockAppointments.find((apt) => apt.id === appointmentId);
@@ -68,6 +70,14 @@ function MedicalPrescriptionDialog({
       </MCModalBase>
     );
   }
+
+  // Filtrar documentos de imágenes para el carrusel
+  const imageDocuments =
+    historyItem.medicalPrescription.documents?.filter((doc) =>
+      doc.url.match(/\.(jpg|jpeg|png|gif|webp)$/i),
+    ) || [];
+
+  const imageUrls = imageDocuments.map((doc) => doc.url);
 
   return (
     <MCModalBase
@@ -180,44 +190,66 @@ function MedicalPrescriptionDialog({
                   isMobile ? 18 : 22,
                 );
                 const isTruncated = truncatedName !== doc.name;
+                const isImage = doc.url.match(/\.(jpg|jpeg|png|gif|webp)$/i);
+                const imageIndex = imageUrls.indexOf(doc.url);
+
                 return (
                   <div
                     key={idx}
                     className="flex flex-col items-center border border-primary/10 rounded-2xl sm:rounded-3xl p-2 sm:p-3 bg-transparent w-full"
                   >
-                    <PreviewDocumentsDialog
-                      documentUrl={doc.url}
-                      documentType={doc.url.split(".").pop()?.toLowerCase()}
-                      documentName={doc.name}
-                    >
-                      {/* Preview: todos con el mismo tamaño */}
-                      <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl border border-primary/5 w-full aspect-[4/3] max-h-40 sm:max-h-56 mb-2 flex items-center justify-center bg-background cursor-pointer group hover:opacity-80 transition-opacity">
-                        {doc.url.match(/\.(jpg|jpeg|png|gif)$/i) ? (
-                          <img
-                            src={doc.url}
-                            alt={doc.name}
-                            className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105"
-                            style={{ maxHeight: "160px" }} // Limita la altura en mobile
-                          />
-                        ) : doc.url.match(/\.pdf$/i) ? (
-                          <iframe
-                            src={doc.url}
-                            title={doc.name}
-                            className="w-full h-full"
-                            style={{ border: "none", maxHeight: "160px" }} // Limita la altura en mobile
-                          />
-                        ) : (
-                          <span className="text-xs text-primary/10">
-                            Click to preview
-                          </span>
-                        )}
+                    {/* Usar ImageCarouselModal para imágenes */}
+                    {isImage ? (
+                      <div
+                        onClick={() => {
+                          setCarouselStartIndex(imageIndex);
+                          setCarouselOpen(true);
+                        }}
+                        className="relative overflow-hidden rounded-2xl sm:rounded-3xl border border-primary/5 w-full aspect-[4/3] max-h-40 sm:max-h-56 mb-2 flex items-center justify-center bg-background cursor-pointer group hover:opacity-80 transition-opacity"
+                      >
+                        <img
+                          src={doc.url}
+                          alt={doc.name}
+                          className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105"
+                          style={{ maxHeight: isMobile ? "160px" : "224px" }}
+                        />
                         <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                           <span className="text-white text-sm sm:text-lg font-semibold px-2 text-center">
-                            Ver preview
+                            Ver imagen
                           </span>
                         </div>
                       </div>
-                    </PreviewDocumentsDialog>
+                    ) : (
+                      /* Usar PreviewDocumentsDialog para PDFs y otros documentos */
+                      <PreviewDocumentsDialog
+                        documentUrl={doc.url}
+                        documentType={doc.url.split(".").pop()?.toLowerCase()}
+                        documentName={doc.name}
+                      >
+                        <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl border border-primary/5 w-full aspect-[4/3] max-h-40 sm:max-h-56 mb-2 flex items-center justify-center bg-background cursor-pointer group hover:opacity-80 transition-opacity">
+                          {doc.url.match(/\.pdf$/i) ? (
+                            <iframe
+                              src={doc.url}
+                              title={doc.name}
+                              className="w-full h-full pointer-events-none"
+                              style={{
+                                border: "none",
+                                maxHeight: isMobile ? "160px" : "224px",
+                              }}
+                            />
+                          ) : (
+                            <span className="text-xs text-primary/10">
+                              Click to preview
+                            </span>
+                          )}
+                          <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                            <span className="text-white text-sm sm:text-lg font-semibold px-2 text-center">
+                              Ver documento
+                            </span>
+                          </div>
+                        </div>
+                      </PreviewDocumentsDialog>
+                    )}
 
                     {/* File name con truncate y tooltip condicional */}
                     {isTruncated ? (
@@ -283,6 +315,14 @@ function MedicalPrescriptionDialog({
           </div>
         </div>
       </div>
+
+      {/* Modal de carrusel para imágenes */}
+      <ImageCarouselModal
+        images={imageUrls}
+        open={carouselOpen}
+        onClose={() => setCarouselOpen(false)}
+        startIndex={carouselStartIndex}
+      />
     </MCModalBase>
   );
 }

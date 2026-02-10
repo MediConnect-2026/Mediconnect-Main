@@ -1,4 +1,3 @@
-import React from "react";
 import MCInput from "@/shared/components/forms/MCInput";
 import MCSelect from "@/shared/components/forms/MCSelect";
 import MCPhoneInput from "@/shared/components/forms/MCPhoneInput";
@@ -73,6 +72,7 @@ function DoctorForm() {
           label="Número de Identificación"
           placeholder="000-0000000-0"
           size="small"
+          variant="cedula"
         />
       </div>
 

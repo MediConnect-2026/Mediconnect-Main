@@ -5,7 +5,7 @@ export type VerificationStatus = "PENDING" | "APPROVED" | "REJECTED";
 export const STATUS = {
   REJECTED: {
     icon: <CircleSlash className="text-[#C62828]" />,
-    label: "Cancelado",
+    label: "Rechazado",
     color: "bg-[#C62828]/15 text-[#C62828]",
     textColor: "text-[#C62828]",
   },

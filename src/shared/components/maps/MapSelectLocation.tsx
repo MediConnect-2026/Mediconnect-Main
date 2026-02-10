@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
-import { ParseDominicanAddress } from "@/utils/addressParser";
+import {
+  ParseDominicanAddress,
+  type ParsedDominicanAddress,
+} from "@/utils/addressParser";
 import { Expand, Minimize, Plus, Minus, Cuboid } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/tooltip";
 import { AnimatePresence, motion } from "framer-motion";
@@ -20,12 +23,14 @@ interface Props {
     province?: string;
     municipality?: string;
   }) => void;
+  fontSizeVariant?: "xs" | "s" | "m" | "l"; // <-- Añade esto
 }
 
 export default function MapSelectLocation({
   value,
   onChange,
   onLocationDetails,
+  fontSizeVariant = "m", // <-- Añade esto
 }: Props) {
   const { t } = useTranslation("common");
   const mapRef = useRef<mapboxgl.Map | null>(null);
@@ -38,6 +43,8 @@ export default function MapSelectLocation({
   const isdarkMode = useGlobalUIStore((state) => state.theme);
   const isMobile = useIsMobile();
 
+  const [address, setAddress] = useState<ParsedDominicanAddress | null>(null);
+
   // Función para obtener detalles de la ubicación usando Mapbox Geocoding API
   const getLocationDetails = async (lng: number, lat: number) => {
     try {
@@ -46,13 +53,10 @@ export default function MapSelectLocation({
       );
       const data = await response.json();
 
-      console.log("data de getlocation", data);
-
       if (data.features && data.features.length > 0) {
         let neighborhood = "";
         let zipCode = "";
 
-        // Extraer información de los features
         for (const feature of data.features) {
           if (feature.place_type.includes("neighborhood") && !neighborhood) {
             neighborhood = feature.text;
@@ -62,10 +66,9 @@ export default function MapSelectLocation({
           }
         }
 
-        // Parse the Dominican address usando lat/lng
         const parsedAddress = await ParseDominicanAddress(lat, lng);
+        setAddress(parsedAddress); // <--- Guarda la dirección
 
-        // Llamar al callback con los detalles parseados
         onLocationDetails?.({
           address: parsedAddress.direccion,
           neighborhood: neighborhood || "",
@@ -181,9 +184,10 @@ export default function MapSelectLocation({
       markerRef.current.remove();
     }
 
+    // Crear marcador rojo
     markerRef.current = new mapboxgl.Marker({
       draggable: true,
-      color: "#1f6c16", // Color verde para el marcador
+      color: "#e11d48", // Rojo
       scale: isMobile ? 1.2 : 1.5,
     })
       .setLngLat([initialLng, initialLat])
@@ -230,6 +234,27 @@ export default function MapSelectLocation({
     };
   }, [isFullscreen]);
 
+  // Función para mostrar la dirección formateada
+  const getFormattedAddress = () => {
+    if (!address) return "";
+    const parts = [
+      address.direccion,
+      address.municipio,
+      address.provincia,
+    ].filter(Boolean);
+    return parts.join(", ");
+  };
+
+  // Map fontSizeVariant to Tailwind font size classes
+  const fontSizeClass =
+    fontSizeVariant === "xs"
+      ? "text-xs"
+      : fontSizeVariant === "s"
+        ? "text-sm"
+        : fontSizeVariant === "l"
+          ? "text-lg"
+          : "text-base";
+
   return (
     <>
       {/* Modal para fullscreen */}
@@ -258,6 +283,23 @@ export default function MapSelectLocation({
                 className="absolute inset-0 w-full h-full"
                 style={{ background: "#fff" }}
               />
+
+              {/* Dirección en la parte superior */}
+              {address && (
+                <div
+                  className={`absolute ${
+                    isMobile
+                      ? "bottom-2 left-2 right-2"
+                      : "top-4 left-1/2 transform -translate-x-1/2"
+                  } z-[10001] bg-background shadow-lg rounded-full px-4 py-2 border border-primary/75`}
+                >
+                  <p
+                    className={`${fontSizeClass} text-foreground font-medium ${isMobile ? "truncate" : ""}`}
+                  >
+                    {getFormattedAddress()}
+                  </p>
+                </div>
+              )}
 
               {/* Botón toggle 3D */}
               <div

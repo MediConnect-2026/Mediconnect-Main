@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { ValidateDominicanID } from "@/utils/ValidateDominicanID";
 import { ValidateDominicanRNC } from "@/utils/ValidateDominicanRNC";
+
 // Enum de estatus de verificación
 export const verificationStatusEnum = z.enum([
   "PENDING",
@@ -9,7 +10,6 @@ export const verificationStatusEnum = z.enum([
 ]);
 
 // --- Información personal del doctor ---
-// 1. Define el schema base SIN traducción
 export const doctorPersonalInfoBaseSchema = z.object({
   firstName: z.string(),
   lastName: z.string(),
@@ -25,10 +25,8 @@ export const doctorPersonalInfoBaseSchema = z.object({
   verificationStatus: verificationStatusEnum,
 });
 
-// 2. Exporta el tipo para usar en el store
 export type DoctorPersonalInfo = z.infer<typeof doctorPersonalInfoBaseSchema>;
 
-// 3. Función para obtener el schema con traducción
 export function doctorPersonalInfoSchema(t: (key: string) => string) {
   return doctorPersonalInfoBaseSchema.extend({
     firstName: z
@@ -115,23 +113,30 @@ export function centerPersonalInfoSchema(t: (key: string) => string) {
   });
 }
 
-// --- Esquema para archivos subidos ---
+// --- Esquema para archivos base (sin estado de verificación) ---
+// ✅ Este se usa para los items dentro de certifications[]
 export const uploadedFileBaseSchema = z.object({
   url: z.string(),
-  name: z.string().optional(),
+  name: z.string(),
   type: z.string(),
+  size: z.number(),
+  uploadedAt: z.string(),
 });
 export type UploadedFile = z.infer<typeof uploadedFileBaseSchema>;
 
-export function uploadedFileSchema(t: (key: string) => string) {
-  return uploadedFileBaseSchema;
-}
+// --- Archivo con verificationStatus (para documentos individuales) ---
+// ✅ Este se usa para identityDocumentFile y academicTitle
+export const uploadedFileWithStatusBaseSchema = uploadedFileBaseSchema.extend({
+  verificationStatus: verificationStatusEnum,
+  feedback: z.string().optional(),
+});
+export type UploadedFileWithStatus = z.infer<
+  typeof uploadedFileWithStatusBaseSchema
+>;
 
 // --- Documentos del centro ---
 export const centerDocumentsBaseSchema = z.object({
-  healthCertificateFile: uploadedFileBaseSchema,
-  urlImg: uploadedFileBaseSchema.optional(),
-  verificationStatus: verificationStatusEnum,
+  healthCertificateFile: uploadedFileWithStatusBaseSchema,
 });
 export type CenterDocuments = z.infer<typeof centerDocumentsBaseSchema>;
 
@@ -140,11 +145,15 @@ export function centerDocumentsSchema(t: (key: string) => string) {
 }
 
 // --- Documentos del doctor ---
+// ✅ Actualizado para incluir el estado padre de las certificaciones
 export const doctorDocumentsBaseSchema = z.object({
-  identityDocumentFile: uploadedFileBaseSchema,
+  identityDocumentFile: uploadedFileWithStatusBaseSchema,
+  academicTitle: uploadedFileWithStatusBaseSchema.optional(),
+  // ✅ certifications usa uploadedFileBaseSchema (sin estado individual)
   certifications: z.array(uploadedFileBaseSchema).optional(),
-  academicTitle: uploadedFileBaseSchema.optional(),
-  verificationStatus: verificationStatusEnum,
+  // ✅ Estado del padre para las certificaciones
+  certificationsStatus: verificationStatusEnum.optional(),
+  certificationsFeedback: z.string().optional(),
 });
 export type DoctorDocuments = z.infer<typeof doctorDocumentsBaseSchema>;
 

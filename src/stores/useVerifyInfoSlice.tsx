@@ -2,6 +2,8 @@ import { type StateCreator } from "zustand";
 import {
   type DoctorPersonalInfo,
   type CenterPersonalInfo,
+  type CenterDocuments,
+  type DoctorDocuments,
 } from "@/schema/verifyInfo.schema";
 
 export interface VerifyInfoSlice {
@@ -20,6 +22,16 @@ export interface VerifyInfoSlice {
   updateCenterVerificationStatus: (
     status: CenterPersonalInfo["verificationStatus"],
   ) => void;
+
+  // Doctor documents
+  doctorDocuments: DoctorDocuments | null;
+  setDoctorDocuments: (docs: DoctorDocuments) => void;
+  clearDoctorDocuments: () => void;
+
+  // Center documents
+  centerDocuments: CenterDocuments | null;
+  setCenterDocuments: (docs: CenterDocuments) => void;
+  clearCenterDocuments: () => void;
 }
 
 export const createVerifyInfoSlice: StateCreator<VerifyInfoSlice> = (set) => ({
@@ -44,4 +56,14 @@ export const createVerifyInfoSlice: StateCreator<VerifyInfoSlice> = (set) => ({
         ? { centerInfo: { ...state.centerInfo, verificationStatus: status } }
         : {},
     ),
+
+  // Doctor documents
+  doctorDocuments: null,
+  setDoctorDocuments: (docs) => set({ doctorDocuments: docs }),
+  clearDoctorDocuments: () => set({ doctorDocuments: null }),
+
+  // Center documents
+  centerDocuments: null,
+  setCenterDocuments: (docs) => set({ centerDocuments: docs }),
+  clearCenterDocuments: () => set({ centerDocuments: null }),
 });

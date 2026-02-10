@@ -18,6 +18,7 @@ import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
 import { XIcon, ArrowLeft } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { Slot } from "@radix-ui/react-slot"; // <-- Agrega esta línea
 
 const dialogStack: string[] = [];
 
@@ -143,6 +144,7 @@ export type MorphingDialogTriggerProps = {
   className?: string;
   style?: React.CSSProperties;
   triggerRef?: React.RefObject<HTMLButtonElement>;
+  asChild?: boolean; // <-- NUEVO
 };
 
 function MorphingDialogTrigger({
@@ -150,8 +152,11 @@ function MorphingDialogTrigger({
   className,
   style,
   triggerRef,
+  asChild = false, // <-- NUEVO
 }: MorphingDialogTriggerProps) {
   const { setIsOpen, isOpen, uniqueId } = useMorphingDialog();
+  const internalRef = useRef<HTMLButtonElement>(null);
+  const mergedRef = triggerRef || internalRef;
 
   const handleClick = useCallback(
     (e: React.MouseEvent) => {
@@ -172,20 +177,26 @@ function MorphingDialogTrigger({
     [isOpen, setIsOpen],
   );
 
+  const Component = asChild ? Slot : motion.button;
+
+  const commonProps = {
+    ref: mergedRef,
+    onClick: handleClick,
+    onKeyDown: handleKeyDown,
+    className: cn("relative cursor-pointer", className),
+    style,
+    "aria-haspopup": "dialog" as const,
+    "aria-expanded": isOpen,
+    "aria-controls": `motion-ui-morphing-dialog-content-${uniqueId}`,
+    "aria-label": `Open dialog ${uniqueId}`,
+  };
+
+  if (asChild) {
+    return <Component {...commonProps}>{children}</Component>;
+  }
+
   return (
-    <motion.button
-      ref={triggerRef}
-      layoutId={`dialog-${uniqueId}`}
-      className={cn("relative cursor-pointer", className)}
-      onClick={handleClick}
-      onKeyDown={handleKeyDown}
-      style={style}
-      aria-haspopup="dialog"
-      aria-expanded={isOpen}
-      aria-controls={`motion-ui-morphing-dialog-content-${uniqueId}`}
-      aria-label={`Open dialog ${uniqueId}`}
-    >
-      {/* Fade out del contenido del trigger durante la animación */}
+    <motion.button {...commonProps} layoutId={`dialog-${uniqueId}`}>
       <motion.div
         initial={{ opacity: 1 }}
         animate={{ opacity: isOpen ? 0 : 1 }}
