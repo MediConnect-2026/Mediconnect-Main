@@ -9,16 +9,16 @@ import {
   type DoctorPersonalInfo,
   type CenterPersonalInfo,
 } from "@/schema/verifyInfo.schema";
-import StatusBadge from "./Statusbadge";
-import DoctorForm from "./Doctorform";
-import CenterForm from "./Centerform";
-import DoctorReadOnlyView from "./Doctorreadonlyview";
-import CenterReadOnlyView from "./Centerreadonlyview";
 import {
   type VerificationStatus,
   STATUS,
   STATUS_DETAILS,
 } from "./Verificationconstants";
+import StatusBadge from "./Statusbadge";
+import DoctorForm from "./Doctorform";
+import CenterForm from "./Centerform";
+import DoctorReadOnlyView from "./Doctorreadonlyview";
+import CenterReadOnlyView from "./Centerreadonlyview";
 
 interface IdentificationCardProps {
   isDoctor: boolean;
@@ -39,33 +39,37 @@ function IdentificationCard({
   onCancelEdit,
   onSubmit,
 }: IdentificationCardProps) {
-  const { t } = useTranslation();
+  const { t } = useTranslation("common");
   const isRejected = currentStatus === "REJECTED";
 
   return (
-    <Card className="rounded-2xl md:rounded-4xl h-fit">
-      <CardContent className="p-4">
+    <Card className="rounded-4xl h-fit">
+      <CardContent className="p-4 sm:p-6">
         <div>
-          <div className="flex items-center gap-4 mb-2">
-            <h2 className="text-xl font-semibold">
-              {isDoctor ? "Identificación Personal" : "Información del Centro"}
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-2">
+            <h2 className="text-lg sm:text-xl font-semibold">
+              {isDoctor
+                ? t("verification.identification.title")
+                : t("verification.identification.centerTitle")}
             </h2>
             <StatusBadge
-              label={STATUS[currentStatus].label}
+              label={t(`verification.status.${currentStatus.toLowerCase()}`)}
               color={STATUS[currentStatus].color}
             />
           </div>
-          <p>Información enviada para verificación</p>
+          <p className="text-sm sm:text-base">
+            {t("verification.identification.description")}
+          </p>
         </div>
 
         <div
           className={`p-3 w-full rounded-lg mt-2 flex items-center gap-2 ${STATUS_DETAILS[currentStatus].bg}`}
         >
-          <span>{STATUS[currentStatus].icon}</span>
+          <span className="flex-shrink-0">{STATUS[currentStatus].icon}</span>
           <h3
-            className={`text-base font-normal ${STATUS_DETAILS[currentStatus].text}`}
+            className={`text-sm sm:text-base font-normal ${STATUS_DETAILS[currentStatus].text}`}
           >
-            {STATUS_DETAILS[currentStatus].message}
+            {t(`verification.messages.${currentStatus.toLowerCase()}`)}
           </h3>
         </div>
 
@@ -83,17 +87,18 @@ function IdentificationCard({
           >
             {isDoctor ? <DoctorForm /> : <CenterForm />}
 
-            <div className="flex justify-end gap-3 mt-8">
+            <div className="flex flex-col sm:flex-row justify-end gap-3 mt-6 sm:mt-8">
               <MCButton
                 type="button"
                 variant="outline"
                 size="sm"
                 onClick={onCancelEdit}
+                className="w-full sm:w-auto"
               >
-                Cancelar
+                {t("verification.identification.cancel")}
               </MCButton>
-              <MCButton type="submit" size="sm">
-                Enviar
+              <MCButton type="submit" size="sm" className="w-full sm:w-auto">
+                {t("verification.identification.submit")}
               </MCButton>
             </div>
           </MCFormWrapper>
@@ -106,11 +111,16 @@ function IdentificationCard({
             )}
 
             {isRejected && (
-              <div className="flex justify-end mt-8">
-                <MCButton variant="outline" size="sm" onClick={onStartEdit}>
+              <div className="flex justify-end mt-6 sm:mt-8">
+                <MCButton
+                  variant="outline"
+                  size="sm"
+                  onClick={onStartEdit}
+                  className="w-full sm:w-auto"
+                >
                   {isDoctor
-                    ? "Reenviar Datos Personales"
-                    : "Reenviar Información del Centro"}
+                    ? t("verification.identification.resubmitPersonal")
+                    : t("verification.identification.resubmitCenter")}
                 </MCButton>
               </div>
             )}

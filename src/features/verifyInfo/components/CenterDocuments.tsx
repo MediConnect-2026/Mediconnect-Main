@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import type {
   CenterDocuments as CenterDocumentsType,
   UploadedFileWithStatus,
@@ -11,7 +12,7 @@ const initialCenterDocuments: CenterDocumentsType = {
     url: "#",
     name: "certificado-salud.pdf",
     type: "application/pdf",
-    size: 2.1 * 1024 * 1024, // ✅ Changed to number (bytes)
+    size: 2.1 * 1024 * 1024,
     uploadedAt: "Subido el 20 Oct 2025",
     verificationStatus: "PENDING",
     feedback: "En revisión por el equipo de verificación",
@@ -23,6 +24,7 @@ export default function CenterDocumentsView({
 }: {
   documents?: CenterDocumentsType | null;
 }) {
+  const { t } = useTranslation("common");
   const { centerDocuments, setCenterDocuments } = useVerifyInfoStore();
 
   useEffect(() => {
@@ -54,7 +56,7 @@ export default function CenterDocumentsView({
       url: URL.createObjectURL(file),
       name: file.name,
       type: file.type,
-      size: file.size, // ✅ Keep as number (bytes)
+      size: file.size,
       uploadedAt: `Subido el ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`,
       verificationStatus: "PENDING",
       feedback: "En revisión por el equipo de verificación",
@@ -68,13 +70,13 @@ export default function CenterDocumentsView({
   };
 
   if (!centerDocuments) {
-    return <div>Cargando documentos...</div>;
+    return <div>{t("verification.documents.loading")}</div>;
   }
 
   return (
     <div className="space-y-4">
       <DocumentCard
-        title="Certificado de Salud"
+        title={t("verification.documents.healthCertificate")}
         document={centerDocuments.healthCertificateFile}
         onResubmit={handleResubmit}
       />

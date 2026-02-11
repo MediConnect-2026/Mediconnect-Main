@@ -216,11 +216,7 @@ const MCServiceCards = ({
           </div>
         </div>
 
-        <div
-          className={`grid w-full gap-3 mt-auto ${
-            isMobile ? "grid-cols-2" : "grid-cols-2"
-          }`}
-        >
+        <div className="w-full mt-auto">
           <MCButton
             className="w-full rounded-full mt-auto"
             variant="primary"
@@ -229,29 +225,20 @@ const MCServiceCards = ({
           >
             {t("profile.services.details", "Ver detalles")}
           </MCButton>
-          {/* Mostrar botón según rol */}
-          {isOwner ? (
-            <MCButton
-              className="w-full rounded-full mt-auto"
-              variant="outline"
-              size="sm"
-              onClick={() => navigate(`/service/${serviceId}/availability`)}
-            >
-              Disponibilidad
-            </MCButton>
-          ) : currentUser === "PATIENT" ? (
+          {/* Show appointment button only for patients and non-owners */}
+          {!isOwner && currentUser === "PATIENT" && (
             <ScheduleAppointmentDialog
               idProvider={idProvider ? String(idProvider) : ""}
             >
               <MCButton
-                className="w-full rounded-full mt-auto"
+                className="w-full rounded-full mt-3"
                 variant="outline"
                 size="sm"
               >
                 Agendar
               </MCButton>
             </ScheduleAppointmentDialog>
-          ) : null}
+          )}
         </div>
       </CardContent>
     </Card>

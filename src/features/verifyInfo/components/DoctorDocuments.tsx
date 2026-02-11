@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import type {
   DoctorDocuments as DoctorDocumentsType,
   UploadedFileWithStatus,
@@ -72,6 +73,7 @@ interface DoctorDocumentsViewProps {
 export default function DoctorDocumentsView({
   documents: propDocuments,
 }: DoctorDocumentsViewProps) {
+  const { t } = useTranslation("common");
   const { doctorDocuments, setDoctorDocuments } = useVerifyInfoStore();
 
   useEffect(() => {
@@ -115,7 +117,6 @@ export default function DoctorDocumentsView({
     console.log("Certifications updated:", certifications);
   };
 
-  // ✅ NUEVO: Enviar todas las certificaciones a revisión
   const handleSubmitAllCertifications = () => {
     if (!doctorDocuments) return;
 
@@ -129,7 +130,6 @@ export default function DoctorDocumentsView({
     console.log("All certifications submitted for review");
   };
 
-  // ✅ NUEVO: Cancelar todas las certificaciones
   const handleCancelAllCertifications = () => {
     if (!doctorDocuments) return;
 
@@ -144,34 +144,33 @@ export default function DoctorDocumentsView({
   };
 
   if (!doctorDocuments) {
-    return <div>Cargando documentos...</div>;
+    return <div>{t("verification.documents.loading")}</div>;
   }
 
   return (
     <div className="space-y-4">
       <DocumentCard
-        title="Documento de Identidad"
+        title={t("verification.documents.identityDocument")}
         document={doctorDocuments.identityDocumentFile}
         onResubmit={(file) => handleResubmit("identityDocumentFile", file)}
       />
 
       {doctorDocuments.academicTitle && (
         <DocumentCard
-          title="Título Universitario"
+          title={t("verification.documents.academicTitle")}
           document={doctorDocuments.academicTitle}
           onResubmit={(file) => handleResubmit("academicTitle", file)}
         />
       )}
 
       <DocumentCard
-        title="Certificaciones Adicionales"
+        title={t("verification.documents.additionalCertifications")}
         documents={doctorDocuments.certifications || []}
         onUpdateArray={handleCertificationsUpdate}
         isArray={true}
-        maxFiles={10}
+        maxFiles={5}
         arrayParentStatus={doctorDocuments.certificationsStatus || "PENDING"}
         arrayParentFeedback={doctorDocuments.certificationsFeedback}
-        // ✅ NUEVO: Pasamos las funciones de acción
         onSubmitAll={handleSubmitAllCertifications}
         onCancelAll={handleCancelAllCertifications}
       />

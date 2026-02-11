@@ -95,8 +95,8 @@ function VerifyInfo() {
   return (
     <MCDashboardContent mainWidth="w-[100%]" noBg>
       <div className="min-h-screen w-full">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <section className="grid grid-cols-[3fr_7fr] gap-4">
+        <div className="max-w-6xl mx-auto px-2 sm:px-6 lg:px-8">
+          <section className="flex flex-col gap-4 sm:grid sm:grid-cols-[3fr_7fr]">
             <VerificationProgressSidebar
               activeTab={activeTab}
               currentStatus={currentStatus}
@@ -104,7 +104,7 @@ function VerifyInfo() {
               onTabChange={setActiveTab}
             />
 
-            <main>
+            <main className="mt-4 sm:mt-0">
               {activeTab === "identificacion" && (
                 <IdentificationCard
                   isDoctor={isDoctor}

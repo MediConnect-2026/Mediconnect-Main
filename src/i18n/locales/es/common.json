@@ -185,9 +185,9 @@
     "stepsCompleted": "{{current}} de {{total}} pasos completados",
     "personalIdentification": "Identificación Personal",
     "centerInformation": "Información del Centro",
-    "documents": "Documentos",
+    "documentss": "Documentos",
     "status": {
-      "rejected": "Cancelado",
+      "rejected": "Rechazado",
       "pending": "En revisión",
       "approved": "Aceptado"
     },
@@ -207,7 +207,6 @@
       "phone": "Teléfono",
       "website": "Sitio Web",
       "rnc": "RNC",
-
       "firstName": "Nombre(s)",
       "lastName": "Apellidos",
       "gender": "Género",
@@ -221,6 +220,37 @@
       "resubmitCenter": "Reenviar Información del Centro",
       "cancel": "Cancelar",
       "submit": "Enviar"
+    },
+    "documents": {
+      "title": "Documentos",
+      "doctorTitle": "Documentos del Doctor",
+      "centerTitle": "Documentos del Centro",
+      "description": "Documentos enviados para verificación",
+      "identityDocument": "Documento de Identidad",
+      "academicTitle": "Título Universitario",
+      "additionalCertifications": "Certificaciones Adicionales",
+      "healthCertificate": "Certificado de Salud",
+      "loading": "Cargando documentos..."
+    },
+    "documentsSection": {
+      "filesUploaded": "{{count}} de {{max}} certificaciones subidas",
+      "uploadedOn": "Subido el {{date}}",
+      "resubmit": "Reenviar",
+      "addMore": "Agregar más",
+      "addCertifications": "Agregar certificaciones ({{current}}/{{max}})",
+      "resubmitCertifications": "Reenviar certificaciones ({{current}}/{{max}})",
+      "send": "Enviar",
+      "sendMultiple": "Enviar ({{count}})",
+      "changeFile": "Cambiar archivo",
+      "viewDocument": "Ver documento",
+      "removeFile": "Eliminar archivo",
+      "warningCannotChange": "Una vez que envíes {{fileType}}, no podrás cambiarlos.",
+      "warningCannotChangeSingle": "el archivo",
+      "warningCannotChangeMultiple": "los archivos",
+      "actionsAvailable": "Acciones disponibles",
+      "actionsDescription": "Puedes enviar todas las certificaciones actuales para revisión, o cancelar todo y empezar de nuevo.",
+      "submitAllForReview": "Enviar Todo a Revisión",
+      "cancelAll": "Cancelar Todo"
     },
     "forms": {
       "centerName": "Nombre del Centro",

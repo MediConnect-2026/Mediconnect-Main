@@ -17,6 +17,8 @@ import MCButton from "@/shared/components/forms/MCButton";
 import DocumentIcon from "./DocumentIcon";
 import { ImageCarouselModal } from "@/features/doctor/components/healthService/ImageCarouselModal";
 import PreviewDocumentsDialog from "@/features/patient/components/appoiments/PreviewDocumentsDialog";
+import { useTranslation } from "react-i18next";
+import { useIsMobile } from "@/lib/hooks/useIsMobile";
 
 interface DocumentCardProps {
   title: string;
@@ -29,9 +31,7 @@ interface DocumentCardProps {
   onView?: () => void;
   arrayParentStatus?: VerificationStatus;
   arrayParentFeedback?: string;
-
   onSubmitAll?: () => void;
-
   onCancelAll?: () => void;
 }
 
@@ -61,12 +61,11 @@ export default function DocumentCard({
   onResubmit,
   onUpdateArray,
   isArray = false,
-  maxFiles = 10,
-  onView,
+  maxFiles = 5,
+
   arrayParentStatus,
   arrayParentFeedback,
   onSubmitAll,
-
   onCancelAll,
 }: DocumentCardProps) {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
@@ -75,6 +74,9 @@ export default function DocumentCard({
   const [carouselOpen, setCarouselOpen] = useState(false);
   const [carouselStartIndex, setCarouselStartIndex] = useState(0);
 
+  const { t } = useTranslation("common");
+  const isMobile = useIsMobile();
+
   // ...existing code...
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -82,10 +84,19 @@ export default function DocumentCard({
     if (!files.length) return;
 
     if (isArray) {
-      const remainingSlots = maxFiles - documents.length - selectedFiles.length;
+      // Calcula cuántos archivos puedes agregar sin exceder el máximo total
+      const remainingSlots = maxFiles - documents.length;
+      if (remainingSlots <= 0) return; // No se pueden agregar más archivos
+
+      // Solo toma los archivos necesarios para no exceder el máximo
       const filesToAdd = files.slice(0, remainingSlots);
 
-      setSelectedFiles((prev) => [...prev, ...filesToAdd]);
+      setSelectedFiles((prev) => {
+        // Asegura que el total nunca exceda maxFiles
+        const totalExisting = documents.length;
+        const maxNewFiles = maxFiles - totalExisting;
+        return [...prev, ...filesToAdd].slice(0, maxNewFiles);
+      });
 
       const newPreviewUrls: string[] = [];
       filesToAdd.forEach((file) => {
@@ -95,7 +106,12 @@ export default function DocumentCard({
           newPreviewUrls.push("");
         }
       });
-      setPreviewUrls((prev) => [...prev, ...newPreviewUrls]);
+
+      setPreviewUrls((prev) => {
+        const totalExisting = documents.length;
+        const maxNewPreviews = maxFiles - totalExisting;
+        return [...prev, ...newPreviewUrls].slice(0, maxNewPreviews);
+      });
     } else {
       const file = files[0];
       setSelectedFiles([file]);
@@ -192,18 +208,32 @@ export default function DocumentCard({
 
   return (
     <div
-      className={`rounded-3xl border ${borderColorByStatus[currentStatus]} p-5 space-y-4`}
+      className={`rounded-2xl md:rounded-3xl border ${borderColorByStatus[currentStatus]} p-3 md:p-5 space-y-3 md:space-y-4`}
     >
       {/* Header */}
-      <div className="flex items-start gap-4">
-        <DocumentIcon status={currentStatus} />
+      <div className="flex items-start gap-3 md:gap-4">
+        <div className="hidden md:block">
+          <DocumentIcon status={currentStatus} />
+        </div>
 
         <div className="flex-1 min-w-0">
-          <h3 className="text-lg font-semibold text-foreground">{title}</h3>
+          <h3 className="text-base md:text-lg font-semibold text-foreground">
+            {title}
+          </h3>
+          {/* StatusBadge debajo del título en mobile */}
+          <div className="mt-2 mb-1 md:hidden">
+            <StatusBadge
+              label={STATUS[currentStatus].label}
+              color={STATUS[currentStatus].color}
+            />
+          </div>
           {isArray ? (
             <>
               <p className="text-sm text-muted-foreground mt-0.5">
-                {documents.length} de {maxFiles} certificaciones subidas
+                {t("verification.documentsSection.filesUploaded", {
+                  count: documents.length,
+                  max: maxFiles,
+                })}
               </p>
               {arrayParentFeedback && (
                 <p className={`text-sm mt-1.5 ${feedbackColorClass}`}>
@@ -218,7 +248,10 @@ export default function DocumentCard({
                 <span className="mx-2">•</span>
                 {formatFileSize(currentDocument?.size || 0)}
                 <span className="mx-2">•</span>
-                {currentDocument?.uploadedAt || "Subido el 15 Oct 2025"}
+                {currentDocument?.uploadedAt ||
+                  t("verification.documentsSection.uploadedOn", {
+                    date: "15 Oct 2025",
+                  })}
               </p>
               {currentDocument?.feedback && (
                 <p className={`text-sm mt-1.5 ${feedbackColorClass}`}>
@@ -229,18 +262,24 @@ export default function DocumentCard({
           )}
         </div>
 
-        <StatusBadge
-          label={STATUS[currentStatus].label}
-          color={STATUS[currentStatus].color}
-        />
+        {/* StatusBadge a la derecha solo en desktop */}
+        <div className="hidden md:flex flex-shrink-0 items-center">
+          <StatusBadge
+            label={t(`verification.status.${currentStatus.toLowerCase()}`)}
+            color={STATUS[currentStatus].color}
+          />
+        </div>
       </div>
 
       {/* Lista de documentos existentes para arrays */}
       {isArray && currentDocuments.length > 0 && (
-        <div className="space-y-3">
+        <div className="space-y-2 md:space-y-3">
           {currentDocuments.map((doc, index) => (
-            <div key={index} className="rounded-xl border p-4">
-              <div className="flex items-start gap-3">
+            <div
+              key={index}
+              className="rounded-lg md:rounded-xl border border-primary/15 p-3 md:p-4"
+            >
+              <div className="flex items-start gap-2 md:gap-3">
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-foreground truncate">
                     {doc.name}
@@ -254,7 +293,7 @@ export default function DocumentCard({
                     <img
                       src={doc.url}
                       alt={doc.name}
-                      className="w-16 h-16 rounded-lg object-cover cursor-pointer border mt-2"
+                      className="w-12 h-12 md:w-16 md:h-16 rounded-lg object-cover cursor-pointer border mt-2"
                       onClick={() => {
                         setCarouselStartIndex(
                           imageDocuments.findIndex((d) => d.url === doc.url),
@@ -271,9 +310,9 @@ export default function DocumentCard({
                       documentType={doc.type}
                       documentName={doc.name}
                     >
-                      <button className="mt-2 flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 transition-colors text-sm font-medium text-primary">
-                        <Eye className="w-4 h-4" />
-                        Ver documento
+                      <button className="mt-2 flex items-center gap-2 px-2 md:px-3 py-1 md:py-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 transition-colors text-xs md:text-sm font-medium text-primary">
+                        <Eye className="w-3 h-3 md:w-4 md:h-4" />
+                        {t("verification.documentsSection.viewDocument")}
                       </button>
                     </PreviewDocumentsDialog>
                   )}
@@ -283,8 +322,8 @@ export default function DocumentCard({
                 {currentStatus === "REJECTED" && (
                   <button
                     onClick={() => handleRemoveExistingDocument(index)}
-                    className="p-1.5 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-red-600"
-                    aria-label="Eliminar"
+                    className="p-1.5 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-red-600 flex-shrink-0"
+                    aria-label={t("verification.documentsSection.removeFile")}
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -295,32 +334,37 @@ export default function DocumentCard({
         </div>
       )}
 
-      {/* ✅ NUEVOS botones de acción para arrays con documentos y estado REJECTED */}
+      {/* Nuevos botones de acción para arrays con documentos y estado REJECTED */}
       {isArray &&
         currentStatus === "REJECTED" &&
         currentDocuments.length > 0 &&
         !selectedFiles.length && (
-          <div className="rounded-3xl border border-primary/15 p-4 space-y-3">
+          <div className="rounded-2xl md:rounded-3xl border border-primary/15 p-3 md:p-4 space-y-3">
             <div className="flex items-center gap-2 text-destructive">
-              <AlertTriangle className="w-5 h-5" />
-              <p className="font-medium">Acciones disponibles</p>
+              <AlertTriangle className="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" />
+              <p className="font-medium text-sm md:text-base">
+                {t("verification.documentsSection.actionsAvailable")}
+              </p>
             </div>
             <p className="text-sm text-destructive">
-              Puedes enviar todas las certificaciones actuales para revisión,
-              cancelar todo y empezar de nuevo.
+              {t("verification.documentsSection.actionsDescription")}
             </p>
-            <div className="flex flex-col sm:flex-row gap-2 mt-4">
-              <MCButton onClick={onSubmitAll} className="flex-1 " size="ml">
-                Enviar Todo a Revisión
+            <div className="flex flex-col gap-2 mt-4">
+              <MCButton
+                onClick={onSubmitAll}
+                className="w-full"
+                size={isMobile ? "sm" : "ml"}
+              >
+                {t("verification.documentsSection.submitAllForReview")}
               </MCButton>
 
               <MCButton
                 onClick={onCancelAll}
                 variant="outlineDelete"
-                className="flex-1 "
-                size="ml"
+                className="w-full"
+                size={isMobile ? "sm" : "ml"}
               >
-                Cancelar Todo
+                {t("verification.documentsSection.cancelAll")}
               </MCButton>
             </div>
           </div>
@@ -336,19 +380,19 @@ export default function DocumentCard({
 
       {/* Vista previa de archivos seleccionados */}
       {selectedFiles.length > 0 && (
-        <div className="rounded-xl border border-primary/15 bg-muted/30 p-4 space-y-3">
-          <div className="space-y-3">
+        <div className="rounded-xl border border-primary/15 bg-muted/30 p-3 md:p-4 space-y-3">
+          <div className="space-y-2 md:space-y-3">
             {selectedFiles.map((file, index) => (
-              <div key={index} className="flex items-center gap-3">
+              <div key={index} className="flex items-center gap-2 md:gap-3">
                 {previewUrls[index] ? (
                   <img
                     src={previewUrls[index]}
                     alt="Vista previa"
-                    className="w-14 h-14 rounded-lg object-cover border border-doc-card-border"
+                    className="w-12 h-12 md:w-14 md:h-14 rounded-lg object-cover border border-primary/15 flex-shrink-0"
                   />
                 ) : (
-                  <div className="w-14 h-14 rounded-lg bg-status-pending-bg flex items-center justify-center">
-                    <FileText className="w-7 h-7 text-status-pending" />
+                  <div className="w-12 h-12 md:w-14 md:h-14 rounded-lg bg-status-pending-bg flex items-center justify-center flex-shrink-0">
+                    <FileText className="w-6 h-6 md:w-7 md:h-7 text-status-pending" />
                   </div>
                 )}
                 <div className="flex-1 min-w-0">
@@ -361,37 +405,50 @@ export default function DocumentCard({
                 </div>
                 <button
                   onClick={() => handleRemoveSelectedFile(index)}
-                  className="p-1.5 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
-                  aria-label="Quitar archivo"
+                  className="p-1.5 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground flex-shrink-0"
+                  aria-label={t("verification.documentsSection.removeFile")}
                 >
-                  <X className="w-5 h-5" />
+                  <X className="w-4 h-4 md:w-5 md:h-5" />
                 </button>
               </div>
             ))}
           </div>
 
           <p className="text-sm text-red-600 font-medium">
-            Una vez que envíes{" "}
-            {isArray && selectedFiles.length > 1
-              ? "los archivos"
-              : "el archivo"}
-            , no podrás cambiarlos.
+            {t("verification.documentsSection.warningCannotChange", {
+              fileType:
+                isArray && selectedFiles.length > 1
+                  ? t(
+                      "verification.documentsSection.warningCannotChangeMultiple",
+                    )
+                  : t(
+                      "verification.documentsSection.warningCannotChangeSingle",
+                    ),
+            })}
           </p>
 
-          <div className="flex gap-2">
+          <div className="flex flex-col md:flex-row gap-2">
             <MCButton
               onClick={() => fileInputRef.current?.click()}
               variant="outline"
               className="flex-1"
+              size={isMobile ? "sm" : "sm"}
             >
-              {isArray ? "Agregar más" : "Cambiar archivo"}
+              {isArray
+                ? t("verification.documentsSection.addMore")
+                : t("verification.documentsSection.changeFile")}
             </MCButton>
-            <MCButton className="flex-1" onClick={handleConfirmSubmit}>
+            <MCButton
+              className="flex-1"
+              onClick={handleConfirmSubmit}
+              size={isMobile ? "sm" : "sm"}
+            >
               <Upload className="w-4 h-4" />
-              Enviar{" "}
               {isArray && selectedFiles.length > 1
-                ? `(${selectedFiles.length})`
-                : ""}
+                ? t("verification.documentsSection.sendMultiple", {
+                    count: selectedFiles.length,
+                  })
+                : t("verification.documentsSection.send")}
             </MCButton>
           </div>
         </div>
@@ -405,23 +462,40 @@ export default function DocumentCard({
               (currentStatus === "REJECTED" || currentDocuments.length === 0) &&
               currentDocuments.length < maxFiles && (
                 <button
-                  onClick={() => fileInputRef.current?.click()}
-                  className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-dashed border-primary/30 bg-bg-secondary text-foreground font-medium hover:bg-muted transition-colors"
+                  onClick={() => {
+                    // Limita la selección a máximo 5 archivos en total
+                    if (
+                      currentDocuments.length + selectedFiles.length <
+                      maxFiles
+                    ) {
+                      fileInputRef.current?.click();
+                    }
+                  }}
+                  className="w-full flex items-center justify-center gap-2 py-2.5 md:py-3 rounded-xl border border-dashed border-primary/30 bg-bg-secondary text-foreground font-medium hover:bg-muted transition-colors text-sm md:text-base"
                 >
-                  <Plus className="w-5 h-5" />
+                  <Plus className="w-4 h-4 md:w-5 md:h-5" />
                   {currentStatus === "REJECTED"
-                    ? `Reenviar certificaciones (${currentDocuments.length}/${maxFiles})`
-                    : `Agregar certificaciones (${currentDocuments.length}/${maxFiles})`}
+                    ? t(
+                        "verification.documentsSection.resubmitCertifications",
+                        {
+                          current: currentDocuments.length,
+                          max: maxFiles,
+                        },
+                      )
+                    : t("verification.documentsSection.addCertifications", {
+                        current: currentDocuments.length,
+                        max: maxFiles,
+                      })}
                 </button>
               )
             : currentDocument?.verificationStatus === "REJECTED" &&
               onResubmit && (
                 <button
                   onClick={() => fileInputRef.current?.click()}
-                  className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-primary/15 bg-bg-secondary text-foreground font-medium hover:bg-muted transition-colors"
+                  className="w-full flex items-center justify-center gap-2 py-2.5 md:py-3 rounded-xl border border-primary/15 bg-bg-secondary text-foreground font-medium hover:bg-muted transition-colors text-sm md:text-base"
                 >
-                  <Upload className="w-5 h-5" />
-                  Reenviar
+                  <Upload className="w-4 h-4 md:w-5 md:h-5" />
+                  {t("verification.documentsSection.resubmit")}
                 </button>
               )}
         </>

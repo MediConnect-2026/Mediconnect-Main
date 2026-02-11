@@ -185,7 +185,7 @@
     "stepsCompleted": "{{current}} of {{total}} steps completed",
     "personalIdentification": "Personal Identification",
     "centerInformation": "Center Information",
-    "documents": "Documents",
+    "documentss": "Documents",
     "status": {
       "rejected": "Rejected",
       "pending": "Under review",
@@ -220,6 +220,37 @@
       "resubmitCenter": "Resubmit Center Information",
       "cancel": "Cancel",
       "submit": "Submit"
+    },
+    "documents": {
+      "title": "Documents",
+      "doctorTitle": "Doctor Documents",
+      "centerTitle": "Center Documents",
+      "description": "Documents submitted for verification",
+      "identityDocument": "Identity Document",
+      "academicTitle": "Academic Title",
+      "additionalCertifications": "Additional Certifications",
+      "healthCertificate": "Health Certificate",
+      "loading": "Loading documents..."
+    },
+    "documentsSection": {
+      "filesUploaded": "{{count}} of {{max}} certifications uploaded",
+      "uploadedOn": "Uploaded on {{date}}",
+      "resubmit": "Resubmit",
+      "addMore": "Add more",
+      "addCertifications": "Add certifications ({{current}}/{{max}})",
+      "resubmitCertifications": "Resubmit certifications ({{current}}/{{max}})",
+      "send": "Send",
+      "sendMultiple": "Send ({{count}})",
+      "changeFile": "Change file",
+      "viewDocument": "View document",
+      "removeFile": "Remove file",
+      "warningCannotChange": "Once you send {{fileType}}, you won't be able to change them.",
+      "warningCannotChangeSingle": "the file",
+      "warningCannotChangeMultiple": "the files",
+      "actionsAvailable": "Available actions",
+      "actionsDescription": "You can submit all current certifications for review, or cancel everything and start over.",
+      "submitAllForReview": "Submit All for Review",
+      "cancelAll": "Cancel All"
     },
     "forms": {
       "centerName": "Center Name",
