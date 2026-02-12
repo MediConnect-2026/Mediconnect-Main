@@ -4,6 +4,7 @@ import MCNavbarMobile from "@/shared/navigation/MCMobileNavbar";
 import { useAppointmentStore } from "@/stores/useAppointmentStore";
 import { useEffect } from "react";
 import { useGlobalUIStore } from "@/stores/useGlobalUIStore";
+import { useCreateServicesStore } from "@/stores/useCreateServicesStore";
 
 function DashboardLayout() {
   const location = useLocation();
@@ -13,15 +14,15 @@ function DashboardLayout() {
   const resetAppointment = useAppointmentStore(
     (state) => state.clearAppointments,
   );
-
-  // Reset de verificación si sale de /settings
   const resetVerificationContext = useGlobalUIStore(
     (state) => state.resetVerificationContext,
   );
+  const resetCreateService = useCreateServicesStore((state) => state.resetAll);
 
   useEffect(() => {
-    // Reset de appointments si sale de schedule-appointment o search
     const currentPath = window.location.pathname;
+
+    // Reset de appointments si sale de schedule-appointment o search
     if (
       !currentPath.startsWith("/patient/schedule-appointment") &&
       !currentPath.startsWith("/search")
@@ -33,12 +34,18 @@ function DashboardLayout() {
     if (!currentPath.startsWith("/settings")) {
       resetVerificationContext?.();
     }
+
+    // Reset de creación de servicios si sale de /doctor/services/create
+    if (!currentPath.startsWith("/doctor/services/create")) {
+      resetCreateService();
+    }
     // eslint-disable-next-line
   }, [
     location.pathname,
     resetAppointment,
     setIsAppointmentInProgress,
     resetVerificationContext,
+    resetCreateService,
   ]);
 
   // Detectar si estamos en la ruta del chat

@@ -11,10 +11,10 @@ export const defaultServiceSchema = z.object({
   name: z
     .string()
     .min(1, "Name is required")
-    .max(20, "Name cannot exceed 20 characters"),
+    .max(50, "Name cannot exceed 50 characters"),
   description: z
     .string()
-    .max(75, "La descripción no puede exceder 500 caracteres")
+    .max(150, "La descripción no puede exceder 150 caracteres")
     .optional(),
   specialty: z.string(),
   selectedModality: z.enum(["presencial", "teleconsulta", "Mixta"]),
@@ -46,10 +46,10 @@ export const serviceSchema = (t: (key: string) => string) =>
     name: z
       .string()
       .min(1, t("validation.name.required"))
-      .max(20, t("validation.name.maxLength")),
+      .max(50, t("validation.name.maxLength")),
     description: z
       .string()
-      .max(500, t("validation.description.maxLength"))
+      .max(150, t("validation.description.maxLength"))
       .optional(),
     specialty: z.string(),
     selectedModality: z.enum(["presencial", "teleconsulta", "Mixta"]),
@@ -65,7 +65,7 @@ export const serviceSchema = (t: (key: string) => string) =>
         .number()
         .int()
         .min(1, t("validation.duration.minutes.min"))
-        .max(59),
+        .max(59, t("validation.duration.minutes.max")),
     }),
     pricePerSession: z
       .number()
