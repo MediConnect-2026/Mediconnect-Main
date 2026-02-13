@@ -44,7 +44,10 @@ function DoctorOnboardingPage() {
       doctorOnboardingData?.mainSpecialty &&
       doctorOnboardingData?.secondarySpecialties;
 
-    const isIdDocComplete = Boolean(doctorOnboardingData?.identityDocumentFile);
+    const isIdDocComplete = Boolean(
+      doctorOnboardingData?.identityDocumentFile &&
+        doctorOnboardingData.identityDocumentFile.length > 0
+    );
 
     const isProfilePhotoComplete = Boolean(doctorOnboardingData?.urlImg);
 
@@ -73,6 +76,9 @@ function DoctorOnboardingPage() {
     doctorOnboardingData?.phone,
     doctorOnboardingData?.email,
     doctorOnboardingData?.identityDocument,
+    doctorOnboardingData?.exequatur,
+    doctorOnboardingData?.mainSpecialty,
+    doctorOnboardingData?.secondarySpecialties,
     doctorOnboardingData?.identityDocumentFile,
     doctorOnboardingData?.urlImg,
     doctorOnboardingData?.certifications,

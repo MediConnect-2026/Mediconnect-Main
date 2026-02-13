@@ -17,6 +17,7 @@ import type {
   RefreshTokenResponse,
   SolicitarCodigoPasswordResponse,
   SolicitarCodigoPasswordRequest,
+  VerificarDocumentoResponse,
 } from './auth.types';
 
 
@@ -147,6 +148,20 @@ export const authService = {
     const { data } = await apiClient.post<RefreshTokenResponse>(
       API_ENDPOINTS.AUTH.REFRESH_TOKEN,
       request
+    );
+    return data;
+  },
+
+  /**
+   * Verificar disponibilidad de número de documento
+   * GET /auth/verificar-documento
+   */
+  verificarDocumento: async (numero: string): Promise<VerificarDocumentoResponse> => {
+    const { data } = await apiClient.get<VerificarDocumentoResponse>(
+      API_ENDPOINTS.AUTH.VERIFICAR_DOCUMENTO,
+      {
+        params: { numero },
+      }
     );
     return data;
   },

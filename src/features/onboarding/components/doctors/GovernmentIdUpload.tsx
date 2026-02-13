@@ -23,21 +23,30 @@ export function GovernmentIdUploadTrigger({
   const handleFileUpload = (fileUrl: string, fileType: string) => {
     if (!doctorOnboardingData || !setDoctorOnboardingData) return;
 
+    const newFile = {
+      url: fileUrl,
+      type: fileType,
+    };
+
     setDoctorOnboardingData({
       ...doctorOnboardingData,
-      identityDocumentFile: {
-        url: fileUrl,
-        type: fileType,
-      },
+      identityDocumentFile: [
+        ...(doctorOnboardingData.identityDocumentFile ?? []),
+        newFile,
+      ],
     });
   };
 
-  const handleFileRemove = () => {
+  const handleFileRemove = (index: number) => {
     if (!doctorOnboardingData || !setDoctorOnboardingData) return;
+
+    const updatedFiles = (
+      doctorOnboardingData.identityDocumentFile ?? []
+    ).filter((_, i) => i !== index);
 
     setDoctorOnboardingData({
       ...doctorOnboardingData,
-      identityDocumentFile: undefined,
+      identityDocumentFile: updatedFiles,
     });
   };
 
@@ -53,11 +62,9 @@ export function GovernmentIdUploadTrigger({
       accept="image/*"
       onFileUpload={handleFileUpload}
       onFileRemove={handleFileRemove}
-      uploadedFiles={
-        doctorOnboardingData?.identityDocumentFile
-          ? [doctorOnboardingData.identityDocumentFile]
-          : []
-      }
+      allowMultiple={true}
+      maxFiles={2}
+      uploadedFiles={doctorOnboardingData?.identityDocumentFile ?? []}
       {...modalProps}
     >
       {children}

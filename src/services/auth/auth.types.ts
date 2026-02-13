@@ -189,7 +189,6 @@ export function normalizeLoginResponse(response: LoginResponse): {
   refreshToken: string;
   user: User;
 } {
-  console.log('🔄 Normalizando respuesta de login...', response);
   return {
     accessToken: response.accessToken,
     refreshToken: response.refreshToken,
@@ -350,4 +349,16 @@ export function getUserAvatar(user: User | null): string | undefined {
   
   // Si no hay foto de perfil, retornar undefined para que se muestre el avatar generado
   return undefined;
+}
+
+// --- VERIFICAR DOCUMENTO ---
+export interface VerificarDocumentoRequest {
+  numero: string;
+}
+
+export interface VerificarDocumentoResponse {
+  success: boolean;
+  disponible: boolean;
+  message: string;
+  tipoUsuario?: 'Doctor' | 'Paciente';
 }

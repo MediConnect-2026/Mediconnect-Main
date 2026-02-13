@@ -19,6 +19,7 @@ export const API_ENDPOINTS = {
     PASSWORD_CAMBIAR: '/auth/password/cambiar',
     RESET_PASSWORD: '/auth/reset-password',
     VERIFY_EMAIL: '/auth/verify-email',
+    VERIFICAR_DOCUMENTO: '/auth/verificar-documento',
   },
   
   // --- CITAS (APPOINTMENTS) ---
@@ -90,6 +91,12 @@ export const API_ENDPOINTS = {
   PROFESSIONS: {
     BASE: '/profesiones',
     EXPERIENCIAS: '/experiencias-laborales',
+  },
+  
+  // --- ESPECIALIDADES MÉDICAS ---
+  ESPECIALIDADES: {
+    BASE: '/especialidades',
+    BY_ID: (id: string | number) => `/especialidades/${id}`,
   },
   
   // --- TRADUCTOR ---

@@ -36,7 +36,7 @@ export const BaseDoctorSchema = z.object({
   phone: z.string(),
   email: z.string(),
   urlImg: UploadedFileSchema.optional(),
-  identityDocumentFile: UploadedFileSchema.optional(),
+  identityDocumentFile: z.array(UploadedFileSchema).optional(),
   certifications: z.array(UploadedFileSchema).optional(),
   academicTitle: UploadedFileSchema.optional(),
   password: z.string(),
@@ -117,8 +117,8 @@ export function CreatePasswordSchema(t: (key: string) => string) {
     confirmPassword: true,
   })
     .extend({
-      password: z.string().min(6, t("validation.passwordMin")),
-      confirmPassword: z.string().min(6, t("validation.passwordMin")),
+      password: z.string().min(8, t("validation.passwordMin")),
+      confirmPassword: z.string().min(8, t("validation.passwordMin")),
     })
     .superRefine((data, ctx) => {
       if (data.password !== data.confirmPassword) {
@@ -147,19 +147,28 @@ export function DoctorOnboardingSchema(t: (key: string) => string) {
       .refine((val) => ValidateDominicanID(val), {
         message: t("validation.identityDocumentInvalid"),
       }),
-    exequatur: z.string().min(1, t("validation.exequaturRequired")),
+    exequatur: z.coerce
+      .string()
+      .min(1, t("validation.exequaturRequired"))
+      .transform((val) => val.replace(/\D/g, ""))
+      .refine((val) => val.length === 5, {
+        message: t("validation.exequaturInvalid"),
+      }),
     mainSpecialty: z.string().min(1, t("validation.mainSpecialtyRequired")),
     secondarySpecialties: z.array(z.string()).optional(),
     phone: z.coerce
       .string()
       .min(1, t("validation.phoneRequired"))
-      .regex(/^\d{10}$/, t("validation.phoneInvalid")),
+      .transform((val) => val.replace(/\D/g, ""))
+      .refine((val) => val.length === 10, {
+        message: t("validation.phoneInvalid"),
+      }),
     email: z
       .string()
       .min(1, t("validation.emailRequired"))
       .email(t("validation.emailInvalid")),
     urlImg: UploadedFileSchema.optional(),
-    identityDocumentFile: UploadedFileSchema.optional(),
+    identityDocumentFile: z.array(UploadedFileSchema).max(2, t("validation.maxDocumentFiles")).optional(),
     certifications: z.array(UploadedFileSchema).optional(),
     academicTitle: UploadedFileSchema.optional(),
     password: z.string().min(6, t("validation.passwordMin")),
@@ -202,7 +211,10 @@ export function DoctorBasicInfoSchema(t: (key: string) => string) {
     phone: z.coerce
       .string()
       .min(1, t("validation.phoneRequired"))
-      .regex(/^\d{10}$/, t("validation.phoneInvalid")),
+      .transform((val) => val.replace(/\D/g, ""))
+      .refine((val) => val.length === 10, {
+        message: t("validation.phoneInvalid"),
+      }),
   });
 }
 
@@ -212,7 +224,13 @@ export function DoctorProfessionalInfoSchema(t: (key: string) => string) {
     mainSpecialty: true,
     secondarySpecialties: true,
   }).extend({
-    exequatur: z.string().min(1, t("validation.exequaturRequired")),
+    exequatur: z.coerce
+      .string()
+      .min(1, t("validation.exequaturRequired"))
+      .transform((val) => val.replace(/\D/g, ""))
+      .refine((val) => val.length === 5, {
+        message: t("validation.exequaturInvalid"),
+      }),
     mainSpecialty: z.string().min(1, t("validation.mainSpecialtyRequired")),
     secondarySpecialties: z.array(z.string()).optional(),
   });
@@ -244,7 +262,10 @@ export function CenterOnboardingSchema(t: (key: string) => string) {
     phone: z.coerce
       .string()
       .min(1, t("validation.phoneRequired"))
-      .regex(/^\d{10}$/, t("validation.phoneInvalid")),
+      .transform((val) => val.replace(/\D/g, ""))
+      .refine((val) => val.length === 10, {
+        message: t("validation.phoneInvalid"),
+      }),
     email: z
       .string()
       .min(1, t("validation.emailRequired"))
@@ -290,7 +311,10 @@ export function CenterBasicInfoSchema(t: (key: string) => string) {
     phone: z.coerce
       .string()
       .min(1, t("validation.phoneRequired"))
-      .regex(/^\d{10}$/, t("validation.phoneInvalid")),
+      .transform((val) => val.replace(/\D/g, ""))
+      .refine((val) => val.length === 10, {
+        message: t("validation.phoneInvalid"),
+      }),
   });
 }
 

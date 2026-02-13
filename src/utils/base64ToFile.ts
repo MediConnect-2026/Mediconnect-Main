@@ -8,22 +8,34 @@ export function base64ToBlob(
   base64String: string,
   contentType: string = 'image/jpeg'
 ): Blob {
-  // Remover el prefijo 'data:image/...;base64,' si existe
-  const base64Data = base64String.includes(',')
-    ? base64String.split(',')[1]
-    : base64String;
+  try {
+    // Remover el prefijo 'data:image/...;base64,' si existe
+    const base64Data = base64String.includes(',')
+      ? base64String.split(',')[1]
+      : base64String;
 
-  // Decodificar base64 a bytes
-  const byteCharacters = atob(base64Data);
-  const byteNumbers = new Array(byteCharacters.length);
-  
-  for (let i = 0; i < byteCharacters.length; i++) {
-    byteNumbers[i] = byteCharacters.charCodeAt(i);
+    // Decodificar base64 a bytes
+    const byteCharacters = atob(base64Data);
+    const byteNumbers = new Array(byteCharacters.length);
+    
+    for (let i = 0; i < byteCharacters.length; i++) {
+      byteNumbers[i] = byteCharacters.charCodeAt(i);
+    }
+    
+    const byteArray = new Uint8Array(byteNumbers);
+    const blob = new Blob([byteArray], { type: contentType });
+    
+    console.log('[base64ToBlob] Blob creado:', {
+      size: blob.size,
+      type: blob.type,
+      isBlob: blob instanceof Blob
+    });
+    
+    return blob;
+  } catch (error) {
+    console.error('[base64ToBlob] Error al convertir base64:', error);
+    throw new Error(`Error al convertir base64 a Blob: ${error instanceof Error ? error.message : 'Error desconocido'}`);
   }
-  
-  const byteArray = new Uint8Array(byteNumbers);
-
-  return new Blob([byteArray], { type: contentType });
 }
 
 /**
@@ -39,7 +51,27 @@ export function base64ToFile(
   contentType: string = 'image/jpeg'
 ): File {
   const blob = base64ToBlob(base64String, contentType);
-  return new File([blob], fileName, { type: contentType });
+  
+  // Asegurarse de que el nombre tenga la extensión correcta
+  let finalFileName = fileName;
+  if (!fileName.includes('.')) {
+    // Extraer extensión del contentType
+    const ext = contentType.split('/')[1]?.split('+')[0] || 'jpg';
+    finalFileName = `${fileName}.${ext}`;
+  }
+  
+  const file = new File([blob], finalFileName, { type: contentType });
+  
+  // Log para debugging
+  console.log('[base64ToFile] Archivo creado:', {
+    name: file.name,
+    type: file.type,
+    size: file.size,
+    isFile: file instanceof File,
+    isBlob: file instanceof Blob
+  });
+  
+  return file;
 }
 
 /**

@@ -31,7 +31,6 @@ function MCNavbar() {
     CENTER: "center",
   };
   const ns = nsMap[effectiveRole] || "patient";
-  console.log("Navbar role:", effectiveRole, "using namespace:", ns); 
   return (
     <nav className="w-full flex items-center justify-between px-4 sm:px-6 lg:px-10 py-3 bg-background rounded-full shadow-sm border-none border-background ">
       {/* Logo */}

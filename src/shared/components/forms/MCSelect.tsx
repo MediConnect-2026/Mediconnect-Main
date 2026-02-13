@@ -65,6 +65,18 @@ function MCSelect({
   // Use translation for default placeholder
   const defaultPlaceholder = placeholder || t("ui.select.placeholder");
 
+  // Sincronizar selectedValues con los valores del formulario (importantes para edición)
+  useEffect(() => {
+    if (multiple && currentValue) {
+      // Asegurarse de que currentValue es un array
+      const valuesArray = Array.isArray(currentValue) ? currentValue : [];
+      // Solo actualizar si los valores son diferentes
+      if (JSON.stringify(valuesArray) !== JSON.stringify(selectedValues)) {
+        setSelectedValues(valuesArray);
+      }
+    }
+  }, [currentValue, multiple]); // No incluir selectedValues para evitar loop infinito
+
   const handleStatusColor = () => {
     switch (status) {
       case "error":

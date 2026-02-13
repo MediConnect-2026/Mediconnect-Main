@@ -74,6 +74,11 @@ export const QUERY_KEYS = {
   PROVINCIAS: ['provincias'],
   MUNICIPIOS: ['municipios'],
   MUNICIPIOS_BY_PROVINCIA: (provinciaId: string | number) => ['municipios', 'provincia', provinciaId],
+  
+  // Especialidades (datos relativamente estáticos)
+  ESPECIALIDADES: (language?: string, params?: Record<string, any>) => 
+    ['especialidades', language, params].filter(Boolean),
+  ESPECIALIDADES_CUSTOM: (params?: Record<string, any>) => ['especialidades', 'custom', params],
 } as const;
 
 export default queryClient;

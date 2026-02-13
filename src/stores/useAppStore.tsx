@@ -33,6 +33,8 @@ export const useAppStore = create<AppStore>()(
         verifyEmail: state.verifyEmail,
         forgotPassword: state.forgotPassword,
         otp: state.otp,
+        registrationToken: state.registrationToken,
+        googleUserData: state.googleUserData,
 
         // OnboardingSlice
         selectedRole: state.selectedRole,

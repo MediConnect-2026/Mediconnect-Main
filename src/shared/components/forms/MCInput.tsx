@@ -20,7 +20,7 @@ interface MCInputProps {
   size?: "small" | "medium" | "large";
   status?: "default" | "error" | "success" | "warning" | "loading";
   statusMessage?: string;
-  variant?: "edit" | "default" | "cedula";
+  variant?: "edit" | "default" | "cedula" | "exequatur";
   standalone?: boolean;
   // Nueva prop para icono
   icon?: React.ReactNode;
@@ -35,6 +35,14 @@ function formatCedula(value: string) {
   if (digits.length <= 3) return digits;
   if (digits.length <= 10) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
   return `${digits.slice(0, 3)}-${digits.slice(3, 10)}-${digits.slice(10)}`;
+}
+
+function formatExequatur(value: string) {
+  // Solo números, máximo 5 dígitos
+  const digits = value.replace(/\D/g, "").slice(0, 5);
+  // Formato visual: xxx-xx
+  if (digits.length <= 3) return digits;
+  return `${digits.slice(0, 3)}-${digits.slice(3)}`;
 }
 
 function MCInput({
@@ -122,11 +130,14 @@ function MCInput({
     return "";
   };
 
-  // Detectar si es campo de cédula
+  // Detectar si es campo de cédula o exequatur
   const isCedulaVariant = variant === "cedula";
+  const isExequaturVariant = variant === "exequatur";
 
   // Estado local solo para mostrar la cédula formateada
   const [cedulaValue, setCedulaValue] = useState(value || "");
+  // Estado local para mostrar el exequatur formateado
+  const [exequaturValue, setExequaturValue] = useState(value || "");
 
   // Sincronizar el estado local con el valor del formulario
   useEffect(() => {
@@ -137,6 +148,15 @@ function MCInput({
       }
     }
   }, [formContext?.watch(name), isCedulaVariant, standalone]);
+
+  useEffect(() => {
+    if (isExequaturVariant && !standalone && formContext) {
+      const currentValue = formContext.watch(name);
+      if (currentValue && currentValue !== exequaturValue.replace(/\D/g, "")) {
+        setExequaturValue(formatExequatur(currentValue));
+      }
+    }
+  }, [formContext?.watch(name), isExequaturVariant, standalone]);
 
   const handleCedulaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const formatted = formatCedula(e.target.value);
@@ -156,28 +176,49 @@ function MCInput({
     }
   };
 
+  const handleExequaturChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatExequatur(e.target.value);
+    setExequaturValue(formatted);
+    // Enviar solo los números al formulario
+    const onlyDigits = formatted.replace(/\D/g, "");
+    
+    if (standalone) {
+      onChange?.({ ...e, target: { ...e.target, value: onlyDigits } });
+    } else {
+      formContext?.setValue(name, onlyDigits, { shouldValidate: true });
+      if (onChange) {
+        onChange({ ...e, target: { ...e.target, value: onlyDigits } });
+      }
+    }
+  };
+
   // Props del input dependiendo del modo y variante
   const inputProps = isCedulaVariant
     ? {
         value: cedulaValue,
         onChange: handleCedulaChange,
       }
-    : standalone
+    : isExequaturVariant
       ? {
-          value: value || "",
-          onChange: onChange,
+          value: exequaturValue,
+          onChange: handleExequaturChange,
         }
-      : (() => {
-          if (!formContext) return {};
-          const field = formContext.register(name);
-          return {
-            ...field,
-            onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
-              field.onChange(e);
-              onChange?.(e);
-            },
-          };
-        })();
+      : standalone
+        ? {
+            value: value || "",
+            onChange: onChange,
+          }
+        : (() => {
+            if (!formContext) return {};
+            const field = formContext.register(name);
+            return {
+              ...field,
+              onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
+                field.onChange(e);
+                onChange?.(e);
+              },
+            };
+          })();
 
   // Obtener errores solo si está en un form
   const error = !standalone && formContext?.formState?.errors?.[name];

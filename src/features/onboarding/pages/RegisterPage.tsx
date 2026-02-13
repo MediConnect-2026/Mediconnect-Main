@@ -55,7 +55,7 @@ function RegisterPage() {
   
   const handleContinue = () => {
     if (!selectedRole) return;
-    
+
     // Si viene de Google, pre-poblar datos y saltarse email verification y OTP
     if (isGoogleRegistration && googleUserData) {
       const email = googleUserData.email || "";
