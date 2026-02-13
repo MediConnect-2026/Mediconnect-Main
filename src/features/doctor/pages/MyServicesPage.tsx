@@ -36,6 +36,7 @@ import {
 import MCServiceCards from "@/shared/components/MCServiceCards";
 import FilterMyServices from "../components/filters/FilterMyServices";
 import MCNewButton from "@/shared/components/forms/MCNewButton";
+import { ROUTES } from "@/router/routes";
 
 const mockServices = [
   {
@@ -177,7 +178,7 @@ const ITEMS_PER_PAGE = 8;
 function MyServicesPage() {
   const { t } = useTranslation("doctor");
   const isMobile = useIsMobile();
-
+  const navigate = useNavigate();
   // Estados
   const [showCards, setShowCards] = useState(() => {
     const saved = localStorage.getItem("myServicesView");
@@ -459,7 +460,10 @@ function MyServicesPage() {
 
   // Botón para crear nuevo servicio
   const actionPlusComponent = (
-    <MCNewButton text={t("services.management.newService")} />
+    <MCNewButton
+      text={t("services.management.newService")}
+      onClick={() => navigate(ROUTES.DOCTOR.CREATE_SERVICE)}
+    />
   );
 
   // Métricas

@@ -1,7 +1,7 @@
 import React from "react";
 import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
-
+import { Separator } from "../ui/separator";
 export type StepStatus = "wait" | "process" | "finish" | "error";
 
 export interface StepItem {
@@ -36,24 +36,46 @@ function MCStepper({
   items,
   current = 0,
   size = "large",
-  showLabels = false,
+  showLabels = true,
   className,
 }: MCStepperProps) {
   const isLarge = size === "large";
 
   return (
-    <div className={cn("flex items-start w-full", className)}>
+    <div className={cn("flex items-center w-full gap-1", className)}>
       {items.map((item, index) => {
         const status = getStepStatus(index, current, item.status);
         const isLast = index === items.length - 1;
 
-        const bubbleBg =
-          status === "finish" || status === "process"
-            ? "bg-[#D7E3C9]"
-            : "bg-[#D7E3C9] opacity-60";
-        const bubbleText = "text-[#0B2C12]";
-        const ringAccent =
-          status === "process" ? "ring-4 ring-[#D7E3C9]/50" : "";
+        // Updated styling based on status
+        const getBubbleStyles = () => {
+          switch (status) {
+            case "process":
+              return {
+                background: "bg-transparent",
+                border: "border-2 border-primary",
+                text: "text-primary",
+                ring: "ring-3 ring-primary/20",
+              };
+            case "wait":
+              return {
+                background: "bg-transparent",
+                border: "border-2 border-primary/20",
+                text: "text-primary/45",
+                ring: "",
+              };
+            case "finish":
+            default:
+              return {
+                background: "bg-[#D7E3C9]",
+                border: "",
+                text: "text-[#0B2C12]",
+                ring: "",
+              };
+          }
+        };
+
+        const bubbleStyles = getBubbleStyles();
 
         return (
           <React.Fragment key={index}>
@@ -64,10 +86,11 @@ function MCStepper({
                 disabled
                 className={cn(
                   "relative flex items-center justify-center rounded-full transition-all",
-                  "h-14 w-14 text-2xl font-semibold",
-                  bubbleBg,
-                  bubbleText,
-                  ringAccent,
+                  "h-12 w-12 text-lg font-semibold",
+                  bubbleStyles.background,
+                  bubbleStyles.border,
+                  bubbleStyles.text,
+                  bubbleStyles.ring,
                   "cursor-default",
                 )}
                 style={{
@@ -75,16 +98,12 @@ function MCStepper({
                 }}
               >
                 {item.icon ? (
-                  item.icon
+                  <div className="h-5 w-5 flex items-center justify-center">
+                    {item.icon}
+                  </div>
                 ) : status === "finish" ? (
                   <div>
-                    <Check
-                      className={cn(
-                        "h-8 w-8 stroke-2",
-                        current !== index && "opacity-60",
-                      )}
-                      strokeWidth={3}
-                    />
+                    <Check className="h-6 w-6 stroke-2" strokeWidth={3} />
                   </div>
                 ) : (
                   <span>{index + 1}</span>
@@ -121,24 +140,12 @@ function MCStepper({
               )}
             </div>
 
-            {/* Connector Line */}
+            {/* Divider Line usando Separator de shadcn */}
             {!isLast && (
-              <div
-                className={cn(
-                  "flex-1 h-0.5 mx-1 relative overflow-hidden",
-                  "mt-10",
-                )}
-              >
-                <div className="absolute inset-0 bg-[#D7E3C9]/30" />
-                <div
-                  className={cn(
-                    "absolute inset-0 origin-left bg-[#D7E3C9]",
-                    index < current ? "scale-x-100" : "scale-x-0",
-                  )}
-                  style={{
-                    transform: index < current ? "scaleX(1)" : "scaleX(0)",
-                    transition: "none",
-                  }}
+              <div className="flex-1 flex items-center justify-center">
+                <Separator
+                  orientation="horizontal"
+                  className="h-[3px] w-full mx-8 bg-primary/20"
                 />
               </div>
             )}

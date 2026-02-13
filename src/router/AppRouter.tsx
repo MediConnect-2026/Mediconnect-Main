@@ -50,6 +50,7 @@ import AppointmentsPage from "@/features/doctor/pages/AppointmentsPage";
 import { useAppStore } from "@/stores/useAppStore";
 import VerifyInfo from "@/features/verifyInfo/pages/VerifyInfo";
 import ProtectedRoute from "@/router/ProtectedRoute";
+import CreateServicesPage from "@/features/doctor/pages/CreateServicesPage";
 
 function AppRouter() {
   const userRole = useAppStore((state) => state.user?.rol);
@@ -247,6 +248,15 @@ function AppRouter() {
             <Route path={ROUTES.COMMON.CHAT} element={<ChatPage />} />
             <Route path={ROUTES.COMMON.CHAT_WITH} element={<ChatPage />} />
             <Route path={ROUTES.COMMON.SERVICE} element={<ServicesPage />} />
+
+            <Route
+              path={ROUTES.DOCTOR.CREATE_SERVICE}
+              element={<CreateServicesPage />}
+            />
+            <Route
+              path={ROUTES.DOCTOR.EDIT_SERVICE}
+              element={<CreateServicesPage />}
+            />
           </Route>
         </Route>
       </Router>

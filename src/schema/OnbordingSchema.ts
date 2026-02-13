@@ -49,12 +49,13 @@ export const BaseCenterSchema = z.object({
   website: z.string().optional(),
   address: z.string(),
   province: z.string(),
-  rnc: z.string(),
   municipality: z.string(),
   coordinates: z.object({
     latitude: z.number(),
     longitude: z.number(),
   }),
+  rnc: z.string(),
+
   centerType: z.string(),
   phone: z.string(),
   email: z.string().email(),

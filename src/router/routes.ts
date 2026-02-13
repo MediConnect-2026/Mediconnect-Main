@@ -55,6 +55,8 @@ export const ROUTES = {
     SETTINGS: "/doctor/settings",
     DOCTOR_PROFILE_PRIVATE: "/doctor/profile",
     DOCTOR_PROFILE_PUBLIC: "/doctor/profile/:doctorId",
+    CREATE_SERVICE: "/doctor/services/create",
+    EDIT_SERVICE: "/doctor/services/edit/:serviceId",
   },
 
   // --- DASHBOARD CENTRO MÉDICO ---
