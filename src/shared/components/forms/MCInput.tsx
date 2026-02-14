@@ -25,6 +25,7 @@ interface MCInputProps {
     | "edit"
     | "default"
     | "cedula"
+    | "time"
     | "internal-vertical"
     | "internal-horizontal";
   standalone?: boolean;
@@ -32,6 +33,7 @@ interface MCInputProps {
   internalTitle?: string;
   internalPlaceholder?: string;
   displayMode?: "placeholder" | "value";
+  isPrice?: boolean; // <--- NUEVA PROP
 }
 
 function formatCedula(value: string) {
@@ -39,6 +41,22 @@ function formatCedula(value: string) {
   if (digits.length <= 3) return digits;
   if (digits.length <= 10) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
   return `${digits.slice(0, 3)}-${digits.slice(3, 10)}-${digits.slice(10)}`;
+}
+
+function formatTime(value: string): string {
+  // Remover todos los caracteres que no sean números
+  const digits = value.replace(/\D/g, "");
+
+  // Limitar a 6 dígitos (HHMMSS)
+  const limitedDigits = digits.slice(0, 6);
+
+  if (limitedDigits.length <= 2) {
+    return limitedDigits;
+  } else if (limitedDigits.length <= 4) {
+    return `${limitedDigits.slice(0, 2)}:${limitedDigits.slice(2)}`;
+  } else {
+    return `${limitedDigits.slice(0, 2)}:${limitedDigits.slice(2, 4)}:${limitedDigits.slice(4)}`;
+  }
 }
 
 function MCInput({
@@ -61,11 +79,13 @@ function MCInput({
   internalTitle,
   internalPlaceholder,
   displayMode = "placeholder",
+  isPrice = false, // <--- NUEVA PROP
 }: MCInputProps) {
   const formContext = standalone ? null : useFormContext();
   const { t } = useTranslation("common");
   const [passwordVisibility, setPasswordVisibility] = useState(false);
   const [cedulaValue, setCedulaValue] = useState(value || "");
+  const [timeValue, setTimeValue] = useState(value || "");
 
   const handleStatusColor = () => {
     switch (status) {
@@ -146,7 +166,19 @@ function MCInput({
     }
   };
 
+  const handleTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatTime(e.target.value);
+    setTimeValue(formatted);
+
+    if (standalone) {
+      onChange?.({ ...e, target: { ...e.target, value: formatted } });
+    } else {
+      formContext?.setValue(name, formatted, { shouldValidate: true });
+    }
+  };
+
   const isCedulaVariant = variant === "cedula";
+  const isTimeVariant = variant === "time";
   const isInternalVariant =
     variant === "internal-vertical" || variant === "internal-horizontal";
   const isVerticalLayout = variant === "internal-vertical";
@@ -168,21 +200,28 @@ function MCInput({
         value: cedulaValue,
         onChange: handleCedulaChange,
       }
-    : standalone
+    : isTimeVariant
       ? {
-          value,
-          onChange,
+          value: timeValue,
+          onChange: handleTimeChange,
+          placeholder: "00:00:00",
         }
-      : formContext
-        ? type === "number"
-          ? formContext.register(name, { valueAsNumber: true })
-          : formContext.register(name)
-        : {};
+      : standalone
+        ? {
+            value,
+            onChange,
+          }
+        : formContext
+          ? type === "number"
+            ? formContext.register(name, { valueAsNumber: true })
+            : formContext.register(name)
+          : {};
 
   const error = !standalone && formContext?.formState?.errors?.[name];
 
   const getCurrentValue = () => {
     if (isCedulaVariant) return cedulaValue;
+    if (isTimeVariant) return timeValue;
     if (standalone) return value || "";
     return formContext?.watch(name) || "";
   };
@@ -200,7 +239,7 @@ function MCInput({
   const isInternalDisabled = isInternalVariant;
 
   return (
-    <div className="w-full flex flex-col mb-4 px-0">
+    <div className="w-full flex flex-col  px-0">
       {/* Label externo */}
       {label && !isInternalVariant && (
         <div className="flex flex-row justify-between items-center mb-2 gap-2">
@@ -265,8 +304,10 @@ function MCInput({
                 className={cn(
                   "h-fit px-0 border-none w-full text-left placeholder:text-left focus:ring-0 focus:outline-none",
                   "text-primary/60 placeholder:text-primary/60 text-sm sm:text-base",
+                  getIconPaddingClasses(),
                   className,
                 )}
+                style={isPrice ? { paddingLeft: "3.5rem" } : undefined}
               />
             )}
           </div>
@@ -287,6 +328,7 @@ function MCInput({
             <div className="relative flex-1 min-w-0">
               {displayMode === "value" && currentValue ? (
                 <div className="w-full text-primary/60 text-right text-sm sm:text-base">
+                  {isPrice && <span className="font-semibold mr-1">RD$</span>}
                   {currentValue}
                 </div>
               ) : (
@@ -298,12 +340,15 @@ function MCInput({
                   }
                   required={required}
                   disabled={isInternalDisabled}
+                  {...inputProps}
                   className={cn(
                     "h-fit w-full px-0 border-none text-right placeholder:text-right focus:ring-0 focus:outline-none",
                     "text-primary/60 placeholder:text-primary/60 text-sm sm:text-base",
                     isInternalDisabled && "cursor-pointer bg-muted",
+                    getIconPaddingClasses(),
                     className,
                   )}
+                  style={isPrice ? { paddingLeft: "3.5rem" } : undefined}
                 />
               )}
             </div>
@@ -322,6 +367,11 @@ function MCInput({
               {icon}
             </div>
           )}
+          {isPrice && (
+            <span className="absolute left-0 top-1/2 -translate-y-1/2 text-primary/60 font-semibold pl-4 select-none">
+              RD$
+            </span>
+          )}
           <Input
             id={name}
             placeholder={placeholder}
@@ -337,8 +387,10 @@ function MCInput({
               handleStatusColor(),
               getVariantClasses(),
               getIconPaddingClasses(),
+              getIconPaddingClasses(),
               className,
             )}
+            style={isPrice ? { paddingLeft: "4rem" } : undefined}
           />
         </div>
       )}
@@ -362,13 +414,14 @@ function MCInput({
           {statusMessage}
         </span>
       )}
-
-      {/* Form Errors */}
-      {error && (
-        <span className="text-red-500 text-sm mt-1">
-          {String(error?.message)}
-        </span>
-      )}
+      <div className="w-full flex items-center justify-start px-2 ">
+        {/* Form Errors */}
+        {error && (
+          <span className="text-red-500 text-sm mt-1 text-left">
+            {String(error?.message)}
+          </span>
+        )}{" "}
+      </div>
     </div>
   );
 }

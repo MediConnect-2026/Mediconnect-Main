@@ -4,17 +4,19 @@ import { X } from "lucide-react";
 
 interface AnimatedInputProps {
   name: string;
-  label: string;
+  label?: string;
   placeholder?: string;
   maxLength?: number;
   onChange?: (value: string) => void; // Nuevo prop opcional
+  variant?: "Default" | "Description";
 }
 
 const MCAnimatedInput = ({
   name,
   placeholder,
   maxLength = 50,
-  onChange, // Recibe el prop
+  onChange,
+  variant = "Default",
 }: AnimatedInputProps) => {
   const { control } = useFormContext();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -35,8 +37,20 @@ const MCAnimatedInput = ({
         const hasValue = field.value && field.value.length > 0;
         const charCount = field.value?.length || 0;
 
+        // Nuevos estilos condicionales
+        const isDescription = variant === "Description";
+        const containerClass = isDescription
+          ? "w-full max-w-[400px] mx-auto px-2"
+          : "w-full max-w-2xl mx-auto px-6";
+        const placeholderClass = isDescription
+          ? "text-base md:text-lg leading-tight font-medium text-muted-foreground/30 select-none text-center"
+          : "text-3xl md:text-[2.8rem] leading-tight font-medium text-muted-foreground/30 select-none text-center";
+        const textareaClass = isDescription
+          ? "w-full bg-transparent text-center text-base md:text-lg leading-tight font-normal text-primary/90 outline-none pt-2 pb-2 resize-none overflow-hidden transition-colors duration-300"
+          : "w-full bg-transparent text-center text-3xl md:text-[2.8rem] leading-tight font-normal text-primary/90 outline-none pt-2 pb-4 resize-none overflow-hidden transition-colors duration-300";
+
         return (
-          <div className="w-full max-w-2xl mx-auto px-6">
+          <div className={containerClass}>
             {/* Input container */}
             <div
               className="relative"
@@ -50,9 +64,7 @@ const MCAnimatedInput = ({
                     : "opacity-100 translate-y-0 scale-100 blur-0"
                 }`}
               >
-                <span className="text-3xl md:text-[2.8rem] leading-tight font-medium text-muted-foreground/30 select-none text-center">
-                  {placeholder}
-                </span>
+                <span className={placeholderClass}>{placeholder}</span>
               </div>
 
               {/* Textarea */}
@@ -77,7 +89,7 @@ const MCAnimatedInput = ({
                   autoResize(e.target);
                   if (onChange) onChange(e.target.value); // Ejecuta el onChange externo si existe
                 }}
-                className="w-full bg-transparent text-center text-3xl md:text-[2.8rem] leading-tight font-normal text-primary/90 outline-none pt-2 pb-4 resize-none overflow-hidden transition-colors duration-300"
+                className={textareaClass}
                 autoComplete="off"
                 style={{ caretColor: "hsl(var(--primary))" }}
               />
@@ -94,30 +106,32 @@ const MCAnimatedInput = ({
                 style={{ transformOrigin: "center" }}
               />
 
-              {/* Clear button */}
-              <div
-                className={`absolute  -right-14 top-9 -translate-y-1/2 transition-all duration-400 ease-[cubic-bezier(0.23,1,0.32,1)] ${
-                  hasValue
-                    ? "opacity-100 scale-100 rotate-0"
-                    : "opacity-0 scale-0 rotate-90 pointer-events-none"
-                }`}
-              >
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    field.onChange("");
-                    if (onChange) onChange(""); // Ejecuta el onChange externo si existe
-                    if (textareaRef.current) {
-                      textareaRef.current.style.height = "auto";
-                    }
-                    textareaRef.current?.focus();
-                  }}
-                  className="group p-2.5  rounded-full border border-primary/15 bg-bg-secondary text-muted-foreground shadow-sm hover:shadow-md hover:border-destructive/30 hover:text-destructive transition-all duration-300 active:scale-75"
+              {/* Clear button SOLO si NO es Description */}
+              {!isDescription && (
+                <div
+                  className={`absolute  -right-14 top-9 -translate-y-1/2 transition-all duration-400 ease-[cubic-bezier(0.23,1,0.32,1)] ${
+                    hasValue
+                      ? "opacity-100 scale-100 rotate-0"
+                      : "opacity-0 scale-0 rotate-90 pointer-events-none"
+                  }`}
                 >
-                  <X className="w-4 h-4 transition-transform duration-300 group-hover:rotate-90" />
-                </button>
-              </div>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      field.onChange("");
+                      if (onChange) onChange(""); // Ejecuta el onChange externo si existe
+                      if (textareaRef.current) {
+                        textareaRef.current.style.height = "auto";
+                      }
+                      textareaRef.current?.focus();
+                    }}
+                    className="group p-2.5  rounded-full border border-primary/15 bg-bg-secondary text-muted-foreground shadow-sm hover:shadow-md hover:border-destructive/30 hover:text-destructive transition-all duration-300 active:scale-75"
+                  >
+                    <X className="w-4 h-4 transition-transform duration-300 group-hover:rotate-90" />
+                  </button>
+                </div>
+              )}
             </div>
             {/* Error */}
             <div
@@ -128,9 +142,15 @@ const MCAnimatedInput = ({
               }`}
             >
               {fieldState.error?.message}
-            </div>{" "}
+            </div>
             {/* Character counter */}
-            <div className="flex justify-center my-8">
+            <div
+              className={
+                isDescription
+                  ? "flex justify-center mb-6 mt-2"
+                  : "flex justify-center my-8"
+              }
+            >
               <p className="text-sm tracking-wide text-muted-foreground">
                 <span
                   className={`font-semibold text-base tabular-nums transition-all duration-300 ${
