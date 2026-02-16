@@ -12,24 +12,38 @@ import {
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
 import { useTranslation } from "react-i18next";
 
+interface LocationCoordinate {
+  lat: number;
+  lng: number;
+  label?: string;
+  color?: string;
+}
+
 interface mapScheduleLocationProps {
   initialLocation?: { lat: number; lng: number };
   fontSizeVariant?: "xs" | "s" | "m" | "l";
+  showAddressInfo?: boolean; // Nueva prop para mostrar/ocultar información de dirección
+  multipleLocations?: LocationCoordinate[]; // Nueva prop para múltiples ubicaciones
 }
 
 function MapScheduleLocation({
   initialLocation,
   fontSizeVariant = "m",
+  showAddressInfo = true,
+  multipleLocations,
 }: mapScheduleLocationProps) {
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const normalContainerRef = useRef<HTMLDivElement | null>(null);
   const fullscreenContainerRef = useRef<HTMLDivElement | null>(null);
   const markerRef = useRef<mapboxgl.Marker | null>(null);
+  const multipleMarkersRef = useRef<mapboxgl.Marker[]>([]);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [is3D, setIs3D] = useState(false);
   const setisLoading = useGlobalUIStore((state) => state.setIsLoading);
   const isdarkMode = useGlobalUIStore((state) => state.theme);
   const [address, setAddress] = useState<ParsedDominicanAddress | null>(null);
+  const [selectedLocationAddress, setSelectedLocationAddress] =
+    useState<ParsedDominicanAddress | null>(null);
   const isMobile = useIsMobile();
   const { t } = useTranslation("common");
 
@@ -37,6 +51,21 @@ function MapScheduleLocation({
   const defaultLocation = { lat: 18.48, lng: -69.93 };
   const location = initialLocation || defaultLocation;
 
+  // Calcular el centro del mapa cuando hay múltiples ubicaciones
+  const getMapCenter = (): [number, number] => {
+    if (multipleLocations && multipleLocations.length > 0) {
+      const avgLat =
+        multipleLocations.reduce((sum, loc) => sum + loc.lat, 0) /
+        multipleLocations.length;
+      const avgLng =
+        multipleLocations.reduce((sum, loc) => sum + loc.lng, 0) /
+        multipleLocations.length;
+      return [avgLng, avgLat];
+    }
+    return [location.lng, location.lat];
+  };
+
+  // Inicializar el mapa (solo cuando cambia el contenedor, tema o modo 3D)
   useEffect(() => {
     const container = isFullscreen
       ? fullscreenContainerRef.current
@@ -50,11 +79,18 @@ function MapScheduleLocation({
         ? "mapbox://styles/mapbox/dark-v11"
         : "mapbox://styles/mapbox/streets-v12";
 
+    const center = getMapCenter();
+
     mapRef.current = new mapboxgl.Map({
       container,
       style: mapStyle,
-      center: [location.lng, location.lat],
-      zoom: isMobile ? 14 : 15,
+      center: center,
+      zoom:
+        multipleLocations && multipleLocations.length > 1
+          ? 12
+          : isMobile
+            ? 14
+            : 15,
       pitch: is3D ? 60 : 0,
       bearing: is3D ? -17.6 : 0,
       antialias: true,
@@ -119,40 +155,131 @@ function MapScheduleLocation({
           "waterway-label",
         );
       }
+
+      // Si hay múltiples ubicaciones, ajustar el mapa para mostrar todas
+      if (multipleLocations && multipleLocations.length > 1) {
+        const bounds = new mapboxgl.LngLatBounds();
+        multipleLocations.forEach((loc) => {
+          bounds.extend([loc.lng, loc.lat]);
+        });
+        mapRef.current!.fitBounds(bounds, { padding: 50 });
+      }
     });
-
-    // Limpiar marcador anterior
-    if (markerRef.current) {
-      markerRef.current.remove();
-    }
-
-    // Crear marcador para la ubicación
-    markerRef.current = new mapboxgl.Marker({
-      color: "#e11d48",
-      scale: isMobile ? 1.2 : 1.5,
-    })
-      .setLngLat([location.lng, location.lat])
-      .addTo(mapRef.current);
 
     return () => {
       if (markerRef.current) {
         markerRef.current.remove();
       }
+      multipleMarkersRef.current.forEach((marker) => marker.remove());
       mapRef.current?.remove();
       setisLoading(false);
     };
-  }, [location, isFullscreen, isdarkMode, is3D, isMobile]);
+  }, [isFullscreen, isdarkMode, is3D]);
 
-  // Parsear dirección cuando cambia la ubicación
+  // Actualizar marcadores cuando cambien las ubicaciones (sin recargar el mapa)
   useEffect(() => {
-    if (initialLocation) {
+    if (!mapRef.current) return;
+
+    // Limpiar marcadores anteriores
+    if (markerRef.current) {
+      markerRef.current.remove();
+      markerRef.current = null;
+    }
+    multipleMarkersRef.current.forEach((marker) => marker.remove());
+    multipleMarkersRef.current = [];
+
+    // Esperar a que el mapa esté cargado
+    const updateMarkers = () => {
+      if (multipleLocations && multipleLocations.length > 0) {
+        // Múltiples marcadores
+        multipleLocations.forEach((loc) => {
+          const marker = new mapboxgl.Marker({
+            color: loc.color || "#e11d48",
+            scale: isMobile ? 1.2 : 1.5,
+          })
+            .setLngLat([loc.lng, loc.lat])
+            .addTo(mapRef.current!);
+
+          // Crear popup para mostrar información
+          const popup = new mapboxgl.Popup({
+            offset: 25,
+            closeButton: false,
+            closeOnClick: false,
+          });
+
+          // Evento click en marcador
+          marker.getElement().addEventListener("click", async () => {
+            try {
+              const parsedAddress = await ParseDominicanAddress(
+                loc.lat,
+                loc.lng,
+              );
+              setSelectedLocationAddress(parsedAddress);
+
+              const addressText =
+                loc.label ||
+                [
+                  parsedAddress.direccion,
+                  parsedAddress.municipio,
+                  parsedAddress.provincia,
+                ]
+                  .filter(Boolean)
+                  .join(", ");
+
+              popup
+                .setLngLat([loc.lng, loc.lat])
+                .setHTML(
+                  `
+                  <div class="p-2 bg-white rounded-lg shadow-lg border border-gray-200">
+                    <p class="text-sm font-medium text-gray-800">${addressText}</p>
+                  </div>
+                `,
+                )
+                .addTo(mapRef.current!);
+            } catch (error) {
+              console.error("Error parsing address:", error);
+            }
+          });
+
+          multipleMarkersRef.current.push(marker);
+        });
+
+        // Ajustar vista si hay múltiples ubicaciones
+        if (multipleLocations.length > 1) {
+          const bounds = new mapboxgl.LngLatBounds();
+          multipleLocations.forEach((loc) => {
+            bounds.extend([loc.lng, loc.lat]);
+          });
+          mapRef.current!.fitBounds(bounds, { padding: 50, duration: 1000 });
+        }
+      } else {
+        // Marcador único
+        markerRef.current = new mapboxgl.Marker({
+          color: "#e11d48",
+          scale: isMobile ? 1.2 : 1.5,
+        })
+          .setLngLat([location.lng, location.lat])
+          .addTo(mapRef.current!);
+      }
+    };
+
+    if (mapRef.current.loaded()) {
+      updateMarkers();
+    } else {
+      mapRef.current.on("load", updateMarkers);
+    }
+  }, [location, multipleLocations, isMobile]);
+
+  // Parsear dirección cuando cambia la ubicación (solo para ubicación única)
+  useEffect(() => {
+    if (initialLocation && !multipleLocations && showAddressInfo) {
       ParseDominicanAddress(location.lat, location.lng).then(
         (parsedAddress) => {
           setAddress(parsedAddress);
         },
       );
     }
-  }, [location, initialLocation]);
+  }, [location, initialLocation, multipleLocations, showAddressInfo]);
 
   useEffect(() => {
     if (isFullscreen) {
@@ -166,12 +293,12 @@ function MapScheduleLocation({
   }, [isFullscreen]);
 
   // Función para mostrar la dirección formateada
-  const getFormattedAddress = () => {
-    if (!address) return "";
+  const getFormattedAddress = (addressData = address) => {
+    if (!addressData) return "";
     const parts = [
-      address.direccion,
-      address.municipio,
-      address.provincia,
+      addressData.direccion,
+      addressData.municipio,
+      addressData.provincia,
     ].filter(Boolean);
     return parts.join(", ");
   };
@@ -214,19 +341,36 @@ function MapScheduleLocation({
                 style={{ background: "#fff" }}
               />
 
-              {/* Dirección en la parte superior */}
-              {address && (
+              {/* Dirección en la parte superior - solo para ubicación única */}
+              {address && !multipleLocations && showAddressInfo && (
                 <div
                   className={`absolute ${
                     isMobile
                       ? "bottom-2 left-2 right-2"
                       : "top-4 left-1/2 transform -translate-x-1/2"
-                  } z-[10001] bg-background shadow-lg rounded-full px-4 py-2 border border-primary/75`}
+                  } z-[30] bg-background shadow-lg rounded-full px-4 py-2 border border-primary/75`}
                 >
                   <p
                     className={`${fontSizeClass} text-foreground font-medium ${isMobile ? "truncate" : ""}`}
                   >
                     {getFormattedAddress()}
+                  </p>
+                </div>
+              )}
+
+              {/* Dirección seleccionada para múltiples ubicaciones */}
+              {selectedLocationAddress && multipleLocations && (
+                <div
+                  className={`absolute ${
+                    isMobile
+                      ? "bottom-2 left-2 right-2"
+                      : "top-4 left-1/2 transform -translate-x-1/2"
+                  } z-[30] bg-background shadow-lg rounded-full px-4 py-2 border border-primary/75`}
+                >
+                  <p
+                    className={`${fontSizeClass} text-foreground font-medium ${isMobile ? "truncate" : ""}`}
+                  >
+                    {getFormattedAddress(selectedLocationAddress)}
                   </p>
                 </div>
               )}
@@ -311,6 +455,21 @@ function MapScheduleLocation({
               style={{ background: "#fff", minHeight: isMobile ? 200 : 300 }}
             />
 
+            {/* Dirección seleccionada para múltiples ubicaciones (NO fullscreen) */}
+            {selectedLocationAddress && multipleLocations && !isFullscreen && (
+              <div
+                className={`absolute w-fit left-2 right-2 bottom-2 z-[10] bg-background shadow rounded-4xl px-3 py-1 border border-primary/50`}
+                style={{
+                  fontSize: isMobile ? "0.75rem" : "0.85rem",
+                  maxWidth: "90%",
+                }}
+              >
+                <p className="truncate text-foreground font-medium">
+                  {getFormattedAddress(selectedLocationAddress)}
+                </p>
+              </div>
+            )}
+
             {/* Botón toggle 3D */}
             <div
               className={`absolute ${isMobile ? "top-2 left-2" : "top-4 left-4"} z-10`}
@@ -371,91 +530,95 @@ function MapScheduleLocation({
             </div>
           </motion.div>
         )}
-        <div
-          className={`flex ${
-            isMobile ? "flex-wrap gap-4 justify-between" : "justify-between"
-          } mt-4`}
-        >
-          {isMobile ? (
-            <div className="grid grid-cols-2 gap-4 w-full">
-              <div className="flex flex-col items-start gap-2">
-                <div className="flex items-center gap-2">
-                  <h5 className="text-md text-primary/75 font-medium">
-                    {t("search.address", "Address")}
-                  </h5>
+
+        {/* Información de dirección - solo se muestra si showAddressInfo es true y no hay múltiples ubicaciones */}
+        {showAddressInfo && !multipleLocations && (
+          <div
+            className={`flex ${
+              isMobile ? "flex-wrap gap-4 justify-between" : "justify-between"
+            } mt-4`}
+          >
+            {isMobile ? (
+              <div className="grid grid-cols-2 gap-4 w-full">
+                <div className="flex flex-col items-start gap-2">
+                  <div className="flex items-center gap-2">
+                    <h5 className="text-md text-primary/75 font-medium">
+                      {t("search.address", "Address")}
+                    </h5>
+                  </div>
+                  <span
+                    className={`${fontSizeClass} text-primary font-medium break-words max-w-xs`}
+                  >
+                    {address?.direccion || "-"}
+                  </span>
                 </div>
-                <span
-                  className={`${fontSizeClass} text-primary font-medium break-words max-w-xs`}
-                >
-                  {address?.direccion || "-"}
-                </span>
-              </div>
-              <div className="flex flex-col items-start gap-2">
-                <div className="flex items-center gap-2">
-                  <h5 className="text-md text-primary/75 font-medium">
-                    {t("search.province", "Province")}
-                  </h5>
+                <div className="flex flex-col items-start gap-2">
+                  <div className="flex items-center gap-2">
+                    <h5 className="text-md text-primary/75 font-medium">
+                      {t("search.province", "Province")}
+                    </h5>
+                  </div>
+                  <span
+                    className={`${fontSizeClass} text-primary font-medium break-words max-w-xs`}
+                  >
+                    {address?.provincia || "-"}
+                  </span>
                 </div>
-                <span
-                  className={`${fontSizeClass} text-primary font-medium break-words max-w-xs`}
-                >
-                  {address?.provincia || "-"}
-                </span>
-              </div>
-              <div className="flex flex-col items-start gap-2 col-span-2">
-                <div className="flex items-center gap-2">
-                  <h5 className="text-md text-primary/75 font-medium">
-                    {t("search.municipality", "Municipality")}
-                  </h5>
+                <div className="flex flex-col items-start gap-2 col-span-2">
+                  <div className="flex items-center gap-2">
+                    <h5 className="text-md text-primary/75 font-medium">
+                      {t("search.municipality", "Municipality")}
+                    </h5>
+                  </div>
+                  <span
+                    className={`${fontSizeClass} text-primary font-medium break-words max-w-xs`}
+                  >
+                    {address?.municipio || "-"}
+                  </span>
                 </div>
-                <span
-                  className={`${fontSizeClass} text-primary font-medium break-words max-w-xs`}
-                >
-                  {address?.municipio || "-"}
-                </span>
               </div>
-            </div>
-          ) : (
-            <>
-              <div className="flex flex-col items-start gap-2">
-                <div className="flex items-center gap-2">
-                  <h5 className="text-md text-primary/75 font-medium">
-                    {t("search.address", "Address")}
-                  </h5>
+            ) : (
+              <>
+                <div className="flex flex-col items-start gap-2">
+                  <div className="flex items-center gap-2">
+                    <h5 className="text-md text-primary/75 font-medium">
+                      {t("search.address", "Address")}
+                    </h5>
+                  </div>
+                  <span
+                    className={`${fontSizeClass} text-primary font-medium break-words max-w-xs`}
+                  >
+                    {address?.direccion || "-"}
+                  </span>
                 </div>
-                <span
-                  className={`${fontSizeClass} text-primary font-medium break-words max-w-xs`}
-                >
-                  {address?.direccion || "-"}
-                </span>
-              </div>
-              <div className="flex flex-col items-start gap-2">
-                <div className="flex items-center gap-2">
-                  <h5 className="text-md text-primary/75 font-medium">
-                    {t("search.province", "Province")}
-                  </h5>
+                <div className="flex flex-col items-start gap-2">
+                  <div className="flex items-center gap-2">
+                    <h5 className="text-md text-primary/75 font-medium">
+                      {t("search.province", "Province")}
+                    </h5>
+                  </div>
+                  <span
+                    className={`${fontSizeClass} text-primary font-medium break-words max-w-xs`}
+                  >
+                    {address?.provincia || "-"}
+                  </span>
                 </div>
-                <span
-                  className={`${fontSizeClass} text-primary font-medium break-words max-w-xs`}
-                >
-                  {address?.provincia || "-"}
-                </span>
-              </div>
-              <div className="flex flex-col items-start gap-2">
-                <div className="flex items-center gap-2">
-                  <h5 className="text-md text-primary/75 font-medium">
-                    {t("search.municipality", "Municipality")}
-                  </h5>
+                <div className="flex flex-col items-start gap-2">
+                  <div className="flex items-center gap-2">
+                    <h5 className="text-md text-primary/75 font-medium">
+                      {t("search.municipality", "Municipality")}
+                    </h5>
+                  </div>
+                  <span
+                    className={`${fontSizeClass} text-primary font-medium break-words max-w-xs`}
+                  >
+                    {address?.municipio || "-"}
+                  </span>
                 </div>
-                <span
-                  className={`${fontSizeClass} text-primary font-medium break-words max-w-xs`}
-                >
-                  {address?.municipio || "-"}
-                </span>
-              </div>
-            </>
-          )}
-        </div>
+              </>
+            )}
+          </div>
+        )}
       </AnimatePresence>
     </>
   );

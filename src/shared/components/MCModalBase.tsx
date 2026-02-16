@@ -24,7 +24,9 @@ interface MCModalBaseProps {
     | "sm"
     | "smWide"
     | "md"
+    | "mdAuto"
     | "lg"
+    | "lgAuto"
     | "xl"
     | "2xl"
     | "wider"
@@ -106,7 +108,9 @@ export function MCModalBase({
       ? "w-full max-w-[95vw] mx-2 max-h-[70vh]"
       : "max-w-xl w-[1600px]  h-full max-h-[500px]",
     md: isMobile ? "w-[95vw] h-[70vh]" : "w-[512px] h-[600px]",
+    mdAuto: isMobile ? "w-[95vw] max-h-[80vh]" : "w-[512px] max-h-[90vh]",
     lg: isMobile ? "w-[95vw] h-[80vh]" : "w-[672px] h-[700px]",
+    lgAuto: isMobile ? "w-[95vw] max-h-[85vh]" : "w-[800px] max-h-[85vh]",
     xl: isMobile ? "w-[98vw] h-[85vh]" : "w-[896px] h-[800px]",
     "2xl": isMobile ? "w-[100vw] h-[90vh]" : "w-[1152px] h-[900px]",
     wider: isMobile

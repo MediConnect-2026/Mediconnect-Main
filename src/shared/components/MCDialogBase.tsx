@@ -23,7 +23,7 @@ interface MCDialogBaseProps {
   onConfirm?: () => void;
   onSecondary?: () => void;
   variant?: "warning" | "confirm" | "decide" | "info";
-  size?: "sm" | "md" | "lg" | "xl" | "2xl" | "image-preview";
+  size?: "sm" | "md" | "mdAuto" | "lg" | "xl" | "2xl" | "image-preview";
   className?: string;
   zIndex?: number;
   borderHeader?: boolean;
@@ -41,7 +41,7 @@ export function MCDialogBase({
   onConfirm,
   onSecondary,
   variant = "info",
-  size = "md",
+  size = "mdAuto",
   className = "",
   zIndex = 50,
   borderHeader = false,
@@ -75,6 +75,7 @@ export function MCDialogBase({
       ? "w-full max-w-[95vw] mx-2 max-h-[70vh]"
       : "max-w-md max-h-[60vh] w-full",
     md: isMobile ? "w-[95vw] h-[70vh]" : "w-[512px] h-[600px]",
+    mdAuto: isMobile ? "w-[95vw] max-h-[80vh]" : "w-[512px] max-h-[90vh]", // <-- Nuevo tamaño
     lg: isMobile ? "w-[95vw] h-[80vh]" : "w-[672px] h-[700px]",
     xl: isMobile ? "w-[98vw] h-[85vh]" : "w-[896px] h-[800px]",
     "2xl": isMobile ? "w-[100vw] h-[90vh]" : "w-[1152px] h-[900px]",

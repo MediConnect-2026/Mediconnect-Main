@@ -197,3 +197,39 @@ iframe {
     font-family: "Inter", sans-serif;
   }
 }
+
+/* Chrome, Safari, Edge */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox */
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+/* Chrome, Edge, Safari */
+input[type="time"]::-webkit-calendar-picker-indicator {
+  opacity: 0;
+  cursor: pointer;
+}
+
+/* Quitar estilos internos raros */
+input[type="time"]::-webkit-datetime-edit {
+  padding: 0;
+}
+
+input[type="time"]::-webkit-datetime-edit-fields-wrapper {
+  background: transparent;
+}
+
+input[type="time"]::-webkit-datetime-edit-text {
+  color: inherit;
+}
+
+/* Firefox */
+input[type="time"] {
+  appearance: none;
+  -moz-appearance: textfield;
+}
