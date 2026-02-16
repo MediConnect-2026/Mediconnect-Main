@@ -43,6 +43,7 @@ interface MCModalBaseProps {
   borderFooter?: boolean;
   actionOne?: boolean;
   defaultOpen?: boolean;
+  disabledConfirm?: boolean; // Nueva prop para deshabilitar el botón de confirmar
 }
 
 export function MCModalBase({
@@ -65,6 +66,7 @@ export function MCModalBase({
   borderFooter = false,
   actionOne = false,
   defaultOpen = false,
+  disabledConfirm = false, // Valor por defecto
 }: MCModalBaseProps) {
   const isControlled = externalIsOpen !== undefined;
   const isMobile = useIsMobile();
@@ -214,6 +216,7 @@ export function MCModalBase({
                 size={isMobile ? "l" : "m"}
                 onClick={handleConfirm}
                 className={isMobile ? "w-full" : ""}
+                disabled={disabledConfirm}
               >
                 {confirmText}
               </MCButton>
@@ -233,6 +236,7 @@ export function MCModalBase({
                 size={isMobile ? "l" : "m"}
                 onClick={handleConfirm}
                 className={isMobile ? "w-full" : ""}
+                disabled={disabledConfirm}
               >
                 {confirmText}
               </MCButton>
@@ -260,6 +264,7 @@ export function MCModalBase({
                 size={isMobile ? "l" : "m"}
                 onClick={handleConfirm}
                 className={isMobile ? "w-full" : ""}
+                disabled={disabledConfirm}
               >
                 {confirmText}
               </MCButton>

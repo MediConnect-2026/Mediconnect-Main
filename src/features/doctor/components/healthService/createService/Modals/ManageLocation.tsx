@@ -6,7 +6,8 @@ import { useCreateServicesStore } from "@/stores/useCreateServicesStore";
 import { locationSchema } from "@/schema/createService.schema";
 import { useTranslation } from "react-i18next";
 import MCFormWrapper from "@/shared/components/forms/MCFormWrapper";
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useCallback } from "react";
+import React from "react";
 
 interface manageLocationProps {
   locationSelected?: number | undefined;
@@ -28,10 +29,38 @@ function ManageLocation({
   const locationData = useCreateServicesStore((s) => s.locationData);
   const clearLocationData = useCreateServicesStore((s) => s.clearLocationData);
 
+  const [shouldLoadData, setShouldLoadData] = useState(false);
   const [coordinates, setCoordinates] = useState({
-    lat: locationData.coordinates?.latitude || 18.4861,
-    lng: locationData.coordinates?.longitude || -69.9312,
+    lat: 18.4861,
+    lng: -69.9312,
   });
+
+  // Manejar el click en el trigger
+  const handleTriggerClick = useCallback(() => {
+    setShouldLoadData(true);
+  }, []);
+
+  // Cargar datos cuando se abre el modal
+  useEffect(() => {
+    if (!shouldLoadData) return;
+
+    // Si es edición, cargar los datos existentes
+    if (locationSelected !== undefined && locationData) {
+      setCoordinates({
+        lat: locationData.coordinates?.latitude || 18.4861,
+        lng: locationData.coordinates?.longitude || -69.9312,
+      });
+    } else {
+      // Si es nuevo, limpiar todo
+      clearLocationData();
+      setCoordinates({
+        lat: 18.4861,
+        lng: -69.9312,
+      });
+    }
+
+    setShouldLoadData(false);
+  }, [shouldLoadData, locationSelected, locationData, clearLocationData]);
 
   const handleMapChange = (lat: number, lng: number) => {
     setCoordinates({ lat, lng });
@@ -51,11 +80,9 @@ function ManageLocation({
     province?: string;
     municipality?: string;
   }) => {
-    // Actualiza todos los campos relevantes en el store
     setlocationField("address", details.address);
     setlocationField("province", details.province || "");
     setlocationField("municipality", details.municipality || "");
-    // Si tienes más campos como zipCode o neighborhood, también puedes agregarlos:
 
     if (formRef.current) {
       formRef.current.setValue("address", details.address);
@@ -74,17 +101,11 @@ function ManageLocation({
     console.log("Datos enviados desde modal:", locationData);
   };
 
-  // Resetear locationData si ya hay datos y no es edición (locationSelected no está definido)
-  useEffect(() => {
-    if (
-      locationData &&
-      Object.keys(locationData).length > 0 &&
-      locationSelected === undefined
-    ) {
-      clearLocationData();
-    }
-  }, []);
+  const handleClose = () => {
+    clearLocationData();
+  };
 
+  // Actualizar el formulario cuando cambien los datos del store
   useEffect(() => {
     if (formRef.current && formRef.current.reset) {
       formRef.current.reset({
@@ -100,6 +121,13 @@ function ManageLocation({
     }
   }, [locationData, coordinates]);
 
+  // Clonar el trigger con el handler
+  const triggerWithHandler = React.isValidElement(children)
+    ? React.cloneElement(children as React.ReactElement<any>, {
+        onClick: handleTriggerClick,
+      })
+    : children;
+
   return (
     <MCModalBase
       id="manage-location-modal"
@@ -107,11 +135,11 @@ function ManageLocation({
       size="lgAuto"
       variant="decide"
       onConfirm={handleConfirm}
-      onClose={clearLocationData}
-      trigger={children}
+      onClose={handleClose}
+      trigger={triggerWithHandler}
       triggerClassName={triggerClassName}
     >
-      <div className="flex flex-col gap-8 ">
+      <div className="flex flex-col gap-8">
         <MapSelectLocation
           value={coordinates}
           onChange={handleMapChange}
@@ -131,14 +159,14 @@ function ManageLocation({
               longitude: coordinates.lng,
             },
           }}
-          formRef={formRef} // Asegúrate de pasar formRef aquí
+          formRef={formRef}
         >
           <div className="w-full grid grid-cols-2 gap-4">
             <MCInput
               name="name"
               label={t("form.locationName")}
+              maxLength={30}
               placeholder={t("form.locationNamePlaceholder")}
-              value={locationData.name}
               onChange={(e) => setlocationField("name", e.target.value)}
             />
             <MCInput

@@ -34,8 +34,6 @@ function ServiceLocationStep() {
   const goToNextStep = useCreateServicesStore((s) => s.goToNextStep);
   const goToPreviousStep = useCreateServicesStore((s) => s.goToPreviousStep);
 
-  console.log(locationSelected);
-
   const locationsData = [
     {
       id: 1,

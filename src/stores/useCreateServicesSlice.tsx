@@ -22,8 +22,14 @@ export interface CreateServicesSlice {
   setLocationData: (data: Partial<LocationType>) => void;
   setlocationField: (field: keyof LocationType, value: any) => void;
   clearLocationData: () => void;
+
   comercialScheduleData: ComercialScheduleType;
   setComercialScheduleData: (data: Partial<ComercialScheduleType>) => void;
+  setComercialScheduleField: (
+    field: keyof ComercialScheduleType,
+    value: any,
+  ) => void;
+  clearComercialScheduleData: () => void;
 
   currentStep: number;
   createServiceStep: ServiceStep[];
@@ -50,7 +56,7 @@ const createServicesSlice: StateCreator<CreateServicesSlice> = (set, get) => ({
     },
     pricePerSession: 1,
     images: [],
-    comercial_schedule: [],
+    comercial_schedule: null,
     description: "",
     location: undefined,
   },
@@ -100,7 +106,7 @@ const createServicesSlice: StateCreator<CreateServicesSlice> = (set, get) => ({
     day: [],
     startTime: "00:00:00",
     endTime: "00:00:00",
-    locationId: "",
+    locationId: undefined,
   },
   setComercialScheduleData: (data) =>
     set((state) => ({
@@ -116,6 +122,27 @@ const createServicesSlice: StateCreator<CreateServicesSlice> = (set, get) => ({
     { images: { status: "wait" } },
     { summary: { status: "wait" } },
   ] as ServiceStep[],
+
+  setComercialScheduleField(field, value) {
+    set((state) => ({
+      comercialScheduleData: {
+        ...state.comercialScheduleData,
+        [field]: value,
+      },
+    }));
+  },
+
+  clearComercialScheduleData() {
+    set({
+      comercialScheduleData: {
+        name: "",
+        day: [],
+        startTime: "00:00:00",
+        endTime: "00:00:00",
+        locationId: undefined,
+      },
+    });
+  },
 
   isTitleSeted: false,
   setIsTitleSeted: (value) => set({ isTitleSeted: value }),
@@ -285,7 +312,7 @@ const createServicesSlice: StateCreator<CreateServicesSlice> = (set, get) => ({
         },
         pricePerSession: 1,
         images: [],
-        comercial_schedule: [],
+        comercial_schedule: null,
         description: "",
         location: undefined,
       },
@@ -304,7 +331,7 @@ const createServicesSlice: StateCreator<CreateServicesSlice> = (set, get) => ({
         day: [],
         startTime: "00:00:00",
         endTime: "00:00:00",
-        locationId: "",
+        locationId: undefined,
       },
       isTitleSeted: false,
       createServiceStep: [
