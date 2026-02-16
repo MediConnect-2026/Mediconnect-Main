@@ -32,7 +32,7 @@ export interface RegisterDoctorRequest {
   ids_especialidades_secundarias?: number[];
   
   // Archivos
-  fotoPerfil: File | Blob;
+  fotoPerfil?: File | Blob; // opcional
   fotoDocumento: (File | Blob)[]; // 1-2 archivos
   tituloAcademico: (File | Blob)[]; // 1-10 archivos
   certificaciones?: (File | Blob)[]; // 1+ archivos (opcional)

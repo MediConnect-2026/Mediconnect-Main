@@ -41,6 +41,16 @@ function LoginPage() {
 
   useGSAP(
     () => {
+      // Asegurar que las refs están disponibles antes de animar
+      if (!logoRef.current || !headingRef.current || !formRef.current) {
+        return;
+      }
+
+      // Limpiar cualquier estilo inline previo antes de animar
+      gsap.set([logoRef.current, headingRef.current, formRef.current], { 
+        clearProps: "all" 
+      });
+
       const tl = gsap.timeline();
 
       tl.fromTo(
@@ -60,8 +70,16 @@ function LoginPage() {
           { y: 0, opacity: 1, duration: 0.5, ease: "power2.out" },
           "-=0.3",
         );
+
+      // Cleanup function para resetear cuando el componente se desmonte
+      return () => {
+        tl.kill();
+        gsap.set([logoRef.current, headingRef.current, formRef.current], { 
+          clearProps: "all" 
+        });
+      };
     },
-    { scope: containerRef },
+    { scope: containerRef, dependencies: [] },
   );
 
   const handleSubmit = (data: LoginSchemaType) => {

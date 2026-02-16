@@ -3,25 +3,23 @@ import MCButton from "@/shared/components/forms/MCButton";
 import MCFormWrapper from "@/shared/components/forms/MCFormWrapper";
 import MCSelect from "@/shared/components/forms/MCSelect";
 import MCTextArea from "@/shared/components/forms/MCTextArea";
+import MCInput from "@/shared/components/forms/MCInput";
 import { X, BookHeart, Heart, Loader2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { useProfileStore } from "@/stores/useProfileStore";
 import { patientClinicalHistorySchema } from "@/schema/profile.schema";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
 import { patientService } from "./services/patient.service";
 import type { CondicionMedica } from "./services/patient.types";
 import { toast } from "sonner";
+import { emitAllergiesChanged, emitConditionsChanged, emitClinicalHistoryChanged } from "@/lib/events/clinicalHistoryEvents";
 
-function ClinicalHistory() {
-  const { t } = useTranslation("patient");
+interface ClinicalHistoryProps {
+  onClinicalHistoryChanged?: () => void;
+}
+
+function ClinicalHistory({ onClinicalHistoryChanged }: ClinicalHistoryProps) {
+  const { t, i18n } = useTranslation("patient");
   const isMobile = useIsMobile();
-  const setPatientClinicalHistory = useProfileStore(
-    (state) => state.setPatientClinicalHistory,
-  );
-
-  const patientClinicalHistory = useProfileStore(
-    (state) => state.patientClinicalHistory,
-  );
 
   // Estados para las listas de alergias y condiciones
   const [availableAllergies, setAvailableAllergies] = useState<CondicionMedica[]>([]);
@@ -36,13 +34,35 @@ function ClinicalHistory() {
 
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editingValue, setEditingValue] = useState<string>("");
+  const [personalCondition, setPersonalCondition] = useState<string>("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  
+  // Refs para evitar llamadas duplicadas (React Strict Mode)
+  const allergiesLoadedRef = useRef(false);
+  const conditionsLoadedRef = useRef(false);
 
   // Cargar datos iniciales
   useEffect(() => {
-    loadAllergiesData();
-    loadConditionsData();
+    if (!allergiesLoadedRef.current) {
+      allergiesLoadedRef.current = true;
+      loadAllergiesData();
+    }
+    if (!conditionsLoadedRef.current) {
+      conditionsLoadedRef.current = true;
+      loadConditionsData();
+    }
   }, []);
+
+  // Recargar catálogos cuando cambie el idioma
+  useEffect(() => {
+    // Solo recargar si ya se cargaron inicialmente
+    if (allergiesLoadedRef.current) {
+      loadAllergiesData();
+    }
+    if (conditionsLoadedRef.current) {
+      loadConditionsData();
+    }
+  }, [i18n.language]);
 
   useEffect(() => {
     if (editingIndex !== null && textareaRef.current) {
@@ -54,8 +74,8 @@ function ClinicalHistory() {
     try {
       setIsLoadingAllergies(true);
       const [availableResponse, myResponse] = await Promise.all([
-        patientService.getAvailableAllergies(),
-        patientService.getMyAllergies(),
+        patientService.getAvailableAllergies(i18n.language),
+        patientService.getMyAllergies(i18n.language),
       ]);
 
       if (availableResponse.success) {
@@ -64,11 +84,6 @@ function ClinicalHistory() {
 
       if (myResponse.success) {
         setMyAllergies(myResponse.data);
-        // Actualizar el store también
-        setPatientClinicalHistory({
-          ...patientClinicalHistory,
-          allergies: myResponse.data.map(a => a.id.toString()),
-        });
       }
     } catch (error) {
       console.error("Error al cargar alergias:", error);
@@ -86,8 +101,8 @@ function ClinicalHistory() {
     try {
       setIsLoadingConditions(true);
       const [availableResponse, myResponse] = await Promise.all([
-        patientService.getAvailableConditions(),
-        patientService.getMyConditions(),
+        patientService.getAvailableConditions(i18n.language),
+        patientService.getMyConditions(i18n.language),
       ]);
 
       if (availableResponse.success) {
@@ -121,16 +136,13 @@ function ClinicalHistory() {
       const response = await patientService.addAllergy({ condicionId });
 
       if (response.success) {
-        setMyAllergies([...myAllergies, response.data]);
+        setMyAllergies(prev => [...prev, response.data]);
         toast.success(
-          response.message || t("clinicalHistory.allergyAdded", "Alergia agregada exitosamente")
+          t("clinicalHistory.allergyAdded", "Alergia agregada exitosamente") || response.message
         );
-        
-        // Actualizar el store
-        setPatientClinicalHistory({
-          ...patientClinicalHistory,
-          allergies: [...myAllergies.map(a => a.id.toString()), value],
-        });
+        // Emitir evento para notificar a otros componentes
+        emitAllergiesChanged();
+        onClinicalHistoryChanged?.();
       }
     } catch (error) {
       console.error("Error al agregar alergia:", error);
@@ -159,15 +171,20 @@ function ClinicalHistory() {
       });
 
       if (response.success) {
-        const newConditions = [...myConditions, response.data];
-        setMyConditions(newConditions);
-        toast.success(
-          response.message || t("clinicalHistory.conditionAdded", "Condición médica agregada exitosamente")
-        );
+        setMyConditions(prev => {
+          const newConditions = [...prev, response.data];
+          // Activar edición automáticamente con la descripción inicial
+          setEditingIndex(newConditions.length - 1);
+          setEditingValue(notasIniciales);
+          return newConditions;
+        });
         
-        // Activar edición automáticamente con la descripción inicial
-        setEditingIndex(newConditions.length - 1);
-        setEditingValue(notasIniciales);
+        toast.success(
+          t("clinicalHistory.conditionAdded", "Condición médica agregada exitosamente") || response.message
+        );
+        // Emitir evento para notificar a otros componentes
+        emitConditionsChanged();
+        onClinicalHistoryChanged?.();
       }
     } catch (error) {
       console.error("Error al agregar condición:", error);
@@ -181,22 +198,58 @@ function ClinicalHistory() {
     }
   }
 
+  async function handleAddPersonalCondition() {
+    const trimmedValue = personalCondition.trim();
+    
+    if (!trimmedValue) {
+      toast.error(
+        t("clinicalHistory.emptyPersonalCondition", "Por favor ingresa una condición médica")
+      );
+      return;
+    }
+    
+    try {
+      setIsSubmitting(true);
+      const response = await patientService.addPersonalCondition({ 
+        notas: trimmedValue 
+      });
+
+      if (response.success) {
+        setMyConditions(prev => [...prev, response.data]);
+        setPersonalCondition("");
+        
+        toast.success(
+          t("clinicalHistory.personalConditionAdded", "Condición médica personal agregada exitosamente") || response.message
+        );
+        // Emitir evento para notificar a otros componentes
+        emitConditionsChanged();
+        onClinicalHistoryChanged?.();
+      }
+    } catch (error) {
+      console.error("Error al agregar condición personal:", error);
+      toast.error(
+        error instanceof Error 
+          ? error.message 
+          : t("clinicalHistory.errorAddingPersonalCondition", "Error al agregar condición médica personal")
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
   async function handleRemoveAllergy(condicionId: number) {
     try {
       setIsSubmitting(true);
       const response = await patientService.removeAllergy(condicionId);
 
       if (response.success) {
-        setMyAllergies(myAllergies.filter(a => a.id !== condicionId));
+        setMyAllergies(prev => prev.filter(a => a.id !== condicionId));
         toast.success(
-          response.message || t("clinicalHistory.allergyRemoved", "Alergia eliminada exitosamente")
+          t("clinicalHistory.allergyRemoved", "Alergia eliminada exitosamente") || response.message
         );
-        
-        // Actualizar el store
-        setPatientClinicalHistory({
-          ...patientClinicalHistory,
-          allergies: myAllergies.filter(a => a.id !== condicionId).map(a => a.id.toString()),
-        });
+        // Emitir evento para notificar a otros componentes
+        emitAllergiesChanged();
+        onClinicalHistoryChanged?.();
       }
     } catch (error) {
       console.error("Error al eliminar alergia:", error);
@@ -218,15 +271,18 @@ function ClinicalHistory() {
       const response = await patientService.removeCondition(condition.id);
 
       if (response.success) {
-        setMyConditions(myConditions.filter((_, i) => i !== idx));
+        setMyConditions(prev => prev.filter((_, i) => i !== idx));
         toast.success(
-          response.message || t("clinicalHistory.conditionRemoved", "Condición médica eliminada exitosamente")
+          t("clinicalHistory.conditionRemoved", "Condición médica eliminada exitosamente") || response.message
         );
         
         if (editingIndex === idx) {
           setEditingIndex(null);
           setEditingValue("");
         }
+        // Emitir evento para notificar a otros componentes
+        emitConditionsChanged();
+        onClinicalHistoryChanged?.();
       }
     } catch (error) {
       console.error("Error al eliminar condición:", error);
@@ -271,9 +327,12 @@ function ClinicalHistory() {
         });
 
         if (response.success) {
-          const updatedConditions = [...myConditions];
-          updatedConditions[editingIndex] = response.data;
-          setMyConditions(updatedConditions);
+          setMyConditions(prev => {
+            const updatedConditions = [...prev];
+            updatedConditions[editingIndex] = response.data;
+            return updatedConditions;
+          });
+          
           toast.success(
             t("clinicalHistory.notesUpdated", "Notas actualizadas exitosamente")
           );
@@ -459,11 +518,27 @@ function ClinicalHistory() {
                   onClick={() => handleEditCondition(idx)}
                 >
                   <div className="flex-1 flex flex-col gap-1">
-                    <span className="font-semibold">{condition.nombre}</span>
-                    {condition.notas && (
-                      <span className="text-sm text-muted-foreground">
-                        {condition.notas}
-                      </span>
+                    {/* Mostrar título "Condición Personal" o "Personal status" con las notas */}
+                    {condition.nombre.startsWith("Condición Personal") || condition.nombre.startsWith("Personal status") ? (
+                      <>
+                        <span className="font-semibold">
+                          {t("clinicalHistory.personalConditionTitle", "Condición Personal")}
+                        </span>
+                        {condition.notas && (
+                          <span className="text-sm text-muted-foreground">
+                            {condition.notas}
+                          </span>
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        <span className="font-semibold">{condition.nombre}</span>
+                        {condition.notas && (
+                          <span className="text-sm text-muted-foreground">
+                            {condition.notas}
+                          </span>
+                        )}
+                      </>
                     )}
                   </div>
                   <button
@@ -507,6 +582,44 @@ function ClinicalHistory() {
           }}
           disabled={isLoadingConditions || isSubmitting}
         />
+
+        {/* Separador */}
+        <div className="flex items-center gap-3 mb-4">
+          <div className="flex-1 h-px bg-gray-300" />
+          <span className={`text-gray-500 ${isMobile ? "text-sm" : "text-base"}`}>
+            {t("clinicalHistory.or", "o")}
+          </span>
+          <div className="flex-1 h-px bg-gray-300" />
+        </div>
+
+        {/* Input para condición personal */}
+        <div
+          className={`mb-1 ${
+            isMobile ? "text-base" : "text-lg"
+          } font-medium text-primary`}
+        >
+          {t("clinicalHistory.addPersonalCondition", "Agregar condición médica personal")}
+        </div>
+        <div className="flex items-center gap-2">
+          <MCInput
+            name="personalCondition"
+            standalone={true}
+            placeholder={t("clinicalHistory.personalConditionPlaceholder", "Escribe tu condición médica")}
+            value={personalCondition}
+            onChange={(e) => setPersonalCondition(e.target.value)}
+            disabled={isSubmitting}
+            className="flex-1"
+          />
+          <MCButton
+            variant="primary"
+            size="m"
+            onClick={handleAddPersonalCondition}
+            disabled={isSubmitting || !personalCondition.trim()}
+            className={`${isMobile ? "px-4" : "px-6"} whitespace-nowrap`}
+          >
+            {t("clinicalHistory.add", "Agregar")}
+          </MCButton>
+        </div>
       </div>
     </MCFormWrapper>
   );

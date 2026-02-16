@@ -9,6 +9,7 @@ import MCUserMenuTrigger from "./MCUserMenuTrigger";
 import MCUserMenuContent from "./MCUserMenuContent";
 import { DropdownMenu } from "@/shared/animate-ui/components/radix/dropdown-menu";
 import { getUserFullName, getUserInitials, getUserAvatar } from "@/services/auth/auth.types";
+import { emitInsuranceChanged } from "@/lib/events/insuranceEvents";
 
 export function MCUserMenu() {
   // Estados locales
@@ -122,6 +123,12 @@ export function MCUserMenu() {
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, []);
+  
+  // Callback para cuando se modifiquen los seguros en el Sheet
+  // Emite un evento global para notificar a otros componentes (como PatientProfilePage)
+  const handleInsurancesChanged = useCallback(() => {
+    emitInsuranceChanged();
+  }, []);
 
   return (
     <>
@@ -149,6 +156,7 @@ export function MCUserMenu() {
       <MCSheetProfile
         open={isEditProfileOpen}
         onOpenChange={setIsEditProfileOpen}
+        onInsurancesChanged={handleInsurancesChanged}
       />
     </>
   );

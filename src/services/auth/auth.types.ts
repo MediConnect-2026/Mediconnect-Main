@@ -371,18 +371,28 @@ export function getUserAvatar(user: User | null): string | undefined {
 
 /**
  * Función para obtener la fecha en la que se creó el usuario, formateada como texto
- * Ejemplo: "día 10 del mes de enero del año 2020"
+ * Español: "día 10 del mes de enero del año 2020"
+ * Inglés: "January 10, 2020"
  */
-export function getUserCreationDate(paciente: Paciente | null): string {
+export function getUserCreationDate(paciente: Paciente | null, locale: string = 'es'): string {
   if (!paciente) return '';
   const date = new Date(paciente.creadoEn || paciente.createdAt || paciente.fechaCreacion || '');
   if (isNaN(date.getTime())) return '';
   
-  const day = date.getDate();
-  const month = date.toLocaleDateString('es-ES', { month: 'long' });
-  const year = date.getFullYear();
-  
-  return `día ${day} del mes de ${month} del año ${year}`;
+  if (locale === 'en') {
+    // Formato en inglés: "January 10, 2020"
+    return date.toLocaleDateString('en-US', { 
+      month: 'long', 
+      day: 'numeric', 
+      year: 'numeric' 
+    });
+  } else {
+    // Formato en español: "día 10 del mes de enero del año 2020"
+    const day = date.getDate();
+    const month = date.toLocaleDateString('es-ES', { month: 'long' });
+    const year = date.getFullYear();
+    return `día ${day} del mes de ${month} del año ${year}`;
+  }
 }
 
 /**

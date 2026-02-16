@@ -38,6 +38,7 @@
     "bloodType": "Blood Type",
     "bloodTypePlaceholder": "Select blood type",
     "saveChanges": "Save changes",
+    "saving": "Saving...",
     "cancel": "Cancel",
     "cropBanner": "Crop banner",
     "cropProfilePhoto": "Crop profile photo",
@@ -47,6 +48,8 @@
       "settings": "Settings",
       "privacy": "Privacy & Security",
       "copyProfile": "Copy profile",
+      "logoutSuccess": "Logged out successfully",
+      "profileCopied": "Profile link copied to clipboard",
       "logout": "Log out"
     }
   },
@@ -73,7 +76,17 @@
     "conditionRemoved": "Medical condition removed successfully",
     "errorRemovingCondition": "Error removing medical condition",
     "notesUpdated": "Notes updated successfully",
-    "errorUpdatingNotes": "Error updating notes"
+    "errorUpdatingNotes": "Error updating notes",
+    "or": "or",
+    "addPersonalCondition": "Add Personal Medical Condition",
+    "personalConditionPlaceholder": "Write your medical condition",
+    "add": "Add",
+    "emptyPersonalCondition": "Please enter a medical condition",
+    "personalConditionAdded": "Personal medical condition added successfully",
+    "errorAddingPersonalCondition": "Error adding personal medical condition",
+    "personalConditionRemoved": "Personal medical condition removed successfully",
+    "errorRemovingPersonalCondition": "Error removing personal medical condition",
+    "personalConditionTitle": "Personal Medical Condition"
   },
   "insurance": {
     "title": "Medical Insurance",
@@ -85,6 +98,8 @@
     "morePlans": "More insurance plans in the network. View all",
     "universal": "Universal Insurance",
     "humano": "Humano Insurance",
+    "removed": "Insurance removed successfully",
+    "added": "Insurance added successfully",
     "mapfre": "Mapfre Health",
     "particular": "Private"
   },

@@ -1,6 +1,6 @@
 import { X, User, FileText, Shield } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { patientProfileSchema } from "@/schema/profile.schema";
 import { useTranslation } from "react-i18next";
 import PersonalInformation from "./PersonalInformation";
@@ -11,9 +11,11 @@ import { useIsMobile } from "@/lib/hooks/useIsMobile";
 interface MCSheetPatientProps {
   onOpenChange: (open: boolean) => void;
   whatTab?: "general" | "history" | "insurance";
+  onInsurancesChanged?: () => void;
+  onClinicalHistoryChanged?: () => void;
 }
 
-function MCSheetPatient({ onOpenChange, whatTab }: MCSheetPatientProps) {
+function MCSheetPatient({ onOpenChange, whatTab, onInsurancesChanged, onClinicalHistoryChanged }: MCSheetPatientProps) {
   const { t } = useTranslation("patient");
   const [activeTab, setActiveTab] = useState(
     whatTab === "history"
@@ -26,9 +28,19 @@ function MCSheetPatient({ onOpenChange, whatTab }: MCSheetPatientProps) {
 
   const schema = useMemo(() => patientProfileSchema(t), [t]);
 
+  // Sincronizar activeTab cuando whatTab cambie
+  useEffect(() => {
+    if (whatTab === "history") {
+      setActiveTab("historial");
+    } else if (whatTab === "insurance") {
+      setActiveTab("seguros");
+    } else {
+      setActiveTab("general");
+    }
+  }, [whatTab]);
+
   return (
     <Tabs
-      defaultValue="general"
       value={activeTab}
       onValueChange={setActiveTab}
       className={`w-full h-full min-h-full min-w-full ${
@@ -171,11 +183,11 @@ function MCSheetPatient({ onOpenChange, whatTab }: MCSheetPatientProps) {
           </TabsContent>
 
           <TabsContent value="historial" className="m-0 p-0">
-            <ClinicalHistory />
+            <ClinicalHistory onClinicalHistoryChanged={onClinicalHistoryChanged} />
           </TabsContent>
 
           <TabsContent value="seguros" className="m-0 p-0">
-            <Insurance />
+            <Insurance onInsurancesChanged={onInsurancesChanged} />
           </TabsContent>
         </div>
       </main>

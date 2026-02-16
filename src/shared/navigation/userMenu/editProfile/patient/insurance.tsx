@@ -18,8 +18,12 @@ const INSURANCE_TYPES = [
   { value: 3, label: "Contributivo Subsidiado" },
 ];
 
-function Insurance() {
-  const { t } = useTranslation("patient");
+interface InsuranceProps {
+  onInsurancesChanged?: () => void;
+}
+
+function Insurance({ onInsurancesChanged }: InsuranceProps = {}) {
+  const { t, i18n } = useTranslation("patient");
   const isMobile = useIsMobile();
 
   const setPatientInsurance = useProfileStore(
@@ -42,12 +46,20 @@ function Insurance() {
     loadInsurancesData();
   }, []);
 
+  // Recargar datos cuando cambie el idioma
+  useEffect(() => {
+    // Solo recargar si ya se cargaron inicialmente
+    if (!isLoadingInsurances) {
+      loadInsurancesData();
+    }
+  }, [i18n.language]);
+
   async function loadInsurancesData() {
     try {
       setIsLoadingInsurances(true);
       const [availableResponse, myResponse] = await Promise.all([
-        patientService.getAvailableInsurances(),
-        patientService.getMyInsurances(),
+        patientService.getAvailableInsurances(i18n.language),
+        patientService.getMyInsurances(i18n.language),
       ]);
 
       if (availableResponse.success) {
@@ -85,7 +97,7 @@ function Insurance() {
   }
 
   const handleSubmit = () => {
-    console.log("Insurance data submitted:", patientInsurance);
+    console.log("Insurance data submitted:");
   };
 
   async function handleAddInsurance(value: string) {
@@ -124,7 +136,7 @@ function Insurance() {
         setMyInsurances(updatedInsurances);
         
         toast.success(
-          response.message || t("insurance.added", "Seguro agregado exitosamente")
+          t("insurance.added", "Seguro agregado exitosamente") || response.message
         );
         
         // Actualizar el store
@@ -135,6 +147,9 @@ function Insurance() {
         
         // Resetear selección de tipo de seguro
         setSelectedInsuranceType(null);
+        
+        // Notificar al componente padre que los seguros cambiaron
+        onInsurancesChanged?.();
       }
     } catch (error) {
       console.error("Error al agregar seguro:", error);
@@ -156,7 +171,7 @@ function Insurance() {
       if (response.success) {
         setMyInsurances(myInsurances.filter(i => i.id !== id));
         toast.success(
-          response.message || t("insurance.removed", "Seguro eliminado exitosamente")
+          t("insurance.removed", "Seguro eliminado exitosamente") || response.message
         );
         
         // Actualizar el store
@@ -164,6 +179,9 @@ function Insurance() {
           ...patientInsurance,
           insuranceProvider: myInsurances.filter(i => i.id !== id).map(i => i.id.toString()),
         });
+        
+        // Notificar al componente padre que los seguros cambiaron
+        onInsurancesChanged?.();
       }
     } catch (error) {
       console.error("Error al eliminar seguro:", error);

@@ -13,7 +13,7 @@ export interface AuthSlice {
   logout: () => void;
 }
 
-export const createAuthSlice: StateCreator<AuthSlice> = (set) => ({
+export const createAuthSlice: StateCreator<AuthSlice> = (set, get) => ({
   isAuthenticated: false,
   accessToken: null,
   refreshToken: null,
@@ -42,11 +42,18 @@ export const createAuthSlice: StateCreator<AuthSlice> = (set) => ({
       user,
     }),
 
-  logout: () =>
+  logout: () => {
     set({
       accessToken: null,
       refreshToken: null,
       user: null,
       isAuthenticated: false,
-    }),
+    });
+    
+    // Limpiar también el AuthFlowSlice si existe
+    const state = get() as any;
+    if (state.clearAuthFlow) {
+      state.clearAuthFlow();
+    }
+  },
 });

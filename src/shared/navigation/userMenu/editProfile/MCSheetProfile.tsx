@@ -9,22 +9,25 @@ interface MCSheetProfileProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   whatTab?: "general" | "history" | "insurance";
+  onInsurancesChanged?: () => void;
+  onClinicalHistoryChanged?: () => void;
 }
 
-function MCSheetProfile({ open, onOpenChange, whatTab }: MCSheetProfileProps) {
+function MCSheetProfile({ open, onOpenChange, whatTab, onInsurancesChanged, onClinicalHistoryChanged }: MCSheetProfileProps) {
   const user = useAppStore((state) => state.user);
   const isMobile = useIsMobile();
   
   const renderProfileContent = () => {
+    
     switch (getUserAppRole(user)) {
       case "PATIENT":
-        return <MCSheetPatient onOpenChange={onOpenChange} whatTab={whatTab} />;
+        return <MCSheetPatient onOpenChange={onOpenChange} whatTab={whatTab} onInsurancesChanged={onInsurancesChanged} onClinicalHistoryChanged={onClinicalHistoryChanged} />;
       case "DOCTOR":
         return <MCSheetDoctor onOpenChange={onOpenChange} />;
       case "CENTER":
         return <MCSheetHealthCenter onOpenChange={onOpenChange} />;
       default:
-        return <MCSheetPatient onOpenChange={onOpenChange} />;
+        return <MCSheetPatient onOpenChange={onOpenChange} whatTab={whatTab} onInsurancesChanged={onInsurancesChanged} onClinicalHistoryChanged={onClinicalHistoryChanged} />;
     }
   };
 

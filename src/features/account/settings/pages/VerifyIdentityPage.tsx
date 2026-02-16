@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { useTranslation } from "react-i18next";
 import MCDashboardContent from "@/shared/layout/MCDashboardContent";
 import MCInput from "@/shared/components/forms/MCInput";
@@ -11,6 +11,11 @@ import MCButton from "@/shared/components/forms/MCButton";
 import { ArrowRight } from "lucide-react";
 import { useGlobalUIStore } from "@/stores/useGlobalUIStore";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
+import { useMutation } from "@tanstack/react-query";
+import { authService } from "@/services/auth/auth.service";
+import type { AxiosError } from "axios";
+import type { ApiErrorResponse } from "@/services/api/client";
+import { getAuthErrorMessage } from "@/lib/hooks/useAuthErrors";
 
 const CONTEXT_ROUTES: Record<string, string> = {
   CHANGE_EMAIL: "/settings/change-email",
@@ -20,6 +25,7 @@ const CONTEXT_ROUTES: Record<string, string> = {
 
 function VerifyIdentityPage() {
   const { t } = useTranslation("common");
+  const { t: tAuth } = useTranslation("auth");
   const isMobile = useIsMobile();
   const navigate = useNavigate();
 
@@ -43,22 +49,84 @@ function VerifyIdentityPage() {
     }
   }, [verificationContext, navigate]);
 
-  const handleSubmitSuccess = (password: { password: string }) => {
-    setToast({
-      type: "success",
-      message: t(
-        "verifyIdentity.successMessage",
-        "Identity verified without implementing real logic.",
-      ),
-      open: true,
-    });
-    setVerificationStatus("VERIFIED");
-    setVerifyAccountPassword(password);
-    if (verificationContext && CONTEXT_ROUTES[verificationContext]) {
-      navigate(CONTEXT_ROUTES[verificationContext]);
-    } else {
-      navigate("/settings");
-    }
+  // Mutación para verificar la contraseña usando el API de login
+  const verifyPasswordMutation = useMutation({
+    mutationFn: (password: string) => {
+      if (!sessionUser?.email) {
+        throw new Error("No user email found");
+      }
+      return authService.login({
+        email: sessionUser.email,
+        password: password,
+      });
+    },
+    onSuccess: async (_data, password) => {
+      // La contraseña es correcta
+      setVerificationStatus("VERIFIED");
+      setVerifyAccountPassword({ password });
+      
+      // Si el contexto es CHANGE_PASSWORD, enviar OTP al email del usuario
+      if (verificationContext === "CHANGE_PASSWORD") {
+        try {
+          const otpResponse = await authService.solicitarCodigoPassword({
+            email: sessionUser?.email || "",
+          });
+          
+          if (otpResponse.success) {
+            setToast({
+              type: "success",
+              message: t(
+                "verifyIdentity.otpSentMessage",
+                "Verification code sent to your email.",
+              ),
+              open: true,
+            });
+            // Redirigir a la página de verificación OTP (reutilizando VerifyNewEmailPage)
+            navigate("/settings/verify-email");
+          }
+        } catch (error) {
+          setToast({
+            type: "error",
+            message: t(
+              "verifyIdentity.otpSendError",
+              "Failed to send verification code. Please try again.",
+            ),
+            open: true,
+          });
+        }
+      } else {
+        // Para otros contextos, continuar con el flujo normal
+        setToast({
+          type: "success",
+          message: t(
+            "verifyIdentity.successMessage",
+            "Identity verified successfully.",
+          ),
+          open: true,
+        });
+        
+        if (verificationContext && CONTEXT_ROUTES[verificationContext]) {
+          navigate(CONTEXT_ROUTES[verificationContext]);
+        } else {
+          navigate("/settings");
+        }
+      }
+    },
+    onError: (error: AxiosError<ApiErrorResponse>) => {
+      // La contraseña es incorrecta
+      const errorMessage = getAuthErrorMessage(error, tAuth);
+
+      setToast({
+        message: errorMessage,
+        type: "error",
+        open: true,
+      });
+    },
+  });
+
+  const handleSubmitSuccess = (data: { password: string }) => {
+    // Verificar la contraseña haciendo login
+    verifyPasswordMutation.mutate(data.password);
   };
 
   return (
@@ -100,9 +168,10 @@ function VerifyIdentityPage() {
               label={t("verifyIdentity.passwordLabel", "Password")}
               type="password"
               name="password"
-              placeholder={t("verifyIdentity.passwordPlaceholder", {
-                name: sessionUser?.name || "",
-              })}
+              placeholder={t(
+                "verifyIdentity.passwordPlaceholder",
+                "Enter your password",
+              )}
               className="w-full"
             />
             <MCButton
@@ -110,8 +179,11 @@ function VerifyIdentityPage() {
               className={isMobile ? "w-full" : "w-xs"}
               icon={<ArrowRight size={isMobile ? 20 : 24} />}
               iconPosition="right"
+              disabled={verifyPasswordMutation.isPending}
             >
-              {t("verifyIdentity.verifyButton", "Verify")}
+              {verifyPasswordMutation.isPending
+                ? tAuth("errors.loading", "Loading...")
+                : t("verifyIdentity.verifyButton", "Verify")}
             </MCButton>
           </MCFormWrapper>
         </div>

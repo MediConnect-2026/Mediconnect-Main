@@ -89,6 +89,10 @@ export interface AddConditionRequest {
   notas?: string;
 }
 
+export interface AddPersonalConditionRequest {
+  notas: string;
+}
+
 export interface AddAllergyResponse {
   success: boolean;
   message: string;
@@ -96,6 +100,12 @@ export interface AddAllergyResponse {
 }
 
 export interface AddConditionResponse {
+  success: boolean;
+  message: string;
+  data: CondicionMedica;
+}
+
+export interface AddPersonalConditionResponse {
   success: boolean;
   message: string;
   data: CondicionMedica;

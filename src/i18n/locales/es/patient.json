@@ -38,6 +38,7 @@
     "bloodType": "Tipo de Sangre",
     "bloodTypePlaceholder": "Selecciona tipo de sangre",
     "saveChanges": "Guardar cambios",
+    "saving": "Guardando...",
     "cancel": "Cancelar",
     "cropBanner": "Recortar banner",
     "cropProfilePhoto": "Recortar foto de perfil",
@@ -73,7 +74,17 @@
     "conditionRemoved": "Condición médica eliminada exitosamente",
     "errorRemovingCondition": "Error al eliminar condición médica",
     "notesUpdated": "Notas actualizadas exitosamente",
-    "errorUpdatingNotes": "Error al actualizar notas"
+    "errorUpdatingNotes": "Error al actualizar notas",
+    "or": "o",
+    "addPersonalCondition": "Agregar condición médica personal",
+    "personalConditionPlaceholder": "Escribe tu condición médica",
+    "add": "Agregar",
+    "emptyPersonalCondition": "Por favor ingresa una condición médica",
+    "personalConditionAdded": "Condición médica personal agregada exitosamente",
+    "errorAddingPersonalCondition": "Error al agregar condición médica personal",
+    "personalConditionRemoved": "Condición médica personal eliminada exitosamente",
+    "errorRemovingPersonalCondition": "Error al eliminar condición médica personal",
+    "personalConditionTitle": "Condición médica personal"
   },
   "insurance": {
     "title": "Seguro Médico",
@@ -86,6 +97,10 @@
     "universal": "Seguro Universal",
     "humano": "Seguro Humano",
     "mapfre": "Mapfre Salud",
+    "removed": "Seguro eliminado exitosamente",
+    "added": "Seguro agregado exitosamente",
+    "profileCopied": "Enlace de perfil copiado al portapapeles",
+    "logoutSuccess": "¡Sesión cerrada exitosamente!",
     "particular": "Particular"
   },
   "validation": {

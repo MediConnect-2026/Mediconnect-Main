@@ -8,6 +8,12 @@ import MedicalInfoCard from "../components/dashboard/MedicalInfoCard";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
 import { motion } from "framer-motion";
 import { fadeInUp } from "@/lib/animations/commonAnimations";
+import { useState, useEffect, useCallback } from "react";
+import { useAppStore } from "@/stores/useAppStore";
+import { calculatePatientBMI, getPatientAge, getPatientBloodType, getPatientWeight, getPatientHeight } from "@/services/auth/auth.types";
+import { patientService } from "@/shared/navigation/userMenu/editProfile/patient/services/patient.service";
+import type { CondicionMedica } from "@/shared/navigation/userMenu/editProfile/patient/services/patient.types";
+import { onAllergiesChanged, onConditionsChanged } from "@/lib/events/clinicalHistoryEvents";
 
 const mockDoctors = [
   {
@@ -92,7 +98,81 @@ const mockDoctors = [
 
 function DashboardPage() {
   const isMobile = useIsMobile();
-  const { t } = useTranslation("patient");
+  const { t, i18n } = useTranslation("patient");
+  const user = useAppStore((state) => state.user);
+  
+  // Estados para alergias y condiciones médicas
+  const [myAllergies, setMyAllergies] = useState<CondicionMedica[]>([]);
+  const [myConditions, setMyConditions] = useState<CondicionMedica[]>([]);
+  const [isLoadingAllergies, setIsLoadingAllergies] = useState(true);
+  const [isLoadingConditions, setIsLoadingConditions] = useState(true);
+  
+  // Cargar alergias del usuario
+  const loadAllergies = useCallback(async () => {
+    try {
+      setIsLoadingAllergies(true);
+      const response = await patientService.getMyAllergies(i18n.language);
+      
+      if (response.success) {
+        setMyAllergies(response.data);
+      }
+    } catch (error) {
+      console.error("❌ Error al cargar alergias:", error);
+    } finally {
+      setIsLoadingAllergies(false);
+    }
+  }, [i18n.language]);
+  
+  // Cargar condiciones médicas del usuario
+  const loadConditions = useCallback(async () => {
+    try {
+      setIsLoadingConditions(true);
+      const response = await patientService.getMyConditions(i18n.language);
+      
+      if (response.success) {
+        setMyConditions(response.data);
+      }
+    } catch (error) {
+      console.error("❌ Error al cargar condiciones médicas:", error);
+    } finally {
+      setIsLoadingConditions(false);
+    }
+  }, [i18n.language]);
+  
+  // Cargar alergias del usuario
+  useEffect(() => {
+    loadAllergies();
+  }, [loadAllergies]);
+  
+  // Cargar condiciones médicas del usuario
+  useEffect(() => {
+    loadConditions();
+  }, [loadConditions]);
+  
+  // Escuchar evento global de cambios en alergias
+  useEffect(() => {
+    const unsubscribe = onAllergiesChanged(() => {
+      loadAllergies();
+    });
+    
+    return unsubscribe;
+  }, [loadAllergies]);
+  
+  // Escuchar evento global de cambios en condiciones médicas
+  useEffect(() => {
+    const unsubscribe = onConditionsChanged(() => {
+      loadConditions();
+    });
+    
+    return unsubscribe;
+  }, [loadConditions]);
+  
+  // Calcular datos del paciente
+  const patientAge = getPatientAge(user?.paciente || null);
+  const IMC = calculatePatientBMI(user?.paciente || null);
+  const bloodType = getPatientBloodType(user?.paciente || null);
+  const weight = getPatientWeight(user?.paciente || null);
+  const height = getPatientHeight(user?.paciente || null);
 
   return (
     <motion.main {...fadeInUp} className="min-h-screen">
@@ -131,19 +211,15 @@ function DashboardPage() {
             {/* Información médica */}
             <MedicalInfoCard
               isMobile={isMobile}
-              age="45 años"
-              bmi="26.1"
-              height="175 cm"
-              weight="80 kg"
-              bloodType="O+"
-              allergies={[
-                "Penicilina (produce erupción cutánea)",
-                "Penicilina (produce erupción cutánea)",
-              ]}
-              conditions={[
-                "Apendicectomía en 2010",
-                "Antecedentes familiares de diabetes tipo 2",
-              ]}
+              age={patientAge !== null ? `${patientAge} ${t("profileForm.years")}` : t("profileForm.agePlaceholder")}
+              bmi={IMC !== null ? `${IMC.toFixed(1)}` : t("profileForm.pending")}
+              height={height !== null ? `${height} cm` : t("profileForm.heightPlaceholder") + " cm"}
+              weight={weight !== null ? `${weight} kg` : t("profileForm.weightPlaceholder") + " kg"}
+              bloodType={bloodType || t("profileForm.bloodTypePlaceholder")}
+              allergies={myAllergies.map((allergy) => allergy.nombre)}
+              conditions={myConditions.map((condition) => condition.nombre)}
+              isLoadingAllergies={isLoadingAllergies}
+              isLoadingConditions={isLoadingConditions}
             />
           </div>
         </div>

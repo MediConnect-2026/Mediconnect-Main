@@ -108,6 +108,13 @@ function DoctorOnboardingPage() {
         trigger: <GovernmentIdUpload />,
       },
       {
+        id: "degree",
+        title: t("doctorOnboarding.steps.degree"),
+        completed: completionStates.isAcademicTitleComplete,
+        onClick: () => console.log("Título"),
+        trigger: <AcademicDegreeUpload />,
+      },
+      {
         id: "profile-photo",
         title: t("doctorOnboarding.steps.profilePhoto"),
         optional: true,
@@ -122,14 +129,6 @@ function DoctorOnboardingPage() {
         completed: completionStates.isCertificationsComplete,
         onClick: () => console.log("Certificaciones"),
         trigger: <AdditionalCertificationsUpload />,
-      },
-      {
-        id: "degree",
-        title: t("doctorOnboarding.steps.degree"),
-        optional: true,
-        completed: completionStates.isAcademicTitleComplete,
-        onClick: () => console.log("Título"),
-        trigger: <AcademicDegreeUpload />,
       },
     ];
   }, [completionStates, navigate, t]);

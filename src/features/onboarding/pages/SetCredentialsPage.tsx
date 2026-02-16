@@ -220,9 +220,7 @@ function SetCredentialsPage() {
         errorMsg = error.response.data.message;
       } else if (error.message) {
         // Error local (validación, conversión, etc.)
-        if (error.message.includes('Foto de perfil')) {
-          errorMsg = t('setCredentialsPage.errors.profilePhotoRequired');
-        } else if (error.message.includes('documento')) {
+        if (error.message.includes('documento')) {
           errorMsg = t('setCredentialsPage.errors.documentRequired');
         } else if (error.message.includes('Título académico')) {
           errorMsg = t('setCredentialsPage.errors.academicTitleRequired');

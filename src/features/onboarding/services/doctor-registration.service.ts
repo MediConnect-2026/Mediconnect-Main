@@ -42,13 +42,15 @@ export const doctorRegistrationService = {
         formData.append('ids_especialidades_secundarias', JSON.stringify(request.ids_especialidades_secundarias));
       }
 
-      // Agregar foto de perfil (requerido, 1 archivo)
-      if (request.fotoPerfil instanceof File || request.fotoPerfil instanceof Blob) {
-        const fileName = request.fotoPerfil instanceof File ? request.fotoPerfil.name : 'profile-photo.jpg';
-        formData.append('fotoPerfil', request.fotoPerfil, fileName);
-      } else {
-        console.error('fotoPerfil no es un File o Blob válido:', request.fotoPerfil);
-        throw new Error('fotoPerfil debe ser un archivo válido');
+      // Agregar foto de perfil (opcional)
+      if (request.fotoPerfil) {
+        if (request.fotoPerfil instanceof File || request.fotoPerfil instanceof Blob) {
+          const fileName = request.fotoPerfil instanceof File ? request.fotoPerfil.name : 'profile-photo.jpg';
+          formData.append('fotoPerfil', request.fotoPerfil, fileName);
+        } else {
+          console.error('fotoPerfil no es un File o Blob válido:', request.fotoPerfil);
+          throw new Error('fotoPerfil debe ser un archivo válido');
+        }
       }
 
       // Agregar fotos de documento (requerido, 1-2 archivos)

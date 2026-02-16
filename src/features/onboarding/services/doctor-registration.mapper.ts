@@ -166,14 +166,10 @@ export async function mapDoctorOnboardingToRequest(
 ): Promise<RegisterDoctorRequest> {
   console.log('[Mapper] Iniciando conversión de datos del doctor...');
   
-  // Convertir imagen de perfil a File
+  // Convertir imagen de perfil a File (opcional)
   const fotoPerfil = doctorData.urlImg?.url
     ? await urlToFile(doctorData.urlImg.url, 'profile-photo', doctorData.urlImg.type)
-    : null;
-
-  if (!fotoPerfil) {
-    throw new Error('Foto de perfil es requerida');
-  }
+    : undefined;
 
   // Convertir fotos de documentos de base64 a Files (1-2 archivos requeridos)
   if (!doctorData.identityDocumentFile || doctorData.identityDocumentFile.length === 0) {

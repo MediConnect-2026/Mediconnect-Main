@@ -132,6 +132,10 @@
     "currentPasswordPlaceholder": "Ingresa tu contraseña actual",
     "newPasswordLabel": "Nueva contraseña",
     "newPasswordPlaceholder": "Ingresa tu nueva contraseña",
+    "confirmNewPasswordLabel": "Confirmar nueva contraseña",
+    "confirmNewPasswordPlaceholder": "Confirma tu nueva contraseña",
+    "confirmPasswordLabel": "Confirmar contraseña",
+    "confirmPasswordPlaceholder": "Confirma tu contraseña",
     "changeButton": "Cambiar contraseña"
   },
   "deleteAccount": {

@@ -139,7 +139,9 @@
       "logout": "Cerrar Sesión",
       "shareProfile": "Compartir Perfil",
       "mute": "Silenciar",
-      "block": "Bloquear"
+      "block": "Bloquear",
+      "profileCopied": "Enlace de perfil copiado al portapapeles",
+      "logoutSuccess": "¡Sesión cerrada exitosamente!"
     }
   },
 

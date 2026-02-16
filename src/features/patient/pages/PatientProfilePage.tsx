@@ -1,7 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { motion } from "framer-motion";
-import MCBackButton from "@/shared/components/forms/MCBackButton";
 import MCSheetProfile from "@/shared/navigation/userMenu/editProfile/MCSheetProfile";
 import { useAppStore } from "@/stores/useAppStore";
 import { Card, CardContent, CardHeader } from "@/shared/ui/card";
@@ -13,8 +11,6 @@ import MCFilterInput from "@/shared/components/filters/MCFilterInput";
 import PatientProfileBanner from "../components/PatientProfileBanner";
 import FilterMyDoctors from "../components/filters/FilterMyDoctors";
 import MedicalInfoCard from "@/features/patient/components/dashboard/MedicalInfoCard";
-import { fadeInUp } from "@/lib/animations/commonAnimations";
-import { useNavigate } from "react-router-dom";
 import {
   Empty,
   EmptyHeader,
@@ -23,9 +19,13 @@ import {
   EmptyContent,
 } from "@/shared/ui/empty";
 import MCButton from "@/shared/components/forms/MCButton";
-import { Filter } from "lucide-react";
-import MCDashboardContent from "@/shared/layout/MCDashboardContent"; // <-- importa el layout
+import { Filter, Loader2 } from "lucide-react";
+import MCDashboardContent from "@/shared/layout/MCDashboardContent";
 import { calculatePatientBMI, getPatientAge, getPatientBloodType, getPatientWeight, getPatientHeight } from "@/services/auth/auth.types";
+import { patientService } from "@/shared/navigation/userMenu/editProfile/patient/services/patient.service";
+import type { Seguro, CondicionMedica } from "@/shared/navigation/userMenu/editProfile/patient/services/patient.types";
+import { onInsuranceChanged, emitInsuranceChanged } from "@/lib/events/insuranceEvents";
+import { onAllergiesChanged, onConditionsChanged, emitClinicalHistoryChanged } from "@/lib/events/clinicalHistoryEvents";
 
 
 // Interfaz para los filtros de doctores
@@ -84,7 +84,18 @@ const doctorsList = [
 function PatientProfilePage() {
   const [openSheet, setOpenSheet] = useState(false);
   const [searchName, setSearchName] = useState("");
-  const { t } = useTranslation("patient");
+  const [sheetTab, setSheetTab] = useState<"general" | "history" | "insurance">("general");
+  const { t, i18n } = useTranslation("patient");
+  
+  // Estados para seguros médicos
+  const [myInsurances, setMyInsurances] = useState<Seguro[]>([]);
+  const [isLoadingInsurances, setIsLoadingInsurances] = useState(true);
+  
+  // Estados para alergias y condiciones médicas
+  const [myAllergies, setMyAllergies] = useState<CondicionMedica[]>([]);
+  const [myConditions, setMyConditions] = useState<CondicionMedica[]>([]);
+  const [isLoadingAllergies, setIsLoadingAllergies] = useState(true);
+  const [isLoadingConditions, setIsLoadingConditions] = useState(true);
 
   const [doctorFilters, setDoctorFilters] = useState<DoctorFilters>({
     specialty: "",
@@ -98,25 +109,127 @@ function PatientProfilePage() {
   const user = useAppStore((state) => state.user);
   const isMobile = useIsMobile();
   
+  // Definir loadInsurances con useCallback primero
+  const loadInsurances = useCallback(async () => {
+    try {
+      setIsLoadingInsurances(true);
+      const response = await patientService.getMyInsurances(i18n.language);
+      
+      if (response.success) {
+        // Transformar la estructura anidada de la API a objetos Seguro
+        const transformedInsurances: Seguro[] = response.data.map(item => ({
+          id: item.seguro.id,
+          nombre: item.seguro.nombre,
+          descripcion: item.seguro.descripcion,
+          idTipoSeguro: item.tipoSeguro.id,
+          tipoSeguro: item.tipoSeguro,
+        }));
+        
+        setMyInsurances(transformedInsurances);
+      }
+    } catch (error) {
+      console.error("❌ Error al cargar seguros:", error);
+    } finally {
+      setIsLoadingInsurances(false);
+    }
+  }, [i18n.language]);
+  
+  // Cargar alergias del usuario
+  const loadAllergies = useCallback(async () => {
+    try {
+      setIsLoadingAllergies(true);
+      const response = await patientService.getMyAllergies(i18n.language);
+      
+      if (response.success) {
+        setMyAllergies(response.data);
+      }
+    } catch (error) {
+      console.error("❌ Error al cargar alergias:", error);
+    } finally {
+      setIsLoadingAllergies(false);
+    }
+  }, [i18n.language]);
+  
+  // Cargar condiciones médicas del usuario
+  const loadConditions = useCallback(async () => {
+    try {
+      setIsLoadingConditions(true);
+      const response = await patientService.getMyConditions(i18n.language);
+      
+      if (response.success) {
+        setMyConditions(response.data);
+      }
+    } catch (error) {
+      console.error("❌ Error al cargar condiciones médicas:", error);
+    } finally {
+      setIsLoadingConditions(false);
+    }
+  }, [i18n.language]);
+  
+  // Cargar seguros del usuario
+  useEffect(() => {
+    loadInsurances();
+  }, [loadInsurances]);
+  
+  // Cargar alergias del usuario
+  useEffect(() => {
+    loadAllergies();
+  }, [loadAllergies]);
+  
+  // Cargar condiciones médicas del usuario
+  useEffect(() => {
+    loadConditions();
+  }, [loadConditions]);
+  
+  // Escuchar evento global de cambios en seguros (desde otros componentes como MCUserMenu)
+  useEffect(() => {
+    const unsubscribe = onInsuranceChanged(() => {
+      loadInsurances();
+    });
+    
+    return unsubscribe;
+  }, [loadInsurances]);
+  
+  // Escuchar evento global de cambios en alergias
+  useEffect(() => {
+    const unsubscribe = onAllergiesChanged(() => {
+      loadAllergies();
+    });
+    
+    return unsubscribe;
+  }, [loadAllergies]);
+  
+  // Escuchar evento global de cambios en condiciones médicas
+  useEffect(() => {
+    const unsubscribe = onConditionsChanged(() => {
+      loadConditions();
+    });
+    
+    return unsubscribe;
+  }, [loadConditions]);
+  
+  // Callback para cuando se modifiquen los seguros en el Sheet local
+  const handleInsurancesChanged = useCallback(() => {
+    loadInsurances();
+    // Emitir evento para notificar a otros componentes
+    emitInsuranceChanged();
+  }, [loadInsurances]);
+  
+  // Callback para cuando se modifiquen alergias o condiciones médicas en el Sheet local
+  const handleClinicalHistoryChanged = useCallback(() => {
+    loadAllergies();
+    loadConditions();
+    // Emitir evento para notificar a otros componentes
+    emitClinicalHistoryChanged();
+  }, [loadAllergies, loadConditions]);
+  
   // Calcular la edad del paciente
   const patientAge = getPatientAge(user?.paciente || null);
   const IMC = calculatePatientBMI(user?.paciente || null);
   const bloodType = getPatientBloodType(user?.paciente || null);
   const weight = getPatientWeight(user?.paciente || null);
   const height = getPatientHeight(user?.paciente || null);
-
-  const insuranceLogos = [
-    { name: t("filters.insurances.senasa") },
-    { name: t("filters.insurances.palic") },
-    { name: t("filters.insurances.humano") },
-    { name: t("filters.insurances.mapfre") },
-    { name: t("filters.insurances.universal") },
-    { name: t("filters.insurances.crecer") },
-    { name: t("filters.insurances.yunen") },
-  ];
-
-  const navigate = useNavigate();
-
+  
   const updateDoctorFilters = (newFilters: Partial<DoctorFilters>) => {
     setDoctorFilters((prev) => ({ ...prev, ...newFilters }));
   };
@@ -189,10 +302,19 @@ function PatientProfilePage() {
           {isMobile ? (
             <PatientProfileBannerMobile
               user={user}
-              setOpenSheet={setOpenSheet}
+              setOpenSheet={(tab?: "general" | "history" | "insurance") => {
+                setSheetTab(tab || "general");
+                setOpenSheet(true);
+              }}
             />
           ) : (
-            <PatientProfileBanner user={user} setOpenSheet={setOpenSheet} />
+            <PatientProfileBanner 
+              user={user} 
+              setOpenSheet={(tab?: "general" | "history" | "insurance") => {
+                setSheetTab(tab || "general");
+                setOpenSheet(true);
+              }}
+            />
           )}
         </div>
 
@@ -208,28 +330,58 @@ function PatientProfilePage() {
                 >
                   {t("insurance.title")}
                 </h2>
-                <div
-                  className={`grid ${isMobile ? "grid-cols-2" : "grid-cols-2"} gap-2`}
-                >
-                  {insuranceLogos.map((insurance, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-accent/20 cursor-pointer"
-                    >
-                      <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-background border-2 font-bold border-primary/10 text-foreground">
-                        {insurance.name.substring(0, 2)}
-                      </div>
-                      <span className="text-sm font-medium text-foreground">
-                        {insurance.name}
-                      </span>
-                    </div>
-                  ))}
-                  <div className="flex items-center gap-3 p-2">
-                    <span className="text-sm text-primary hover:underline hover:text-secondary cursor-pointer">
-                      {t("insurance.morePlans")}
-                    </span>
+                {isLoadingInsurances ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="w-6 h-6 animate-spin text-primary" />
                   </div>
-                </div>
+                ) : myInsurances.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-8 text-center">
+                    <p className="text-muted-foreground mb-4">
+                      {t("insurance.addFirst", "Agrega tu primer seguro médico")}
+                    </p>
+                    <MCButton
+                      variant="outline"
+                      onClick={() => {
+                        setSheetTab("insurance");
+                        setOpenSheet(true);
+                      }}
+                      size="sm"
+                    >
+                      {t("insurance.add", "Agregar seguro")}
+                    </MCButton>
+                  </div>
+                ) : (
+                  <div
+                    className={`grid ${isMobile ? "grid-cols-1" : "grid-cols-2"} gap-2`}
+                  >
+                    {myInsurances.map((insurance) => {
+                      const tipoSeguroNombre = typeof insurance.tipoSeguro === 'object' && insurance.tipoSeguro !== null
+                        ? insurance.tipoSeguro.nombre
+                        : insurance.tipoSeguro;
+                      
+                      return (
+                        <div
+                          key={insurance.id}
+                          className="flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-accent/20 cursor-pointer"
+                        >
+                          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-background border-2 font-bold border-primary/10 text-foreground">
+                            {insurance.nombre.substring(0, 2).toUpperCase()}
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="text-sm font-medium text-foreground">
+                              {insurance.nombre}
+                            </span>
+                            {tipoSeguroNombre && (
+                              <span className="text-xs text-muted-foreground">
+                                {tipoSeguroNombre}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -240,20 +392,10 @@ function PatientProfilePage() {
               height={height !== null ? `${height} cm` : t("profileForm.heightPlaceholder") + " cm"}
               weight={weight !== null ? `${weight} kg` : t("profileForm.weightPlaceholder") + " kg"}
               bloodType={bloodType || t("profileForm.bloodTypePlaceholder")}
-              allergies={[
-                t("clinicalHistory.allergies") + " (Penicillin, skin rash)",
-                t("clinicalHistory.allergies") + " (Penicillin, skin rash)",
-              ]}
-              conditions={[
-                t(
-                  "clinicalHistory.conditionPlaceholder",
-                  "Appendectomy in 2010",
-                ),
-                t(
-                  "clinicalHistory.conditionPlaceholder",
-                  "Family history of type 2 diabetes",
-                ),
-              ]}
+              allergies={myAllergies.map((allergy) => allergy.nombre)}
+              conditions={myConditions.map((condition) => condition.nombre)}
+              isLoadingAllergies={isLoadingAllergies}
+              isLoadingConditions={isLoadingConditions}
             />
           </div>
         </div>
@@ -343,7 +485,18 @@ function PatientProfilePage() {
           </CardContent>
         </Card>
 
-        <MCSheetProfile open={openSheet} onOpenChange={setOpenSheet} />
+        <MCSheetProfile 
+          open={openSheet} 
+          onOpenChange={(open) => {
+            setOpenSheet(open);
+            if (!open) {
+              setSheetTab("general");
+            }
+          }} 
+          whatTab={sheetTab}
+          onInsurancesChanged={handleInsurancesChanged}
+          onClinicalHistoryChanged={handleClinicalHistoryChanged}
+        />
       </div>
     </MCDashboardContent>
   );

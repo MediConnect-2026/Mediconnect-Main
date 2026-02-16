@@ -9,8 +9,10 @@ import type {
   GetAvailableConditionsResponse,
   AddAllergyRequest,
   AddConditionRequest,
+  AddPersonalConditionRequest,
   AddAllergyResponse,
   AddConditionResponse,
+  AddPersonalConditionResponse,
   GetMyAllergiesResponse,
   GetMyConditionsResponse,
   RemoveAllergyResponse,
@@ -42,7 +44,6 @@ export const patientService = {
         data
       );
 
-      console.log('✅ [Patient Service] Perfil actualizado exitosamente:', response.data);
       return response.data;
     } catch (error: any) {
       console.error('❌ [Patient Service] Error al actualizar perfil:', error);
@@ -93,12 +94,6 @@ export const patientService = {
       const formData = new FormData();
       formData.append('fotoPerfil', file);
 
-      console.log('📤 [Patient Service] Subiendo foto de perfil:', {
-        fileName: file.name,
-        fileSize: file.size,
-        fileType: file.type
-      });
-
       const response = await apiClient.patch<UpdateProfilePhotoResponse>(
         '/auth/foto-perfil',
         formData,
@@ -109,7 +104,6 @@ export const patientService = {
         }
       );
 
-      console.log('✅ [Patient Service] Foto de perfil actualizada:', response.data);
       return response.data;
     } catch (error: any) {
       console.error('❌ [Patient Service] Error al actualizar foto de perfil:', error);
@@ -138,15 +132,36 @@ export const patientService = {
 
   /**
    * Obtiene todas las alergias disponibles en el catálogo
+   * @param language - Idioma para traducción automática (opcional, por defecto 'es')
    * @returns Lista de alergias disponibles para agregar
+   * 
+   * Soporta traducción automática mediante query params:
+   * - target: idioma destino
+   * - source: idioma origen (español)
+   * - translate_fields: campos a traducir (nombre,descripcion)
    */
-  getAvailableAllergies: async (): Promise<GetAvailableAllergiesResponse> => {
+  getAvailableAllergies: async (language?: string): Promise<GetAvailableAllergiesResponse> => {
     try {
+      // Construir query params
+      const params: Record<string, string | number> = {
+        estado: 'Activa',
+        tipo: 'Alergia',
+        pagina: 1,
+        limite: 100
+      };
+
+      // Agregar traducción si se especifica un idioma diferente al español
+      if (language && language !== 'es') {
+        params.target = language;
+        params.source = 'es';
+        params.translate_fields = 'nombre,descripcion';
+      }
+
       const response = await apiClient.get<GetAvailableAllergiesResponse>(
-        '/condiciones-medicas?estado=Activa&tipo=Alergia&pagina=1&limite=100' // Paginación para obtener todas las alergias
+        '/condiciones-medicas',
+        { params }
       );
 
-      console.log('✅ [Patient Service] Alergias disponibles obtenidas:', response.data);
       return response.data;
     } catch (error: any) {
       console.error('❌ [Patient Service] Error al obtener alergias disponibles:', error);
@@ -163,15 +178,36 @@ export const patientService = {
 
   /**
    * Obtiene todas las condiciones médicas disponibles en el catálogo
+   * @param language - Idioma para traducción automática (opcional, por defecto 'es')
    * @returns Lista de condiciones médicas disponibles para agregar
+   * 
+   * Soporta traducción automática mediante query params:
+   * - target: idioma destino
+   * - source: idioma origen (español)
+   * - translate_fields: campos a traducir (nombre,descripcion)
    */
-  getAvailableConditions: async (): Promise<GetAvailableConditionsResponse> => {
+  getAvailableConditions: async (language?: string): Promise<GetAvailableConditionsResponse> => {
     try {
+      // Construir query params
+      const params: Record<string, string | number> = {
+        estado: 'Activa',
+        tipo: 'Condición',
+        pagina: 1,
+        limite: 100
+      };
+
+      // Agregar traducción si se especifica un idioma diferente al español
+      if (language && language !== 'es') {
+        params.target = language;
+        params.source = 'es';
+        params.translate_fields = 'nombre,descripcion';
+      }
+
       const response = await apiClient.get<GetAvailableConditionsResponse>(
-        '/condiciones-medicas?estado=Activa&tipo=Condición&pagina=1&limite=100' // Paginación para obtener todas las condiciones médicas
+        '/condiciones-medicas',
+        { params }
       );
 
-      console.log('✅ [Patient Service] Condiciones médicas disponibles obtenidas:', response.data);
       return response.data;
     } catch (error: any) {
       console.error('❌ [Patient Service] Error al obtener condiciones médicas disponibles:', error);
@@ -188,15 +224,34 @@ export const patientService = {
 
   /**
    * Obtiene las alergias del paciente autenticado
+   * @param language - Idioma para traducción automática (opcional, por defecto 'es')
    * @returns Lista de alergias del paciente
+   * 
+   * Soporta traducción automática mediante query params:
+   * - target: idioma destino
+   * - source: idioma origen (español)
+   * - translate_fields: campos a traducir (nombre,descripcion)
    */
-  getMyAllergies: async (): Promise<GetMyAllergiesResponse> => {
+  getMyAllergies: async (language?: string): Promise<GetMyAllergiesResponse> => {
     try {
+      // Construir query params
+      const params: Record<string, string | number> = {
+        tipo: 'Alergia',
+        estado: 'Activa'
+      };
+
+      // Agregar traducción si se especifica un idioma diferente al español
+      if (language && language !== 'es') {
+        params.target = language;
+        params.source = 'es';
+        params.translate_fields = 'nombre,notas';
+      }
+
       const response = await apiClient.get<GetMyAllergiesResponse>(
-        '/condiciones-medicas/mis-condiciones?tipo=Alergia&estado=Activa'
+        '/condiciones-medicas/mis-condiciones',
+        { params }
       );
 
-      console.log('✅ [Patient Service] Alergias del paciente obtenidas:', response.data);
       return response.data;
     } catch (error: any) {
       console.error('❌ [Patient Service] Error al obtener alergias del paciente:', error);
@@ -213,15 +268,34 @@ export const patientService = {
 
   /**
    * Obtiene las condiciones médicas del paciente autenticado
+   * @param language - Idioma para traducción automática (opcional, por defecto 'es')
    * @returns Lista de condiciones médicas del paciente
+   * 
+   * Soporta traducción automática mediante query params:
+   * - target: idioma destino
+   * - source: idioma origen (español)
+   * - translate_fields: campos a traducir (nombre,descripcion)
    */
-  getMyConditions: async (): Promise<GetMyConditionsResponse> => {
+  getMyConditions: async (language?: string): Promise<GetMyConditionsResponse> => {
     try {
+      // Construir query params
+      const params: Record<string, string | number> = {
+        tipo: 'Condición',
+        estado: 'Activa'
+      };
+
+      // Agregar traducción si se especifica un idioma diferente al español
+      if (language && language !== 'es') {
+        params.target = language;
+        params.source = 'es';
+        params.translate_fields = 'nombre,notas';
+      }
+
       const response = await apiClient.get<GetMyConditionsResponse>(
-        '/condiciones-medicas/mis-condiciones?tipo=Condición&estado=Activa'
+        '/condiciones-medicas/mis-condiciones',
+        { params }
       );
 
-      console.log('✅ [Patient Service] Condiciones médicas del paciente obtenidas:', response.data);
       return response.data;
     } catch (error: any) {
       console.error('❌ [Patient Service] Error al obtener condiciones médicas del paciente:', error);
@@ -248,7 +322,6 @@ export const patientService = {
         data
       );
 
-      console.log('✅ [Patient Service] Alergia agregada exitosamente:', response.data);
       return response.data;
     } catch (error: any) {
       console.error('❌ [Patient Service] Error al agregar alergia:', error);
@@ -282,7 +355,6 @@ export const patientService = {
         data
       );
 
-      console.log('✅ [Patient Service] Condición médica agregada exitosamente:', response.data);
       return response.data;
     } catch (error: any) {
       console.error('❌ [Patient Service] Error al agregar condición médica:', error);
@@ -305,6 +377,40 @@ export const patientService = {
   },
 
   /**
+   * Agrega una condición médica personal al perfil del paciente
+   * @param data - Notas de la condición médica personal
+   * @returns Respuesta con la condición médica agregada
+   */
+  addPersonalCondition: async (data: AddPersonalConditionRequest): Promise<AddPersonalConditionResponse> => {
+    try {
+      const response = await apiClient.post<AddPersonalConditionResponse>(
+        '/condiciones-medicas/mis-condiciones',
+        data
+      );
+
+
+      return response.data;
+    } catch (error: any) {
+      console.error('❌ [Patient Service] Error al agregar condición médica personal:', error);
+      
+      const errorData = error.response?.data as MedicalConditionError;
+      
+      if (error.response?.status === 400) {
+        throw new Error(
+          errorData?.message || 
+          'La condición médica personal no es válida.'
+        );
+      }
+      
+      throw new Error(
+        errorData?.message || 
+        error.message || 
+        'Error al agregar condición médica personal. Intenta nuevamente.'
+      );
+    }
+  },
+
+  /**
    * Elimina una alergia del perfil del paciente
    * @param condicionId - ID de la alergia a eliminar
    * @returns Respuesta de confirmación
@@ -315,7 +421,6 @@ export const patientService = {
         `/condiciones-medicas/mis-alergias/${condicionId}`
       );
 
-      console.log('✅ [Patient Service] Alergia eliminada exitosamente:', response.data);
       return response.data;
     } catch (error: any) {
       console.error('❌ [Patient Service] Error al eliminar alergia:', error);
@@ -345,7 +450,6 @@ export const patientService = {
         `/condiciones-medicas/mis-condiciones/${condicionId}`
       );
 
-      console.log('✅ [Patient Service] Condición médica eliminada exitosamente:', response.data);
       return response.data;
     } catch (error: any) {
       console.error('❌ [Patient Service] Error al eliminar condición médica:', error);
@@ -368,15 +472,30 @@ export const patientService = {
 
   /**
    * Obtiene todos los seguros disponibles
+   * @param language - Idioma para traducción automática (opcional, por defecto 'es')
    * @returns Lista de seguros disponibles para agregar
+   * 
+   * Soporta traducción automática mediante query params:
+   * - target: idioma destino
+   * - source: idioma origen (español)
+   * - translate_fields: campos a traducir (nombre,descripcion)
    */
-  getAvailableInsurances: async (): Promise<GetAvailableInsurancesResponse> => {
+  getAvailableInsurances: async (language?: string): Promise<GetAvailableInsurancesResponse> => {
     try {
-      const response = await apiClient.get<GetAvailableInsurancesResponse>(
-        '/seguros/disponibles'
-      );
+      // Construir query params
+      const params: Record<string, string> = {};
 
-      console.log('✅ [Patient Service] Seguros disponibles obtenidos:', response.data);
+      // Agregar traducción si se especifica un idioma diferente al español
+      if (language && language !== 'es') {
+        params.target = language;
+        params.source = 'es';
+        params.translate_fields = 'nombre,descripcion';
+      }
+
+      const response = await apiClient.get<GetAvailableInsurancesResponse>(
+        '/seguros/disponibles',
+        { params }
+      );
       return response.data;
     } catch (error: any) {
       console.error('❌ [Patient Service] Error al obtener seguros disponibles:', error);
@@ -393,15 +512,31 @@ export const patientService = {
 
   /**
    * Obtiene los seguros del paciente autenticado
+   * @param language - Idioma para traducción automática (opcional, por defecto 'es')
    * @returns Lista de seguros del paciente
+   * 
+   * Soporta traducción automática mediante query params:
+   * - target: idioma destino
+   * - source: idioma origen (español)
+   * - translate_fields: campos a traducir (nombre,descripcion)
    */
-  getMyInsurances: async (): Promise<GetMyInsurancesResponse> => {
+  getMyInsurances: async (language?: string): Promise<GetMyInsurancesResponse> => {
     try {
+      // Construir query params
+      const params: Record<string, string> = {};
+
+      // Agregar traducción si se especifica un idioma diferente al español
+      if (language && language !== 'es') {
+        params.target = language;
+        params.source = 'es';
+        params.translate_fields = 'nombre,descripcion';
+      }
+
       const response = await apiClient.get<GetMyInsurancesResponse>(
-        '/seguros/mis-seguros'
+        '/seguros/mis-seguros',
+        { params }
       );
 
-      console.log('✅ [Patient Service] Seguros del paciente obtenidos:', response.data);
       return response.data;
     } catch (error: any) {
       console.error('❌ [Patient Service] Error al obtener seguros del paciente:', error);
@@ -428,7 +563,6 @@ export const patientService = {
         data
       );
 
-      console.log('✅ [Patient Service] Seguro agregado exitosamente:', response.data);
       return response.data;
     } catch (error: any) {
       console.error('❌ [Patient Service] Error al agregar seguro:', error);
@@ -461,7 +595,6 @@ export const patientService = {
         `/seguros/mis-seguros/${id}`
       );
 
-      console.log('✅ [Patient Service] Seguro eliminado exitosamente:', response.data);
       return response.data;
     } catch (error: any) {
       console.error('❌ [Patient Service] Error al eliminar seguro:', error);
