@@ -10,9 +10,13 @@ import PriceModal from "./Modals/PriceModal";
 import DurationModal from "./Modals/DurationModal";
 import MCSelect from "@/shared/components/forms/MCSelect";
 import MCInput from "@/shared/components/forms/MCInput";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
+
 function ServiceBasicInfoStep() {
   const { t } = useTranslation();
+  const formRef = useRef<any>(null);
+  const submitRef = useRef<any>(null);
+
   const basicInfoSchema = serviceSchema(t).pick({
     specialty: true,
     selectedModality: true,
@@ -23,9 +27,61 @@ function ServiceBasicInfoStep() {
   });
 
   const createServiceData = useCreateServicesStore((s) => s.createServiceData);
+  const setCreateServiceData = useCreateServicesStore(
+    (s) => s.setCreateServiceData,
+  );
+
+  const goToNextStep = useCreateServicesStore((s) => s.goToNextStep);
+  const goToPreviousStep = useCreateServicesStore((s) => s.goToPreviousStep);
+
+  // Actualizar el formulario cuando cambien los datos del store
+  useEffect(() => {
+    if (formRef.current) {
+      formRef.current.setValue(
+        "numberOfSessions",
+        createServiceData.numberOfSessions || 1,
+      );
+      formRef.current.setValue(
+        "duration",
+        createServiceData.duration || { hours: 0, minutes: 30 },
+      );
+      formRef.current.setValue(
+        "pricePerSession",
+        createServiceData.pricePerSession || 1,
+      );
+      formRef.current.setValue(
+        "description",
+        createServiceData.description || "",
+      );
+    }
+  }, [
+    createServiceData.numberOfSessions,
+    createServiceData.duration,
+    createServiceData.pricePerSession,
+    createServiceData.description,
+  ]);
 
   const handleSubmit = (data: any) => {
-    console.log("Datos del formulario:", data);
+    const formattedData = {
+      ...data,
+      specialty: data.specialty,
+      selectedModality: data.selectedModality,
+      pricePerSession: Number(data.pricePerSession),
+      numberOfSessions: Number(data.numberOfSessions),
+      duration: {
+        hours: Number(data.duration?.hours || 0),
+        minutes: Number(data.duration?.minutes || 30),
+      },
+    };
+
+    setCreateServiceData(formattedData);
+    console.log("Datos enviados del paso 1:", formattedData);
+
+    goToNextStep();
+  };
+
+  const handleBack = () => {
+    goToPreviousStep();
   };
 
   const modalityOptions = [
@@ -39,17 +95,14 @@ function ServiceBasicInfoStep() {
     { value: "pediatria", label: t("specialty.pediatrics") },
   ];
 
-  // Función para formatear la duración SOLO para display visual
   const formatDurationDisplay = (duration: any) => {
     if (!duration) return "0m";
-    // Si es objeto { hours, minutes }
     if (typeof duration === "object" && duration !== null) {
       const h = parseInt(duration.hours, 10) || 0;
       const m = parseInt(duration.minutes, 10) || 0;
       if (h === 0) return `${m}m`;
       return `${h}h : ${m}m`;
     }
-    // Si es string "HH:mm" o "HH:mm:ss"
     if (typeof duration === "string") {
       const [hours, minutes] = duration.split(":");
       const h = parseInt(hours, 10) || 0;
@@ -60,20 +113,21 @@ function ServiceBasicInfoStep() {
     return "0m";
   };
 
-  useEffect(() => {
-    console.log("Datos actuales del servicio:", createServiceData);
-  }, [createServiceData]);
-
   return (
-    <ServicesLayoutsSteps title="Ponle un título a tu servicio">
+    <ServicesLayoutsSteps
+      title="Haz crecer tu servicio médico con información detallada"
+      description="Empieza con una opción accesible para atraer a más pacientes y optimizar tu agenda de manera eficiente."
+    >
       <MCFormWrapper
+        formRef={formRef}
+        submitRef={submitRef}
         schema={basicInfoSchema}
         defaultValues={{
           specialty: createServiceData.specialty || "",
           selectedModality: createServiceData.selectedModality || "presencial",
-          pricePerSession: createServiceData.pricePerSession,
+          pricePerSession: createServiceData.pricePerSession || 1,
           description: createServiceData.description || "",
-          numberOfSessions: createServiceData.numberOfSessions,
+          numberOfSessions: createServiceData.numberOfSessions || 1,
           duration: createServiceData.duration || { hours: 0, minutes: 30 },
         }}
         onSubmit={handleSubmit}
@@ -111,10 +165,8 @@ function ServiceBasicInfoStep() {
               variant="internal-horizontal"
               internalTitle={t("form.sessions")}
               internalPlaceholder={t("form.numberOfSessionsPlaceholder")}
-              value={createServiceData.numberOfSessions} // Asegúrate de que este valor se actualice correctamente desde el store
               displayMode="value"
-              standalone
-            />{" "}
+            />
           </CounterModal>
           <DurationModal>
             <MCInput
@@ -123,9 +175,10 @@ function ServiceBasicInfoStep() {
               variant="internal-horizontal"
               internalTitle={t("form.hours")}
               internalPlaceholder="0h : 0m"
-              value={formatDurationDisplay(createServiceData.duration)}
               displayMode="value"
-              standalone
+              customDisplayValue={formatDurationDisplay(
+                createServiceData.duration,
+              )}
             />
           </DurationModal>
           <PriceModal>
@@ -137,16 +190,13 @@ function ServiceBasicInfoStep() {
               variant="internal-horizontal"
               internalTitle={t("form.pricePerSession")}
               internalPlaceholder={t("form.pricePerSessionPlaceholder")}
-              className="my-input"
-              value={createServiceData.pricePerSession} // Asegúrate de que este valor se actualice correctamente desde el store
               displayMode="value"
-              standalone
             />
           </PriceModal>
         </div>
         <AuthFooterContainer
           backButtonProps={{
-            disabled: true,
+            onClick: handleBack,
           }}
           continueButtonProps={{
             type: "submit",

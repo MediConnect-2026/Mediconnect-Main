@@ -1,6 +1,6 @@
 import { useFormContext, Controller } from "react-hook-form";
 import { useState, useRef, useEffect } from "react";
-import { DollarSign, Minus, Plus } from "lucide-react";
+import { Minus, Plus } from "lucide-react";
 
 interface MCCounterInputProps {
   name: string;
@@ -9,8 +9,8 @@ interface MCCounterInputProps {
   min?: number;
   max?: number;
   step?: number;
-  defaultValue?: number | string;
-  onChange?: (value: any) => void; // Add optional onChange prop
+  defaultValue?: number | string | { hours: number; minutes: number };
+  onChange?: (value: any) => void;
 }
 
 const MCCounterInput = ({
@@ -21,32 +21,18 @@ const MCCounterInput = ({
   max,
   step = 1,
   defaultValue = 0,
-  onChange, // Accept onChange prop
+  onChange,
 }: MCCounterInputProps) => {
-  const { control, setValue } = useFormContext();
-  const [isHolding, setIsHolding] = useState(false);
+  const { control } = useFormContext();
+
   const intervalRef = useRef<number | null>(null);
   const timeoutRef = useRef<number | null>(null);
-
-  // Función para convertir HH:mm:ss a minutos totales
-  const timeStringToMinutes = (timeString: string): number => {
-    const [hours, minutes] = timeString.split(":").map(Number);
-    return (hours || 0) * 60 + (minutes || 0);
-  };
-
-  // Función para convertir minutos totales a HH:mm:ss
-  const minutesToTimeString = (totalMinutes: number): string => {
-    const hours = Math.floor(totalMinutes / 60);
-    const minutes = totalMinutes % 60;
-    return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:00`;
-  };
 
   const startHolding = (
     increment: boolean,
     currentValue: number,
     onChange: (value: number) => void,
   ) => {
-    setIsHolding(true);
     const direction = increment ? step : -step;
 
     timeoutRef.current = setTimeout(() => {
@@ -63,7 +49,6 @@ const MCCounterInput = ({
   };
 
   const stopHolding = () => {
-    setIsHolding(false);
     if (intervalRef.current) clearInterval(intervalRef.current);
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
   };
@@ -75,9 +60,16 @@ const MCCounterInput = ({
     };
   }, []);
 
+  const getDefaultValue = () => {
+    if (variant === "hours") {
+      return { hours: 0, minutes: 1 };
+    }
+    return defaultValue;
+  };
+
   const renderPriceVariant = (field: any) => (
-    <div className="flex flex-col items-center gap-4">
-      <div className="flex items-center gap-12">
+    <div className="flex flex-col items-center gap-3">
+      <div className="flex items-center gap-8">
         <button
           type="button"
           onMouseDown={() => {
@@ -93,12 +85,12 @@ const MCCounterInput = ({
             startHolding(false, newValue, field.onChange);
           }}
           onTouchEnd={stopHolding}
-          className="p-3 rounded-full border-2 border-primary/20 hover:border-primary/40 hover:bg-primary/5 active:scale-90 transition-all duration-200"
+          className="p-2 rounded-full border-2 border-primary/20 hover:border-primary/40 hover:bg-primary/5 active:scale-90 transition-all duration-200"
         >
           <Minus className="w-5 h-5 text-primary" />
         </button>
-        <div className="flex items-center gap-4 min-w-[220px] justify-center">
-          <span className="text-4xl font-bold text-primary">RD$</span>
+        <div className="flex items-center gap-1 min-w-[150px] justify-center">
+          <span className="text-2xl font-bold text-primary">RD$</span>
           <input
             type="number"
             min={min}
@@ -109,15 +101,13 @@ const MCCounterInput = ({
               if (isNaN(val)) val = min;
               field.onChange(val);
             }}
-            className="text-6xl font-bold text-primary tabular-nums min-w-[180px] text-center bg-transparent outline-none"
-            style={{ width: 220 }}
+            className="text-4xl font-bold text-primary tabular-nums w-[150px] text-center bg-transparent outline-none"
           />
         </div>
         <button
           type="button"
           onMouseDown={() => {
             let newValue = field.value + step;
-            // Solo limitar si max está definido
             if (typeof max === "number") newValue = Math.min(max, newValue);
             field.onChange(newValue);
             startHolding(true, newValue, field.onChange);
@@ -131,7 +121,7 @@ const MCCounterInput = ({
             startHolding(true, newValue, field.onChange);
           }}
           onTouchEnd={stopHolding}
-          className="p-3 rounded-full border-2 border-primary/20 hover:border-primary/40 hover:bg-primary/5 active:scale-90 transition-all duration-200"
+          className="p-2 rounded-full border-2 border-primary/20 hover:border-primary/40 hover:bg-primary/5 active:scale-90 transition-all duration-200"
         >
           <Plus className="w-5 h-5 text-primary" />
         </button>
@@ -140,25 +130,18 @@ const MCCounterInput = ({
   );
 
   const renderHoursVariant = (field: any) => {
-    // Convertir el valor del campo (HH:mm:ss) a minutos totales
-    const totalMinutes =
-      typeof field.value === "string"
-        ? timeStringToMinutes(field.value)
-        : field.value;
-
-    const hours = Math.floor(totalMinutes / 60);
-    const minutes = totalMinutes % 60;
+    // El valor ahora es un objeto { hours, minutes }
+    const value = field.value || { hours: 0, minutes: 1 };
+    const hours = value.hours ?? 0;
+    const minutes = value.minutes ?? 1;
 
     const updateTime = (newHours: number, newMinutes: number) => {
       if (newHours < 0) newHours = 0;
       if (newHours > 23) newHours = 23;
-      if (newMinutes < 0) newMinutes = 0;
+      if (newMinutes < 1) newMinutes = 1;
       if (newMinutes > 59) newMinutes = 59;
 
-      const totalMinutes = newHours * 60 + newMinutes;
-      // Convertir a formato HH:mm:ss antes de guardar
-      const timeString = minutesToTimeString(totalMinutes);
-      field.onChange(timeString);
+      field.onChange({ hours: newHours, minutes: newMinutes });
     };
 
     return (
@@ -304,7 +287,7 @@ const MCCounterInput = ({
     <Controller
       name={name}
       control={control}
-      defaultValue={defaultValue}
+      defaultValue={getDefaultValue()}
       render={({ field }) => {
         // Wrap field.onChange to call both the form onChange and the prop onChange
         const handleChange = (value: any) => {

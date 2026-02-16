@@ -5,7 +5,7 @@ import z, { number } from "zod";
 export const appointmentSchemaBase = z.object({
   date: z.string(),
   time: z.string().min(1),
-  selectedModality: z.enum(["presencial", "teleconsulta", "Mixta"]),
+  selectedModality: z.enum(["presencial", "teleconsulta"]), // ← CORREGIDO: sin "Mixta"
   numberOfSessions: number().min(1).max(5).default(1),
   reason: z.string().min(10).max(100),
   insuranceProvider: z.string().min(1),
@@ -63,3 +63,7 @@ export const cancelAppointmentSchema = (t: (key: string) => string) =>
         message: t("appointment.cancellationReasonMax"),
       }),
   });
+
+// Exportar el tipo inferido del schema
+export type scheduleAppointment = z.infer<typeof appointmentSchemaBase>;
+export type CancelAppointment = z.infer<typeof cancelAppointmentSchemaBase>;

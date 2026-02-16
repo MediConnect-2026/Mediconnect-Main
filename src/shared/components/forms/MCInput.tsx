@@ -33,7 +33,8 @@ interface MCInputProps {
   internalTitle?: string;
   internalPlaceholder?: string;
   displayMode?: "placeholder" | "value";
-  isPrice?: boolean; // <--- NUEVA PROP
+  isPrice?: boolean;
+  customDisplayValue?: string; // Nueva prop para mostrar valores formateados
 }
 
 function formatCedula(value: string) {
@@ -44,10 +45,7 @@ function formatCedula(value: string) {
 }
 
 function formatTime(value: string): string {
-  // Remover todos los caracteres que no sean números
   const digits = value.replace(/\D/g, "");
-
-  // Limitar a 6 dígitos (HHMMSS)
   const limitedDigits = digits.slice(0, 6);
 
   if (limitedDigits.length <= 2) {
@@ -79,7 +77,8 @@ function MCInput({
   internalTitle,
   internalPlaceholder,
   displayMode = "placeholder",
-  isPrice = false, // <--- NUEVA PROP
+  isPrice = false,
+  customDisplayValue,
 }: MCInputProps) {
   const formContext = standalone ? null : useFormContext();
   const { t } = useTranslation("common");
@@ -235,11 +234,18 @@ function MCInput({
     return internalPlaceholder || placeholder;
   };
 
+  const getDisplayValue = () => {
+    if (customDisplayValue !== undefined) {
+      return customDisplayValue;
+    }
+    return currentValue;
+  };
+
   // Detectar si el input debe estar deshabilitado por variante interna
   const isInternalDisabled = isInternalVariant;
 
   return (
-    <div className="w-full flex flex-col  px-0">
+    <div className="w-full flex flex-col px-0">
       {/* Label externo */}
       {label && !isInternalVariant && (
         <div className="flex flex-row justify-between items-center mb-2 gap-2">
@@ -276,7 +282,7 @@ function MCInput({
 
       {/* LAYOUT VERTICAL */}
       {isVerticalLayout ? (
-        <div className="border border-primary/50 rounded-full px-4 sm:px-5 py-3">
+        <div className="border border-primary/50 rounded-full px-4 sm:px-5 py-3 cursor-pointer">
           {internalTitle && (
             <label
               htmlFor={name}
@@ -287,9 +293,9 @@ function MCInput({
             </label>
           )}
           <div className="relative">
-            {displayMode === "value" && currentValue ? (
+            {displayMode === "value" && getDisplayValue() ? (
               <div className="w-full text-primary/60 text-right text-sm sm:text-base">
-                {currentValue}
+                {getDisplayValue()}
               </div>
             ) : (
               <input
@@ -303,7 +309,7 @@ function MCInput({
                 {...inputProps}
                 className={cn(
                   "h-fit px-0 border-none w-full text-left placeholder:text-left focus:ring-0 focus:outline-none",
-                  "text-primary/60 placeholder:text-primary/60 text-sm sm:text-base",
+                  "text-primary/60 placeholder:text-primary/60 text-sm sm:text-base cursor-pointer",
                   getIconPaddingClasses(),
                   className,
                 )}
@@ -314,7 +320,7 @@ function MCInput({
         </div>
       ) : isHorizontalLayout ? (
         /* LAYOUT HORIZONTAL */
-        <div className="border border-primary/60 rounded-full px-4 sm:px-5 py-3 sm:py-4">
+        <div className="border border-primary/60 rounded-full px-4 sm:px-5 py-3 sm:py-4 cursor-pointer">
           <div className="flex flex-row items-center justify-between gap-4">
             {internalTitle && (
               <label
@@ -326,10 +332,10 @@ function MCInput({
               </label>
             )}
             <div className="relative flex-1 min-w-0">
-              {displayMode === "value" && currentValue ? (
+              {displayMode === "value" && getDisplayValue() ? (
                 <div className="w-full text-primary/60 text-right text-sm sm:text-base">
                   {isPrice && <span className="font-semibold mr-1">RD$</span>}
-                  {currentValue}
+                  {getDisplayValue()}
                 </div>
               ) : (
                 <input
@@ -342,9 +348,9 @@ function MCInput({
                   disabled={isInternalDisabled}
                   {...inputProps}
                   className={cn(
-                    "h-fit w-full px-0 border-none text-right placeholder:text-right focus:ring-0 focus:outline-none",
+                    "h-fit w-full px-0 border-none text-right placeholder:text-right focus:ring-0 focus:outline-none cursor-pointer",
                     "text-primary/60 placeholder:text-primary/60 text-sm sm:text-base",
-                    isInternalDisabled && "cursor-pointer bg-muted",
+                    isInternalDisabled && "cursor-pointer bg-transparent",
                     getIconPaddingClasses(),
                     className,
                   )}
@@ -387,7 +393,6 @@ function MCInput({
               handleStatusColor(),
               getVariantClasses(),
               getIconPaddingClasses(),
-              getIconPaddingClasses(),
               className,
             )}
             style={isPrice ? { paddingLeft: "4rem" } : undefined}
@@ -414,13 +419,13 @@ function MCInput({
           {statusMessage}
         </span>
       )}
-      <div className="w-full flex items-center justify-start px-2 ">
+      <div className="w-full flex items-center justify-start px-2">
         {/* Form Errors */}
         {error && (
           <span className="text-red-500 text-sm mt-1 text-left">
             {String(error?.message)}
           </span>
-        )}{" "}
+        )}
       </div>
     </div>
   );

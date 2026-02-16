@@ -28,11 +28,10 @@ export const createAppointmentSlice: StateCreator<AppointmentSlice> = (
     time: "",
     reason: "",
     insuranceProvider: "",
-    selectedModality: "presencial",
+    selectedModality: "presencial", // ✅ Valor por defecto válido
     numberOfSessions: 1,
     serviceId: "",
     doctorId: "",
-    // appointmentId es opcional - solo existe cuando editamos
     appointmentId: undefined,
   },
 
@@ -56,7 +55,7 @@ export const createAppointmentSlice: StateCreator<AppointmentSlice> = (
         time: "",
         reason: "",
         insuranceProvider: "",
-        selectedModality: "presencial",
+        selectedModality: "presencial", // ✅ Valor por defecto válido
         numberOfSessions: 1,
         serviceId: "",
         doctorId: "",
