@@ -164,8 +164,21 @@
     "consequence2": "You won't be able to log in or recover your account.",
     "consequence3": "All your appointments and connections with doctors or health centers will be cancelled.",
     "consequence4": "Associated messages and records will be irreversibly deleted, following MediConnect's privacy policies.",
+    "confirmationHint": "Please type DELETE ACCOUNT to confirm that you want to delete your account.",
+    "placeholder": "Type DELETE ACCOUNT to confirm",
+    "confirmationLabel": "Type DELETE ACCOUNT to confirm",
     "cancelButton": "Cancel",
-    "deleteButton": "Delete Account"
+    "success": "Account deleted successfully",
+    "deleteButton": "Delete Account",
+    "errors": {
+      "confirmationInvalid": "You must type exactly \"DELETE ACCOUNT\" to confirm",
+      "noPassword": "Password verification required. Please enter your password to confirm.",
+      "incorrectPassword": "Incorrect password. Please restart the process.",
+      "invalidData": "Invalid data. Please restart the process.",
+      "accountInactive": "Account is already inactive or deleted.",
+      "userNotFound": "User not found. Please restart the process.",
+      "generic": "An error occurred while trying to delete your account. Please try again later."
+    }
   },
   "profileVisibility": {
     "title": "Professional profile privacy",

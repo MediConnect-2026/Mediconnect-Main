@@ -33,18 +33,10 @@ import {
 import { MCUserAvatar } from "@/shared/navigation/userMenu/MCUserAvatar";
 import { MCUserBanner } from "@/shared/navigation/userMenu/MCUserBanner";
 import { useTranslation } from "react-i18next";
+import { getDoctorRating, getUserAvatar, getUserFullName } from "@/services/auth/auth.types";
 
 interface Props {
-  doctor: {
-    name: string;
-    avatar?: string;
-    banner?: string;
-    specialty: string;
-    rating: number;
-    yearsOfExperience: number;
-    languages: string[];
-    isFavorite?: boolean;
-  };
+  doctor: any;
   setOpenSheet: (open: boolean) => void;
   onSendMessage?: () => void;
   onToggleFavorite?: () => void;
@@ -73,7 +65,7 @@ function DoctorProfileBanner({
         ) : (
           <MCUserBanner
             className="absolute top-0 left-0 w-full h-full rounded-t-4xl"
-            name={doctor?.name || "IliaTopuria"}
+            name={getUserFullName(doctor) || "IliaTopuria"}
           />
         )}
         <div
@@ -81,14 +73,14 @@ function DoctorProfileBanner({
           style={{ zIndex: 2 }}
         >
           <div className="flex items-center w-[95%]">
-            {doctor?.avatar ? (
+            {getUserAvatar(doctor) ? (
               <UiAvatar className="w-40 h-40 rounded-full border-4 border-background">
                 <AvatarImage
-                  src={doctor.avatar}
+                  src={getUserAvatar(doctor)}
                   alt={t("profileForm.profilePhoto")}
                 />
                 <AvatarFallback>
-                  {doctor.name
+                  {getUserFullName(doctor)
                     .split(" ")
                     .map((n: string) => n[0])
                     .join("")
@@ -97,7 +89,7 @@ function DoctorProfileBanner({
               </UiAvatar>
             ) : (
               <MCUserAvatar
-                name={doctor?.name || "IliaTopuria"}
+                name={getUserFullName(doctor) || "IliaTopuria"}
                 size={180}
                 className="border-5 border-background rounded-full h-full"
               />
@@ -106,7 +98,7 @@ function DoctorProfileBanner({
             <div className="mt-25 w-full flex justify-between items-center px-6">
               <div className="flex flex-col gap-1">
                 <h3 className="text-primary font-semibold text-2xl flex items-center gap-2">
-                  {doctor?.name || "Ilia Topuria"}
+                  {getUserFullName(doctor) || "Ilia Topuria"}
                   <BadgeCheck
                     className="w-6 h-6 text-background"
                     fill="#8bb1ca"
@@ -121,7 +113,7 @@ function DoctorProfileBanner({
                         size={18}
                         className="text-[#F7B500]"
                       />
-                      {doctor.rating.toFixed(1)}
+                      {getDoctorRating(doctor.calificacionPromedio)}
                     </span>
                     &#8226;{" "}
                     <span className="flex items-center gap-1">
@@ -129,11 +121,11 @@ function DoctorProfileBanner({
                       {doctor.yearsOfExperience}{" "}
                       {t("profileForm.yearsExperience")}
                     </span>
-                    &#8226;{" "}
-                    <span className="flex items-center gap-1">
+                    {/*&#8226;{" "}
+                     <span className="flex items-center gap-1">
                       <Languages size={18} className="text-secondary" />
                       {doctor.languages.join(", ")}
-                    </span>
+                    </span> */}
                   </span>
                 </div>
               </div>

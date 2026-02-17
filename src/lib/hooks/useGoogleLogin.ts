@@ -7,7 +7,8 @@ import {
   type GoogleLoginResponse,
   normalizeGoogleLoginResponse,
   isGoogleLoginSuccess,
-  isGoogleRegistration
+  isGoogleRegistration,
+  isUserDeleted
 } from '@/services/auth/auth.types';
 import { useAppStore } from '@/stores/useAppStore';
 import { useGlobalUIStore } from '@/stores/useGlobalUIStore';
@@ -34,9 +35,32 @@ export const useGoogleLogin = (): UseGoogleLoginReturn => {
     onSuccess: (data) => {      
       // Verificar si es un login exitoso o requiere registro
       if (isGoogleLoginSuccess(data)) {
-
-        // Usuario ya registrado - hacer login normal
+        // Normalizar la respuesta para obtener los datos del usuario
         const { accessToken, refreshToken, user } = normalizeGoogleLoginResponse(data);
+
+        // Verificar si el usuario tiene estado "Eliminado"
+        if (isUserDeleted(user)) {
+          // Guardar datos del usuario de Google
+          setGoogleUserData({
+            email: user.email,
+            nombre: user.paciente?.nombre || user.doctor?.nombre || '',
+            apellido: user.paciente?.apellido || user.doctor?.apellido || '',
+            foto: user.fotoPerfil || undefined,
+          });
+          
+          // Mostrar mensaje informativo
+          setToast({
+            message: t('auth.accountDeleted') || 'Esta cuenta ha sido eliminada. Por favor, completa el registro nuevamente.',
+            type: 'info',
+            open: true,
+          });
+          
+          // Redirigir a registro
+          navigate(ROUTES.REGISTER);
+          return;
+        }
+
+        // Usuario ya registrado y activo - hacer login normal
         login(accessToken, refreshToken, user as any);
 
         // Mostrar mensaje de éxito

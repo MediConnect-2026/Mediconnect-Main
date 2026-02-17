@@ -24,6 +24,8 @@ import type {
   ValidarCodigoEmailResponse,
   CambiarEmailRequest,
   CambiarEmailResponse,
+  DeleteAccountRequest,
+  DeleteAccountResponse,
 } from './auth.types';
 
 
@@ -211,6 +213,35 @@ export const authService = {
     const { data } = await apiClient.patch<CambiarEmailResponse>(
       API_ENDPOINTS.AUTH.EMAIL_CAMBIAR,
       request
+    );
+    return data;
+  },
+
+  /**
+   * Eliminar cuenta del usuario autenticado (Soft Delete)
+   * DELETE /auth/cuenta
+   * 
+   * **Validaciones**:
+   * - Usuario debe estar autenticado (JWT token válido)
+   * - Contraseña debe ser correcta
+   * - Confirmación exacta: "ELIMINAR CUENTA" (case-sensitive)
+   * 
+   * **Comportamiento**:
+   * - Marca el usuario como estado: 'Eliminado'
+   * - Elimina en cascada todas las entidades relacionadas
+   * - Las citas activas se marcan como 'Cancelada'
+   * - Permite re-registro posterior con el mismo email
+   * 
+   * ⚠️ **ADVERTENCIA**: Esta acción no se puede deshacer
+   */
+  deleteAccount: async (
+    request: DeleteAccountRequest
+  ): Promise<DeleteAccountResponse> => {
+    const { data } = await apiClient.delete<DeleteAccountResponse>(
+      API_ENDPOINTS.AUTH.DELETE_ACCOUNT,
+      {
+        data: request,
+      }
     );
     return data;
   },

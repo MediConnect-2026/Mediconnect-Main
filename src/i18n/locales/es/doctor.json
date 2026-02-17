@@ -252,18 +252,33 @@
 
   "profile": {
     "about": {
-      "title": "Acerca del doctor"
+      "title": "Acerca del doctor",
+      "addBio": "Agrega una biografía para que tus pacientes te conozcan mejor",
+      "noBio": "Este doctor no ha proporcionado una biografía.",
+      "addButton": "Agregar biografía"
     },
     "education": {
-      "title": "Formación Académica"
+      "title": "Formación Académica",
+      "loading": "Cargando formación académica...",
+      "addEducation": "Agrega tu formación académica para completar tu perfil profesional",
+      "noEducation": "Este doctor no ha registrado su formación académica.",
+      "addButton": "Agregar formación académica"
     },
     "experience": {
-      "title": "Experiencia Profesional"
+      "title": "Experiencia Profesional",
+      "loading": "Cargando experiencia profesional...",
+      "addExperience": "Agrega tu experiencia profesional para completar tu perfil",
+      "noExperience": "Este doctor no ha registrado su experiencia profesional.",
+      "addButton": "Agregar experiencia profesional"
     },
     "insurance": {
       "title": "Seguros Médicos Aceptados",
       "question": "¿Este doctor está dentro de su red de seguros?",
-      "morePlans": "Más planes de Seguros dentro de la red - Ver todo"
+      "morePlans": "Más planes de Seguros dentro de la red - Ver todo",
+      "loading": "Cargando seguros...",
+      "addInsurance": "Agrega los seguros médicos que aceptas para ayudar a tus pacientes",
+      "noInsurance": "Este doctor no ha registrado seguros médicos aceptados.",
+      "addButton": "Agregar seguros aceptados"
     },
     "services": {
       "title": "Servicios ofrecidos",

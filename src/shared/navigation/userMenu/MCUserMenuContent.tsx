@@ -120,7 +120,7 @@ export function MCUserMenuContent({
   const getProfileRoute = (): string => {
     switch (userRole) {
       case "DOCTOR":
-        return "/doctor/profile";
+        return `/doctor/profile/${userData.userId}`;
       case "CENTER":
         return "/center/profile";
       case "PATIENT":

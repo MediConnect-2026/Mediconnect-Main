@@ -101,7 +101,8 @@
     "removed": "Insurance removed successfully",
     "added": "Insurance added successfully",
     "mapfre": "Mapfre Health",
-    "particular": "Private"
+    "particular": "Private",
+    "selectType": "Select insurance type"
   },
   "validation": {
     "fullNameRequired": "Full name is required",

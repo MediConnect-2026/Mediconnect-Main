@@ -59,6 +59,23 @@ export interface UpdateProfilePhotoError {
   statusCode?: number;
 }
 
+// --- TIPOS PARA ACTUALIZACIÓN DE BANNER ---
+
+export interface UpdateBannerResponse {
+  success: boolean;
+  message: string;
+  data: {
+    bannerUrl: string;
+  };
+}
+
+export interface UpdateBannerError {
+  success: false;
+  message: string;
+  error?: string;
+  statusCode?: number;
+}
+
 // --- TIPOS PARA CONDICIONES MÉDICAS Y ALERGIAS ---
 
 export interface CondicionMedica {
@@ -144,6 +161,14 @@ export interface TipoSeguro {
   id: number;
   nombre: string;
   descripcion: string;
+  estado?: string;
+  creadoEn?: string;
+}
+
+export interface GetAvailableInsuranceTypesResponse {
+  success: boolean;
+  message?: string;
+  data: TipoSeguro[];
 }
 
 export interface Seguro {

@@ -35,16 +35,7 @@ import { MCUserBanner } from "@/shared/navigation/userMenu/MCUserBanner";
 import { useTranslation } from "react-i18next";
 
 interface Props {
-  doctor: {
-    name: string;
-    avatar?: string;
-    banner?: string;
-    specialty: string;
-    rating: number;
-    yearsOfExperience: number;
-    languages: string[];
-    isFavorite?: boolean;
-  };
+  doctor: any;
   setOpenSheet: (open: boolean) => void;
   onSendMessage?: () => void;
   onToggleFavorite?: () => void;

@@ -40,7 +40,7 @@ function PersonalInformation({
   const [tempImage, setTempImage] = useState<string>("");
 
   const [bannerImage, setBannerImage] = useState<string>(
-    patientProfile?.banner?.url || "",
+    user?.banner?.url || "",
   );
   const [profileImage, setProfileImage] = useState<string>(
     getUserAvatar(user) || "",
@@ -55,6 +55,9 @@ function PersonalInformation({
 
   // Guardar la imagen original del perfil para detectar cambios
   const originalProfileImage = getUserAvatar(user) || "";
+
+  // Guardar la imagen original del banner para detectar cambios
+  const originalBannerImage = user?.banner?.url || "";
 
   // Opciones de tipos de sangre
   const bloodTypeOptions = [
@@ -170,7 +173,44 @@ function PersonalInformation({
         }
       }
 
-      // 2. Actualizar datos personales (altura, peso, tipo de sangre)
+      // 2. Si el banner cambió, actualizarlo
+      let newBannerUrl = originalBannerImage;
+      const bannerImageChanged = bannerImage !== originalBannerImage && bannerImage;
+
+      if (bannerImageChanged) {
+        try {
+          // Convertir la imagen base64 a File
+          const bannerFile = base64ToFile(
+            bannerImage,
+            'banner.jpg',
+            'image/jpeg'
+          );
+
+          // Llamar al servicio para actualizar el banner
+          const bannerResponse = await patientService.updateBanner(bannerFile);
+
+          if (bannerResponse.success && bannerResponse.data.bannerUrl) {
+            // Agregar timestamp para evitar caché del navegador
+            newBannerUrl = `${bannerResponse.data.bannerUrl}?t=${Date.now()}`;
+            
+            // Actualizar también el estado local para preview inmediata
+            setBannerImage(newBannerUrl);
+            
+            toast.success(
+              t("profileForm.bannerUpdated", "Banner actualizado exitosamente")
+            );
+          }
+        } catch (bannerError) {
+          console.error("Error al actualizar banner:", bannerError);
+          const bannerErrorMessage = bannerError instanceof Error 
+            ? bannerError.message 
+            : t("profileForm.errorBannerUpdate", "Error al actualizar el banner");
+          toast.error(bannerErrorMessage);
+          // Continuar con la actualización de datos personales aunque falle el banner
+        }
+      }
+
+      // 3. Actualizar datos personales (altura, peso, tipo de sangre)
       const updateData: UpdatePatientProfileRequest = {
         altura: data.height ? Number(data.height) : undefined,
         peso: data.weight ? Number(data.weight) : undefined,
@@ -186,10 +226,15 @@ function PersonalInformation({
           ? `${newProfilePhotoUrl}?t=${Date.now()}` 
           : newProfilePhotoUrl;
 
+        const bannerUrlWithCacheBust = newBannerUrl 
+          ? `${newBannerUrl}?t=${Date.now()}` 
+          : newBannerUrl;
+
         // Actualizar el usuario en el store con los nuevos datos
         useAppStore.getState().updateUser({
           ...user,
           fotoPerfil: photoUrlWithCacheBust,
+          banner: bannerUrlWithCacheBust ? { url: bannerUrlWithCacheBust } : null,
           paciente: user.paciente ? {
             ...user.paciente,
             ...response.data,
@@ -205,8 +250,8 @@ function PersonalInformation({
             avatar: newProfilePhotoUrl
               ? { url: newProfilePhotoUrl, type: "image", name: "avatar" }
               : undefined,
-            banner: bannerImage
-              ? { url: bannerImage, type: "image", name: "banner" }
+            banner: newBannerUrl
+              ? { url: newBannerUrl, type: "image", name: "banner" }
               : undefined,
           });
         }

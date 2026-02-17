@@ -70,7 +70,7 @@ function PatientProfileBanner({ user, setOpenSheet }: Props) {
       <div className="relative h-60 flex items-end rounded-t-4xl bg-background ">
         {user?.banner ? (
           <img
-            src={user.banner}
+            src={user.banner.url}
             alt={t("profileForm.bannerImage")}
             className="absolute top-0 left-0 w-full h-full object-cover rounded-t-4xl"
             style={{ zIndex: 1 }}

@@ -8,15 +8,8 @@ import { useProfileStore } from "@/stores/useProfileStore";
 import { patientInsuranceSchema } from "@/schema/profile.schema";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
 import { patientService } from "./services/patient.service";
-import type { Seguro } from "./services/patient.types";
+import type { Seguro, TipoSeguro } from "./services/patient.types";
 import { toast } from "sonner";
-
-// Tipos de seguro disponibles (esto podría venir de la API si existe un endpoint)
-const INSURANCE_TYPES = [
-  { value: 1, label: "Plan Básico de Salud" },
-  { value: 2, label: "Subsidiado" },
-  { value: 3, label: "Contributivo Subsidiado" },
-];
 
 interface InsuranceProps {
   onInsurancesChanged?: () => void;
@@ -34,6 +27,7 @@ function Insurance({ onInsurancesChanged }: InsuranceProps = {}) {
 
   // Estados para las listas de seguros
   const [availableInsurances, setAvailableInsurances] = useState<Seguro[]>([]);
+  const [availableInsuranceTypes, setAvailableInsuranceTypes] = useState<TipoSeguro[]>([]);
   const [myInsurances, setMyInsurances] = useState<Seguro[]>([]);
   const [selectedInsuranceType, setSelectedInsuranceType] = useState<number | null>(null);
 
@@ -57,10 +51,15 @@ function Insurance({ onInsurancesChanged }: InsuranceProps = {}) {
   async function loadInsurancesData() {
     try {
       setIsLoadingInsurances(true);
-      const [availableResponse, myResponse] = await Promise.all([
+      const [typesResponse, availableResponse, myResponse] = await Promise.all([
+        patientService.getAvailableInsuranceTypes(i18n.language),
         patientService.getAvailableInsurances(i18n.language),
         patientService.getMyInsurances(i18n.language),
       ]);
+
+      if (typesResponse.success) {
+        setAvailableInsuranceTypes(typesResponse.data);
+      }
 
       if (availableResponse.success) {
         setAvailableInsurances(availableResponse.data);
@@ -293,9 +292,9 @@ function Insurance({ onInsurancesChanged }: InsuranceProps = {}) {
           name="insuranceType"
           className="mb-4"
           placeholder={t("insurance.typePlaceholder", "Tipo de seguro")}
-          options={INSURANCE_TYPES.map(type => ({
-            value: type.value.toString(),
-            label: type.label,
+          options={availableInsuranceTypes.map(type => ({
+            value: type.id.toString(),
+            label: type.nombre,
           }))}
           onChange={(value) => {
             if (typeof value === "string") {

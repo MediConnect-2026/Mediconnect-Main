@@ -250,18 +250,33 @@
 
   "profile": {
     "about": {
-      "title": "About the doctor"
+      "title": "About the doctor",
+      "addBio": "Add a biography so your patients can get to know you better",
+      "noBio": "This doctor has not provided a biography.",
+      "addButton": "Add biography"
     },
     "education": {
-      "title": "Academic Education"
+      "title": "Academic Education",
+      "loading": "Loading academic education...",
+      "addEducation": "Add your academic education to complete your professional profile",
+      "noEducation": "This doctor has not registered their academic education.",
+      "addButton": "Add academic education"
     },
     "experience": {
-      "title": "Professional Experience"
+      "title": "Professional Experience",
+      "loading": "Loading professional experience...",
+      "addExperience": "Add your professional experience to complete your profile",
+      "noExperience": "This doctor has not registered their professional experience.",
+      "addButton": "Add professional experience"
     },
     "insurance": {
       "title": "Accepted Medical Insurance",
       "question": "Is this doctor within your insurance network?",
-      "morePlans": "More Insurance Plans within the network - View all"
+      "morePlans": "More Insurance Plans within the network - View all",
+      "loading": "Loading insurance...",
+      "addInsurance": "Add the medical insurance you accept to help your patients",
+      "noInsurance": "This doctor has not registered accepted medical insurance.",
+      "addButton": "Add accepted insurance"
     },
     "services": {
       "title": "Services offered",

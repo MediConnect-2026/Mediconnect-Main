@@ -8,7 +8,7 @@ import { getUserAppRole } from "@/services/auth/auth.types";
 interface MCSheetProfileProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  whatTab?: "general" | "history" | "insurance";
+  whatTab?: "general" | "history" | "insurance" | "education" | "experience" | "language" | string;
   onInsurancesChanged?: () => void;
   onClinicalHistoryChanged?: () => void;
 }
@@ -23,7 +23,7 @@ function MCSheetProfile({ open, onOpenChange, whatTab, onInsurancesChanged, onCl
       case "PATIENT":
         return <MCSheetPatient onOpenChange={onOpenChange} whatTab={whatTab} onInsurancesChanged={onInsurancesChanged} onClinicalHistoryChanged={onClinicalHistoryChanged} />;
       case "DOCTOR":
-        return <MCSheetDoctor onOpenChange={onOpenChange} />;
+        return <MCSheetDoctor onOpenChange={onOpenChange} whatTab={whatTab} />;
       case "CENTER":
         return <MCSheetHealthCenter onOpenChange={onOpenChange} />;
       default:

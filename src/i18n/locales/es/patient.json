@@ -101,7 +101,8 @@
     "added": "Seguro agregado exitosamente",
     "profileCopied": "Enlace de perfil copiado al portapapeles",
     "logoutSuccess": "¡Sesión cerrada exitosamente!",
-    "particular": "Particular"
+    "particular": "Particular",
+    "selectType": "Seleccionar tipo de seguro"
   },
   "validation": {
     "fullNameRequired": "El nombre completo es requerido",

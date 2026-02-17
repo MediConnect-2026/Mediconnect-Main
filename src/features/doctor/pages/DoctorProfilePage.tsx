@@ -1,12 +1,9 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { motion } from "framer-motion";
-import MCBackButton from "@/shared/components/forms/MCBackButton";
 import MCSheetProfile from "@/shared/navigation/userMenu/editProfile/MCSheetProfile";
 import { useAppStore } from "@/stores/useAppStore";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
-import { fadeInUp } from "@/lib/animations/commonAnimations";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import DoctorProfileBanner from "../components/profile/DoctorProfileBanner";
 import DoctorProfileBannerMobile from "../components/profile/DoctorProfileBannerMobile";
 import DoctorEducationSection from "../components/profile/DoctorEducationSection";
@@ -19,12 +16,14 @@ import MCDashboardContent from "@/shared/layout/MCDashboardContent"; // <-- impo
 
 function DoctorProfilePage() {
   const { doctorId } = useParams();
-  const { t } = useTranslation("doctor");
+  const { t, i18n } = useTranslation("doctor");
   const [openSheet, setOpenSheet] = useState(false);
   const isMobile = useIsMobile();
-  const navigate = useNavigate();
-  const user = useAppStore((state) => state.user);
+  const user = useAppStore((state) => state.user); 
+  const [sheetTab, setSheetTab] = useState<"general" | "education" | "insurance" | "experience" | "language">("general");
 
+  console.log("Doctor from store:", user);
+  
   // Mock data - en producción esto vendría de una API
   const doctor = {
     name: "LeBron James",
@@ -37,64 +36,6 @@ function DoctorProfilePage() {
     isFavorite: false,
     about:
       "LeBron James integra toda la familia, enfocándose en prevenir, diagnosticar y tratar enfermedades comunes. Nuestro médico de familia acompaña a cada paciente en todas las etapas de su vida, considerando su bienestar físico, emocional y social.",
-    education: [
-      {
-        degree: "Medicina General",
-        institution: "Universidad Nacional Autónoma de México",
-        location: "Ciudad de México",
-        year: "1995-2001",
-      },
-      {
-        degree: "Especialidad en Cardiología",
-        institution: "Hospital General de México",
-        location: "Ciudad de México",
-        year: "2002-2006",
-      },
-      {
-        degree: "Fellowship en Enfermedades Autoinmunes",
-        institution: "Mayo Clinic, USA",
-        location: "Rochester, Minnesota",
-        year: "2007-2018",
-      },
-    ],
-    experience: [
-      {
-        position: "Médico Internista Senior",
-        institution: "Hospital ABC",
-        period: "2015 - Presente",
-        description: "Atención de pacientes hospitalizados y consulta externa",
-      },
-      {
-        position: "Fellow en Enfermedades Autoinmunes",
-        institution: "Mayo Clinic",
-        period: "2012 - 2018",
-        description:
-          "Especialización en enfermedades autoinmunes y manejo avanzado",
-      },
-      {
-        position: "Médico Residente",
-        institution: "Hospital General de México",
-        period: "2011 - 2015",
-        description: "Residencia en medicina interna",
-      },
-      {
-        position: "Médico Pasante",
-        institution: "Centro de Salud Valencia",
-        period: "2010 - 2011",
-        description: "Servicio social y consulta en medicina general",
-      },
-    ],
-    insurances: [
-      "Seguros Atlas",
-      "AXA Palic",
-      "ARS Palic",
-      "Seguros Atlas",
-      "Humano Seguros",
-      "MAPFRE ARS",
-      "ARS Universal",
-      "Seguros Crecer",
-      "ARS Yunen",
-    ],
   };
 
   const services = [
@@ -195,7 +136,7 @@ function DoctorProfilePage() {
     },
   ];
 
-  const isMyProfile = user?.id === doctorId;
+  const isMyProfile = user?.id === (doctorId ? Number(doctorId) : undefined);
 
   return (
     <MCDashboardContent mainWidth="w-[100%]" noBg>
@@ -204,13 +145,13 @@ function DoctorProfilePage() {
         <div className="w-full">
           {isMobile ? (
             <DoctorProfileBannerMobile
-              doctor={doctor}
+              doctor={user}
               setOpenSheet={setOpenSheet}
               isMyProfile={isMyProfile}
             />
           ) : (
             <DoctorProfileBanner
-              doctor={doctor}
+              doctor={user}
               setOpenSheet={setOpenSheet}
               isMyProfile={isMyProfile}
             />
@@ -222,28 +163,68 @@ function DoctorProfilePage() {
           <div className="grid grid-cols-1 lg:grid-cols-[8fr_2fr] gap-4 lg:gap-4">
             {/* Columna principal */}
             <div className="flex flex-col gap-4 lg:gap-6 order-1">
-              <DoctorAboutSection doctor={doctor} />
-              <DoctorInsurancesSection insurances={doctor.insurances} />
+              <DoctorAboutSection 
+                doctor={user?.doctor || doctor} 
+                isMyProfile={isMyProfile}
+                onOpenSheet={() => {
+                  setSheetTab("general");
+                  setOpenSheet(true);
+                }}
+              />
+              <DoctorInsurancesSection
+                isMyProfile={isMyProfile}
+                onOpenSheet={() => setOpenSheet(true)}
+              />
               <DoctorServicesSection services={services} />
               <DoctorCentersSection centers={centers} />
               {/* Educación y Experiencia - solo en mobile */}
               <div className="flex flex-col gap-4 lg:hidden">
-                <DoctorEducationSection education={doctor.education} />
-                <DoctorExperienceSection experience={doctor.experience} />
+                <DoctorEducationSection 
+                  isMyProfile={isMyProfile}
+                  onOpenSheet={() => setOpenSheet(true)}
+                />
+                {user?.id && (
+                  <DoctorExperienceSection 
+                    doctorId={user.id}
+                    isMyProfile={isMyProfile}
+                    onOpenSheet={() => setOpenSheet(true)}
+                  />
+                )}
               </div>
             </div>
             {/* Columna lateral - sticky en desktop, oculta en mobile */}
             <div className="hidden lg:flex flex-col gap-6 order-2">
               <div className="sticky top-24 space-y-6">
-                <DoctorEducationSection education={doctor.education} />
-                <DoctorExperienceSection experience={doctor.experience} />
+                <DoctorEducationSection 
+                  isMyProfile={isMyProfile}
+                  onOpenSheet={() => setOpenSheet(true)}
+                />
+                {user?.id && (
+                  <DoctorExperienceSection 
+                    doctorId={user.id}
+                    isMyProfile={isMyProfile}
+                    onOpenSheet={() => {
+                      setSheetTab("experience");
+                      setOpenSheet(true);
+                    }}
+                  />
+                )}
               </div>
             </div>
           </div>
         </div>
         <div className="h-8 lg:h-12" />
         {/* Sheet de perfil */}
-        <MCSheetProfile open={openSheet} onOpenChange={setOpenSheet} />
+        <MCSheetProfile 
+          open={openSheet} 
+          onOpenChange={(open) => {
+            setOpenSheet(open);
+            if (!open) {
+              setSheetTab("general");
+            }
+          }}
+          whatTab={sheetTab}
+        />
       </div>
     </MCDashboardContent>
   );

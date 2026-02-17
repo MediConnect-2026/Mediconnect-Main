@@ -18,19 +18,20 @@ import Experience from "./Experience";
 
 interface MCSheetDoctorProps {
   onOpenChange: (open: boolean) => void;
+  whatTab?: string;
 }
 
-function MCSheetDoctor({ onOpenChange }: MCSheetDoctorProps) {
+function MCSheetDoctor({ onOpenChange, whatTab }: MCSheetDoctorProps) {
   const { t } = useTranslation("doctor");
-  const [activeTab, setActiveTab] = useState("general");
+  const [activeTab, setActiveTab] = useState(whatTab || "general");
   const isMobile = useIsMobile();
 
   const tabs = [
     { value: "general", label: t("tabs.general"), icon: User },
-    { value: "formacion", label: t("tabs.education"), icon: GraduationCap },
-    { value: "idiomas", label: t("tabs.languages"), icon: Languages },
-    { value: "seguros", label: t("tabs.insurance"), icon: Shield },
-    { value: "experiencia", label: t("tabs.experience"), icon: Briefcase },
+    { value: "education", label: t("tabs.education"), icon: GraduationCap },
+    { value: "language", label: t("tabs.languages"), icon: Languages },
+    { value: "insurance", label: t("tabs.insurance"), icon: Shield },
+    { value: "experience", label: t("tabs.experience"), icon: Briefcase },
   ];
 
   const getTabTitle = () => {
@@ -141,19 +142,19 @@ function MCSheetDoctor({ onOpenChange }: MCSheetDoctorProps) {
             <GeneralInformation onOpenChange={onOpenChange} />
           </TabsContent>
 
-          <TabsContent value="formacion" className="m-0 p-0">
+          <TabsContent value="education" className="m-0 p-0">
             <Education onOpenChange={onOpenChange} />
           </TabsContent>
 
-          <TabsContent value="idiomas" className="m-0 p-0">
+          <TabsContent value="language" className="m-0 p-0">
             <LanguagesTab />
           </TabsContent>
 
-          <TabsContent value="seguros" className="m-0 p-0">
+          <TabsContent value="insurance" className="m-0 p-0">
             <Insurance />
           </TabsContent>
 
-          <TabsContent value="experiencia" className="m-0 p-0">
+          <TabsContent value="experience" className="m-0 p-0">
             <Experience onOpenChange={onOpenChange} />
           </TabsContent>
         </div>

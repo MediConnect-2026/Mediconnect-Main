@@ -5,6 +5,8 @@ import type {
   UpdatePatientProfileError,
   UpdateProfilePhotoResponse,
   UpdateProfilePhotoError,
+  UpdateBannerResponse,
+  UpdateBannerError,
   GetAvailableAllergiesResponse,
   GetAvailableConditionsResponse,
   AddAllergyRequest,
@@ -19,6 +21,7 @@ import type {
   RemoveConditionResponse,
   MedicalConditionError,
   GetAvailableInsurancesResponse,
+  GetAvailableInsuranceTypesResponse,
   GetMyInsurancesResponse,
   AddInsuranceRequest,
   AddInsuranceResponse,
@@ -126,6 +129,67 @@ export const patientService = {
         errorData?.message || 
         error.message || 
         'Error al actualizar la foto de perfil. Intenta nuevamente.'
+      );
+    }
+  },
+
+  /**
+   * Actualiza el banner del usuario autenticado
+   * @param file - Archivo de imagen (JPEG, PNG, WEBP, máximo 5MB)
+   * @returns Respuesta con la URL del nuevo banner
+   */
+  updateBanner: async (
+    file: File
+  ): Promise<UpdateBannerResponse> => {
+    try {
+      // Validar tipo de archivo
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+      if (!allowedTypes.includes(file.type)) {
+        throw new Error('Solo se permiten imágenes (JPEG, PNG, WEBP)');
+      }
+
+      // Validar tamaño (5MB)
+      const maxSize = 5 * 1024 * 1024; // 5MB en bytes
+      if (file.size > maxSize) {
+        throw new Error('El archivo supera el tamaño máximo de 5MB');
+      }
+
+      // Crear FormData para enviar el archivo
+      const formData = new FormData();
+      formData.append('banner', file);
+
+      const response = await apiClient.patch<UpdateBannerResponse>(
+        '/auth/banner',
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        }
+      );
+
+      return response.data;
+    } catch (error: any) {
+      console.error('❌ [Patient Service] Error al actualizar banner:', error);
+      
+      const errorData = error.response?.data as UpdateBannerError;
+      
+      if (error.response?.status === 400) {
+        throw new Error(
+          errorData?.message || 
+          'Archivo inválido. Verifica el tipo y tamaño del archivo.'
+        );
+      }
+      
+      if (error.response?.status === 404) {
+        throw new Error('Usuario no encontrado.');
+      }
+      
+      // Error genérico del servidor o del cliente API
+      throw new Error(
+        errorData?.message || 
+        error.message || 
+        'Error al actualizar el banner. Intenta nuevamente.'
       );
     }
   },
@@ -469,6 +533,47 @@ export const patientService = {
   },
 
   // --- MÉTODOS PARA SEGUROS MÉDICOS ---
+
+  /**
+   * Obtiene todos los tipos de seguros disponibles
+   * @param language - Idioma para traducción automática (opcional, por defecto 'es')
+   * @returns Lista de tipos de seguros activos
+   * 
+   * Soporta traducción automática mediante query params:
+   * - target: idioma destino
+   * - source: idioma origen (español)
+   * - translate_fields: campos a traducir (nombre)
+   */
+  getAvailableInsuranceTypes: async (language?: string): Promise<GetAvailableInsuranceTypesResponse> => {
+    try {
+      // Construir query params
+      const params: Record<string, string> = {};
+
+      // Agregar traducción si se especifica un idioma diferente al español
+      if (language && language !== 'es') {
+        params.target = language;
+        params.source = 'es';
+        params.translate_fields = 'nombre';
+      }
+
+      const response = await apiClient.get<GetAvailableInsuranceTypesResponse>(
+        '/tipos-seguros/disponibles',
+        { params }
+      );
+
+      return response.data;
+    } catch (error: any) {
+      console.error('❌ [Patient Service] Error al obtener tipos de seguros disponibles:', error);
+      
+      const errorData = error.response?.data as InsuranceError;
+      
+      throw new Error(
+        errorData?.message || 
+        error.message || 
+        'Error al obtener tipos de seguros disponibles. Intenta nuevamente.'
+      );
+    }
+  },
 
   /**
    * Obtiene todos los seguros disponibles

@@ -25,7 +25,9 @@ export interface User {
   rol: ApiUserRole | string;
   fotoPerfil?: string | null;
   paciente: Paciente | null;
+  banner?: { url: string } | null;
   doctor: Doctor | null;
+  telefono?: string | null;
   centroSalud: CentroSalud | null;
 }
 
@@ -36,6 +38,7 @@ export interface DoctorDocument {
   urlArchivo: string;
   nombreOriginal: string;
   tipoMime: string;
+  estadoRevision: string;
   tamanio_bytes: number | null;
   descripcion: string | null;
   estado: string;
@@ -66,6 +69,7 @@ export interface Doctor {
   numeroDocumentoIdentificacion: string;
   fotoDocumento: string | null;
   fotoPerfil: string | null;
+  banner?: { url: string } | null;
   fechaNacimiento: string; // ISO Date string
   genero: string;
   telefono: string | null;
@@ -88,6 +92,7 @@ export interface Doctor {
   formaciones: any[]; // Array de formaciones
   especialidades?: DoctorEspecialidad[];
   documentos?: DoctorDocument[];
+  usuario?: User; // Para acceder a datos comunes del usuario como email, fotoPerfil, etc.
 }
 
 
@@ -397,13 +402,33 @@ export function getUserInitials(user: User | null): string {
   }
 }
 
+/**
+ * Obtener el rating del doctor en formato de estrellas (1-5) a partir de calificacionPromedio
+ */
+export function getDoctorRating(calificacionPromedio: string | null): number {
+  if (!calificacionPromedio) return 0;
+  const rating = parseFloat(calificacionPromedio);
+  if (isNaN(rating)) return 0;
+  return Math.min(5, Math.max(1, rating));
+}
+
 
 /**
  * Obtiene el rol de la aplicación a partir del usuario
+ * Maneja tanto roles en formato API ('Doctor', 'Paciente') como roles ya normalizados ('DOCTOR', 'PATIENT')
  */
 export function getUserAppRole(user: User | null): AppUserRole | null {
   if (!user) return null;
-  return roleMapping[user.rol as ApiUserRole] || null;
+  
+  const rol = user.rol;
+  
+  // Si el rol ya está en formato AppUserRole, retornarlo directamente
+  if (rol === 'PATIENT' || rol === 'DOCTOR' || rol === 'CENTER' || rol === 'ADMINISTRATOR') {
+    return rol as AppUserRole;
+  }
+  
+  // Si no, intentar mapearlo desde ApiUserRole
+  return roleMapping[rol as ApiUserRole] || null;
 }
 
 /**
@@ -526,6 +551,31 @@ export function getPatientGender(paciente: Paciente | null): string {
   return paciente.genero;
 }
 
+/**
+ * Verifica si un usuario tiene estado "Eliminado"
+ * Revisa el estado en el objeto del rol correspondiente (paciente, doctor o centroSalud)
+ */
+export function isUserDeleted(user: User | null): boolean {
+  if (!user) return false;
+  
+  // Verificar estado en paciente
+  if (user.paciente && user.paciente.estado) {
+    return user.paciente.estado.toLowerCase() === 'eliminado';
+  }
+  
+  // Verificar estado en doctor
+  if (user.doctor && user.doctor.estado) {
+    return user.doctor.estado.toLowerCase() === 'eliminado';
+  }
+  
+  // Verificar estado en centro de salud
+  if (user.centroSalud && user.centroSalud.estado) {
+    return user.centroSalud.estado.toLowerCase() === 'eliminado';
+  }
+  
+  return false;
+}
+
 // --- VERIFICAR DOCUMENTO ---
 export interface VerificarDocumentoRequest {
   numero: string;
@@ -536,4 +586,21 @@ export interface VerificarDocumentoResponse {
   disponible: boolean;
   message: string;
   tipoUsuario?: 'Doctor' | 'Paciente';
+}
+
+// --- ELIMINAR CUENTA ---
+export interface DeleteAccountRequest {
+  password: string;
+  confirmacion: string; // Debe ser exactamente "ELIMINAR CUENTA"
+}
+
+export interface DeleteAccountResponse {
+  mensaje: string;
+  nota?: string;
+}
+
+export interface DeleteAccountError {
+  error: string;
+  detalles?: string[] | string;
+  mensaje?: string;
 }

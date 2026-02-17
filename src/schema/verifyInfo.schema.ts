@@ -127,6 +127,7 @@ export type UploadedFile = z.infer<typeof uploadedFileBaseSchema>;
 // --- Archivo con verificationStatus (para documentos individuales) ---
 // ✅ Este se usa para identityDocumentFile y academicTitle
 export const uploadedFileWithStatusBaseSchema = uploadedFileBaseSchema.extend({
+  id: z.number().optional(), // ID del documento en el API (para actualizaciones)
   verificationStatus: verificationStatusEnum,
   feedback: z.string().optional(),
 });
@@ -147,7 +148,8 @@ export function centerDocumentsSchema(t: (key: string) => string) {
 // --- Documentos del doctor ---
 // ✅ Actualizado para incluir el estado padre de las certificaciones
 export const doctorDocumentsBaseSchema = z.object({
-  identityDocumentFile: uploadedFileWithStatusBaseSchema,
+  // ✅ Cambiado a array para soportar múltiples documentos de identidad
+  identityDocumentFiles: z.array(uploadedFileWithStatusBaseSchema).min(1),
   academicTitle: uploadedFileWithStatusBaseSchema.optional(),
   // ✅ certifications usa uploadedFileBaseSchema (sin estado individual)
   certifications: z.array(uploadedFileBaseSchema).optional(),

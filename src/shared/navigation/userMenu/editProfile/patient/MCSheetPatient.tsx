@@ -10,7 +10,7 @@ import { useIsMobile } from "@/lib/hooks/useIsMobile";
 
 interface MCSheetPatientProps {
   onOpenChange: (open: boolean) => void;
-  whatTab?: "general" | "history" | "insurance";
+  whatTab?: "general" | "history" | "insurance" | "education" | "experience" | "language" | string;
   onInsurancesChanged?: () => void;
   onClinicalHistoryChanged?: () => void;
 }

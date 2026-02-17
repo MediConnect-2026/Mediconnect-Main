@@ -25,6 +25,9 @@ export const API_ENDPOINTS = {
     EMAIL_SOLICITAR_CODIGO: '/auth/registro/solicitar-codigo',
     EMAIL_VALIDAR_CODIGO: '/auth/registro/validar-codigo',
     EMAIL_CAMBIAR: '/auth/cambiar-email',
+    
+    // Eliminar cuenta
+    DELETE_ACCOUNT: '/auth/cuenta',
   },
   
   // --- CITAS (APPOINTMENTS) ---
@@ -108,6 +111,11 @@ export const API_ENDPOINTS = {
   TRANSLATOR: {
     TRANSLATE: '/traductor',
     UTILITIES: '/traductor/utilidades',
+  },
+  
+  // --- SEGUROS ---
+  SEGUROS: {
+    ACEPTADOS: '/seguros/seguros-aceptados',
   },
 } as const;
 

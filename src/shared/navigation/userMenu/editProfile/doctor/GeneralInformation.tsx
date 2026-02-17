@@ -11,9 +11,12 @@ import { Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { MCDialogBase } from "@/shared/components/MCDialogBase";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { doctorProfileSchema } from "@/schema/profile.schema";
+import type { UseFormReturn } from "react-hook-form";
 import MCPhoneInput from "@/shared/components/forms/MCPhoneInput";
+import { useAppStore } from "@/stores/useAppStore";
+import { getUserAvatar, getUserFullName } from "@/services/auth/auth.types";
 type CropType = "banner" | "profile";
 
 interface GeneralInformationProps {
@@ -25,23 +28,61 @@ function GeneralInformation({ onOpenChange }: GeneralInformationProps) {
   const isMobile = useIsMobile();
   const doctorProfile = useProfileStore((s) => s.doctorProfile);
   const setDoctorProfile = useProfileStore((s) => s.setDoctorProfile);
+  const user = useAppStore((s) => s.user);
 
   const [cropModalOpen, setCropModalOpen] = useState(false);
   const [cropType, setCropType] = useState<CropType>("profile");
   const [tempImage, setTempImage] = useState<string>("");
 
+  console.log("Doctor Profile in GeneralInformation:", user);
+  
+  // Mapear los datos del doctor a los valores del formulario
+  const defaultValues = useMemo(
+    () =>
+      user?.doctor
+        ? {
+            role: "DOCTOR" as const,
+            fullName: `${user.doctor.nombre} ${user.doctor.apellido}`.trim(),
+            specialty:
+              user.doctor.especialidades?.find((e) => e.es_principal)
+                ?.especialidades.nombre || "",
+            secondarySpecialties:
+              user.doctor.especialidades
+                ?.filter((e) => !e.es_principal)
+                .map((e) => e.especialidades.nombre) || [],
+            email: user.email || "",
+            phone: user.doctor.telefono || "",
+            yearsExperience: user.doctor.anosExperiencia?.toString() || "",
+            licenseNumber: user.doctor.exequatur || "",
+            identityDocument: user.doctor.numeroDocumentoIdentificacion || "",
+            nationality: user.doctor.nacionalidad || "",
+            birthDate: user.doctor.fechaNacimiento || "",
+            biography: user.doctor.biografia || "",
+          }
+        : undefined,
+    [user]
+  );
+
   const [bannerImage, setBannerImage] = useState<string>(
-    doctorProfile?.banner?.url || "",
+    user?.doctor?.banner?.url || user?.banner?.url || "",
   );
   const [profileImage, setProfileImage] = useState<string>(
-    doctorProfile?.avatar?.url || "",
+    user?.doctor?.fotoPerfil || user?.fotoPerfil || "",
   );
 
   const bannerInputRef = useRef<HTMLInputElement>(null);
   const profileInputRef = useRef<HTMLInputElement>(null);
+  const formRef = useRef<UseFormReturn<any> | null>(null);
 
   const [showDeleteProfileModal, setShowDeleteProfileModal] = useState(false);
   const [showDeleteBannerModal, setShowDeleteBannerModal] = useState(false);
+
+  // Resetear el formulario cuando cambien los defaultValues
+  useEffect(() => {
+    if (formRef.current && defaultValues) {
+      formRef.current.reset(defaultValues);
+    }
+  }, [defaultValues]);
 
   const handleImageChange = (
     e: React.ChangeEvent<HTMLInputElement>,
@@ -110,6 +151,7 @@ function GeneralInformation({ onOpenChange }: GeneralInformationProps) {
     }
   };
 
+  console.log("Default Values for GeneralInformation form:", defaultValues);
   return (
     <>
       <MCProfileImageUploader
@@ -154,9 +196,10 @@ function GeneralInformation({ onOpenChange }: GeneralInformationProps) {
 
       <MCFormWrapper
         schema={doctorProfileSchema(t)}
-        defaultValues={doctorProfile || undefined}
+        defaultValues={defaultValues}
         onSubmit={handleSubmit}
         className="flex flex-col gap-4"
+        formRef={formRef}
       >
         {/* Banner Image */}
         <div className="flex flex-col gap-3">
@@ -181,7 +224,7 @@ function GeneralInformation({ onOpenChange }: GeneralInformationProps) {
               ) : (
                 <MCUserBanner
                   name={
-                    doctorProfile?.fullName ||
+                    getUserFullName(user) ||
                     t("profileForm.fullNamePlaceholder")
                   }
                 />
@@ -247,7 +290,7 @@ function GeneralInformation({ onOpenChange }: GeneralInformationProps) {
                   ) : (
                     <MCUserAvatar
                       name={
-                        doctorProfile?.fullName ||
+                        getUserAvatar(user) ||
                         t("profileForm.fullNamePlaceholder")
                       }
                       size={isMobile ? 96 : 128}

@@ -48,14 +48,14 @@ function DoctorReadOnlyView({ data }: DoctorReadOnlyViewProps) {
           {t("verification.identification.identificationNumber")}
         </p>
         <p className="font-medium text-foreground">
-          {data.identificationNumber}
+          {data.identificationNumber?.replace(/(\d{3})(\d{7})(\d{1})/, "$1-$2-$3")}
         </p>
       </div>
       <div>
         <p className="text-sm text-muted-foreground mb-1">
           {t("verification.identification.phone")}
         </p>
-        <p className="font-medium text-foreground">{data.phone}</p>
+        <p className="font-medium text-foreground">{data.phone?.replace(/(\d{3})(\d{3})(\d{4})/, "$1-$2-$3")}</p>
       </div>
       <div>
         <p className="text-sm text-muted-foreground mb-1">
@@ -83,7 +83,7 @@ function DoctorReadOnlyView({ data }: DoctorReadOnlyViewProps) {
         <p className="text-sm text-muted-foreground mb-1">
           {t("verification.identification.medicalLicense")}
         </p>
-        <p className="font-medium text-foreground">{data.medicalLicense}</p>
+        <p className="font-medium text-foreground">{data.medicalLicense?.replace(/(\d{3})(\d{2})/, "$1-$2")}</p>
       </div>
     </div>
   );

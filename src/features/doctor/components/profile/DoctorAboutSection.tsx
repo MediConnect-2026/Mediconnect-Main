@@ -1,31 +1,14 @@
-import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { useTranslation } from "react-i18next";
-
-interface Education {
-  degree: string;
-  institution: string;
-  location: string;
-  year: string;
-}
-
-interface Experience {
-  position: string;
-  institution: string;
-  period: string;
-  description: string;
-}
+import MCButton from "@/shared/components/forms/MCButton";
 
 interface Props {
-  doctor: {
-    about: string;
-    education: Education[];
-    experience: Experience[];
-    insurances: string[];
-  };
+  doctor: any;
+  isMyProfile?: boolean;
+  onOpenSheet?: () => void;
 }
 
-function DoctorAboutSection({ doctor }: Props) {
+function DoctorAboutSection({ doctor, isMyProfile = false, onOpenSheet }: Props) {
   const { t } = useTranslation("doctor");
 
   return (
@@ -36,9 +19,28 @@ function DoctorAboutSection({ doctor }: Props) {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <p className="text-muted-foreground leading-relaxed px-6">
-          {doctor.about}
-        </p>
+        {doctor.biografia ? (
+          <p className="text-muted-foreground leading-relaxed px-6">
+            {doctor.biografia}
+          </p>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-8 text-center px-6">
+            <p className="text-muted-foreground mb-4">
+              {isMyProfile 
+                ? t("profile.about.addBio", "Agrega una biografía para que tus pacientes te conozcan mejor")
+                : t("profile.about.noBio", "Este doctor no ha proporcionado una biografía.")}
+            </p>
+            {isMyProfile && onOpenSheet && (
+              <MCButton
+                variant="outline"
+                onClick={onOpenSheet}
+                size="sm"
+              >
+                {t("profile.about.addButton", "Agregar biografía")}
+              </MCButton>
+            )}
+          </div>
+        )}
       </CardContent>
     </Card>
   );

@@ -163,8 +163,21 @@
     "consequence2": "No podrás iniciar sesión ni recuperar tu cuenta.",
     "consequence3": "Se cancelarán todas tus citas y conexiones con médicos o centros de salud.",
     "consequence4": "Los mensajes y registros asociados se eliminarán de manera irreversible, siguiendo las políticas de privacidad de MediConnect.",
+    "confirmationHint": "Por favor, escribe ELIMINAR CUENTA para confirmar que deseas eliminar tu cuenta.",
+    "placeholder": "Escribe ELIMINAR CUENTA para confirmar",
+    "confirmationLabel": "Escribe ELIMINAR CUENTA para confirmar",
     "cancelButton": "Cancelar",
-    "deleteButton": "Eliminar Cuenta"
+    "success": "Cuenta eliminada exitosamente",
+    "deleteButton": "Eliminar Cuenta",
+    "errors": {
+      "confirmationInvalid": "Debes escribir exactamente \"ELIMINAR CUENTA\" para confirmar",
+      "noPassword": "Se requiere verificación de contraseña. Por favor, ingresa tu contraseña para confirmar.",
+      "incorrectPassword": "Contraseña incorrecta. Por favor, reinicia el proceso.",
+      "invalidData": "Datos inválidos. Por favor, reinicia el proceso.",
+      "accountInactive": "Tu cuenta ya está inactiva o eliminada.",
+      "userNotFound": "Usuario no encontrado. Por favor, reinicia el proceso.",
+      "generic": "Ocurrió un error al eliminar tu cuenta. Por favor, intenta nuevamente más tarde."
+    }
   },
   "profileVisibility": {
     "title": "Privacidad del perfil profesional",
