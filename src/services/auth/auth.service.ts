@@ -18,6 +18,12 @@ import type {
   SolicitarCodigoPasswordResponse,
   SolicitarCodigoPasswordRequest,
   VerificarDocumentoResponse,
+  SolicitarCodigoEmailRequest,
+  SolicitarCodigoEmailResponse,
+  ValidarCodigoEmailRequest,
+  ValidarCodigoEmailResponse,
+  CambiarEmailRequest,
+  CambiarEmailResponse,
 } from './auth.types';
 
 
@@ -162,6 +168,49 @@ export const authService = {
       {
         params: { numero },
       }
+    );
+    return data;
+  },
+
+  /**
+   * Solicitar código OTP para cambio de email
+   * POST /auth/email/solicitar-codigo
+   */
+  solicitarCodigoEmail: async (
+    request: SolicitarCodigoEmailRequest
+  ): Promise<SolicitarCodigoEmailResponse> => {
+    const { data } = await apiClient.post<SolicitarCodigoEmailResponse>(
+      API_ENDPOINTS.AUTH.EMAIL_SOLICITAR_CODIGO,
+      request
+    );
+    return data;
+  },
+
+  /**
+   * Validar código OTP para cambio de email
+   * POST /auth/email/validar-codigo
+   */
+  validarCodigoEmail: async (
+    request: ValidarCodigoEmailRequest
+  ): Promise<ValidarCodigoEmailResponse> => {
+    const { data } = await apiClient.post<ValidarCodigoEmailResponse>(
+      API_ENDPOINTS.AUTH.EMAIL_VALIDAR_CODIGO,
+      request
+    );
+    return data;
+  },
+
+  /**
+   * Cambiar email del usuario autenticado
+   * PATCH /auth/cambiar-email
+   * Requiere contraseña actual para confirmar identidad
+   */
+  cambiarEmail: async (
+    request: CambiarEmailRequest
+  ): Promise<CambiarEmailResponse> => {
+    const { data } = await apiClient.patch<CambiarEmailResponse>(
+      API_ENDPOINTS.AUTH.EMAIL_CAMBIAR,
+      request
     );
     return data;
   },

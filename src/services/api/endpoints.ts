@@ -20,6 +20,11 @@ export const API_ENDPOINTS = {
     RESET_PASSWORD: '/auth/reset-password',
     VERIFY_EMAIL: '/auth/verify-email',
     VERIFICAR_DOCUMENTO: '/auth/verificar-documento',
+    
+    // Cambio de email
+    EMAIL_SOLICITAR_CODIGO: '/auth/registro/solicitar-codigo',
+    EMAIL_VALIDAR_CODIGO: '/auth/registro/validar-codigo',
+    EMAIL_CAMBIAR: '/auth/cambiar-email',
   },
   
   // --- CITAS (APPOINTMENTS) ---

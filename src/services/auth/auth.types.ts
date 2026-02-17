@@ -29,6 +29,36 @@ export interface User {
   centroSalud: CentroSalud | null;
 }
 
+export interface DoctorDocument {
+  id: number;
+  doctorId: number;
+  tipoDocumento: string;
+  urlArchivo: string;
+  nombreOriginal: string;
+  tipoMime: string;
+  tamanio_bytes: number | null;
+  descripcion: string | null;
+  estado: string;
+  creadoEn: string;
+  actualizadoEn: string | null;
+}
+
+export interface DoctorEspecialidad {
+  id_doctor: number;
+  id_especialidad: number;
+  es_principal: boolean;
+  estado: string;
+  creado_en: string;
+  actualizado_en: string | null;
+  especialidades: {
+    id: number;
+    nombre: string;
+    descripcion: string;
+    estado: string;
+    creadoEn: string;
+  };
+}
+
 export interface Doctor {
   usuarioId: number;
   nombre: string;
@@ -38,6 +68,7 @@ export interface Doctor {
   fotoPerfil: string | null;
   fechaNacimiento: string; // ISO Date string
   genero: string;
+  telefono: string | null;
   nacionalidad: string;
   exequatur: string;
   biografia: string;
@@ -55,6 +86,8 @@ export interface Doctor {
   tarifas: any | null; // Puedes definir una interfaz Tarifa si conoces la estructura
   ubicacion: any | null; // Puedes definir una interfaz Ubicacion si conoces la estructura
   formaciones: any[]; // Array de formaciones
+  especialidades?: DoctorEspecialidad[];
+  documentos?: DoctorDocument[];
 }
 
 
@@ -183,6 +216,41 @@ export interface CambiarPasswordRequest {
 }
 
 export interface CambiarPasswordResponse {
+  success: boolean;
+  message: string;
+}
+
+// --- SOLICITAR CÓDIGO OTP PARA CAMBIO DE EMAIL ---
+export interface SolicitarCodigoEmailRequest {
+  email: string;
+}
+
+export interface SolicitarCodigoEmailResponse {
+  success: boolean;
+  message: string;
+}
+
+// --- VALIDAR CÓDIGO OTP PARA CAMBIO DE EMAIL ---
+export interface ValidarCodigoEmailRequest {
+  email: string;
+  codigo: string;
+}
+
+export interface ValidarCodigoEmailResponse {
+  success: boolean;
+  message: string;
+  data: {
+    token: string;
+  };
+}
+
+// --- CAMBIAR EMAIL ---
+export interface CambiarEmailRequest {
+  nuevoEmail: string;
+  password: string;
+}
+
+export interface CambiarEmailResponse {
   success: boolean;
   message: string;
 }

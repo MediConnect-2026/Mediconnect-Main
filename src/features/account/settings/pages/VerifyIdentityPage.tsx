@@ -99,7 +99,7 @@ function VerifyIdentityPage() {
         setToast({
           type: "success",
           message: t(
-            "verifyIdentity.successMessage",
+            "verifyIdentity.successMessage", 
             "Identity verified successfully.",
           ),
           open: true,

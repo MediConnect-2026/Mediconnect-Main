@@ -32,6 +32,9 @@ export interface VerifyInfoSlice {
   centerDocuments: CenterDocuments | null;
   setCenterDocuments: (docs: CenterDocuments) => void;
   clearCenterDocuments: () => void;
+
+  // Clear all
+  clearAll: () => void;
 }
 
 export const createVerifyInfoSlice: StateCreator<VerifyInfoSlice> = (set) => ({
@@ -66,4 +69,13 @@ export const createVerifyInfoSlice: StateCreator<VerifyInfoSlice> = (set) => ({
   centerDocuments: null,
   setCenterDocuments: (docs) => set({ centerDocuments: docs }),
   clearCenterDocuments: () => set({ centerDocuments: null }),
+
+  // Clear all
+  clearAll: () =>
+    set({
+      doctorInfo: null,
+      centerInfo: null,
+      doctorDocuments: null,
+      centerDocuments: null,
+    }),
 });

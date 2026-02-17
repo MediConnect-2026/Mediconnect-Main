@@ -6,9 +6,7 @@ import {
   Plus,
   Trash2,
   Eye,
-  Send,
   AlertTriangle,
-  XCircle,
 } from "lucide-react";
 import type { UploadedFileWithStatus, UploadedFile } from "@/types/Documents";
 import StatusBadge from "./Statusbadge";
@@ -270,6 +268,42 @@ export default function DocumentCard({
           />
         </div>
       </div>
+
+      {/* Preview para documento individual (no array) */}
+      {!isArray && currentDocument && (
+        <div className="rounded-lg md:rounded-xl border border-primary/15 p-3 md:p-4">
+          <div className="flex items-start gap-2 md:gap-3">
+            <div className="flex-1 min-w-0">
+              {/* Preview para imágenes */}
+              {currentDocument.type.startsWith("image/") && (
+                <img
+                  src={currentDocument.url}
+                  alt={currentDocument.name}
+                  className="w-full max-w-md rounded-lg object-cover cursor-pointer border"
+                  onClick={() => {
+                    setCarouselStartIndex(0);
+                    setCarouselOpen(true);
+                  }}
+                />
+              )}
+
+              {/* Botón para ver PDFs */}
+              {!currentDocument.type.startsWith("image/") && (
+                <PreviewDocumentsDialog
+                  documentUrl={currentDocument.url}
+                  documentType={currentDocument.type}
+                  documentName={currentDocument.name}
+                >
+                  <button className="flex items-center gap-2 px-3 md:px-4 py-2 md:py-2.5 rounded-lg bg-primary/10 hover:bg-primary/20 transition-colors text-sm md:text-base font-medium text-primary">
+                    <Eye className="w-4 h-4 md:w-5 md:h-5" />
+                    {t("verification.documentsSection.viewDocument")}
+                  </button>
+                </PreviewDocumentsDialog>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Lista de documentos existentes para arrays */}
       {isArray && currentDocuments.length > 0 && (

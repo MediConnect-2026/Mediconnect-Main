@@ -114,19 +114,75 @@ function VerifyNewEmailPage() {
           navigate("/settings/change-password");
         }
       } else {
-        // Lógica para cambio de email (mantener comportamiento original)
-        setChangeEmailData({
-          ...changeEmailData,
-          otp: data.otp,
-          newEmail: changeEmailData?.newEmail || "",
+        // Lógica para cambio de email
+        const verifyAccountPassword = useProfileStore.getState().verifyAccountPassword?.password;
+        
+        if (!verifyAccountPassword) {
+          setToast({
+            message: t("verifyEmail.passwordNotFound", "Password verification required. Please restart the process."),
+            type: "error",
+            open: true,
+          });
+          navigate("/settings");
+          return;
+        }
+
+        if (!changeEmailData?.newEmail) {
+          setToast({
+            message: t("verifyEmail.newEmailNotFound", "New email not found. Please restart the process."),
+            type: "error",
+            open: true,
+          });
+          navigate("/settings");
+          return;
+        }
+
+        // PASO 1: Validar el código OTP primero
+        const validationResponse = await authService.validarCodigoEmail({
+          email: changeEmailData.newEmail,
+          codigo: data.otp,
         });
 
-        setToast({
-          message: t("verifyEmail.success", "Email verified successfully"),
-          type: "success",
-          open: true,
+        if (!validationResponse.success) {
+          setToast({
+            message: t("verifyEmail.invalidCode", "Invalid verification code.") || validationResponse.message,
+            type: "error",
+            open: true,
+          });
+          return;
+        }
+
+        // PASO 2: Si el código es válido, cambiar el email
+        const response = await authService.cambiarEmail({
+          nuevoEmail: changeEmailData.newEmail,
+          password: verifyAccountPassword,
         });
-        navigate("/settings");
+
+        if (response.success) {
+          setToast({
+            message: t("verifyEmail.emailChangedSuccess", "Email changed successfully!") || response.message,
+            type: "success",
+            open: true,
+          });
+
+          // Actualizar el email en el store del usuario
+          const updateUser = useAppStore.getState().updateUser;
+          if (sessionUser) {
+            updateUser({
+              ...sessionUser,
+              email: changeEmailData.newEmail,
+            });
+          }
+
+          // Limpiar los datos del cambio de email
+          setChangeEmailData({
+            newEmail: "",
+            otp: "",
+          });
+
+          // Redirigir a settings
+          navigate("/settings");
+        }
       }
     } catch (error: any) {
       const axiosError = error as AxiosError<ApiErrorResponse>;
@@ -141,6 +197,18 @@ function VerifyNewEmailPage() {
       } else if (axiosError?.response?.data?.message?.toLowerCase().includes("inválido")) {
         setToast({
           message: tAuth("registerEmailVerifyPage.errors.invalidOtp", "Invalid code. Please verify and try again."),
+          type: "error",
+          open: true,
+        });
+      } else if (axiosError?.response?.data?.message?.toLowerCase().includes("contraseña incorrecta")) {
+        setToast({
+          message: t("verifyEmail.incorrectPassword", "Incorrect password. Please restart the process."),
+          type: "error",
+          open: true,
+        });
+      } else if (axiosError?.response?.data?.message?.toLowerCase().includes("ya está registrado")) {
+        setToast({
+          message: t("verifyEmail.emailAlreadyRegistered", "This email is already registered."),
           type: "error",
           open: true,
         });
@@ -173,8 +241,13 @@ function VerifyNewEmailPage() {
           open: true,
         });
       } else {
-        // Lógica para reenviar código de cambio de email
-        alert("Código reenviado a " + targetEmail);
+        // Reenviar código para cambio de email
+        await authService.solicitarCodigoEmail({ email: targetEmail });
+        setToast({
+          message: t("verifyEmail.resendSuccess", "Code resent successfully"),
+          type: "success",
+          open: true,
+        });
       }
     } catch (error) {
       setToast({

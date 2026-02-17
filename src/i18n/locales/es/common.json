@@ -108,14 +108,20 @@
     "passwordLabel": "Contraseña",
     "passwordPlaceholder": "Ingresa tu contraseña",
     "verifyButton": "Verificar",
-    "successMessage": "Identidad verificada sin implementar lógica real."
+    "successMessage": "Identidad verificada correctamente.",
+    "otpSentMessage": "Código de verificación enviado a tu correo.",
+    "otpSendError": "Error al enviar el código de verificación. Inténtalo de nuevo."
   },
   "changeEmail": {
     "title": "Cambiar correo electrónico",
     "description": "Ingresa tu nueva dirección de correo. Te enviaremos un código de verificación.",
     "newEmailLabel": "Nuevo correo electrónico",
     "newEmailPlaceholder": "Ingresa tu nuevo correo electrónico",
-    "changeButton": "Cambiar correo"
+    "changeButton": "Cambiar correo",
+    "sameEmailError": "El nuevo correo no puede ser el mismo que el actual.",
+    "otpSentSuccess": "Código de verificación enviado a tu nuevo correo.",
+    "otpSendError": "Error al enviar el código de verificación. Inténtalo de nuevo.",
+    "sending": "Enviando..."
   },
   "verifyEmail": {
     "title": "Verifica tu nuevo correo",
@@ -123,7 +129,18 @@
     "tip": "¿No recibiste el código?:Revisa tu carpeta de spam o espera unos minutos.",
     "resend": "Reenviar código",
     "verify": "Verificar",
-    "currentOtp": "OTP actual:"
+    "currentOtp": "OTP actual:",
+    "emailNotFound": "Correo no encontrado",
+    "success": "Correo verificado exitosamente",
+    "error": "Error al validar el código. Inténtalo de nuevo.",
+    "invalidCode": "Código de verificación inválido.",
+    "resendSuccess": "Código reenviado exitosamente",
+    "resendError": "Error al reenviar el código",
+    "passwordNotFound": "Se requiere verificación de contraseña. Por favor, reinicia el proceso.",
+    "newEmailNotFound": "Nuevo correo no encontrado. Por favor, reinicia el proceso.",
+    "emailChangedSuccess": "¡Correo cambiado exitosamente!",
+    "incorrectPassword": "Contraseña incorrecta. Por favor, reinicia el proceso.",
+    "emailAlreadyRegistered": "Este correo ya está registrado."
   },
   "changePassword": {
     "title": "Cambiar contraseña",

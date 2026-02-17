@@ -29,6 +29,7 @@ import { useNavigate } from "react-router-dom";
 import { ROUTES } from "@/router/routes";
 import { useAppStore } from "@/stores/useAppStore";
 import { useGlobalUIStore } from "@/stores/useGlobalUIStore";
+import { useVerifyInfoStore } from "@/stores/useVerifyInfoStore";
 
 interface Props {
   user: any;
@@ -40,9 +41,11 @@ function PatientProfileBannerMobile({ user, setOpenSheet }: Props) {
   const navigate = useNavigate();
   const logout = useAppStore((state) => state.logout);
   const setToast = useGlobalUIStore((state) => state.setToast);
+  const clearAllVerifyInfo = useVerifyInfoStore((state) => state.clearAll);
 
   const handleLogout = () => {
     logout();
+    clearAllVerifyInfo(); // Limpiar datos de verificación
     setToast({
       message: t("profileForm.menu.logoutSuccess", "Sesión cerrada exitosamente"),
       type: "success",

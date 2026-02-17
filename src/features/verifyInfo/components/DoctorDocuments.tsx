@@ -75,7 +75,7 @@ export default function DoctorDocumentsView({
 }: DoctorDocumentsViewProps) {
   const { t } = useTranslation("common");
   const { doctorDocuments, setDoctorDocuments } = useVerifyInfoStore();
-
+  console.log("DoctorDocumentsView rendered with propDocuments:", propDocuments);
   useEffect(() => {
     if (!doctorDocuments) {
       setDoctorDocuments(propDocuments || initialDoctorDocuments);

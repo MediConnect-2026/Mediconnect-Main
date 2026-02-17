@@ -108,14 +108,21 @@
     "passwordLabel": "Password",
     "passwordPlaceholder": "Enter your password",
     "verifyButton": "Verify",
-    "successMessage": "Identity verified without implementing real logic."
+    "successMessage": "Identity verified successfully",
+    "errorMessage": "Incorrect password. Please try again.",
+    "otpSentMessage": "Verification code sent to your email.",
+    "otpSendError": "Failed to send verification code. Please try again."
   },
   "changeEmail": {
     "title": "Change email address",
     "description": "Enter your new email address. We'll send you a verification code.",
     "newEmailLabel": "New email address",
     "newEmailPlaceholder": "Enter your new email address",
-    "changeButton": "Change email"
+    "changeButton": "Change email",
+    "sameEmailError": "The new email cannot be the same as the current one.",
+    "otpSentSuccess": "Verification code sent to your new email.",
+    "otpSendError": "Error sending verification code. Please try again.",
+    "sending": "Sending..."
   },
   "verifyEmail": {
     "title": "Verify your new email",
@@ -123,7 +130,18 @@
     "tip": "Didn't receive the code?:Check your spam folder or wait a few minutes.",
     "resend": "Resend code",
     "verify": "Verify",
-    "currentOtp": "Current OTP:"
+    "currentOtp": "Current OTP:",
+    "emailNotFound": "Email not found",
+    "success": "Email verified successfully",
+    "error": "Error validating code. Please try again.",
+    "invalidCode": "Invalid verification code.",
+    "resendSuccess": "Code resent successfully",
+    "resendError": "Error resending code",
+    "passwordNotFound": "Password verification required. Please restart the process.",
+    "newEmailNotFound": "New email not found. Please restart the process.",
+    "emailChangedSuccess": "Email changed successfully!",
+    "incorrectPassword": "Incorrect password. Please restart the process.",
+    "emailAlreadyRegistered": "This email is already registered."
   },
   "changePassword": {
     "title": "Change password",

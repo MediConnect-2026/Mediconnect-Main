@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import { useEffect, useState } from "react";
 import MCDashboardContent from "@/shared/layout/MCDashboardContent";
 import MCInput from "@/shared/components/forms/MCInput";
 import MCFormWrapper from "@/shared/components/forms/MCFormWrapper";
@@ -11,12 +11,16 @@ import { useGlobalUIStore } from "@/stores/useGlobalUIStore";
 import { changeEmailSchema } from "@/schema/account.schema";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
 import { useTranslation } from "react-i18next";
+import { authService } from "@/services/auth/auth.service";
+import type { AxiosError } from "axios";
+import type { ApiErrorResponse } from "@/services/api/client";
 
 function ChangeEmailPage() {
   const { t } = useTranslation("common");
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const sessionUser = useAppStore((state) => state.user);
+  const [isLoading, setIsLoading] = useState(false);
 
   const VerificationContext = useGlobalUIStore(
     (state) => state.verificationContext,
@@ -30,6 +34,7 @@ function ChangeEmailPage() {
   const setVerificationContext = useGlobalUIStore(
     (state) => state.setVerificationContext,
   );
+  const setToast = useGlobalUIStore((state) => state.setToast);
   const changeEmailData = useProfileStore((state) => state.changeEmailData);
   const setChangeEmailData = useProfileStore(
     (state) => state.setChangeEmailData,
@@ -53,16 +58,58 @@ function ChangeEmailPage() {
   // Usa t para el schema
   const newEmailSchema = changeEmailSchema(t).pick({ newEmail: true });
 
-  const handleSubmit = (data: { newEmail: string }) => {
-    setChangeEmailData({
-      ...changeEmailData,
-      newEmail: data.newEmail,
-      otp: changeEmailData?.otp ?? "",
-    });
-    setVerificationContextStatus("VERIFIED");
-    setVerificationContext("CHANGE_EMAIL");
-    // Redirige a la página de verificación de email, no a /settings
-    navigate("/settings/verify-email");
+  const handleSubmit = async (data: { newEmail: string }) => {
+    if (data.newEmail === sessionUser?.email) {
+      setToast({
+        message: t("changeEmail.sameEmailError", "The new email cannot be the same as the current one."),
+        type: "error",
+        open: true,
+      });
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      // Solicitar código OTP al nuevo email
+      const response = await authService.solicitarCodigoEmail({
+        email: data.newEmail,
+      });
+
+      if (response.success) {
+        // Guardar el nuevo email en el store
+        setChangeEmailData({
+          ...changeEmailData,
+          newEmail: data.newEmail,
+          otp: changeEmailData?.otp ?? "",
+        });
+        setVerificationContextStatus("VERIFIED");
+        setVerificationContext("CHANGE_EMAIL");
+
+        setToast({
+          message: t("changeEmail.otpSentSuccess", "Verification code sent to your new email.") || response.message,
+          type: "success",
+          open: true,
+        });
+
+        // Redirigir a la página de verificación de email
+        navigate("/settings/verify-email");
+      }
+    } catch (error: any) {
+      const axiosError = error as AxiosError<ApiErrorResponse>;
+      const errorMessage = 
+        axiosError?.response?.data?.message || 
+        error?.message || 
+        t("changeEmail.otpSendError", "Error sending verification code. Please try again.");
+
+      setToast({
+        message: errorMessage,
+        type: "error",
+        open: true,
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -100,8 +147,11 @@ function ChangeEmailPage() {
               className={isMobile ? "w-full" : "w-xs"}
               icon={<ArrowRight />}
               iconPosition="right"
+              disabled={isLoading}
             >
-              {t("changeEmail.changeButton")}
+              {isLoading 
+                ? t("changeEmail.sending", "Sending...")
+                : t("changeEmail.changeButton")}
             </MCButton>
           </MCFormWrapper>
         </div>
