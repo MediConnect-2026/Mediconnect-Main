@@ -5,12 +5,16 @@ import { serviceSchema } from "@/schema/createService.schema";
 import { useTranslation } from "react-i18next";
 import { useCreateServicesStore } from "@/stores/useCreateServicesStore";
 import { useEffect, useRef, useState } from "react";
+import { useIsMobile } from "@/lib/hooks/useIsMobile";
 
 interface DescriptionModalProps {
   children?: React.ReactNode;
 }
 
 function DescriptionModal({ children }: DescriptionModalProps) {
+  const isMobile = useIsMobile();
+  const { t } = useTranslation("doctor");
+
   const setCreateServiceField = useCreateServicesStore(
     (s) => s.setCreateServiceField,
   );
@@ -21,12 +25,10 @@ function DescriptionModal({ children }: DescriptionModalProps) {
     console.log("Descripción actual:", createServiceData.description);
   }, [createServiceData.description]);
 
-  const { t } = useTranslation();
   const descriptionSchema = serviceSchema(t).pick({ description: true });
 
   const handleSubmit = (data: any) => {
     setCreateServiceField("description", data.description);
-    // Cerrar modal después de guardar
     setTimeout(() => {
       setIsOpen(false);
     }, 100);
@@ -49,17 +51,16 @@ function DescriptionModal({ children }: DescriptionModalProps) {
       <div onClick={handleTriggerClick} className="w-full cursor-pointer">
         {children}
       </div>
-
       <MCDialogBase
         open={isOpen}
         onOpenChange={setIsOpen}
-        title="Descripción del servicio"
+        title={t("createService.modals.description.title")}
         variant="decide"
         onConfirm={handleConfirm}
-        confirmText="Guardar"
-        secondaryText="Cancelar"
+        confirmText={t("common.save")}
+        secondaryText={t("common.cancel")}
       >
-        <div className="w-full">
+        <div className={`w-full ${isMobile ? "px-2" : ""}`}>
           <MCFormWrapper
             schema={descriptionSchema}
             defaultValues={{
@@ -70,7 +71,7 @@ function DescriptionModal({ children }: DescriptionModalProps) {
           >
             <MCAnimatedInput
               name="description"
-              placeholder="Ingresa tu descripción aquí..."
+              placeholder={t("createService.modals.description.placeholder")}
               maxLength={250}
               variant="Description"
             />

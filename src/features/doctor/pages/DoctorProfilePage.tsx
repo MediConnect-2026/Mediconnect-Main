@@ -1,11 +1,10 @@
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { motion } from "framer-motion";
-import MCBackButton from "@/shared/components/forms/MCBackButton";
+
 import MCSheetProfile from "@/shared/navigation/userMenu/editProfile/MCSheetProfile";
 import { useAppStore } from "@/stores/useAppStore";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
-import { fadeInUp } from "@/lib/animations/commonAnimations";
+
 import { useNavigate, useParams } from "react-router-dom";
 import DoctorProfileBanner from "../components/profile/DoctorProfileBanner";
 import DoctorProfileBannerMobile from "../components/profile/DoctorProfileBannerMobile";

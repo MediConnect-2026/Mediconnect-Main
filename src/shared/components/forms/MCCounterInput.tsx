@@ -1,6 +1,8 @@
 import { useFormContext, Controller } from "react-hook-form";
-import { useState, useRef, useEffect } from "react";
+import { useRef, useEffect } from "react";
 import { Minus, Plus } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { useIsMobile } from "@/lib/hooks/useIsMobile";
 
 interface MCCounterInputProps {
   name: string;
@@ -24,6 +26,8 @@ const MCCounterInput = ({
   onChange,
 }: MCCounterInputProps) => {
   const { control } = useFormContext();
+  const { t } = useTranslation("doctor");
+  const isMobile = useIsMobile();
 
   const intervalRef = useRef<number | null>(null);
   const timeoutRef = useRef<number | null>(null);
@@ -69,7 +73,7 @@ const MCCounterInput = ({
 
   const renderPriceVariant = (field: any) => (
     <div className="flex flex-col items-center gap-3">
-      <div className="flex items-center gap-8">
+      <div className={`flex items-center ${isMobile ? "gap-4" : "gap-8"}`}>
         <button
           type="button"
           onMouseDown={() => {
@@ -85,12 +89,20 @@ const MCCounterInput = ({
             startHolding(false, newValue, field.onChange);
           }}
           onTouchEnd={stopHolding}
-          className="p-2 rounded-full border-2 border-primary/20 hover:border-primary/40 hover:bg-primary/5 active:scale-90 transition-all duration-200"
+          className={`${isMobile ? "p-1.5" : "p-2"} rounded-full border-2 border-primary/20 hover:border-primary/40 hover:bg-primary/5 active:scale-90 transition-all duration-200`}
         >
-          <Minus className="w-5 h-5 text-primary" />
+          <Minus
+            className={`${isMobile ? "w-4 h-4" : "w-5 h-5"} text-primary`}
+          />
         </button>
-        <div className="flex items-center gap-1 min-w-[150px] justify-center">
-          <span className="text-2xl font-bold text-primary">RD$</span>
+        <div
+          className={`flex items-center gap-1 ${isMobile ? "min-w-[120px]" : "min-w-[150px]"} justify-center`}
+        >
+          <span
+            className={`${isMobile ? "text-xl" : "text-2xl"} font-bold text-primary`}
+          >
+            RD$
+          </span>
           <input
             type="number"
             min={min}
@@ -101,7 +113,7 @@ const MCCounterInput = ({
               if (isNaN(val)) val = min;
               field.onChange(val);
             }}
-            className="text-4xl font-bold text-primary tabular-nums w-[150px] text-center bg-transparent outline-none"
+            className={`${isMobile ? "text-3xl w-[120px]" : "text-4xl w-[150px]"} font-bold text-primary tabular-nums text-center bg-transparent outline-none`}
           />
         </div>
         <button
@@ -121,16 +133,17 @@ const MCCounterInput = ({
             startHolding(true, newValue, field.onChange);
           }}
           onTouchEnd={stopHolding}
-          className="p-2 rounded-full border-2 border-primary/20 hover:border-primary/40 hover:bg-primary/5 active:scale-90 transition-all duration-200"
+          className={`${isMobile ? "p-1.5" : "p-2"} rounded-full border-2 border-primary/20 hover:border-primary/40 hover:bg-primary/5 active:scale-90 transition-all duration-200`}
         >
-          <Plus className="w-5 h-5 text-primary" />
+          <Plus
+            className={`${isMobile ? "w-4 h-4" : "w-5 h-5"} text-primary`}
+          />
         </button>
       </div>
     </div>
   );
 
   const renderHoursVariant = (field: any) => {
-    // El valor ahora es un objeto { hours, minutes }
     const value = field.value || { hours: 0, minutes: 1 };
     const hours = value.hours ?? 0;
     const minutes = value.minutes ?? 1;
@@ -145,24 +158,34 @@ const MCCounterInput = ({
     };
 
     return (
-      <div className="flex flex-col items-center gap-6">
+      <div
+        className={`flex flex-col items-center ${isMobile ? "gap-4" : "gap-6"}`}
+      >
         {label && (
-          <p className="text-base text-muted-foreground font-medium">{label}</p>
+          <p
+            className={`${isMobile ? "text-sm" : "text-base"} text-muted-foreground font-medium`}
+          >
+            {label}
+          </p>
         )}
 
         {/* Horas */}
         <div className="flex flex-col items-center gap-3">
-          <p className="text-sm text-primary/80 uppercase tracking-wide">
-            Horas
+          <p
+            className={`${isMobile ? "text-xs" : "text-sm"} text-primary/80 uppercase tracking-wide`}
+          >
+            {t("form.hours")}
           </p>
-          <div className="flex items-center gap-4">
+          <div className={`flex items-center ${isMobile ? "gap-3" : "gap-4"}`}>
             <button
               type="button"
               onMouseDown={() => updateTime(hours - 1, minutes)}
               disabled={hours <= 0}
-              className="p-2.5 rounded-full border-2 border-primary/20 hover:border-primary/40 hover:bg-primary/5 active:scale-90 transition-all duration-200 disabled:opacity-40"
+              className={`${isMobile ? "p-2" : "p-2.5"} rounded-full border-2 border-primary/20 hover:border-primary/40 hover:bg-primary/5 active:scale-90 transition-all duration-200 disabled:opacity-40`}
             >
-              <Minus className="w-4 h-4 text-primary" />
+              <Minus
+                className={`${isMobile ? "w-3.5 h-3.5" : "w-4 h-4"} text-primary`}
+              />
             </button>
             <input
               type="number"
@@ -174,33 +197,39 @@ const MCCounterInput = ({
                 if (isNaN(val)) val = 0;
                 updateTime(val, minutes);
               }}
-              className="text-6xl font-bold text-primary tabular-nums min-w-[80px] text-center bg-transparent outline-none"
-              style={{ width: 100 }}
+              className={`${isMobile ? "text-4xl min-w-[60px]" : "text-6xl min-w-[80px]"} font-bold text-primary tabular-nums text-center bg-transparent outline-none`}
+              style={{ width: isMobile ? 70 : 100 }}
             />
             <button
               type="button"
               onMouseDown={() => updateTime(hours + 1, minutes)}
               disabled={hours >= 23}
-              className="p-2.5 rounded-full border-2 border-primary/20 hover:border-primary/40 hover:bg-primary/5 active:scale-90 transition-all duration-200 disabled:opacity-40"
+              className={`${isMobile ? "p-2" : "p-2.5"} rounded-full border-2 border-primary/20 hover:border-primary/40 hover:bg-primary/5 active:scale-90 transition-all duration-200 disabled:opacity-40`}
             >
-              <Plus className="w-4 h-4 text-primary" />
+              <Plus
+                className={`${isMobile ? "w-3.5 h-3.5" : "w-4 h-4"} text-primary`}
+              />
             </button>
           </div>
         </div>
 
         {/* Minutos */}
         <div className="flex flex-col items-center gap-3">
-          <p className="text-sm text-primary/80 uppercase tracking-wide">
-            Minutos
+          <p
+            className={`${isMobile ? "text-xs" : "text-sm"} text-primary/80 uppercase tracking-wide`}
+          >
+            {t("form.minutes")}
           </p>
-          <div className="flex items-center gap-4">
+          <div className={`flex items-center ${isMobile ? "gap-3" : "gap-4"}`}>
             <button
               type="button"
               onMouseDown={() => updateTime(hours, minutes - 1)}
               disabled={minutes <= 0}
-              className="p-2.5 rounded-full border-2 border-primary/20 hover:border-primary/40 hover:bg-primary/5 active:scale-90 transition-all duration-200 disabled:opacity-40"
+              className={`${isMobile ? "p-2" : "p-2.5"} rounded-full border-2 border-primary/20 hover:border-primary/40 hover:bg-primary/5 active:scale-90 transition-all duration-200 disabled:opacity-40`}
             >
-              <Minus className="w-4 h-4 text-primary" />
+              <Minus
+                className={`${isMobile ? "w-3.5 h-3.5" : "w-4 h-4"} text-primary`}
+              />
             </button>
             <input
               type="number"
@@ -212,16 +241,18 @@ const MCCounterInput = ({
                 if (isNaN(val)) val = 0;
                 updateTime(hours, val);
               }}
-              className="text-6xl font-bold text-primary tabular-nums min-w-[80px] text-center bg-transparent outline-none"
-              style={{ width: 100 }}
+              className={`${isMobile ? "text-4xl min-w-[60px]" : "text-6xl min-w-[80px]"} font-bold text-primary tabular-nums text-center bg-transparent outline-none`}
+              style={{ width: isMobile ? 70 : 100 }}
             />
             <button
               type="button"
               onMouseDown={() => updateTime(hours, minutes + 1)}
               disabled={minutes >= 59}
-              className="p-2.5 rounded-full border-2 border-primary/20 hover:border-primary/40 hover:bg-primary/5 active:scale-90 transition-all duration-200 disabled:opacity-40"
+              className={`${isMobile ? "p-2" : "p-2.5"} rounded-full border-2 border-primary/20 hover:border-primary/40 hover:bg-primary/5 active:scale-90 transition-all duration-200 disabled:opacity-40`}
             >
-              <Plus className="w-4 h-4 text-primary" />
+              <Plus
+                className={`${isMobile ? "w-3.5 h-3.5" : "w-4 h-4"} text-primary`}
+              />
             </button>
           </div>
         </div>
@@ -230,11 +261,17 @@ const MCCounterInput = ({
   };
 
   const renderParticipantsVariant = (field: any) => (
-    <div className="flex flex-col items-center gap-4">
+    <div
+      className={`flex flex-col items-center ${isMobile ? "gap-3" : "gap-4"}`}
+    >
       {label && (
-        <p className="text-base text-primary/80  font-medium">{label}</p>
+        <p
+          className={`${isMobile ? "text-sm" : "text-base"} text-primary/80 font-medium`}
+        >
+          {label}
+        </p>
       )}
-      <div className="flex items-center gap-6">
+      <div className={`flex items-center ${isMobile ? "gap-4" : "gap-6"}`}>
         <button
           type="button"
           onMouseDown={() => {
@@ -244,9 +281,11 @@ const MCCounterInput = ({
           }}
           onMouseUp={stopHolding}
           onMouseLeave={stopHolding}
-          className="p-3 rounded-full border-2 border-primary/20 hover:border-primary/40 hover:bg-primary/5 active:scale-90 transition-all duration-200"
+          className={`${isMobile ? "p-2" : "p-3"} rounded-full border-2 border-primary/20 hover:border-primary/40 hover:bg-primary/5 active:scale-90 transition-all duration-200`}
         >
-          <Minus className="w-5 h-5 text-primary" />
+          <Minus
+            className={`${isMobile ? "w-4 h-4" : "w-5 h-5"} text-primary`}
+          />
         </button>
 
         <input
@@ -259,8 +298,8 @@ const MCCounterInput = ({
             if (isNaN(val)) val = min;
             field.onChange(val);
           }}
-          className="text-7xl font-bold text-primary tabular-nums min-w-[80px] text-center bg-transparent outline-none"
-          style={{ width: 120 }}
+          className={`${isMobile ? "text-5xl min-w-[60px]" : "text-7xl min-w-[80px]"} font-bold text-primary tabular-nums text-center bg-transparent outline-none`}
+          style={{ width: isMobile ? 90 : 120 }}
         />
 
         <button
@@ -275,9 +314,11 @@ const MCCounterInput = ({
           }}
           onMouseUp={stopHolding}
           onMouseLeave={stopHolding}
-          className="p-3 rounded-full border-2 border-primary/20 hover:border-primary/40 hover:bg-primary/5 active:scale-90 transition-all duration-200"
+          className={`${isMobile ? "p-2" : "p-3"} rounded-full border-2 border-primary/20 hover:border-primary/40 hover:bg-primary/5 active:scale-90 transition-all duration-200`}
         >
-          <Plus className="w-5 h-5 text-primary" />
+          <Plus
+            className={`${isMobile ? "w-4 h-4" : "w-5 h-5"} text-primary`}
+          />
         </button>
       </div>
     </div>
@@ -289,7 +330,6 @@ const MCCounterInput = ({
       control={control}
       defaultValue={getDefaultValue()}
       render={({ field }) => {
-        // Wrap field.onChange to call both the form onChange and the prop onChange
         const handleChange = (value: any) => {
           field.onChange(value);
           if (onChange) {
@@ -297,14 +337,15 @@ const MCCounterInput = ({
           }
         };
 
-        // Update all the variant renders to use handleChange instead of field.onChange
         const fieldWithCustomOnChange = {
           ...field,
           onChange: handleChange,
         };
 
         return (
-          <div className="w-full max-w-md mx-auto py-6">
+          <div
+            className={`w-full max-w-md mx-auto ${isMobile ? "py-4" : "py-6"}`}
+          >
             {variant === "price" && renderPriceVariant(fieldWithCustomOnChange)}
             {variant === "hours" && renderHoursVariant(fieldWithCustomOnChange)}
             {variant === "participants" &&

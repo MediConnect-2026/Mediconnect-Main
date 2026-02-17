@@ -194,8 +194,10 @@ function MCSelect({
           </SelectTrigger>
           <SelectContent
             position="popper"
+            side="bottom"
             align="end"
             className="bg-background"
+            avoidCollisions={false} // <-- fuerza el dropdown hacia abajo siempre
           >
             {/* Search Input */}
             {searchable && (
@@ -210,7 +212,7 @@ function MCSelect({
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder={t("ui.select.search")}
-                    className="w-full pl-9 pr-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 bg-background text-primary"
+                    className="w-full pl-9 pr-3 py-2 text-sm border rounded-full focus:outline-none focus:ring-2 focus:ring-primary/20 bg-background text-primary border-primary/30 focus:border-primary"
                     onClick={(e) => e.stopPropagation()}
                   />
                 </div>

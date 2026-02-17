@@ -1,13 +1,15 @@
 import { useFormContext, Controller } from "react-hook-form";
 import { useState, useRef } from "react";
 import { X } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { useIsMobile } from "@/lib/hooks/useIsMobile";
 
 interface AnimatedInputProps {
   name: string;
   label?: string;
   placeholder?: string;
   maxLength?: number;
-  onChange?: (value: string) => void; // Nuevo prop opcional
+  onChange?: (value: string) => void;
   variant?: "Default" | "Description";
 }
 
@@ -19,6 +21,8 @@ const MCAnimatedInput = ({
   variant = "Default",
 }: AnimatedInputProps) => {
   const { control } = useFormContext();
+  const { t } = useTranslation("doctor");
+  const isMobile = useIsMobile();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [isFocused, setIsFocused] = useState(false);
 
@@ -37,17 +41,20 @@ const MCAnimatedInput = ({
         const hasValue = field.value && field.value.length > 0;
         const charCount = field.value?.length || 0;
 
-        // Nuevos estilos condicionales
         const isDescription = variant === "Description";
+
+        // Clases responsive
         const containerClass = isDescription
-          ? "w-full max-w-[400px] mx-auto px-2"
-          : "w-full max-w-2xl mx-auto px-6";
+          ? `w-full ${isMobile ? "max-w-[300px] px-2" : "max-w-[400px] px-2"} mx-auto`
+          : `w-full ${isMobile ? "max-w-full px-4" : "max-w-2xl px-6"} mx-auto`;
+
         const placeholderClass = isDescription
-          ? "text-base md:text-lg leading-tight font-medium text-muted-foreground/30 select-none text-center"
-          : "text-3xl md:text-[2.8rem] leading-tight font-medium text-muted-foreground/30 select-none text-center";
+          ? `${isMobile ? "text-sm" : "text-base md:text-lg"} leading-tight font-medium text-muted-foreground/30 select-none text-center`
+          : `${isMobile ? "text-xl" : "text-3xl md:text-[2.8rem]"} leading-tight font-medium text-muted-foreground/30 select-none text-center`;
+
         const textareaClass = isDescription
-          ? "w-full bg-transparent text-center text-base md:text-lg leading-tight font-normal text-primary/90 outline-none pt-2 pb-2 resize-none overflow-hidden transition-colors duration-300"
-          : "w-full bg-transparent text-center text-3xl md:text-[2.8rem] leading-tight font-normal text-primary/90 outline-none pt-2 pb-4 resize-none overflow-hidden transition-colors duration-300";
+          ? `w-full bg-transparent text-center ${isMobile ? "text-sm" : "text-base md:text-lg"} leading-tight font-normal text-primary/90 outline-none pt-2 pb-2 resize-none overflow-hidden transition-colors duration-300`
+          : `w-full bg-transparent text-center ${isMobile ? "text-xl" : "text-3xl md:text-[2.8rem]"} leading-tight font-normal text-primary/90 outline-none pt-2 ${isMobile ? "pb-2" : "pb-4"} resize-none overflow-hidden transition-colors duration-300`;
 
         return (
           <div className={containerClass}>
@@ -87,7 +94,7 @@ const MCAnimatedInput = ({
                 onChange={(e) => {
                   field.onChange(e);
                   autoResize(e.target);
-                  if (onChange) onChange(e.target.value); // Ejecuta el onChange externo si existe
+                  if (onChange) onChange(e.target.value);
                 }}
                 className={textareaClass}
                 autoComplete="off"
@@ -106,10 +113,10 @@ const MCAnimatedInput = ({
                 style={{ transformOrigin: "center" }}
               />
 
-              {/* Clear button SOLO si NO es Description */}
-              {!isDescription && (
+              {/* Clear button - SOLO si NO es Description y NO es mobile */}
+              {!isDescription && !isMobile && (
                 <div
-                  className={`absolute  -right-14 top-9 -translate-y-1/2 transition-all duration-400 ease-[cubic-bezier(0.23,1,0.32,1)] ${
+                  className={`absolute -right-14 top-9 -translate-y-1/2 transition-all duration-400 ease-[cubic-bezier(0.23,1,0.32,1)] ${
                     hasValue
                       ? "opacity-100 scale-100 rotate-0"
                       : "opacity-0 scale-0 rotate-90 pointer-events-none"
@@ -120,22 +127,23 @@ const MCAnimatedInput = ({
                     onClick={(e) => {
                       e.stopPropagation();
                       field.onChange("");
-                      if (onChange) onChange(""); // Ejecuta el onChange externo si existe
+                      if (onChange) onChange("");
                       if (textareaRef.current) {
                         textareaRef.current.style.height = "auto";
                       }
                       textareaRef.current?.focus();
                     }}
-                    className="group p-2.5  rounded-full border border-primary/15 bg-bg-secondary text-muted-foreground shadow-sm hover:shadow-md hover:border-destructive/30 hover:text-destructive transition-all duration-300 active:scale-75"
+                    className="group p-2.5 rounded-full border border-primary/15 bg-bg-secondary text-muted-foreground shadow-sm hover:shadow-md hover:border-destructive/30 hover:text-destructive transition-all duration-300 active:scale-75"
                   >
                     <X className="w-4 h-4 transition-transform duration-300 group-hover:rotate-90" />
                   </button>
                 </div>
               )}
             </div>
+
             {/* Error */}
             <div
-              className={`text-center mt-8 text-sm text-destructive transition-all duration-300 ease-out ${
+              className={`text-center ${isMobile ? "mt-4" : "mt-8"} ${isMobile ? "text-xs" : "text-sm"} text-destructive transition-all duration-300 ease-out ${
                 fieldState.error
                   ? "opacity-100 translate-y-0 max-h-8"
                   : "opacity-0 -translate-y-1 max-h-0 overflow-hidden"
@@ -143,17 +151,20 @@ const MCAnimatedInput = ({
             >
               {fieldState.error?.message}
             </div>
+
             {/* Character counter */}
             <div
               className={
                 isDescription
-                  ? "flex justify-center mb-6 mt-2"
-                  : "flex justify-center my-8"
+                  ? `flex justify-center ${isMobile ? "mb-4 mt-1" : "mb-6 mt-2"}`
+                  : `flex justify-center ${isMobile ? "my-4" : "my-8"}`
               }
             >
-              <p className="text-sm tracking-wide text-muted-foreground">
+              <p
+                className={`${isMobile ? "text-xs" : "text-sm"} tracking-wide text-muted-foreground`}
+              >
                 <span
-                  className={`font-semibold text-base tabular-nums transition-all duration-300 ${
+                  className={`font-semibold ${isMobile ? "text-sm" : "text-base"} tabular-nums transition-all duration-300 ${
                     charCount >= maxLength
                       ? "text-destructive"
                       : charCount > 0
@@ -164,10 +175,14 @@ const MCAnimatedInput = ({
                   {charCount}
                 </span>
                 <span className="mx-1 text-muted-foreground/40">/</span>
-                <span className="font-semibold text-base">
+                <span
+                  className={`font-semibold ${isMobile ? "text-sm" : "text-base"}`}
+                >
                   {maxLength}
                 </span>{" "}
-                <span className="text-muted-foreground/70">Disponible</span>
+                <span className="text-muted-foreground/70">
+                  {t("form.available")}
+                </span>
               </p>
             </div>
           </div>

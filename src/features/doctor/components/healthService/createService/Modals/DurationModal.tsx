@@ -5,26 +5,28 @@ import { serviceSchema } from "@/schema/createService.schema";
 import { useTranslation } from "react-i18next";
 import { useCreateServicesStore } from "@/stores/useCreateServicesStore";
 import { useRef, useState } from "react";
+import { useIsMobile } from "@/lib/hooks/useIsMobile";
 
 interface DurationModalProps {
   children?: React.ReactNode;
 }
 
 function DurationModal({ children }: DurationModalProps) {
+  const isMobile = useIsMobile();
+  const { t } = useTranslation("doctor");
+
   const setCreateServiceField = useCreateServicesStore(
     (s) => s.setCreateServiceField,
   );
   const createServiceData = useCreateServicesStore((s) => s.createServiceData);
   const submitRef = useRef<(() => void) | null>(null);
   const [isOpen, setIsOpen] = useState(false);
-  const { t } = useTranslation();
 
   const durationSchema = serviceSchema(t).pick({ duration: true });
 
   const handleSubmit = (data: any) => {
     console.log("Datos enviados desde modal:", data);
     setCreateServiceField("duration", data.duration);
-    // Cerrar modal después de guardar
     setTimeout(() => {
       setIsOpen(false);
     }, 100);
@@ -48,16 +50,15 @@ function DurationModal({ children }: DurationModalProps) {
       >
         {children}
       </div>
-
       <MCDialogBase
         open={isOpen}
         onOpenChange={setIsOpen}
-        title="Duración de la sesión"
+        title={t("createService.modals.duration.title")}
         variant="decide"
         size="sm"
-        confirmText="Guardar"
+        confirmText={t("common.save")}
         onConfirm={handleConfirm}
-        secondaryText="Cancelar"
+        secondaryText={t("common.cancel")}
       >
         <MCFormWrapper
           schema={durationSchema}

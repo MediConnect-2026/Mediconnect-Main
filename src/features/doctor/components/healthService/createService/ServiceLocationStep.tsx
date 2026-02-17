@@ -1,6 +1,5 @@
 import MapScheduleLocation from "@/shared/components/maps/MapScheduleLocation";
 import { useCreateServicesStore } from "@/stores/useCreateServicesStore";
-
 import ServicesLayoutsSteps from "./ServicesLayoutsSteps";
 import AuthFooterContainer from "@/features/auth/components/AuthFooterContainer";
 import { ChevronRight } from "lucide-react";
@@ -14,6 +13,8 @@ import {
 } from "@/shared/ui/tooltip";
 import ManageLocation from "./Modals/ManageLocation";
 import { useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { useIsMobile } from "@/lib/hooks/useIsMobile";
 
 interface LocationCoordinate {
   lat: number;
@@ -23,6 +24,9 @@ interface LocationCoordinate {
 }
 
 function ServiceLocationStep() {
+  const { t } = useTranslation("doctor");
+  const isMobile = useIsMobile();
+
   const locationSelected = useCreateServicesStore(
     (s) => s.createServiceData.location,
   );
@@ -33,8 +37,6 @@ function ServiceLocationStep() {
 
   const goToNextStep = useCreateServicesStore((s) => s.goToNextStep);
   const goToPreviousStep = useCreateServicesStore((s) => s.goToPreviousStep);
-
-  console.log(locationSelected);
 
   const locationsData = [
     {
@@ -116,15 +118,13 @@ function ServiceLocationStep() {
     },
   ];
 
-  // Map locationsData to LocationCoordinate[]
   const mappedLocations: LocationCoordinate[] = locationsData.map((loc) => ({
     lat: loc.latitude,
     lng: loc.longitude,
     label: loc.name,
-    color: "#e11d48", // Puedes personalizar el color si lo deseas
+    color: "#e11d48",
   }));
 
-  // Helper para mostrar tooltip solo si el texto está truncado
   function TruncatableTooltip({
     text,
     className,
@@ -165,10 +165,10 @@ function ServiceLocationStep() {
 
   return (
     <ServicesLayoutsSteps
-      title="Confirma tu ubicación"
-      description="Especifica la dirección donde ofrecerás tus consultas o servicios médicos para que los pacientes puedan encontrarte fácilmente."
+      title={t("createService.location.title")}
+      description={t("createService.location.description")}
     >
-      <div className="flex flex-col gap-8 items-center ">
+      <div className="flex flex-col gap-8 items-center">
         <MapScheduleLocation
           showAddressInfo
           multipleLocations={mappedLocations}
@@ -176,7 +176,9 @@ function ServiceLocationStep() {
         <div
           className={`w-full ${locationsData.length > 4 ? "max-h-72 overflow-y-auto" : ""}`}
         >
-          <div className="grid grid-cols-2 gap-4">
+          <div
+            className={`grid ${isMobile ? "grid-cols-1" : "grid-cols-2"} gap-4`}
+          >
             {locationsData.map((loc) => (
               <div
                 key={loc.id}
@@ -190,14 +192,16 @@ function ServiceLocationStep() {
                   )
                 }
               >
-                <div className="flex flex-col gap-1 max-w-[220px]">
+                <div
+                  className={`flex flex-col gap-1 ${isMobile ? "max-w-[220px]" : "max-w-[220px]"}`}
+                >
                   <TruncatableTooltip
                     text={loc.name}
-                    className="text-base font-medium truncate cursor-help"
+                    className={`${isMobile ? "text-sm" : "text-base"} font-medium truncate cursor-help`}
                   />
                   <TruncatableTooltip
                     text={loc.address}
-                    className="text-sm font-normal truncate cursor-help"
+                    className={`${isMobile ? "text-xs" : "text-sm"} font-normal truncate cursor-help`}
                   />
                 </div>
                 <ManageLocation
@@ -206,9 +210,11 @@ function ServiceLocationStep() {
                 >
                   <Button
                     variant="outline"
-                    className=" rounded-4xl p-2 border-none bg-transparent shadow-none text-primary/75 hover:bg-primary/10 hover:text-primary focus:ring-0 focus:ring-offset-0 focus-visible:ring-0 data-[state=open]:bg-secondary"
+                    className="rounded-4xl p-2 border-none bg-transparent shadow-none text-primary/75 hover:bg-primary/10 hover:text-primary focus:ring-0 focus:ring-offset-0 focus-visible:ring-0 data-[state=open]:bg-secondary"
                   >
-                    <ChevronRight></ChevronRight>
+                    <ChevronRight
+                      className={isMobile ? "w-4 h-4" : "w-5 h-5"}
+                    />
                   </Button>
                 </ManageLocation>
               </div>
@@ -217,7 +223,7 @@ function ServiceLocationStep() {
         </div>
         <ManageLocation triggerClassName="w-full">
           <MCButton className="w-full rounded-xl" variant="tercero">
-            Agregar Ubicacion
+            {t("createService.location.addLocation")}
           </MCButton>
         </ManageLocation>
 

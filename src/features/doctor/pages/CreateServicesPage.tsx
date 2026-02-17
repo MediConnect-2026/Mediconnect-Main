@@ -45,7 +45,6 @@ function CreateServicesPage() {
     <CircleCheck key="check" />,
   ];
 
-  // Filtrar steps y títulos si es teleconsulta
   const filteredStepIcons = isTeleconsulta
     ? [stepIcons[0], stepIcons[2], stepIcons[3], stepIcons[4]]
     : stepIcons;
@@ -68,7 +67,6 @@ function CreateServicesPage() {
     };
   });
 
-  // Renderizar el componente correcto según el paso actual
   const renderStepComponent = () => {
     if (!currentFirst) {
       return <ServiceTittleStep />;
@@ -105,7 +103,6 @@ function CreateServicesPage() {
     }
   };
 
-  // Calcular el paso visible (considerando que location puede estar oculto)
   const getVisibleStepNumber = () => {
     if (!currentFirst) return 1;
     if (isTeleconsulta && currentStep >= 2) {
@@ -115,7 +112,7 @@ function CreateServicesPage() {
   };
 
   const getTotalSteps = () => {
-    return isTeleconsulta ? 4 : 5; // 4 pasos si es teleconsulta, 5 si no
+    return isTeleconsulta ? 4 : 5;
   };
 
   return (
@@ -126,7 +123,8 @@ function CreateServicesPage() {
             {filteredTitleByStep[getVisibleStepNumber() - 1]}
           </h1>
           <span className="opacity-40">
-            Paso {getVisibleStepNumber()} de {getTotalSteps()}
+            {t("createService.common.step")} {getVisibleStepNumber()}{" "}
+            {t("createService.common.of")} {getTotalSteps()}
           </span>
         </div>
         <div className="w-full mt-4">

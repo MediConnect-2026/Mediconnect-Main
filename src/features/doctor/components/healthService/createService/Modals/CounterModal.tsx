@@ -5,26 +5,28 @@ import { serviceSchema } from "@/schema/createService.schema";
 import { useTranslation } from "react-i18next";
 import { useCreateServicesStore } from "@/stores/useCreateServicesStore";
 import { useRef, useState } from "react";
+import { useIsMobile } from "@/lib/hooks/useIsMobile";
 
 interface CounterModalProps {
   children?: React.ReactNode;
 }
 
 function CounterModal({ children }: CounterModalProps) {
+  const isMobile = useIsMobile();
+  const { t } = useTranslation("doctor");
+
   const setCreateServiceField = useCreateServicesStore(
     (s) => s.setCreateServiceField,
   );
   const createServiceData = useCreateServicesStore((s) => s.createServiceData);
   const submitRef = useRef<(() => void) | null>(null);
   const [isOpen, setIsOpen] = useState(false);
-  const { t } = useTranslation();
 
   const sessionsSchema = serviceSchema(t).pick({ numberOfSessions: true });
 
   const handleSubmit = (data: any) => {
     console.log("Datos enviados desde modal:", data);
     setCreateServiceField("numberOfSessions", data.numberOfSessions);
-    // Cerrar modal después de guardar
     setTimeout(() => {
       setIsOpen(false);
     }, 100);
@@ -48,16 +50,15 @@ function CounterModal({ children }: CounterModalProps) {
       >
         {children}
       </div>
-
       <MCDialogBase
         open={isOpen}
         onOpenChange={setIsOpen}
-        title={t("form.numberOfSessions")}
+        title={t("createService.modals.sessions.title")}
         variant="decide"
-        size="sm"
-        confirmText="Guardar"
+        size={isMobile ? "sm" : "sm"}
+        confirmText={t("common.save")}
         onConfirm={handleConfirm}
-        secondaryText="Cancelar"
+        secondaryText={t("common.cancel")}
       >
         <MCFormWrapper
           schema={sessionsSchema}

@@ -6,12 +6,17 @@ import ServicesLayoutsSteps from "./ServicesLayoutsSteps";
 import { useTranslation } from "react-i18next";
 import AuthFooterContainer from "@/features/auth/components/AuthFooterContainer";
 import { useEffect } from "react";
+import { useIsMobile } from "@/lib/hooks/useIsMobile";
+
 function ServiceTittleStep() {
-  const { t } = useTranslation();
+  const { t } = useTranslation("doctor");
+  const isMobile = useIsMobile();
+
   const nameSchema = serviceSchema(t).pick({ name: true });
   const setName = useCreateServicesStore((s) => s.setCreateServiceField);
   const name = useCreateServicesStore((s) => s.createServiceData.name);
   const setIsTitleSeted = useCreateServicesStore((s) => s.setIsTitleSeted);
+
   const handleSubmit = (data: { name: string }) => {
     setName("name", data.name);
     setIsTitleSeted(true);
@@ -22,16 +27,16 @@ function ServiceTittleStep() {
   }, [name]);
 
   return (
-    <ServicesLayoutsSteps title="Ponle un título a tu servicio">
+    <ServicesLayoutsSteps title={t("createService.title.title")}>
       <MCFormWrapper
         schema={nameSchema}
         defaultValues={{ name }}
         onSubmit={handleSubmit}
-        className="w-full"
+        className={`w-full ${isMobile ? "px-2" : ""}`}
       >
         <MCAnimatedInput
           name="name"
-          label="Nombre del servicio"
+          label={t("createService.title.serviceName")}
           onChange={(value) => setName("name", value)}
         />
         <AuthFooterContainer

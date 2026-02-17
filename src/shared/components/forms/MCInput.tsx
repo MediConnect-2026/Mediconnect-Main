@@ -4,7 +4,7 @@ import { EyeIcon } from "@/shared/ui/eye";
 import { EyeOffIcon } from "@/shared/ui/eye-off";
 import { Button } from "@/shared/ui/button";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 
 interface MCInputProps {
@@ -26,6 +26,7 @@ interface MCInputProps {
     | "default"
     | "cedula"
     | "time"
+    | "decideHour"
     | "internal-vertical"
     | "internal-horizontal";
   standalone?: boolean;
@@ -34,7 +35,8 @@ interface MCInputProps {
   internalPlaceholder?: string;
   displayMode?: "placeholder" | "value";
   isPrice?: boolean;
-  customDisplayValue?: string; // Nueva prop para mostrar valores formateados
+  customDisplayValue?: string;
+  maxLength?: number;
 }
 
 function formatCedula(value: string) {
@@ -79,12 +81,14 @@ function MCInput({
   displayMode = "placeholder",
   isPrice = false,
   customDisplayValue,
+  maxLength = 10,
 }: MCInputProps) {
   const formContext = standalone ? null : useFormContext();
   const { t } = useTranslation("common");
   const [passwordVisibility, setPasswordVisibility] = useState(false);
   const [cedulaValue, setCedulaValue] = useState(value || "");
   const [timeValue, setTimeValue] = useState(value || "");
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const handleStatusColor = () => {
     switch (status) {
@@ -170,14 +174,76 @@ function MCInput({
     setTimeValue(formatted);
 
     if (standalone) {
-      onChange?.({ ...e, target: { ...e.target, value: formatted } });
+      const syntheticEvent = {
+        ...e,
+        target: { ...e.target, value: formatted },
+        currentTarget: { ...e.currentTarget, value: formatted },
+      } as React.ChangeEvent<HTMLInputElement>;
+      onChange?.(syntheticEvent);
     } else {
       formContext?.setValue(name, formatted, { shouldValidate: true });
     }
   };
 
+  const handleDecideHourChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const rawValue = e.target.value;
+
+    // Si el campo está vacío, enviar string vacío
+    if (!rawValue || rawValue.trim() === "") {
+      setTimeValue("");
+
+      // Fix específico para Safari: forzar el reset del input
+      if (inputRef.current) {
+        inputRef.current.value = "";
+      }
+
+      if (!standalone && formContext) {
+        formContext.setValue(name, "", { shouldValidate: true });
+      }
+
+      if (onChange) {
+        const syntheticEvent = {
+          ...e,
+          target: { ...e.target, value: "" },
+          currentTarget: { ...e.currentTarget, value: "" },
+        } as React.ChangeEvent<HTMLInputElement>;
+        onChange(syntheticEvent);
+      }
+      return;
+    }
+
+    // Normalizar al formato HH:mm:ss si solo tiene HH:mm
+    const normalizedValue =
+      rawValue.length === 5 && rawValue.includes(":")
+        ? `${rawValue}:00`
+        : rawValue;
+
+    setTimeValue(rawValue);
+
+    if (!standalone && formContext) {
+      formContext.setValue(name, normalizedValue, { shouldValidate: true });
+    }
+
+    if (onChange) {
+      const syntheticEvent = {
+        ...e,
+        target: { ...e.target, value: normalizedValue },
+        currentTarget: { ...e.currentTarget, value: normalizedValue },
+      } as React.ChangeEvent<HTMLInputElement>;
+      onChange(syntheticEvent);
+    }
+  };
+
+  // Effect para sincronizar el valor del input en Safari cuando timeValue cambia a vacío
+  useEffect(() => {
+    if (variant === "decideHour" && timeValue === "" && inputRef.current) {
+      inputRef.current.value = "";
+    }
+  }, [timeValue, variant]);
+
   const isCedulaVariant = variant === "cedula";
   const isTimeVariant = variant === "time";
+  const isDecideHourVariant = variant === "decideHour";
   const isInternalVariant =
     variant === "internal-vertical" || variant === "internal-horizontal";
   const isVerticalLayout = variant === "internal-vertical";
@@ -187,13 +253,20 @@ function MCInput({
     const formatted = formatCedula(e.target.value);
     setCedulaValue(formatted);
     const onlyDigits = formatted.replace(/\D/g, "");
+
     if (standalone) {
-      onChange?.({ ...e, target: { ...e.target, value: onlyDigits } });
+      const syntheticEvent = {
+        ...e,
+        target: { ...e.target, value: onlyDigits },
+        currentTarget: { ...e.currentTarget, value: onlyDigits },
+      } as React.ChangeEvent<HTMLInputElement>;
+      onChange?.(syntheticEvent);
     } else {
       formContext?.setValue(name, onlyDigits, { shouldValidate: true });
     }
   };
 
+  // Props del input según el modo
   const inputProps = isCedulaVariant
     ? {
         value: cedulaValue,
@@ -205,22 +278,40 @@ function MCInput({
           onChange: handleTimeChange,
           placeholder: "00:00:00",
         }
-      : standalone
+      : isDecideHourVariant
         ? {
-            value,
-            onChange,
+            value: timeValue,
+            onChange: handleDecideHourChange,
+            placeholder: "hh:mm o hh:mm am/pm",
           }
-        : formContext
-          ? type === "number"
-            ? formContext.register(name, { valueAsNumber: true })
-            : formContext.register(name)
-          : {};
+        : standalone
+          ? {
+              value: value || "",
+              onChange: onChange,
+            }
+          : (() => {
+              if (!formContext) return {};
+
+              const field = formContext.register(
+                name,
+                type === "number" ? { valueAsNumber: true } : {},
+              );
+              return {
+                ...field,
+                onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
+                  field.onChange(e);
+                  onChange?.(e);
+                },
+              };
+            })();
 
   const error = !standalone && formContext?.formState?.errors?.[name];
 
   const getCurrentValue = () => {
     if (isCedulaVariant) return cedulaValue;
     if (isTimeVariant) return timeValue;
+    if (isDecideHourVariant && !standalone)
+      return formContext?.watch(name) || "";
     if (standalone) return value || "";
     return formContext?.watch(name) || "";
   };
@@ -241,14 +332,13 @@ function MCInput({
     return currentValue;
   };
 
-  // Detectar si el input debe estar deshabilitado por variante interna
   const isInternalDisabled = isInternalVariant;
 
   return (
-    <div className="w-full flex flex-col px-0">
+    <div className="w-full flex flex-col mb-4 px-0">
       {/* Label externo */}
       {label && !isInternalVariant && (
-        <div className="flex flex-row justify-between items-center mb-2 gap-2">
+        <div className="flex flex-row justify-between items-center mb-1 gap-2">
           <label
             htmlFor={name}
             className="text-left text-base sm:text-lg text-primary"
@@ -260,7 +350,7 @@ function MCInput({
             <Button
               type="button"
               variant="ghost"
-              className="rounded-2xl text-secondary/75 dark:text-accent/75 hover:bg-secondary/10 dark:accent-accent/10 dark:hover:text-accent hover:text-secondary px-2 py-1 active:bg-secondary/20 active:text-secondary dark:active:text-accent"
+              className="rounded-2xl text-gray-500 px-2 py-1"
               onClick={handlePasswordToggle}
               disabled={disabled}
             >
@@ -300,6 +390,7 @@ function MCInput({
             ) : (
               <input
                 id={name}
+                ref={isDecideHourVariant ? inputRef : undefined}
                 placeholder={getDisplayPlaceholder()}
                 type={type === "password" && passwordVisibility ? "text" : type}
                 required={required}
@@ -340,6 +431,7 @@ function MCInput({
               ) : (
                 <input
                   id={name}
+                  ref={isDecideHourVariant ? inputRef : undefined}
                   placeholder={getDisplayPlaceholder()}
                   type={
                     type === "password" && passwordVisibility ? "text" : type
@@ -380,13 +472,23 @@ function MCInput({
           )}
           <Input
             id={name}
-            placeholder={placeholder}
-            type={type === "password" && passwordVisibility ? "text" : type}
+            ref={isDecideHourVariant ? inputRef : undefined}
+            placeholder={
+              isDecideHourVariant ? "Ej: 17:00 o 05:00 pm" : placeholder
+            }
+            type={
+              isDecideHourVariant
+                ? "time"
+                : type === "password" && passwordVisibility
+                  ? "text"
+                  : type
+            }
             required={required}
             disabled={disabled}
             onKeyDown={type === "number" ? handleNumberKeyDown : undefined}
             onInput={type === "number" ? handleNumberInput : undefined}
             {...inputProps}
+            maxLength={maxLength}
             className={cn(
               "w-full rounded-4xl focus:ring-0 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 text-primary placeholder:text-md",
               getSizeClasses(),
@@ -419,14 +521,13 @@ function MCInput({
           {statusMessage}
         </span>
       )}
-      <div className="w-full flex items-center justify-start px-2">
-        {/* Form Errors */}
-        {error && (
-          <span className="text-red-500 text-sm mt-1 text-left">
-            {String(error?.message)}
-          </span>
-        )}
-      </div>
+
+      {/* Form Errors */}
+      {error && (
+        <span className="text-red-500 text-sm mt-1">
+          {String(error?.message)}
+        </span>
+      )}
     </div>
   );
 }

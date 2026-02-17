@@ -13,7 +13,7 @@ import MCInput from "@/shared/components/forms/MCInput";
 import { useEffect, useRef } from "react";
 
 function ServiceBasicInfoStep() {
-  const { t } = useTranslation();
+  const { t } = useTranslation("doctor");
   const formRef = useRef<any>(null);
   const submitRef = useRef<any>(null);
 
@@ -34,7 +34,6 @@ function ServiceBasicInfoStep() {
   const goToNextStep = useCreateServicesStore((s) => s.goToNextStep);
   const goToPreviousStep = useCreateServicesStore((s) => s.goToPreviousStep);
 
-  // Actualizar el formulario cuando cambien los datos del store
   useEffect(() => {
     if (formRef.current) {
       formRef.current.setValue(
@@ -115,8 +114,8 @@ function ServiceBasicInfoStep() {
 
   return (
     <ServicesLayoutsSteps
-      title="Haz crecer tu servicio médico con información detallada"
-      description="Empieza con una opción accesible para atraer a más pacientes y optimizar tu agenda de manera eficiente."
+      title={t("createService.basicInfo.title")}
+      description={t("createService.basicInfo.description")}
     >
       <MCFormWrapper
         formRef={formRef}

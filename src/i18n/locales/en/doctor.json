@@ -24,7 +24,57 @@
     "experienceAtLeastOne": "At least one experience entry is required",
     "languageRequired": "Language cannot be empty",
     "languageAtLeastOne": "At least one language is required",
-    "insuranceProviderRequired": "Insurance provider cannot be empty"
+    "insuranceProviderRequired": "Insurance provider cannot be empty",
+    "name": {
+      "required": "Name is required",
+      "maxLength": "Name cannot exceed 50 characters",
+      "maxLength30": "Name cannot exceed 30 characters"
+    },
+    "description": {
+      "minLength": "Description must be at least 50 characters",
+      "maxLength": "Description cannot exceed 250 characters"
+    },
+    "specialty": {
+      "required": "Specialty is required"
+    },
+    "selectedModality": {
+      "required": "Modality is required"
+    },
+    "pricePerSession": {
+      "positive": "Price per session must be positive"
+    },
+    "duration": {
+      "minutes": {
+        "min": "Minutes must be at least 1",
+        "max": "Minutes cannot exceed 59"
+      }
+    },
+    "images": {
+      "maxLength": "Maximum 8 images",
+      "required": "At least 1 image is required"
+    },
+    "address": {
+      "required": "Address is required"
+    },
+    "province": {
+      "required": "Province is required"
+    },
+    "municipality": {
+      "required": "Municipality is required"
+    },
+    "day": {
+      "selectAtLeastOne": "Must select at least one day"
+    },
+    "startTime": {
+      "invalidFormat": "Start time must be in HH:mm:ss format"
+    },
+    "endTime": {
+      "invalidFormat": "End time must be in HH:mm:ss format"
+    },
+    "time": {
+      "cannotBeEqual": "Start and end time cannot be equal",
+      "required": "Start and end time are required"
+    }
   },
 
   "navbar": {
@@ -245,7 +295,8 @@
     "disconnect": "Disconnect",
     "viewDetails": "View details",
     "reviews": "reviews",
-    "review": "review"
+    "review": "review",
+    "save": "Save"
   },
 
   "profile": {
@@ -459,5 +510,144 @@
       "reviews": "reviews",
       "review": "review"
     }
+  },
+
+  "createService": {
+    "steps": {
+      "serviceDetails": "Service Details",
+      "location": "Location",
+      "comercialSchedule": "Business Hours",
+      "images": "Images",
+      "summary": "Summary"
+    },
+    "title": {
+      "title": "Give your service a title",
+      "serviceName": "Service Name"
+    },
+    "basicInfo": {
+      "title": "Grow your medical service with detailed information",
+      "description": "Start with an accessible option to attract more patients and optimize your schedule efficiently."
+    },
+    "schedule": {
+      "title": "Set your schedule",
+      "description": "Start with an accessible option to attract more patients and optimize your schedule efficiently.",
+      "addSchedule": "Add Schedule",
+      "manageSchedule": "Manage Schedule",
+      "scheduleName": "Schedule Name",
+      "scheduleNamePlaceholder": "E.g.: Monday to Friday Schedule",
+      "days": "Days",
+      "startTime": "Start Time",
+      "startTimePlaceholder": "E.g.: 08:00 or 08:00 am",
+      "endTime": "End Time",
+      "endTimePlaceholder": "E.g.: 17:00 or 05:00 pm",
+      "location": "Location",
+      "selectLocation": "Select location",
+      "errorEndTime": "End time must be after start time",
+      "errorMinDuration": "The time range must allow at least one appointment of"
+    },
+    "images": {
+      "title": "Show your services and experience",
+      "description": "Add at least 1 photo that represents your medical skills.",
+      "minImages": "of",
+      "minImagesText": "minimum images",
+      "addedImages": "of",
+      "addedImagesText": "images added",
+      "imageAlt": "Image"
+    },
+    "location": {
+      "title": "Confirm your location",
+      "description": "Specify the address where you will offer your consultations or medical services so patients can easily find you.",
+      "addLocation": "Add Location",
+      "manageLocation": "Select Location"
+    },
+    "review": {
+      "title": "Review Service",
+      "description": "Review all your service information before publishing. Make sure everything is correct to attract more patients and provide them with the best possible experience.",
+      "specialty": "Specialty",
+      "modality": "Modality",
+      "duration": "Duration",
+      "pricePerSession": "Price per session",
+      "numberOfSessions": "Number of sessions",
+      "location": "Location",
+      "virtualConsultation": "Virtual consultation",
+      "virtualConsultationDescription": "The consultation will be held through Mediconnect's teleconsultation platform. You will receive a link by email before the appointment.",
+      "save": "Save"
+    },
+    "modals": {
+      "description": {
+        "title": "Service description",
+        "placeholder": "Enter your description here..."
+      },
+      "sessions": {
+        "title": "Number of sessions"
+      },
+      "duration": {
+        "title": "Session duration"
+      },
+      "price": {
+        "title": "Price"
+      }
+    },
+    "common": {
+      "save": "Save",
+      "cancel": "Cancel",
+      "continue": "Continue",
+      "back": "Back",
+      "step": "Step",
+      "of": "of"
+    },
+    "leave": {
+      "title": "Leave creation",
+      "description": "Are you sure you want to leave service creation? Unsaved changes will be lost.",
+      "confirm": "Yes, leave",
+      "cancel": "No, continue editing",
+      "button": "Leave"
+    }
+  },
+  "form": {
+    "specialty": "Specialty",
+    "selectSpecialty": "Select specialty",
+    "modality": "Modality",
+    "selectModality": "Select modality",
+    "description": "Description",
+    "serviceDescription": "Service description",
+    "optional": "Optional",
+    "descriptionPlaceholder": "Describe your medical service...",
+    "numberOfSessions": "Number of sessions",
+    "sessions": "Sessions",
+    "numberOfSessionsPlaceholder": "1",
+    "durationHours": "Duration",
+    "hours": "Hours",
+    "minutes": "Minutes",
+    "price": "Price",
+    "pricePerSession": "Price per session",
+    "pricePerSessionPlaceholder": "1000",
+    "locationName": "Location name",
+    "locationNamePlaceholder": "E.g.: Main Office",
+    "address": "Address",
+    "addressPlaceholder": "Main Street #123",
+    "province": "Province",
+    "provincePlaceholder": "Santo Domingo",
+    "municipality": "Municipality",
+    "municipalityPlaceholder": "Distrito Nacional",
+    "available": "Available"
+  },
+  "modality": {
+    "presencial": "In-person",
+    "teleconsulta": "Teleconsultation",
+    "mixed": "Mixed"
+  },
+  "specialty": {
+    "cardiology": "Cardiology",
+    "pediatrics": "Pediatrics"
+  },
+  "days": {
+    "sunday": "Sunday",
+    "monday": "Monday",
+    "tuesday": "Tuesday",
+    "wednesday": "Wednesday",
+    "thursday": "Thursday",
+    "friday": "Friday",
+    "saturday": "Saturday"
   }
 }
