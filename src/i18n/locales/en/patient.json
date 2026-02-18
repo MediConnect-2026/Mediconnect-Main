@@ -281,6 +281,7 @@
     "confirmCancellation": "Confirm",
     "cancelAction": "Cancel",
     "doctorNotification": "The Doctor will be automatically notified of this cancellation.",
+    "patientNotification": "The patient will be automatically notified of this cancellation.",
     "cancellationSuccess": "Appointment cancelled successfully.",
     "cancellationAborted": "Appointment cancellation aborted.",
     "invalidDate": "The entered date is not valid.",

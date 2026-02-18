@@ -276,6 +276,7 @@
     "confirmCancellation": "Confirmar",
     "cancelAction": "Cancelar",
     "doctorNotification": "El Doctor será notificado automáticamente de esta cancelación.",
+    "patientNotification": "El paciente será notificado automáticamente de esta cancelación.",
     "cancellationSuccess": "Cita cancelada correctamente.",
     "cancellationAborted": "Cancelación de cita abortada.",
     "invalidDate": "La fecha ingresada no es válida.",

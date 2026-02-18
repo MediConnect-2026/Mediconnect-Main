@@ -101,7 +101,7 @@ export const AppointmentDetails = ({
   }
 
   return (
-    <div className="h-full flex flex-col animate-fade-in border border-primary/15 bg-background rounded-3xl lg:rounded-4xl overflow-visible">
+    <div className="h-full flex flex-col gap-1 animate-fade-in border border-primary/15 bg-background rounded-3xl lg:rounded-4xl overflow-visible">
       {/* Header */}
       <div className="flex items-start justify-between p-3 sm:p-4 border-b border-primary/15">
         <div className="flex-1 min-w-0 flex items-center gap-2 sm:gap-3">
@@ -187,9 +187,9 @@ export const AppointmentDetails = ({
       </div>
 
       {/* Content - Scrollable */}
-      <div className="flex-1 min-h-0 overflow-auto p-3 sm:p-4 space-y-3 sm:space-y-4 scrollbar-hide">
+      <div className="flex-1 min-h-0 overflow-auto p-3 sm:p-4 space-y-0.5 sm:space-y-1 scrollbar-hide">
         {/* Status Badge */}
-        <div className="flex gap-2 flex-wrap">
+        <div className="flex gap-2 flex-wrap p-2.5 sm:p-3 ">
           <Badge
             className={`${statusVariants[appointment.status]} border text-sm sm:text-base`}
           >
@@ -198,13 +198,13 @@ export const AppointmentDetails = ({
         </div>
 
         {/* Info Blocks */}
-        <div className="flex flex-col gap-2 sm:gap-3">
+        <div className="flex flex-col gap-1.5  sm:gap-2">
           {/* Date & Time */}
-          <div className="flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3 bg-muted rounded-lg">
+          <div className="flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3  bg-muted rounded-lg">
             <div className="w-7 h-7 sm:w-8 sm:h-8 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
               <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary" />
             </div>
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               <p className="font-medium text-xs sm:text-sm">
                 {format(appointment.date, "EEEE, d 'de' MMMM", { locale: es })}
               </p>
@@ -215,7 +215,7 @@ export const AppointmentDetails = ({
           </div>
 
           {/* Modality */}
-          <div className="flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3 bg-muted rounded-lg">
+          <div className="flex items-center gap-2 p-2.5 sm:p-3 sm:py-3 g-muted rounded-lg">
             <div className="w-7 h-7 sm:w-8 sm:h-8 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
               {appointment.modality === "virtual" ? (
                 <Video className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary" />
@@ -237,12 +237,12 @@ export const AppointmentDetails = ({
 
           {/* Service & Price */}
           {appointment.service && (
-            <div className="flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3 bg-muted rounded-lg">
+            <div className="flex items-center gap-2 p-2.5 sm:p-3  sm:py-3 bg-muted rounded-lg">
               <div className="w-7 h-7 sm:w-8 sm:h-8 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
                 <Stethoscope className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary" />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="font-medium text-xs sm:text-sm line-clamp-2">
+                <p className="font-medium text-sm  line-clamp-2">
                   {appointment.service}
                 </p>
                 {appointment.price && (
@@ -259,7 +259,7 @@ export const AppointmentDetails = ({
 
           {/* Contact */}
           <div className="p-2.5 sm:p-3 bg-muted rounded-lg flex flex-col gap-2">
-            <h4 className="text-xs font-semibold text-muted-foreground uppercase mb-1">
+            <h4 className="text-base font-semibold text-muted-foreground  ">
               {t("calendar.contact")}
             </h4>
             {userRole === "DOCTOR" ? (
@@ -306,11 +306,11 @@ export const AppointmentDetails = ({
 
         {/* Notes */}
         {appointment.notes && (
-          <div className="space-y-2">
-            <h4 className="text-xs font-semibold text-muted-foreground uppercase">
+          <div className="p-2.5 sm:p-3 bg-muted rounded-lg flex flex-col gap-2">
+            <h4 className="text-base font-semibold text-muted-foreground ">
               {t("calendar.reason")}
             </h4>
-            <div className="bg-muted rounded-lg p-2.5 sm:p-3">
+            <div className="bg-muted rounded-lg ">
               <p className="text-xs leading-relaxed">{appointment.notes}</p>
             </div>
           </div>

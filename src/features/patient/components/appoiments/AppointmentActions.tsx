@@ -6,7 +6,7 @@ import ScheduleAppointmentDialog from "@/features/patient/components/appoiments/
 import CancelAppointmentDialog from "@/features/patient/components/appoiments/CancelAppointmentDialog";
 import ViewDetailsAppointmentDialog from "./ViewDetailsAppointmentDialog";
 import { useAppStore } from "@/stores/useAppStore";
-
+import AcceptAppointment from "@/features/doctor/components/appointments/modals/AcceptAppointment";
 interface AppointmentActionsProps {
   appointment: {
     id: string;
@@ -57,7 +57,7 @@ export default function AppointmentActions({
   // Acciones para DOCTOR
   if (userRole === "DOCTOR") {
     if (isPending) {
-      // PENDING: Ver Detalles, Aceptar Cita, Cancelar Cita
+      // PENDING: Ver Detalles, Aceptar Cita (con modal), Cancelar Cita
       return (
         <div className="flex flex-col gap-1 p-2">
           <ViewDetailsAppointmentDialog appointmentId={appointment.id}>
@@ -65,12 +65,11 @@ export default function AppointmentActions({
               {t("appointments.viewDetails")}
             </div>
           </ViewDetailsAppointmentDialog>
-          <div
-            className="p-2 cursor-pointer rounded-lg hover:bg-green-500/10 text-green-600 transition text-sm text-center"
-            onClick={() => handleAcceptAppointment(appointment.id)}
-          >
-            {t("appointments.accept")}
-          </div>
+          <AcceptAppointment appointmentId={appointment.id}>
+            <div className="p-2 cursor-pointer rounded-lg hover:bg-green-500/10 text-green-600 transition text-sm text-center">
+              {t("appointments.accept")}
+            </div>
+          </AcceptAppointment>
           <CancelAppointmentDialog appointmentId={appointment.id}>
             <div className="p-2 cursor-pointer rounded-lg hover:bg-destructive/10 text-destructive transition text-sm text-center">
               {t("appointments.cancel")}
@@ -110,7 +109,7 @@ export default function AppointmentActions({
       // COMPLETED/CANCELLED: Solo Ver Detalles
       return (
         <ViewDetailsAppointmentDialog appointmentId={appointment.id}>
-          <div className="p-2 cursor-pointer rounded-lg hover:bg-primary/10 transition text-sm text-center">
+          <div className="p-2 cursor-pointer rounded-lg hover:bg-accent/70 dark:hover:text-background transition text-sm">
             {t("appointments.viewDetails")}
           </div>
         </ViewDetailsAppointmentDialog>
@@ -226,7 +225,7 @@ export default function AppointmentActions({
   // Si no es upcoming, solo Ver detalles
   return (
     <ViewDetailsAppointmentDialog appointmentId={appointment.id}>
-      <div className="px-2 py-5 cursor-pointer rounded-lg hover:bg-primary/10 transition text-sm">
+      <div className="p-2 cursor-pointer rounded-lg hover:bg-accent/70 dark:hover:text-background transition text-sm">
         {t("appointments.viewDetails")}
       </div>
     </ViewDetailsAppointmentDialog>

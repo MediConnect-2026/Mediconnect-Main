@@ -7,7 +7,7 @@ import { cancelAppointmentSchema } from "@/schema/appointment.schema";
 import MCFormWrapper from "@/shared/components/forms/MCFormWrapper";
 import { TriangleAlert } from "lucide-react";
 import { useGlobalUIStore } from "@/stores/useGlobalUIStore";
-
+import { useAppStore } from "@/stores/useAppStore";
 interface CancelAppointmentDialogProps {
   children?: React.ReactNode;
   appointmentId: string;
@@ -21,6 +21,8 @@ function CancelAppointmentDialog({
   const setCancelAppointment = useAppointmentStore(
     (state) => state.setCancelAppointment,
   );
+
+  const userRole = useAppStore((state) => state.user?.role);
 
   const setToast = useGlobalUIStore((state) => state.setToast);
 
@@ -77,7 +79,9 @@ function CancelAppointmentDialog({
             <TriangleAlert size={20} />
           </div>
           <div className="text-[#E1791D]">
-            {t("appointment.doctorNotification")}
+            {userRole === "DOCTOR"
+              ? t("appointment.patientNotification")
+              : t("appointment.doctorNotification")}
           </div>
         </div>
         <MCTextArea
