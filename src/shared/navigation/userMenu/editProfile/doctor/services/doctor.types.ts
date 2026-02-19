@@ -12,6 +12,99 @@ export interface GetDoctorProfileResponse {
 }
 
 /**
+ * Request para actualizar el perfil del doctor autenticado
+ * PATCH /doctores/me
+ */
+export interface UpdateDoctorProfileRequest {
+  nombre?: string;
+  apellido?: string;
+  telefono?: string;
+  biografia?: string;
+  anosExperiencia?: number;
+  tarifas?: number;
+  duracionCitaPromedio?: number;
+  nacionalidad?: string;
+  estado?: 'Activo' | 'Inactivo';
+}
+
+/**
+ * Respuesta al actualizar el perfil del doctor
+ */
+export interface UpdateDoctorProfileResponse {
+  success: boolean;
+  message: string;
+  data: DoctorAuth;
+}
+
+/**
+ * Error al actualizar el perfil del doctor
+ */
+export interface UpdateDoctorProfileError {
+  success: boolean;
+  message: string;
+  error?: string;
+  detalles?: string[] | string;
+}
+
+/**
+ * Request para actualizar la foto de perfil
+ * PATCH /auth/foto-perfil
+ */
+export interface UpdateProfilePhotoRequest {
+  fotoPerfil: File;
+}
+
+/**
+ * Respuesta al actualizar la foto de perfil
+ */
+export interface UpdateProfilePhotoResponse {
+  success: boolean;
+  message: string;
+  data: {
+    fotoPerfil: string;
+  };
+}
+
+/**
+ * Error al actualizar la foto de perfil
+ */
+export interface UpdateProfilePhotoError {
+  success: boolean;
+  message: string;
+  error?: string;
+  detalles?: string[] | string;
+}
+
+/**
+ * Request para actualizar el banner
+ * PATCH /auth/banner
+ */
+export interface UpdateBannerRequest {
+  banner: File;
+}
+
+/**
+ * Respuesta al actualizar el banner
+ */
+export interface UpdateBannerResponse {
+  success: boolean;
+  message: string;
+  data: {
+    bannerUrl: string;
+  };
+}
+
+/**
+ * Error al actualizar el banner
+ */
+export interface UpdateBannerError {
+  success: boolean;
+  message: string;
+  error?: string;
+  detalles?: string[] | string;
+}
+
+/**
  * Request para actualizar un documento rechazado
  * PUT /doctores/documentos/{id}
  */

@@ -2,6 +2,13 @@ import apiClient from '@/services/api/client';
 import type { 
   GetDoctorProfileResponse,
   DoctorServiceError,
+  UpdateDoctorProfileRequest,
+  UpdateDoctorProfileResponse,
+  UpdateDoctorProfileError,
+  UpdateProfilePhotoResponse,
+  UpdateProfilePhotoError,
+  UpdateBannerResponse,
+  UpdateBannerError,
   UpdateRejectedDocumentRequest,
   UpdateRejectedDocumentResponse,
   UpdateDocumentError,
@@ -51,6 +58,56 @@ export const doctorService = {
         errorData?.message || 
         error.message || 
         'Error al obtener el perfil del doctor. Intenta nuevamente.'
+      );
+    }
+  },
+
+  /**
+   * Actualiza el perfil del doctor autenticado
+   * @param data - Datos del perfil a actualizar
+   * @returns Respuesta con los datos actualizados
+   * 
+   * Campos actualizables:
+   * - nombre: Nombre del doctor
+   * - apellido: Apellido del doctor
+   * - telefono: Número de teléfono
+   * - biografia: Biografía profesional
+   * - anosExperiencia: Años de experiencia
+   * - tarifas: Tarifa por consulta
+   * - duracionCitaPromedio: Duración promedio de cita en minutos
+   * - nacionalidad: Nacionalidad del doctor
+   * - estado: Estado del perfil (Activo/Inactivo)
+   */
+  updateProfile: async (
+    data: UpdateDoctorProfileRequest
+  ): Promise<UpdateDoctorProfileResponse> => {
+    try {
+      const response = await apiClient.patch<UpdateDoctorProfileResponse>(
+        '/doctores/me',
+        data
+      );
+
+      return response.data;
+    } catch (error: any) {
+      console.error('❌ [Doctor Service] Error al actualizar perfil:', error);
+      
+      // El apiClient ya maneja los errores comunes (401, 403, etc.)
+      // Aquí solo manejamos errores específicos del endpoint
+      const errorData = error.response?.data as UpdateDoctorProfileError;
+      
+      if (error.response?.status === 404) {
+        throw new Error('Perfil de doctor no encontrado.');
+      }
+      
+      if (error.response?.status === 409) {
+        throw new Error('El exequatur o documento de identidad ya existe.');
+      }
+      
+      // Error genérico del servidor o del cliente API
+      throw new Error(
+        errorData?.message || 
+        error.message || 
+        'Error al actualizar el perfil. Intenta nuevamente.'
       );
     }
   },
@@ -136,6 +193,128 @@ export const doctorService = {
         errorData?.message || 
         error.message || 
         'Error al actualizar el documento. Intenta nuevamente.'
+      );
+    }
+  },
+
+  /**
+   * Actualiza la foto de perfil del doctor autenticado
+   * @param file - Archivo de imagen (JPEG, PNG, WEBP, máximo 5MB)
+   * @returns Respuesta con la URL de la nueva foto de perfil
+   */
+  updateProfilePhoto: async (
+    file: File
+  ): Promise<UpdateProfilePhotoResponse> => {
+    try {
+      // Validar tipo de archivo
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+      if (!allowedTypes.includes(file.type)) {
+        throw new Error('Solo se permiten imágenes (JPEG, PNG, WEBP)');
+      }
+
+      // Validar tamaño (5MB)
+      const maxSize = 5 * 1024 * 1024; // 5MB en bytes
+      if (file.size > maxSize) {
+        throw new Error('La imagen supera el tamaño máximo de 5MB');
+      }
+
+      // Crear FormData para enviar el archivo
+      const formData = new FormData();
+      formData.append('fotoPerfil', file);
+
+      const response = await apiClient.patch<UpdateProfilePhotoResponse>(
+        '/auth/foto-perfil',
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        }
+      );
+
+      return response.data;
+    } catch (error: any) {
+      console.error('❌ [Doctor Service] Error al actualizar foto de perfil:', error);
+      
+      const errorData = error.response?.data as UpdateProfilePhotoError;
+      
+      if (error.response?.status === 400) {
+        throw new Error(
+          errorData?.message || 
+          'La foto de perfil es inválida o supera el tamaño permitido.'
+        );
+      }
+      
+      if (error.response?.status === 404) {
+        throw new Error('Usuario no encontrado.');
+      }
+      
+      // Error genérico del servidor o del cliente API
+      throw new Error(
+        errorData?.message || 
+        error.message || 
+        'Error al actualizar la foto de perfil. Intenta nuevamente.'
+      );
+    }
+  },
+
+  /**
+   * Actualiza el banner del doctor autenticado
+   * @param file - Archivo de imagen (JPEG, PNG, WEBP, máximo 5MB)
+   * @returns Respuesta con la URL del nuevo banner
+   */
+  updateBanner: async (
+    file: File
+  ): Promise<UpdateBannerResponse> => {
+    try {
+      // Validar tipo de archivo
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+      if (!allowedTypes.includes(file.type)) {
+        throw new Error('Solo se permiten imágenes (JPEG, PNG, WEBP)');
+      }
+
+      // Validar tamaño (5MB)
+      const maxSize = 5 * 1024 * 1024; // 5MB en bytes
+      if (file.size > maxSize) {
+        throw new Error('La imagen supera el tamaño máximo de 5MB');
+      }
+
+      // Crear FormData para enviar el archivo
+      const formData = new FormData();
+      formData.append('banner', file);
+
+      const response = await apiClient.patch<UpdateBannerResponse>(
+        '/auth/banner',
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        }
+      );
+
+      return response.data;
+    } catch (error: any) {
+      console.error('❌ [Doctor Service] Error al actualizar banner:', error);
+      
+      const errorData = error.response?.data as UpdateBannerError;
+      
+      if (error.response?.status === 400) {
+        throw new Error(
+          errorData?.message || 
+          'El banner es inválido o supera el tamaño permitido.'
+        );
+      }
+      
+      if (error.response?.status === 404) {
+        throw new Error('Usuario no encontrado.');
+      }
+      
+      // Error genérico del servidor o del cliente API
+      throw new Error(
+        errorData?.message || 
+        error.message || 
+        'Error al actualizar el banner. Intenta nuevamente.'
       );
     }
   },

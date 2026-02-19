@@ -25,7 +25,7 @@ export interface User {
   rol: ApiUserRole | string;
   fotoPerfil?: string | null;
   paciente: Paciente | null;
-  banner?: { url: string } | null;
+  banner?: string | null;
   doctor: Doctor | null;
   telefono?: string | null;
   centroSalud: CentroSalud | null;
@@ -69,7 +69,7 @@ export interface Doctor {
   numeroDocumentoIdentificacion: string;
   fotoDocumento: string | null;
   fotoPerfil: string | null;
-  banner?: { url: string } | null;
+  banner?: string | null;
   fechaNacimiento: string; // ISO Date string
   genero: string;
   telefono: string | null;
@@ -104,6 +104,7 @@ export interface Paciente {
   tipoDocIdentificacion: string;
   foto_documento: string | null;
   fotoPerfil?: string | null; // Alias para compatibilidad
+  banner?: string | null;
   fechaNacimiento: string; // ISO Date string
   genero: string;
   altura: number | null;
@@ -160,6 +161,7 @@ export interface GoogleRegistrationResponse {
   nombre?: string;
   apellido?: string;
   foto?: string;
+  banner?: string;
 }
 
 // Unión de ambas respuestas posibles
@@ -286,6 +288,7 @@ export function normalizeLoginResponse(response: LoginResponse): {
       id: response.usuario.id,
       email: response.usuario.email,
       fotoPerfil: getUserAvatar(response.usuario) || undefined,
+      banner: getUserBanner(response.usuario) || undefined,
       rol: getUserAppRole(response.usuario) || response.usuario.rol,
       paciente: response.usuario.paciente || null,
       doctor: response.usuario.doctor || null,
@@ -332,6 +335,7 @@ export function normalizeGoogleLoginResponse(response: GoogleLoginSuccessRespons
       id: userData.id,
       email: userData.email,
       fotoPerfil: getUserAvatar(userData) || undefined,
+      banner: getUserBanner(userData) || undefined,
       rol: getUserAppRole(userData) || userData.rol,
       paciente: userData.paciente || null,
       doctor: userData.doctor || null,
@@ -458,6 +462,32 @@ export function getUserAvatar(user: User | null): string | undefined {
   }
   
   // Si no hay foto de perfil, retornar undefined para que se muestre el avatar generado
+  return undefined;
+}
+
+
+/*
+  * Funcion para obtener el banner del usuario según su rol
+  * Busca primero en user.banner (para usuarios de Google u otros con banner directo)
+  * Luego busca en el objeto específico del rol (doctor, paciente, centroSalud)
+  */
+export function getUserBanner(user: User | null): string | undefined {
+  if (!user) return undefined;
+  // Primero verificar si hay banner directo en el usuario
+  if (user.banner) {
+    return user.banner;
+  }
+  // Luego buscar en el objeto específico del rol
+  if (user.doctor?.banner) {
+    return user.doctor.banner;
+  }
+  if (user.paciente?.banner) {
+    return user.paciente.banner || undefined;
+  }
+  if (user.centroSalud?.banner) {
+    return user.centroSalud.banner;
+  }
+  // Si no hay banner, retornar undefined para que se muestre el fondo predeterminado
   return undefined;
 }
 

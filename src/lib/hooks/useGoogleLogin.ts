@@ -46,6 +46,7 @@ export const useGoogleLogin = (): UseGoogleLoginReturn => {
             nombre: user.paciente?.nombre || user.doctor?.nombre || '',
             apellido: user.paciente?.apellido || user.doctor?.apellido || '',
             foto: user.fotoPerfil || undefined,
+            banner: user.banner || undefined,
           });
           
           // Mostrar mensaje informativo
@@ -84,6 +85,7 @@ export const useGoogleLogin = (): UseGoogleLoginReturn => {
           nombre: data.nombre,
           apellido: data.apellido,
           foto: data.foto,
+          banner: data.banner,
         });
         
         // Mostrar mensaje informativo

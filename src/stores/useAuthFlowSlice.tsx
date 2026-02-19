@@ -19,6 +19,7 @@ export interface AuthFlowSlice {
     nombre?: string;
     apellido?: string;
     foto?: string;
+    banner?: string;
   } | null;
 
   setLoginCredentials: (data: LoginSchemaType) => void;
@@ -28,7 +29,7 @@ export interface AuthFlowSlice {
   setVerifyEmail: (data: { verified: boolean; email: string }) => void;
   setResetPassword: (data: ResetPasswordSchemaType) => void;
   setRegistrationToken: (token: string) => void;
-  setGoogleUserData: (data: { email?: string; nombre?: string; apellido?: string; foto?: string; } | null) => void;
+  setGoogleUserData: (data: { email?: string; nombre?: string; apellido?: string; foto?: string; banner?: string; } | null) => void;
   clearAuthFlow: () => void;
 }
 

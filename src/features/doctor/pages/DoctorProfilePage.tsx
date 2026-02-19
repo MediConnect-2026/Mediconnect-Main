@@ -16,7 +16,7 @@ import MCDashboardContent from "@/shared/layout/MCDashboardContent"; // <-- impo
 
 function DoctorProfilePage() {
   const { doctorId } = useParams();
-  const { t, i18n } = useTranslation("doctor");
+  const { t } = useTranslation("doctor");
   const [openSheet, setOpenSheet] = useState(false);
   const isMobile = useIsMobile();
   const user = useAppStore((state) => state.user); 

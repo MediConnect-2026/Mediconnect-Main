@@ -32,6 +32,9 @@ function PatientBasicInfoPage() {
     message: "",
   });
 
+  // Estado para saber si el formulario es válido
+  const [isFormValid, setIsFormValid] = useState(false);
+
   // Función para verificar el documento
   const verificarDocumento = useCallback(async (numero: string) => {
     // Limpiar formato y dejar solo números
@@ -146,9 +149,11 @@ function PatientBasicInfoPage() {
   // Calcular si el botón debe estar deshabilitado
   const isDocumentValid = basicInfo?.identityDocument?.replace(/\D/g, "").length === 11;
   const isButtonDisabled = 
+    !isFormValid || // Formulario no válido
     documentoStatus.isChecking || // Mientras se verifica
     documentoStatus.isAvailable === false || // Si ya está en uso
-    (isDocumentValid && documentoStatus.isAvailable === null); // Si tiene 11 dígitos pero aún no se ha verificado
+    (isDocumentValid && documentoStatus.isAvailable === null) || // Si tiene 11 dígitos pero aún no se ha verificado
+    documentoStatus.isAvailable !== true; // La cédula debe estar verificada y disponible
 
   return (
     <AuthContentContainer
@@ -166,6 +171,7 @@ function PatientBasicInfoPage() {
           identityDocument: basicInfo?.identityDocument || "",
           gender: basicInfo?.gender || "",
         }}
+        onValidationChange={setIsFormValid}
         className="flex flex-col items-center w-full"
       >
         <div className="flex flex-col items-center w-full max-w-md mx-auto">
