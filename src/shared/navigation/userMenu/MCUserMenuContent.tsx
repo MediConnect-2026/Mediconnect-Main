@@ -1,4 +1,3 @@
-import { useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSequentialShortcuts } from "@/lib/hooks/useSequentialShortcuts";
 import { useLogout } from "@/lib/hooks/useLogout";
@@ -132,17 +131,14 @@ export function MCUserMenuContent({
 
   // Setup sequential shortcuts
   const shortcuts = [
-    // Ctrl+E for Edit Profile (single shortcut, not sequential)
     {
       sequence: ["ctrl+e"],
       action: () => setIsEditProfileOpen(true),
     },
-    // G → P for View Profile
     {
       sequence: ["g", "p"],
       action: () => navigate(getProfileRoute()),
     },
-    // O → S for Settings
     {
       sequence: ["o", "s"],
       action: () => {
@@ -150,7 +146,6 @@ export function MCUserMenuContent({
         setOpen(false);
       },
     },
-    // O → P for Privacy
     {
       sequence: ["o", "p"],
       action: () => {
@@ -158,12 +153,10 @@ export function MCUserMenuContent({
         setOpen(false);
       },
     },
-    // G → A for Logout (Adios)
     {
       sequence: ["g", "a"],
       action: handleLogout,
     },
-    // G → D for Verification Docs (if applicable)
     ...(userRole === "DOCTOR" || userRole === "CENTER"
       ? [
           {
@@ -174,7 +167,6 @@ export function MCUserMenuContent({
           },
         ]
       : []),
-    // G → R for Requests (if doctor)
     ...(userRole === "DOCTOR"
       ? [
           {
@@ -187,11 +179,10 @@ export function MCUserMenuContent({
       : []),
   ];
 
-  // Enable shortcuts
   useSequentialShortcuts({
     shortcuts,
     enabled: true,
-    timeout: 2000, // 2 seconds to complete sequence
+    timeout: 2000,
   });
 
   const languages = [
@@ -212,12 +203,12 @@ export function MCUserMenuContent({
       {
         value: "light",
         label: t("userMenu.themeLight", { defaultValue: "Light" }),
-        icon: <Sun className="w-4 h-4 text-primary" />,
+        icon: <Sun className="w-4 h-4" />,
       },
       {
         value: "dark",
         label: t("userMenu.themeDark", { defaultValue: "Dark" }),
-        icon: <Moon className="w-4 h-4 text-primary" />,
+        icon: <Moon className="w-4 h-4" />,
       },
     ];
 
@@ -253,7 +244,6 @@ export function MCUserMenuContent({
     );
   };
 
-  // Función para obtener ítems específicos por rol
   type RoleSpecificItem = {
     icon: React.ReactNode;
     label: string;
@@ -284,7 +274,6 @@ export function MCUserMenuContent({
       },
     ];
 
-    // Agregar ítems específicos por rol
     if (userRole === "DOCTOR" || userRole === "CENTER") {
       baseItems.push({
         icon: <FileCheck className="w-4 h-4 mr-2" />,
@@ -292,14 +281,11 @@ export function MCUserMenuContent({
         shortcut: !isMobile ? "G → D" : undefined,
         action: () => navigate("/verify-info"),
       });
-    }
-
-    if (userRole === "DOCTOR") {
       baseItems.push({
         icon: <Inbox className="w-4 h-4 mr-2" />,
         label: t("userMenu.requests"),
         shortcut: !isMobile ? "G → R" : undefined,
-        action: () => {},
+        action: () => navigate("/requests"),
       });
     }
 
@@ -319,70 +305,32 @@ export function MCUserMenuContent({
           "rounded-2xl bg-background border border-primary/20",
           isMobile ? "w-[calc(100vw-2rem)] max-w-sm" : "w-80",
         )}
-        align={isMobile ? "end" : "end"}
+        align="end"
         side="bottom"
         sideOffset={isMobile ? 12 : 8}
         avoidCollisions={true}
       >
-        {/* Header con avatar y datos */}
-        <DropdownMenuLabel
-          className={cn(
-            "flex items-center gap-3",
-            isMobile ? "px-3 py-3" : "px-4 py-3",
-          )}
-        >
-          {userData.avatar ? (
-            <Avatar className={cn(
-              "rounded-full shadow-lg transition-all",
-              isMobile ? "h-10 w-10" : "h-13 w-13"
-            )}>
-              <AvatarImage
-                src={userData.avatar}
-                alt={userData.name}
-                className="object-cover"
-              />
-              <AvatarFallback className={cn(
-                isMobile ? "text-base" : "text-lg"
-              )}>
-                {userData.initials}
-              </AvatarFallback>
-            </Avatar>
-          ) : (
-            <MCUserAvatar
-              name={userData.name + userData.userId}
-              size={isMobile ? 40 : 52}
-              square={false}
-            />
-          )}
-          <div className="flex flex-col items-start leading-tight text-left min-w-0 flex-1">
-            <span
-              className={cn(
-                "font-semibold",
-                isMobile ? "text-sm" : "text-base",
-              )}
-            >
-              {userData.name}
-            </span>
-            <span
-              className={cn(
-                "font-normal overflow-hidden truncate",
-                isMobile ? "text-xs max-w-40" : "text-sm max-w-55",
-              )}
-              title={userData.email}
-            >
-              {userData.email}
-            </span>
+        {/* ── Header: avatar fijo + texto truncado ── */}
+        <DropdownMenuLabel className="px-4 py-3">
+          <div className="flex items-center gap-3 min-w-0">
+            {/* Avatar: tamaño fijo igual en mobile y desktop */}
+            <div className="flex-shrink-0">
+              <MCUserAvatar name={userData.name} size={44} square={false} />
+            </div>
+
+            {/* Texto: ocupa el espacio restante con truncado */}
+            <div className="flex flex-col items-start leading-tight text-left min-w-0 flex-1 overflow-hidden">
+              <span className="font-semibold text-sm w-full truncate">
+                {userData.name}
+              </span>
+              <span
+                className="font-normal text-xs w-full truncate text-muted-foreground"
+                title={userData.email}
+              >
+                {userData.email}
+              </span>
+            </div>
           </div>
-          {isMobile && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setOpen(false)}
-              className="p-1 h-6 w-6 flex-shrink-0"
-            >
-              <X className="w-3 h-3" />
-            </Button>
-          )}
         </DropdownMenuLabel>
 
         <DropdownMenuSeparator className="bg-primary/15" />
@@ -549,21 +497,34 @@ export function MCUserMenuContent({
                   key={lang.code}
                   onClick={() => handleLanguageChange(lang.code)}
                   className={cn(
-                    "w-full flex items-center gap-3 p-3 rounded-lg transition-colors text-left hover:bg-accent",
+                    "w-full flex items-center gap-3 p-3 rounded-lg transition-colors text-left group",
                     language === lang.code
                       ? "bg-primary/10 text-primary border border-primary/20"
-                      : "border border-transparent",
+                      : "border border-transparent hover:bg-accent",
                   )}
                 >
-                  <img
-                    src={lang.flag}
-                    alt={lang.label}
-                    className="w-6 h-6 rounded-full"
+                  <div
+                    className={cn(
+                      "relative w-6 h-6 rounded-full overflow-hidden transition-all flex-shrink-0",
+                      language === lang.code &&
+                        "ring-2 ring-primary ring-offset-2 ring-offset-background",
+                    )}
+                  >
+                    <img
+                      src={lang.flag}
+                      alt={lang.label}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <span className="font-medium flex-1">{lang.label}</span>
+                  <div
+                    className={cn(
+                      "w-2 h-2 rounded-full transition-all flex-shrink-0",
+                      language === lang.code
+                        ? "bg-primary opacity-100"
+                        : "bg-transparent opacity-0",
+                    )}
                   />
-                  <span className="font-medium">{lang.label}</span>
-                  {language === lang.code && (
-                    <div className="ml-auto w-2 h-2 rounded-full bg-primary" />
-                  )}
                 </button>
               ))}
             </div>
@@ -580,17 +541,31 @@ export function MCUserMenuContent({
                   key={option.value}
                   onClick={(e) => handleThemeChangeAndClose(option.value, e)}
                   className={cn(
-                    "w-full flex items-center gap-3 p-3 rounded-lg transition-colors text-left hover:bg-accent hover:cursor-pointer hover:text-background",
+                    "w-full flex items-center gap-3 p-3 rounded-lg transition-colors text-left group",
                     theme === option.value
                       ? "bg-primary/10 text-primary border border-primary/20"
-                      : "border border-transparent",
+                      : "border border-transparent hover:bg-accent",
                   )}
                 >
-                  {option.icon}
-                  <span className="font-medium">{option.label}</span>
-                  {theme === option.value && (
-                    <div className="ml-auto w-2 h-2 rounded-full bg-primary" />
-                  )}
+                  <div
+                    className={cn(
+                      "relative flex items-center justify-center w-6 h-6 rounded-full transition-all flex-shrink-0",
+                      theme === option.value
+                        ? "bg-primary/20 text-primary ring-2 ring-primary ring-offset-2 ring-offset-background"
+                        : "bg-muted text-muted-foreground",
+                    )}
+                  >
+                    {option.icon}
+                  </div>
+                  <span className="font-medium flex-1">{option.label}</span>
+                  <div
+                    className={cn(
+                      "w-2 h-2 rounded-full transition-all flex-shrink-0",
+                      theme === option.value
+                        ? "bg-primary opacity-100"
+                        : "bg-transparent opacity-0",
+                    )}
+                  />
                 </button>
               ))}
             </div>

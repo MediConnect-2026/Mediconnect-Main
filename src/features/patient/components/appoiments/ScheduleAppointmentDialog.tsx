@@ -41,10 +41,10 @@ interface Service {
   modalityLabel: string;
   location: string;
   timeSlots: string[];
-  serviceType?: string; // Tipo de servicio
-  specialty?: string; // Especialidad
-  rating?: number; // Calificación
-  priceValue?: number; // Valor numérico del precio
+  serviceType?: string;
+  specialty?: string;
+  rating?: number;
+  priceValue?: number;
 }
 
 interface AppointmentFilters {
@@ -180,6 +180,9 @@ function ScheduleAppointmentForm({
   const formValues = watch();
   const initialValuesRef = useRef<scheduleAppointment | null>(null);
 
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
   useEffect(() => {
     if (isRescheduling && !initialValuesRef.current) {
       initialValuesRef.current = { ...formValues };
@@ -214,34 +217,26 @@ function ScheduleAppointmentForm({
     });
   };
 
-  // Función para filtrar servicios
   const filteredServices = useMemo(() => {
     return SERVICES.filter((service) => {
-      // Filtro por tipo de servicio
       if (
         appointmentFilters.serviceTypes.length > 0 &&
         !appointmentFilters.serviceTypes.includes(service.serviceType || "")
       ) {
         return false;
       }
-
-      // Filtro por especialidad
       if (
         appointmentFilters.specialties.length > 0 &&
         !appointmentFilters.specialties.includes(service.specialty || "")
       ) {
         return false;
       }
-
-      // Filtro por modalidad
       if (
         appointmentFilters.modalities.length > 0 &&
         !appointmentFilters.modalities.includes(service.modality)
       ) {
         return false;
       }
-
-      // Filtro por rango de precio
       if (
         service.priceValue &&
         (service.priceValue < appointmentFilters.priceRange[0] ||
@@ -249,8 +244,6 @@ function ScheduleAppointmentForm({
       ) {
         return false;
       }
-
-      // Filtro por rating
       if (
         appointmentFilters.rating > 0 &&
         service.rating &&
@@ -258,7 +251,6 @@ function ScheduleAppointmentForm({
       ) {
         return false;
       }
-
       return true;
     });
   }, [SERVICES, appointmentFilters]);
@@ -426,25 +418,32 @@ function ScheduleAppointmentForm({
 
   const WeekDaySelector = () => (
     <div className="grid grid-cols-7 gap-1 text-center">
-      {weekDays.map((day, index) => (
-        <div key={index} className="flex flex-col items-center">
-          <span className="text-xs text-muted-foreground mb-1">
-            {format(day, "EEE", { locale: currentLocale })}
-          </span>
-          <MCButton
-            type="button"
-            variant={isSameDay(day, selectedDate) ? "primary" : "outline"}
-            size="sm"
-            className={cn(
-              "w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium transition-colors",
-              !isSameDay(day, selectedDate) && "hover:bg-time-slot-hover",
-            )}
-            onClick={() => handleDateSelect(day)}
-          >
-            {format(day, "d")}
-          </MCButton>
-        </div>
-      ))}
+      {weekDays.map((day, index) => {
+        const isPast = day < today;
+        return (
+          <div key={index} className="flex flex-col items-center">
+            <span className="text-xs text-muted-foreground mb-1">
+              {format(day, "EEE", { locale: currentLocale })}
+            </span>
+            <MCButton
+              type="button"
+              variant={isSameDay(day, selectedDate) ? "primary" : "outline"}
+              size="sm"
+              disabled={isPast}
+              className={cn(
+                "w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium transition-colors",
+                !isSameDay(day, selectedDate) &&
+                  !isPast &&
+                  "hover:bg-time-slot-hover",
+                isPast && "opacity-40 cursor-not-allowed",
+              )}
+              onClick={() => !isPast && handleDateSelect(day)}
+            >
+              {format(day, "d")}
+            </MCButton>
+          </div>
+        );
+      })}
     </div>
   );
 
@@ -500,6 +499,7 @@ function ScheduleAppointmentForm({
                   mode="single"
                   selected={selectedDate}
                   onSelect={handleDateSelect}
+                  disabled={{ before: new Date() }}
                   initialFocus
                   className="p-3 pointer-events-auto"
                 />
@@ -521,7 +521,6 @@ function ScheduleAppointmentForm({
         </MCFilterPopover>
       </div>
 
-      {/* Mostrar mensaje si no hay servicios que coincidan con los filtros */}
       {filteredServices.length === 0 ? (
         <div className="text-center py-8 text-muted-foreground">
           <p>

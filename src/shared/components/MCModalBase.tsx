@@ -43,6 +43,8 @@ interface MCModalBaseProps {
   borderFooter?: boolean;
   actionOne?: boolean;
   defaultOpen?: boolean;
+  disabledConfirm?: boolean; // Nueva prop para deshabilitar el botón de confirmar
+  description?: string; // <-- Agrega esta línea
 }
 
 export function MCModalBase({
@@ -65,6 +67,8 @@ export function MCModalBase({
   borderFooter = false,
   actionOne = false,
   defaultOpen = false,
+  disabledConfirm = false, // Valor por defecto
+  description = "", // <-- Agrega aquí
 }: MCModalBaseProps) {
   const isControlled = externalIsOpen !== undefined;
   const isMobile = useIsMobile();
@@ -189,6 +193,12 @@ export function MCModalBase({
                 : "overflow-y-auto scrollbar-hide"
             }`}
           >
+            {/* Muestra la descripción si existe */}
+            {description && (
+              <div className="mb-2 text-base text-gray-700 dark:text-gray-300">
+                {description}
+              </div>
+            )}
             {children}
           </MorphingDialogDescription>
 
@@ -214,6 +224,7 @@ export function MCModalBase({
                 size={isMobile ? "l" : "m"}
                 onClick={handleConfirm}
                 className={isMobile ? "w-full" : ""}
+                disabled={disabledConfirm}
               >
                 {confirmText}
               </MCButton>
@@ -233,6 +244,7 @@ export function MCModalBase({
                 size={isMobile ? "l" : "m"}
                 onClick={handleConfirm}
                 className={isMobile ? "w-full" : ""}
+                disabled={disabledConfirm}
               >
                 {confirmText}
               </MCButton>
@@ -260,6 +272,7 @@ export function MCModalBase({
                 size={isMobile ? "l" : "m"}
                 onClick={handleConfirm}
                 className={isMobile ? "w-full" : ""}
+                disabled={disabledConfirm}
               >
                 {confirmText}
               </MCButton>

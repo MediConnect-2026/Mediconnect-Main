@@ -40,8 +40,11 @@ function ServiceBasicInfoStep() {
   const goToNextStep = useCreateServicesStore((s) => s.goToNextStep);
   const goToPreviousStep = useCreateServicesStore((s) => s.goToPreviousStep);
 
+<<<<<<< HEAD
 
   // Actualizar el formulario cuando cambien los datos del store
+=======
+>>>>>>> main
   useEffect(() => {
     if (formRef.current) {
       formRef.current.setValue(
@@ -141,8 +144,13 @@ function ServiceBasicInfoStep() {
 
   return (
     <ServicesLayoutsSteps
+<<<<<<< HEAD
       title={t("createService.basicInfoTitle")}
       description={t("createService.descriptionInfo")}
+=======
+      title={t("createService.basicInfo.title")}
+      description={t("createService.basicInfo.description")}
+>>>>>>> main
     >
       <MCFormWrapper
         formRef={formRef}

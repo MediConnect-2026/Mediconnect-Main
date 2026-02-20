@@ -10,8 +10,13 @@ import MCButton from "@/shared/components/forms/MCButton";
 import { Upload, X, FileText } from "lucide-react";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
 
-function Prescription() {
-  const { t } = useTranslation();
+interface PrescriptionProps {
+  minHeight?: string;
+  maxHeight?: string;
+}
+
+function Prescription({ minHeight, maxHeight }: PrescriptionProps) {
+  const { t } = useTranslation("common");
   const addPrescription = usePrescriptionStore(
     (state) => state.addPrescription,
   );
@@ -89,7 +94,7 @@ function Prescription() {
     <div className="flex flex-col h-full w-full rounded-xl md:rounded-2xl overflow-hidden overflow-y-auto">
       <MCFormWrapper schema={prescriptionSchema(t)} onSubmit={addPrescription}>
         <div className="flex flex-col gap-3 md:gap-4 p-3 md:p-4 overflow-y-auto h-full w-full items-center">
-          <div className="flex flex-col gap-3 md:gap-4 flex-1 overflow-y-auto w-full max-w-3xl">
+          <div className="flex flex-col gap-3 md:gap-4 flex-1 overflow-y-auto w-full max-w-3xl px-1">
             <MCInput
               name="diagnosisTittle"
               label={t("prescription.diagnosisTittle")}
@@ -109,6 +114,8 @@ function Prescription() {
                     "prescription.diagnosisDescriptionPlaceholder",
                   )}
                   error={fieldState.error?.message}
+                  minHeight={minHeight}
+                  maxHeight={maxHeight}
                 />
               )}
             />
@@ -222,7 +229,7 @@ function Prescription() {
               )}
             />
 
-            <MCButton type="submit" size="ml" className="w-full md:w-auto">
+            <MCButton type="submit" size="l" className="w-full md:w-auto">
               {t("prescription.submit")}
             </MCButton>
           </div>

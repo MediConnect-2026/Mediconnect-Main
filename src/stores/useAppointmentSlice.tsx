@@ -3,12 +3,17 @@ import type {
   scheduleAppointment,
   CancelAppointment,
 } from "@/types/AppointmentTypes";
-
+import type { RescheduleAppointmentByDoctorFormData } from "@/schema/appointment.schema";
 export interface AppointmentSlice {
   isAppointmentInProgress?: boolean;
   appointment: scheduleAppointment & { selectedServiceId?: string };
 
   cancelAppointment?: CancelAppointment;
+
+  rescheduleAppointmentByDoctor?: RescheduleAppointmentByDoctorFormData;
+  setRescheduleAppointmentByDoctor?: (
+    data: RescheduleAppointmentByDoctorFormData,
+  ) => void;
 
   setCancelAppointment?: (data: CancelAppointment) => void;
 
@@ -34,6 +39,15 @@ export const createAppointmentSlice: StateCreator<AppointmentSlice> = (
     doctorId: "",
     appointmentId: undefined,
   },
+
+  rescheduleAppointmentByDoctor: {
+    appointmentId: "",
+    newDate: "",
+    newTime: "",
+  },
+
+  setRescheduleAppointmentByDoctor: (data) =>
+    set({ rescheduleAppointmentByDoctor: data }),
 
   addAppointment: (data) => set({ appointment: data }),
 

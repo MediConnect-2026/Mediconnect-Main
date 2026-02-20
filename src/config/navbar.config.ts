@@ -26,7 +26,6 @@ export const NAVBAR_CONFIG = {
     menu: [
       { label: "home", href: "/dashboard" },
       { label: "doctors", href: "/center/staff" },
-      { label: "requests", href: "/center/requests" },
     ],
   },
 };

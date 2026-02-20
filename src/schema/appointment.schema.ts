@@ -67,3 +67,31 @@ export const cancelAppointmentSchema = (t: (key: string) => string) =>
 // Exportar el tipo inferido del schema
 export type scheduleAppointment = z.infer<typeof appointmentSchemaBase>;
 export type CancelAppointment = z.infer<typeof cancelAppointmentSchemaBase>;
+
+// ── Schema de validación para reprogramar cita por el doctor ────────────────
+export const rescheduleAppointmentByDoctorSchemaBase = z.object({
+  appointmentId: z.string().min(1, { message: "Appointment ID is required." }),
+  newDate: z.string().refine((date) => !isNaN(Date.parse(date)), {
+    message: "Invalid date.",
+  }),
+  newTime: z.string().min(1, { message: "Time is required." }),
+});
+
+export const rescheduleAppointmentByDoctorSchema = (
+  t: (key: string) => string,
+) =>
+  z.object({
+    appointmentId: z.string().min(1, {
+      message: t("appointment.idRequired"),
+    }),
+    newDate: z.string().refine((date) => !isNaN(Date.parse(date)), {
+      message: t("appointment.invalidDate"),
+    }),
+    newTime: z.string().min(1, {
+      message: t("appointment.timeRequired"),
+    }),
+  });
+
+export type RescheduleAppointmentByDoctorFormData = z.infer<
+  typeof rescheduleAppointmentByDoctorSchemaBase
+>;

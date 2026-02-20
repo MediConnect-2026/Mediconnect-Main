@@ -85,7 +85,7 @@ export const RatingModal = ({
       size="md"
       className="sm:max-w-md"
     >
-      <div className="flex flex-col items-center py-4">
+      <div className="flex flex-col">
         {/* Doctor info */}
         <div className="flex items-center gap-3 mb-6">
           <div className="w-20 h-20 rounded-full overflow-hidden">
@@ -106,7 +106,7 @@ export const RatingModal = ({
           <p className="text-sm font-medium mb-3">
             {t("ratingModal.rateExperience")}
           </p>
-          <div className="flex justify-center gap-2">
+          <div className="flex justify-between">
             {[1, 2, 3, 4, 5].map((star) => (
               <button
                 key={star}
@@ -116,7 +116,7 @@ export const RatingModal = ({
                 className="rating-star"
               >
                 <Star
-                  className={`w-10 h-10 ${
+                  className={`w-16 h-16 ${
                     star <= (hoveredRating || rating)
                       ? "text-yellow-400 fill-yellow-400"
                       : "text-primary/10 fill-transparent"

@@ -4,7 +4,7 @@ import MCButton from "@/shared/components/forms/MCButton";
 import { MCUserAvatar } from "@/shared/navigation/userMenu/MCUserAvatar";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
 import { useTranslation } from "react-i18next";
-
+import { useAppStore } from "@/stores/useAppStore";
 interface ConfirmationScreenProps {
   onJoinCall: () => void;
   appointment?: {
@@ -21,11 +21,14 @@ export const ConfirmationScreen = ({
   onJoinCall,
   appointment,
 }: ConfirmationScreenProps) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation("common");
   const doctorName = appointment?.doctorName || "Dr. Cristiano Ronaldo";
   const doctorAvatar = appointment?.doctorAvatar;
   const doctorSpecialty =
     appointment?.doctorSpecialty || "Especialista en Medicina Interna";
+
+  const userRole = useAppStore((state) => state.user?.role);
+
   const date = appointment?.date || "15 de octubre, 2025";
   const time = appointment?.time || "10:00 AM - 10:45 AM";
   const service = appointment?.service || "Plan Nutricional";
@@ -79,9 +82,11 @@ export const ConfirmationScreen = ({
                   <p className="font-semibold text-base truncate">
                     {doctorName}
                   </p>
-                  <p className="text-sm text-muted-foreground line-clamp-2">
-                    {doctorSpecialty}
-                  </p>
+                  {userRole === "PATIENT" && (
+                    <p className="text-sm text-muted-foreground line-clamp-2">
+                      {doctorSpecialty}
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -130,9 +135,11 @@ export const ConfirmationScreen = ({
               </div>
               <div className="text-left">
                 <p className="font-semibold">{doctorName}</p>
-                <p className="text-sm text-muted-foreground">
-                  {doctorSpecialty}
-                </p>
+                {userRole === "PATIENT" && (
+                  <p className="text-sm text-muted-foreground">
+                    {doctorSpecialty}
+                  </p>
+                )}
               </div>
               <div className="ml-auto text-left space-y-2">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">

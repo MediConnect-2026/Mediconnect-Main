@@ -57,6 +57,8 @@ export const ROUTES = {
     DOCTOR_PROFILE_PUBLIC: "/doctor/profile/:doctorId",
     CREATE_SERVICE: "/doctor/services/create",
     EDIT_SERVICE: "/doctor/services/edit/:serviceId",
+    CONSULTATION: "/appointments/:id/consultation",
+    PATIENT_DETAILS: "/patient/:patientId/details", // <-- Detalles del paciente para el doctor
   },
 
   // --- DASHBOARD CENTRO MÉDICO ---
@@ -101,5 +103,6 @@ export const ROUTES = {
     CALENDAR: "/calendar",
     SERVICE: "/service/:serviceId",
     DASHBOARD: "/dashboard",
+    REQUESTS: "/requests",
   },
 };

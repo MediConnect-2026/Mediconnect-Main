@@ -24,7 +24,7 @@ function MCMobileNavbar() {
   const effectiveRole = role || "PATIENT";
   const menuConfig = NAVBAR_CONFIG[effectiveRole as keyof typeof NAVBAR_CONFIG];
 
-  // Cambiar a 'common' para usar las traducciones compartidas
+  // ✅ usar namespace "common" (no "patient") para que funcione en todos los roles
   const { t } = useTranslation("common");
 
   const handleNavigation = (href: string) => {
@@ -39,7 +39,7 @@ function MCMobileNavbar() {
 
   return (
     <div className="flex items-center justify-between w-full px-6 py-4 md:hidden bg-background rounded-full shadow-md border border-border">
-      {/* Logo/Brand */}
+      {/* Logo */}
       <div className="flex items-center gap-3">
         <img
           src={theme === "dark" ? LogoImgdDark : LogoImg}
@@ -48,7 +48,7 @@ function MCMobileNavbar() {
         />
       </div>
 
-      {/* Right side - Notifications + Menu */}
+      {/* Right side - icons + menu */}
       <div className="flex items-center gap-2">
         {/* Search */}
         <Link
@@ -66,6 +66,7 @@ function MCMobileNavbar() {
             }`}
           />
         </Link>
+
         {/* Messages */}
         <Link
           to="/chat"
@@ -82,10 +83,11 @@ function MCMobileNavbar() {
             }`}
           />
         </Link>
+
         {/* Notifications Bell */}
         <NavbarBell />
 
-        {/* Mobile Menu */}
+        {/* Mobile Menu Sheet */}
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetTrigger asChild>
             <Button
@@ -96,6 +98,7 @@ function MCMobileNavbar() {
               <Menu className="h-6 w-6 text-primary" />
             </Button>
           </SheetTrigger>
+
           <SheetContent
             side="right"
             className="w-80 p-0 bg-background border-l border-border"
@@ -103,13 +106,11 @@ function MCMobileNavbar() {
             <div className="flex flex-col h-full">
               {/* Header */}
               <div className="flex items-center justify-between p-6 border-b border-border">
-                <div className="flex items-center gap-3">
-                  <img
-                    src={theme === "dark" ? LogoImgdDark : LogoImg}
-                    alt="MediConnect"
-                    className="h-12 w-auto"
-                  />
-                </div>
+                <img
+                  src={theme === "dark" ? LogoImgdDark : LogoImg}
+                  alt="MediConnect"
+                  className="h-12 w-auto"
+                />
                 <Button
                   variant="ghost"
                   size="icon"
@@ -120,12 +121,14 @@ function MCMobileNavbar() {
                 </Button>
               </div>
 
-              {/* User Profile Section */}
+              {/* User Profile */}
               <div className="p-6 border-b border-border">
-                <MCUserMenu />
+                <div className="mt-3 min-w-0 overflow-hidden">
+                  <MCUserMenu />
+                </div>
               </div>
 
-              {/* Navigation Menu */}
+              {/* Navigation */}
               <div className="flex-1 p-6 overflow-y-auto">
                 <nav className="space-y-3">
                   {menuConfig ? (
@@ -140,26 +143,29 @@ function MCMobileNavbar() {
                         }`}
                         onClick={() => handleNavigation(item.href)}
                       >
-                        {t(`patient:navbar.${item.label.toLowerCase()}`)}
+                        {/* ✅ común para todos los roles, con fallback al label */}
+                        {t(`navbar.${item.label}`, {
+                          defaultValue: item.label,
+                        })}
                       </Button>
                     ))
                   ) : (
                     <div className="bg-yellow-100 px-4 py-2 rounded-full text-sm">
-                      {t("navbar.noMenuRole")}: {role || t("navbar.noRole")}
+                      {t("navbar.noMenuRole")}: {role ?? t("navbar.noRole")}
                     </div>
                   )}
                 </nav>
               </div>
 
-              {/* Footer - Logout Button */}
+              {/* Footer — Logout */}
               <div className="p-6 border-t border-border">
                 <Button
                   variant="ghost"
                   onClick={handleLogout}
                   className="w-full justify-start text-left h-12 px-4 rounded-xl transition-all duration-200 active:scale-95 text-red-600 hover:bg-red-600/10 hover:text-red-600 focus:bg-red-600/15 focus:text-red-600 [&_svg]:!text-red-600 dark:hover:bg-red-600/20 dark:hover:text-red-500 dark:focus:bg-red-600/30 dark:focus:text-red-500"
                 >
-                  <LogOut className="w-4 h-4 mr-2" />
-                  {t("userMenu.logout")}
+                  <LogOut className="w-4 h-4 mr-2 shrink-0" />
+                  <span className="truncate">{t("userMenu.logout")}</span>
                 </Button>
               </div>
             </div>

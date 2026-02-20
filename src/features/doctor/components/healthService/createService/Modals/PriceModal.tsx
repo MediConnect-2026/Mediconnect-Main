@@ -5,22 +5,24 @@ import { serviceSchema } from "@/schema/createService.schema";
 import { useTranslation } from "react-i18next";
 import { useCreateServicesStore } from "@/stores/useCreateServicesStore";
 import { useRef, useState } from "react";
+import { useIsMobile } from "@/lib/hooks/useIsMobile";
 
 function PriceModal({ children }: { children?: React.ReactNode }) {
+  const isMobile = useIsMobile();
+  const { t } = useTranslation("doctor");
+
   const setCreateServiceField = useCreateServicesStore(
     (s) => s.setCreateServiceField,
   );
   const createServiceData = useCreateServicesStore((s) => s.createServiceData);
   const submitRef = useRef<(() => void) | null>(null);
   const [isOpen, setIsOpen] = useState(false);
-  const { t } = useTranslation();
 
   const priceSchema = serviceSchema(t).pick({ pricePerSession: true });
 
   const handleSubmit = (data: any) => {
     console.log("Datos enviados desde modal:", data);
     setCreateServiceField("pricePerSession", data.pricePerSession);
-    // Cerrar modal después de guardar
     setTimeout(() => {
       setIsOpen(false);
     }, 100);
@@ -44,15 +46,15 @@ function PriceModal({ children }: { children?: React.ReactNode }) {
       >
         {children}
       </div>
-
       <MCDialogBase
         open={isOpen}
         onOpenChange={setIsOpen}
-        title={t("form.price")}
+        title={t("createService.modals.price.title")}
         variant="decide"
-        confirmText={t("Guardar")}
+        confirmText={t("common.save")}
         onConfirm={handleConfirm}
-        secondaryText={t("Cancelar")}
+        secondaryText={t("common.cancel")}
+        size="sm"
       >
         <MCFormWrapper
           schema={priceSchema}

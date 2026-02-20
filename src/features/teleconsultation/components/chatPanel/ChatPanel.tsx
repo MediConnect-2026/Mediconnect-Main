@@ -382,7 +382,7 @@ export const ChatPanel = () => {
   const { t } = useTranslation("common");
 
   return (
-    <div className="flex flex-col h-full bg-background rounded-xl border border-primary/15 shadow-sm">
+    <div className="flex flex-col h-full bg-background rounded-2xl md:rounded-3xl border border-primary/15 shadow-sm">
       {/* Header */}
       <ChatHeader
         isTyping={isTyping}

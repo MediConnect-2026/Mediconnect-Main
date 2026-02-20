@@ -1,4 +1,16 @@
 {
+  "navbar": {
+    "home": "Home",
+    "appointments": "Appointments",
+    "patients": "Patients",
+    "patientsAppointments": "Appointments",
+    "doctors": "Doctors",
+    "calendar": "Calendar",
+    "services": "Services",
+    "schedule": "Schedule",
+    "noMenuRole": "No menu for role",
+    "noRole": "Unknown"
+  },
   "userMenu": {
     "spanish": "Spanish",
     "english": "English",
@@ -546,8 +558,29 @@
   "appointments": {
     "join": "Join",
     "viewDetails": "View Details",
+    "viewAppointment": "View Appointment",
     "reschedule": "Reschedule",
     "cancel": "Cancel",
+    "accept": "Accept",
+    "reject": "Reject",
+    "continueConsultation": "Continue Consultation",
+    "joinTeleconsult": "Join Teleconsultation",
+    "markCompleted": "Mark as Completed",
     "openChat": "Open chat"
+  },
+  "requests": {
+    "title": "Manage Requests",
+    "description": "Manage your connection requests with {{type}}",
+    "doctorConnections": "other doctors and medical centers",
+    "centerConnections": "doctors",
+    "received": "Received",
+    "sent": "Sent",
+    "connect": "Connect",
+    "reject": "Reject",
+    "withdraw": "Withdraw",
+    "noReceivedTitle": "No received requests",
+    "noReceivedDescription": "You have not received any connection requests yet.",
+    "noSentTitle": "No sent requests",
+    "noSentDescription": "You have not sent any connection requests yet."
   }
 }

@@ -2,6 +2,8 @@ import React from "react";
 import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Separator } from "../ui/separator";
+import { useIsMobile } from "@/lib/hooks/useIsMobile";
+
 export type StepStatus = "wait" | "process" | "finish" | "error";
 
 export interface StepItem {
@@ -39,10 +41,17 @@ function MCStepper({
   showLabels = true,
   className,
 }: MCStepperProps) {
+  const isMobile = useIsMobile();
   const isLarge = size === "large";
 
   return (
-    <div className={cn("flex items-center w-full gap-1", className)}>
+    <div
+      className={cn(
+        "flex items-center w-full",
+        isMobile ? "justify-center gap-4" : "gap-1",
+        className,
+      )}
+    >
       {items.map((item, index) => {
         const status = getStepStatus(index, current, item.status);
         const isLast = index === items.length - 1;
@@ -85,8 +94,8 @@ function MCStepper({
                 type="button"
                 disabled
                 className={cn(
-                  "relative flex items-center justify-center rounded-full transition-all",
-                  "h-12 w-12 text-lg font-semibold",
+                  "relative flex items-center justify-center rounded-full transition-all font-semibold",
+                  isMobile ? "h-10 w-10 text-base" : "h-12 w-12 text-lg",
                   bubbleStyles.background,
                   bubbleStyles.border,
                   bubbleStyles.text,
@@ -98,12 +107,23 @@ function MCStepper({
                 }}
               >
                 {item.icon ? (
-                  <div className="h-5 w-5 flex items-center justify-center">
+                  <div
+                    className={cn(
+                      "flex items-center justify-center",
+                      isMobile ? "h-4 w-4" : "h-5 w-5",
+                    )}
+                  >
                     {item.icon}
                   </div>
                 ) : status === "finish" ? (
                   <div>
-                    <Check className="h-6 w-6 stroke-2" strokeWidth={3} />
+                    <Check
+                      className={cn(
+                        "stroke-2",
+                        isMobile ? "h-5 w-5" : "h-6 w-6",
+                      )}
+                      strokeWidth={3}
+                    />
                   </div>
                 ) : (
                   <span>{index + 1}</span>
@@ -112,7 +132,12 @@ function MCStepper({
 
               {/* Labels below circle */}
               {showLabels && (item.title || item.subTitle) && (
-                <div className="mt-3 text-center">
+                <div
+                  className={cn(
+                    "mt-3 text-center",
+                    isMobile && "hidden md:block",
+                  )}
+                >
                   {item.title && (
                     <div
                       className={cn(
@@ -140,8 +165,8 @@ function MCStepper({
               )}
             </div>
 
-            {/* Divider Line usando Separator de shadcn */}
-            {!isLast && (
+            {/* Divider Line - hidden on mobile */}
+            {!isLast && !isMobile && (
               <div className="flex-1 flex items-center justify-center">
                 <Separator
                   orientation="horizontal"

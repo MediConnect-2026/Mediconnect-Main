@@ -39,7 +39,7 @@ export const defaultServiceSchema = z.object({
     .max(8, "Max 8 images")
     .min(1, "At least 1 image required"),
   location: z.number().optional(),
-  comercial_schedule: array(z.number()),
+  comercial_schedule: z.array(z.number()).nullable(),
 });
 // Schema con traducción (usa función t)
 export const serviceSchema = (t: (key: string) => string) =>
@@ -79,7 +79,7 @@ export const serviceSchema = (t: (key: string) => string) =>
       .max(8, t("validation.images.maxLength"))
       .min(1, t("validation.images.required")),
     location: z.number().optional(),
-    comercial_schedule: array(z.number()),
+    comercial_schedule: z.array(z.number()).nullable(),
   });
 
 // Default location schema
@@ -116,33 +116,55 @@ export const locationSchema = (t: (key: string) => string) =>
   });
 
 // Default comercial schedule schema
-export const defaultComercialScheduleSchema = z.object({
-  name: z
-    .string()
-    .min(1, "Name is required")
-    .max(30, "Name cannot exceed 30 characters"),
-  day: z
-    .array(z.number().int().min(0).max(6))
-    .min(1, "Debe seleccionar al menos un día"),
-  startTime: z
-    .string()
-    .regex(timeRegex, "Start time must be in HH:mm:ss format"),
-  endTime: z.string().regex(timeRegex, "End time must be in HH:mm:ss format"),
-  locationId: z.string(),
-});
-
-export const comercialScheduleSchema = (t: (key: string) => string) =>
-  z.object({
+export const defaultComercialScheduleSchema = z
+  .object({
     name: z
       .string()
-      .min(1, t("validation.name.required"))
-      .max(30, t("validation.name.maxLength30")),
+      .min(1, "Name is required")
+      .max(30, "Name cannot exceed 30 characters")
+      .optional(),
     day: z
       .array(z.number().int().min(0).max(6))
-      .min(1, t("validation.day.selectAtLeastOne")),
+      .min(1, "Debe seleccionar al menos un día"),
     startTime: z
       .string()
-      .regex(timeRegex, t("validation.startTime.invalidFormat")),
-    endTime: z.string().regex(timeRegex, t("validation.endTime.invalidFormat")),
-    locationId: z.string().min(1, t("validation.locationId.required")),
+      .regex(timeRegex, "Start time must be in HH:mm:ss format"),
+    endTime: z.string().regex(timeRegex, "End time must be in HH:mm:ss format"),
+    locationId: z.number().int().nullable().optional(),
+  })
+  .refine((data) => data.startTime !== data.endTime, {
+    message: "Start and end time cannot be equal",
+    path: ["endTime"],
+  })
+  .refine((data) => data.startTime !== "" && data.endTime !== "", {
+    message: "Start and end time are required",
+    path: ["startTime"],
   });
+
+export const comercialScheduleSchema = (t: (key: string) => string) =>
+  z
+    .object({
+      name: z
+        .string()
+        .min(1, t("validation.name.required"))
+        .max(30, t("validation.name.maxLength30"))
+        .optional(),
+      day: z
+        .array(z.number().int().min(0).max(6))
+        .min(1, t("validation.day.selectAtLeastOne")),
+      startTime: z
+        .string()
+        .regex(timeRegex, t("validation.startTime.invalidFormat")),
+      endTime: z
+        .string()
+        .regex(timeRegex, t("validation.endTime.invalidFormat")),
+      locationId: z.number().int().nullable().optional(),
+    })
+    .refine((data) => data.startTime !== data.endTime, {
+      message: t("validation.time.cannotBeEqual"),
+      path: ["endTime"],
+    })
+    .refine((data) => data.startTime !== "" && data.endTime !== "", {
+      message: t("validation.time.required"),
+      path: ["startTime"],
+    });

@@ -63,7 +63,7 @@ const EditorToolbar = ({ editor }: EditorToolbarProps) => {
   return (
     <div
       className={cn(
-        "flex items-center border-b border-primary/15 space-x-0.5 md:space-x-1 bg-background/50",
+        "flex items-center border-b border-primary/40 space-x-0.5 md:space-x-1 bg-background/50",
         isMobile ? "p-1.5 overflow-x-auto" : "p-2",
       )}
     >
@@ -157,6 +157,8 @@ interface RichTextEditorProps {
   error?: string;
   className?: string;
   label?: string;
+  minHeight?: string; // 👈 nueva prop
+  maxHeight?: string; // 👈 nueva prop
 }
 
 export const RichTextEditor = ({
@@ -166,6 +168,8 @@ export const RichTextEditor = ({
   error,
   className,
   label,
+  minHeight, // 👈
+  maxHeight, // 👈
 }: RichTextEditorProps) => {
   const isMobile = useIsMobile();
 
@@ -220,12 +224,13 @@ export const RichTextEditor = ({
       )}
       <div
         className={cn(
-          "overflow-hidden rounded-lg border border-primary/15 bg-background transition-all",
-          error ? "border-destructive" : "border-primary/15",
+          "overflow-hidden rounded-3xl border border-primary/50 bg-background transition-all focus-within:border-primary",
+          error ? "border-destructive" : "border-primary/50",
         )}
         style={{
-          maxHeight: isMobile ? "200px" : "250px",
-          minHeight: isMobile ? "150px" : "180px",
+          // Usa la prop si se pasa, si no el valor por defecto según dispositivo
+          maxHeight: maxHeight ?? (isMobile ? "200px" : "250px"),
+          minHeight: minHeight ?? (isMobile ? "150px" : "180px"),
           overflowY: "auto",
         }}
       >

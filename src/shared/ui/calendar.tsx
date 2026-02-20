@@ -9,7 +9,6 @@ import {
   getDefaultClassNames,
   type DayButton,
 } from "react-day-picker";
-
 import { cn } from "@/lib/utils";
 import { Button, buttonVariants } from "@/shared/ui/button";
 
@@ -22,15 +21,14 @@ function Calendar({
   formatters,
   components,
   appointmentCounts,
-  compact = false, // Añade la prop compact
+  compact = false,
   ...props
 }: React.ComponentProps<typeof DayPicker> & {
   buttonVariant?: React.ComponentProps<typeof Button>["variant"];
   appointmentCounts?: Map<string, number>;
-  compact?: boolean; // Añade la prop compact
+  compact?: boolean;
 }) {
   const defaultClassNames = getDefaultClassNames();
-
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
@@ -64,9 +62,10 @@ function Calendar({
           "flex items-center gap-1 w-full absolute top-0 inset-x-0 justify-between",
           defaultClassNames.nav,
         ),
+        // ✅ CAMBIO: gap-0 → gap-1.5 para separar los días
         week: cn(
           "flex w-full",
-          compact ? "gap-0.5" : "gap-0",
+          compact ? "gap-1" : "gap-1.5",
           defaultClassNames.week,
         ),
         button_previous: cn(
@@ -111,7 +110,8 @@ function Calendar({
         ),
         table: "w-full border-collapse",
         weekdays: cn(
-          compact ? "flex mb-1 gap-0.5" : "flex mb-2 gap-0.5",
+          // ✅ CAMBIO: también gap-1.5 en los encabezados de día para alinear
+          compact ? "flex mb-1 gap-1" : "flex mb-2 gap-1.5",
           defaultClassNames.weekdays,
         ),
         weekday: cn(
@@ -170,7 +170,6 @@ function Calendar({
               />
             );
           }
-
           if (orientation === "right") {
             return (
               <ChevronRightIcon
@@ -179,7 +178,6 @@ function Calendar({
               />
             );
           }
-
           return (
             <ChevronDownIcon
               className={cn(compact ? "size-5" : "size-7", className)}
@@ -222,16 +220,13 @@ function CalendarDayButton({
   compact?: boolean;
 }) {
   const defaultClassNames = getDefaultClassNames();
-
   const ref = React.useRef<HTMLButtonElement>(null);
   React.useEffect(() => {
     if (modifiers.focused) ref.current?.focus();
   }, [modifiers.focused]);
 
-  // Get appointment count for this day
   const appointmentCount = appointmentCounts?.get(day.date.toDateString()) || 0;
 
-  // Generate color intensity based on appointment count
   const getIntensityColor = (count: number) => {
     if (count === 0) return "";
     if (count === 1) return "bg-accent/40 border-accent-foreground/40";
@@ -259,9 +254,10 @@ function CalendarDayButton({
       data-range-middle={modifiers.range_middle}
       className={cn(
         "data-[selected-single=true]:bg-primary data-[selected-single=true]:text-primary-foreground data-[range-middle=true]:bg-accent data-[range-middle=true]:text-accent-foreground data-[range-start=true]:bg-primary data-[range-start=true]:text-primary-foreground data-[range-end=true]:bg-primary data-[range-end=true]:text-primary-foreground group-data-[focused=true]/day:border-accent group-data-[focused=true]/day:ring-accent/50 dark:hover:text-primary dark:hover:bg-primary/20 flex aspect-square w-full mx-auto flex-col items-center justify-center leading-none font-normal group-data-[focused=true]/day:relative group-data-[focused=true]/day:z-10 group-data-[focused=true]/day:ring-2 rounded-full data-[range-end=true]:rounded-full data-[range-middle=true]:rounded-none data-[range-start=true]:rounded-full hover:bg-primary/10 transition-colors duration-150",
+        // ✅ CAMBIO: max-w reducido para dejar espacio al gap
         compact
           ? "max-w-[1.25rem] h-5 p-1 text-xs"
-          : "max-w-[2rem] h-8 p-4.5 text-sm",
+          : "max-w-[1.75rem] h-7 p-4.5 text-sm",
         modifiers.today && "border border-primary",
         intensityClass,
         appointmentCount > 0 && "border-2",

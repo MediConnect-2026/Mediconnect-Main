@@ -112,24 +112,30 @@ function ServiceCards({
 
             {/* Time slots grid */}
             <div className="max-h-[80px] overflow-y-auto scrollbar-hide rounded bg-muted/40 px-1 w-full max-w-[700px]">
-              <div className="grid grid-cols-6 gap-2">
-                {service.timeSlots.map((time) => (
-                  <MCButton
-                    key={time}
-                    variant={timeSelected === time ? "primary" : "outline"}
-                    size="sm"
-                    className={`h-7 w-24 md:p-4 md:text-xs ${
-                      isBlocked && timeSelected !== time
-                        ? "cursor-not-allowed opacity-50"
-                        : ""
-                    }`}
-                    onClick={() => handleTimeSlotSelect(service.id, time)}
-                    disabled={isBlocked && timeSelected !== time}
-                  >
-                    {time}
-                  </MCButton>
-                ))}
-              </div>
+              {service.timeSlots.length === 0 ? (
+                <div className="text-center text-xs text-muted-foreground py-4">
+                  {t("serviceCards.noTimeSlots", "No hay horarios disponibles")}
+                </div>
+              ) : (
+                <div className="grid grid-cols-6 gap-2">
+                  {service.timeSlots.map((time) => (
+                    <MCButton
+                      key={time}
+                      variant={timeSelected === time ? "primary" : "outline"}
+                      size="sm"
+                      className={`h-7 w-24 md:p-4 md:text-xs ${
+                        isBlocked && timeSelected !== time
+                          ? "cursor-not-allowed opacity-50"
+                          : ""
+                      }`}
+                      onClick={() => handleTimeSlotSelect(service.id, time)}
+                      disabled={isBlocked && timeSelected !== time}
+                    >
+                      {time}
+                    </MCButton>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Modality selection */}

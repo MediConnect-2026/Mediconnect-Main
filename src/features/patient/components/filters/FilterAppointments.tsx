@@ -1,4 +1,3 @@
-import React from "react";
 import MCFilterSelect from "@/shared/components/filters/MCFilterSelect";
 import { useTranslation } from "react-i18next";
 import { Star } from "lucide-react";

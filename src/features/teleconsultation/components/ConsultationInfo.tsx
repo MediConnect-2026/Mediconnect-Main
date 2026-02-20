@@ -41,7 +41,7 @@ interface ConsultationInfoProps {
 }
 
 export const ConsultationInfo = (props: ConsultationInfoProps) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation("common");
   const userRole = useAppStore((state) => state.user?.role);
   const isMobile = useIsMobile();
 
@@ -52,7 +52,7 @@ export const ConsultationInfo = (props: ConsultationInfoProps) => {
     appointment?.history?.[appointment.history.length - 1]?.id;
 
   return (
-    <div className="bg-background p-4 md:p-6 rounded-xl md:rounded-2xl border border-primary/15 shadow-sm">
+    <div className="bg-background p-4 md:p-6 rounded-2xl md:rounded-3xl border border-primary/15 shadow-sm">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
         {/* Doctor Info Section */}
         <div>
@@ -116,7 +116,7 @@ export const ConsultationInfo = (props: ConsultationInfoProps) => {
         </div>
 
         {/* Additional Sections */}
-        <div>
+        <div className="bg-background rounded-2xl md:rounded-3xl">
           <h3 className="text-base md:text-lg font-semibold mb-3 md:mb-4">
             {t("consultationInfo.additionalSections")}
           </h3>
@@ -151,11 +151,19 @@ export const ConsultationInfo = (props: ConsultationInfoProps) => {
                   </ViewDetailsAppointmentDialog>
                 );
               }
-              if (
-                label === t("consultationInfo.patientDetail") &&
-                userRole === "PATIENT"
-              ) {
-                return null;
+              if (label === t("consultationInfo.patientDetail")) {
+                return (
+                  <ViewDetailsAppointmentDialog
+                    appointmentId={props.appointmentId}
+                    preview="patientDetails"
+                    key={index}
+                  >
+                    <button className="flex items-center gap-2 md:gap-3 text-xs md:text-sm text-muted-foreground hover:text-foreground hover:bg-bg-btn-secondary w-full p-2 transition-colors rounded-lg md:rounded-full text-left">
+                      <section.icon className="w-3.5 h-3.5 md:w-4 md:h-4 text-secondary flex-shrink-0" />
+                      <span className="truncate">{label}</span>
+                    </button>
+                  </ViewDetailsAppointmentDialog>
+                );
               }
               if (
                 label === t("consultationInfo.lastConsultation") &&

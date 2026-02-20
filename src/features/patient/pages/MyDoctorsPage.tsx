@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import MCTablesLayouts from "@/shared/components/tables/MCTablesLayouts";
 import MCDoctorsCards from "@/shared/components/MCDoctorsCards";
 import MCFilterInput from "@/shared/components/filters/MCFilterInput";

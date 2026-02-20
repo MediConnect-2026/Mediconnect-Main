@@ -8,7 +8,9 @@ import { ConsultationInfo } from "../components/ConsultationInfo";
 import { ChatPanel } from "../components/chatPanel/ChatPanel";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
 import { MessageSquare, Info } from "lucide-react";
-
+import { useTranslation } from "react-i18next";
+import { useAppStore } from "@/stores/useAppStore";
+useAppStore;
 function TeleconsultRoomPage() {
   const { appointmentId } = useParams();
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -17,6 +19,8 @@ function TeleconsultRoomPage() {
     "video",
   );
 
+  const isuserDoctor = useAppStore((state) => state.user?.role);
+  const { t } = useTranslation("common");
   const handleEndCall = () => {
     alert("La llamada ha terminado.");
   };
@@ -117,7 +121,7 @@ function TeleconsultRoomPage() {
           </div>
         ) : (
           // DESKTOP LAYOUT
-          <div className="flex gap-4 h-[calc(100vh-theme(spacing.20))]">
+          <div className="flex gap-4 h-[calc(100vh-theme(spacing.20))] ">
             {/* Columna izquierda: Video arriba, Info abajo */}
             <div className="flex-1 flex flex-col gap-4 min-w-0">
               {/* Video - ocupa más espacio */}

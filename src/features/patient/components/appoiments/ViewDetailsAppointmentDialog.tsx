@@ -18,7 +18,7 @@ import {
   EmptyContent,
   EmptyMedia,
 } from "@/shared/ui/empty";
-
+import { useAppStore } from "@/stores/useAppStore";
 // Add the HistoryFilters interface
 interface HistoryFilters {
   services: string[];
@@ -33,7 +33,101 @@ interface ViewDetailsAppointmentDialogProps {
   appointmentDetails?: React.ReactNode;
   hospitalDetails?: React.ReactNode;
   status?: string;
-  preview?: "details" | "history";
+  preview?: "details" | "history" | "patientDetails"; // <--- agrega "patientDetails"
+}
+
+function PacientDetailsTabContent() {
+  const { t } = useTranslation("patient");
+
+  // Simulación de datos, reemplaza por props o datos reales
+  const patient = {
+    name: "Edwin Lopez",
+    age: "45 años",
+    blood: "O+",
+    height: "175 cm",
+    weight: "80 kg",
+    email: "edwin.lopez@email.com",
+    phone: "809-432-9532",
+    allergies: [
+      "Penicilina (produce erupción cutánea)",
+      // Puedes agregar más alergias aquí
+    ],
+    conditions: [
+      "Apendicectomía en 2010.",
+      "Antecedentes familiares de diabetes tipo 2.",
+      // Puedes agregar más condiciones aquí
+    ],
+  };
+
+  return (
+    <div className="mt-4 pr-2">
+      <h2 className="text-xl font-semibold mb-4 text-primary">
+        {t("appointment.patientDetailsTab", "Datos Personales")}
+      </h2>
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-6 mb-6">
+        <div>
+          <h3 className="font-medium text-primary/75 mb-1">Nombre Completo</h3>
+          <p className="text-primary font-medium">{patient.name}</p>
+        </div>
+        <div>
+          <h3 className="font-medium text-primary/75 mb-1">Edad</h3>
+          <p className="text-primary font-medium">{patient.age}</p>
+        </div>
+        <div>
+          <h3 className="font-medium text-primary/75 mb-1">Sangre</h3>
+          <p className="text-primary font-medium">{patient.blood}</p>
+        </div>
+        <div>
+          <h3 className="font-medium text-primary/75 mb-1">Altura</h3>
+          <p className="text-primary font-medium">{patient.height}</p>
+        </div>
+        <div>
+          <h3 className="font-medium text-primary/75 mb-1">Peso</h3>
+          <p className="text-primary font-medium">{patient.weight}</p>
+        </div>
+      </div>
+      <h2 className="text-xl font-semibold mb-2 mt-4 text-primary">
+        Información de Contacto
+      </h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <div>
+          <h3 className="font-medium text-primary/75 mb-1">Email</h3>
+          <p className="text-primary font-medium">{patient.email}</p>
+        </div>
+        <div>
+          <h3 className="font-medium text-primary/75 mb-1">Teléfono</h3>
+          <p className="text-primary font-medium">{patient.phone}</p>
+        </div>
+      </div>
+      <h2 className="text-xl font-semibold mb-2 mt-4 text-primary">
+        Información Médica
+      </h2>
+      <div className="mb-4">
+        <h3 className="font-medium mb-1 text-red-700">Alergias</h3>
+        <div className="max-h-32 overflow-y-auto">
+          <ul className="list-disc ml-5">
+            {patient.allergies.map((al, i) => (
+              <li key={i} className="font-medium text-primary">
+                {al}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+      <div>
+        <h3 className="font-medium mb-1 text-orange-500">Condiciones</h3>
+        <div className="max-h-32 overflow-y-auto">
+          <ul className="list-disc ml-5">
+            {patient.conditions.map((cond, i) => (
+              <li key={i} className="font-medium text-primary">
+                {cond}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 function DetailsTabContent({ appointment }: { appointment: Appointment }) {
@@ -98,7 +192,7 @@ function DetailsTabContent({ appointment }: { appointment: Appointment }) {
           <p className="text-lg text-primary font-medium break-words max-w-xs">
             {appointment.appointmentType}
           </p>
-        </div>{" "}
+        </div>
         <div className="flex flex-col items-start gap-1">
           <h3 className="text-md text-primary/75 font-medium">
             {t("appointment.insure")}
@@ -181,8 +275,8 @@ function HistoryCard({
     >
       <div
         className={`flex flex-col md:flex-row bg-accent/30 dark:bg-primary/50 rounded-2xl w-full gap-4 justify-starts p-4 items-center cursor-pointer transition
-          hover:bg-accent/50 dark:hover:bg-primary/70 
-          ${active ? "ring-2 ring-primary/60 bg-accent/60 dark:bg-primary/80" : "opacity-40 hover:opacity-100"}
+          hover:bg-accent/50 dark:hover:bg-primary/30 
+          ${active ? "ring-2 ring-primary/60 bg-accent/60 dark:bg-primary/50" : "opacity-40 hover:opacity-100"}
         `}
         onClick={onClick}
       >
@@ -379,6 +473,7 @@ function ViewDetailsAppointmentDialog({
   status = "pending",
 }: ViewDetailsAppointmentDialogProps) {
   const { t } = useTranslation("patient");
+  const userRole = useAppStore((state) => state.user?.role);
 
   const appointmentStatus = mockAppointments.find(
     (appt) => appt.id === appointmentId,
@@ -428,6 +523,11 @@ function ViewDetailsAppointmentDialog({
           <TabsTrigger value="details" className="text-lg">
             {t("appointment.detailsTab")}
           </TabsTrigger>
+          {userRole === "DOCTOR" && (
+            <TabsTrigger value="patientDetails" className="text-lg">
+              {t("appointment.patientDetailsTab", "Patient Details")}
+            </TabsTrigger>
+          )}
           <TabsTrigger value="history" className="text-lg">
             {t("appointment.historyTab")}
           </TabsTrigger>
@@ -464,6 +564,11 @@ function ViewDetailsAppointmentDialog({
             </div>
           )}
         </TabsContent>
+        {userRole === "DOCTOR" && (
+          <TabsContent value="patientDetails">
+            <PacientDetailsTabContent />
+          </TabsContent>
+        )}
       </Tabs>
     </MCModalBase>
   );
