@@ -722,26 +722,6 @@
     "reviews": { "title": "Reseñas" }
   },
 
-  "createService": {
-    "title": "Ponle un nombre a tu servicio",
-    "steps": {
-      "serviceDetails": "Detalles del servicio",
-      "location": "Ubicación y disponibilidad",
-      "comercialSchedule": "Horario comercial",
-      "images": "Imágenes",
-      "summary": "Resumen"
-    },
-    "inputs": {
-      "nameLabel": "Nombre del servicio",
-      "namePlaceholder": "Ej. Consulta general",
-      "specialtyLabel": "Especialidad",
-      "specialtyPlaceholder": "Selecciona una especialidad"
-    },
-    "basicInfoTitle": "Haz crecer tu servicio médico con información detallada",
-    "descriptionInfo": "Empieza con una opción accesible para atraer a más pacientes y optimizar tu agenda de manera eficiente.",
-    "actualStep": "Paso",
-    "of": "de"
-  },
   "filters": {
     "labels": {
       "serviceType": "Tipo de servicio",
@@ -816,6 +796,93 @@
   },
 
   "Abandonar": "Abandonar",
+  "createService": {
+    "steps": {
+      "serviceDetails": "Detalles del servicio",
+      "location": "Ubicación",
+      "comercialSchedule": "Horario comercial",
+      "images": "Imágenes",
+      "summary": "Resumen"
+    },
+    "title": {
+      "title": "Ponle un título a tu servicio",
+      "serviceName": "Nombre del servicio"
+    },
+    "basicInfo": {
+      "title": "Haz crecer tu servicio médico con información detallada",
+      "description": "Empieza con una opción accesible para atraer a más pacientes y optimizar tu agenda de manera eficiente."
+    },
+    "schedule": {
+      "title": "Establece tu horario",
+      "description": "Empieza con una opción accesible para atraer a más pacientes y optimizar tu agenda de manera eficiente.",
+      "addSchedule": "Agregar Horario",
+      "manageSchedule": "Gestionar Horario",
+      "scheduleName": "Nombre del Horario",
+      "scheduleNamePlaceholder": "Ej: Horario de Lunes a Viernes",
+      "days": "Días",
+      "startTime": "Hora de Inicio",
+      "startTimePlaceholder": "Ej: 08:00 o 08:00 am",
+      "endTime": "Hora de Fin",
+      "endTimePlaceholder": "Ej: 17:00 o 05:00 pm",
+      "location": "Ubicación",
+      "selectLocation": "Seleccionar ubicación",
+      "errorEndTime": "La hora de fin debe ser posterior a la hora de inicio",
+      "errorMinDuration": "El rango de horario debe permitir al menos una cita de"
+    },
+    "images": {
+      "title": "Muestra tus servicios y experiencia",
+      "description": "Agrega al menos 1 foto que represente tus habilidades médicas.",
+      "minImages": "de",
+      "minImagesText": "imágenes mínimas",
+      "addedImages": "de",
+      "addedImagesText": "imágenes agregadas",
+      "imageAlt": "Imagen"
+    },
+    "location": {
+      "title": "Confirma tu ubicación",
+      "description": "Especifica la dirección donde ofrecerás tus consultas o servicios médicos para que los pacientes puedan encontrarte fácilmente.",
+      "addLocation": "Agregar Ubicación",
+      "manageLocation": "Seleccionar Ubicación"
+    },
+    "review": {
+      "title": "Revisar Servicio",
+      "description": "Revisa toda la información de tu servicio antes de publicarlo.",
+      "specialty": "Especialidad",
+      "modality": "Modalidad",
+      "duration": "Duración",
+      "pricePerSession": "Precio por sesión",
+      "numberOfSessions": "Número de sesiones",
+      "location": "Ubicación",
+      "virtualConsultation": "Consulta virtual",
+      "virtualConsultationDescription": "La consulta se realizará a través de la plataforma de teleconsultas de Mediconnect.",
+      "save": "Guardar"
+    },
+    "modals": {
+      "description": {
+        "title": "Descripción del servicio",
+        "placeholder": "Ingresa tu descripción aquí..."
+      },
+      "sessions": { "title": "Número de sesiones" },
+      "duration": { "title": "Duración de la sesión" },
+      "price": { "title": "Precio" }
+    },
+    "common": {
+      "save": "Guardar",
+      "cancel": "Cancelar",
+      "continue": "Continuar",
+      "back": "Atrás",
+      "step": "Paso",
+      "of": "de"
+    },
+    "leave": {
+      "title": "Abandonar creación",
+      "description": "¿Estás seguro de que quieres abandonar la creación del servicio? Se perderán los cambios no guardados.",
+      "confirm": "Sí, abandonar",
+      "cancel": "No, continuar editando",
+      "button": "Abandonar"
+    }
+  },
+
   "form": {
     "specialty": "Especialidad",
     "selectSpecialty": "Seleccionar especialidad",

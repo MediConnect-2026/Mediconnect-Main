@@ -1,19 +1,8 @@
-<<<<<<< HEAD
 import { useState } from "react";
 import MCSheetProfile from "@/shared/navigation/userMenu/editProfile/MCSheetProfile";
 import { useAppStore } from "@/stores/useAppStore";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
-import { useParams } from "react-router-dom";
-=======
-import React, { useState } from "react";
-import { useTranslation } from "react-i18next";
 
-import MCSheetProfile from "@/shared/navigation/userMenu/editProfile/MCSheetProfile";
-import { useAppStore } from "@/stores/useAppStore";
-import { useIsMobile } from "@/lib/hooks/useIsMobile";
-
-import { useNavigate, useParams } from "react-router-dom";
->>>>>>> main
 import DoctorProfileBanner from "../components/profile/DoctorProfileBanner";
 import DoctorProfileBannerMobile from "../components/profile/DoctorProfileBannerMobile";
 import DoctorEducationSection from "../components/profile/DoctorEducationSection";

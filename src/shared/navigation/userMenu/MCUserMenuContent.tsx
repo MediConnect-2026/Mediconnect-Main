@@ -17,7 +17,6 @@ import {
 import { Button } from "@/shared/ui/button";
 
 import { MCUserAvatar } from "./MCUserAvatar";
-import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/avatar";
 import {
   User,
   Pencil,
@@ -38,7 +37,7 @@ import flagUSA from "@/assets/flag-usa.png";
 import type { Theme } from "@/stores/useGlobalUISlice";
 import { cn } from "@/lib/utils";
 import { ROUTES } from "@/router/routes";
-
+import { useCallback } from "react";
 const isMac =
   typeof window !== "undefined" &&
   /Mac|iPod|iPhone|iPad/.test(navigator.platform);

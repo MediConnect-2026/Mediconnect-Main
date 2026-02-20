@@ -1,5 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
+import type { FeatureCollection, Geometry } from "geojson";
+import type { LngLatBoundsLike } from "mapbox-gl";
+import bbox from "@turf/bbox";
 import {
   ParseDominicanAddress,
   type ParsedDominicanAddress,
@@ -10,6 +13,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useGlobalUIStore } from "@/stores/useGlobalUIStore";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
 import { useTranslation } from "react-i18next";
+import { featureCollection } from "@turf/helpers";
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
 
@@ -44,9 +48,41 @@ export default function MapSelectLocation({
   const isMobile = useIsMobile();
 
   const [address, setAddress] = useState<ParsedDominicanAddress | null>(null);
+ const [geoDatas, setGeoDatas] = useState<{
+    santoDomingo: FeatureCollection<Geometry> | null;
+    distritoNacional: FeatureCollection<Geometry> | null;
+  }>({
+    santoDomingo: null,
+    distritoNacional: null,
+  });
+
+  useEffect(() => {
+    const fetchGeoJSON = async () => {
+      try {
+        // Busca el archivo en la carpeta public
+        const [resSD, resDN] = await Promise.all([
+          fetch('/data/poligonSantoDomingo.geojson'),
+          fetch('/data/poligonDistritoNacional.geojson')
+        ]);
+        const dataSD = await resSD.json();
+        const dataDN = await resDN.json();
+
+        setGeoDatas({
+          santoDomingo: dataSD,
+          distritoNacional: dataDN,
+        });
+
+      } catch (error) {
+        console.error("Error cargando el polígono de Santo Domingo:", error);
+      }
+    };
+
+    fetchGeoJSON();
+  }, []); // El array vacío asegura que solo se descargue al montar el componente
 
   // Función para obtener detalles de la ubicación usando Mapbox Geocoding API
   const getLocationDetails = async (lng: number, lat: number) => {
+    // ... (Tu código de getLocationDetails se mantiene igual)
     try {
       const response = await fetch(
         `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${mapboxgl.accessToken}&language=es&types=address,place,neighborhood,district,postcode`,
@@ -67,7 +103,7 @@ export default function MapSelectLocation({
         }
 
         const parsedAddress = await ParseDominicanAddress(lat, lng);
-        setAddress(parsedAddress); // <--- Guarda la dirección
+        setAddress(parsedAddress);
 
         onLocationDetails?.({
           address: parsedAddress.direccion,
@@ -83,6 +119,8 @@ export default function MapSelectLocation({
   };
 
   useEffect(() => {
+    if (!geoDatas.santoDomingo || !geoDatas.distritoNacional) return;
+    // Elige el contenedor correcto según el modo
     const container = isFullscreen
       ? fullscreenContainerRef.current
       : normalContainerRef.current;
@@ -90,7 +128,20 @@ export default function MapSelectLocation({
 
     setisLoading(true);
 
-    // Coordenadas por defecto: Santo Domingo, República Dominicana
+    const todasLasFeatures = [
+      ...geoDatas.santoDomingo.features,
+      ...geoDatas.distritoNacional.features
+    ];
+
+    const coleccionCombinada = featureCollection(todasLasFeatures);
+
+    const boundsArray = bbox(coleccionCombinada);
+    const limitesGenerales: LngLatBoundsLike = [
+      [boundsArray[0], boundsArray[1]], 
+      [boundsArray[2], boundsArray[3]]  
+    ];
+
+    // Coordenadas por defecto
     const defaultCoords = { lat: 18.4861, lng: -69.9312 };
     const center: [number, number] =
       value?.lat && value?.lng && value.lat !== 0 && value.lng !== 0
@@ -101,6 +152,13 @@ export default function MapSelectLocation({
       isdarkMode === "dark"
         ? "mapbox://styles/mapbox/dark-v11"
         : "mapbox://styles/mapbox/streets-v12";
+
+    // Elimina el mapa anterior si existe y es válido
+    if (mapRef.current && typeof mapRef.current.remove === "function") {
+      mapRef.current.remove();
+      mapRef.current = null;
+      markerRef.current = null;
+    }
 
     mapRef.current = new mapboxgl.Map({
       container,
@@ -121,13 +179,46 @@ export default function MapSelectLocation({
       keyboard: false,
       doubleClickZoom: true,
       touchZoomRotate: true,
+      maxBounds: limitesGenerales,
     });
 
     mapRef.current.on("load", () => {
       setisLoading(false);
+      mapRef.current!.addSource("limite-sd", {
+        type: "geojson",
+        data: geoDatas.santoDomingo ?? undefined,
+      });
+      mapRef.current!.addLayer({
+        id: "borde-sd",
+        type: "line",
+        source: "limite-sd",
+        paint: {
+          "line-color": "#e11d48",
+          "line-width": 2,
+          "line-opacity": 0.5,
+        },
+      });
 
+      mapRef.current!.addSource("limite-dn", {
+        type: "geojson",
+        data: geoDatas.distritoNacional ?? undefined,
+      });
+
+      mapRef.current!.addLayer({
+        id: "borde-dn",
+        type: "line",
+        source: "limite-dn",
+        paint: {
+          "line-color": "#3b82f6",
+          "line-width": 2,
+          "line-opacity": 0.5,
+        },
+      });
+
+      requestAnimationFrame(() => {
+        mapRef.current?.resize();
+      });
       if (is3D) {
-        // Terreno 3D
         mapRef.current!.addSource("mapbox-dem", {
           type: "raster-dem",
           url: "mapbox://mapbox.mapbox-terrain-dem-v1",
@@ -135,8 +226,6 @@ export default function MapSelectLocation({
           maxzoom: 14,
         });
         mapRef.current!.setTerrain({ source: "mapbox-dem", exaggeration: 1.5 });
-
-        // Edificios 3D
         mapRef.current!.addLayer(
           {
             id: "3d-buildings",
@@ -173,40 +262,32 @@ export default function MapSelectLocation({
       }
     });
 
-    // Coloca marcador inicial
-    const initialLat =
-      value?.lat && value.lat !== 0 ? value.lat : defaultCoords.lat;
-    const initialLng =
-      value?.lng && value.lng !== 0 ? value.lng : defaultCoords.lng;
+    const initialLat = value?.lat && value.lat !== 0 ? value.lat : defaultCoords.lat;
+    const initialLng = value?.lng && value.lng !== 0 ? value.lng : defaultCoords.lng;
 
-    // Limpiar marcador anterior
     if (markerRef.current) {
       markerRef.current.remove();
     }
 
-    // Crear marcador rojo
     markerRef.current = new mapboxgl.Marker({
       draggable: true,
-      color: "#e11d48", // Rojo
+      color: "#e11d48",
       scale: isMobile ? 1.2 : 1.5,
     })
       .setLngLat([initialLng, initialLat])
       .addTo(mapRef.current);
 
-    // Si iniciamos con coordenadas por defecto, obtener detalles
     if ((!value?.lat || value.lat === 0) && (!value?.lng || value.lng === 0)) {
       onChange(defaultCoords.lat, defaultCoords.lng);
       getLocationDetails(defaultCoords.lng, defaultCoords.lat);
     }
 
-    // Evento cuando se arrastra el marcador
     markerRef.current.on("dragend", () => {
       const position = markerRef.current!.getLngLat();
       onChange(position.lat, position.lng);
       getLocationDetails(position.lng, position.lat);
     });
 
-    // Evento cuando se hace clic en el mapa
     mapRef.current.on("click", (e) => {
       const { lng, lat } = e.lngLat;
       markerRef.current!.setLngLat([lng, lat]);
@@ -217,11 +298,15 @@ export default function MapSelectLocation({
     return () => {
       if (markerRef.current) {
         markerRef.current.remove();
+        markerRef.current = null;
       }
-      mapRef.current?.remove();
+      if (mapRef.current && typeof mapRef.current.remove === "function") {
+        mapRef.current.remove();
+        mapRef.current = null;
+      }
       setisLoading(false);
     };
-  }, [value, isFullscreen, isdarkMode, is3D, isMobile]);
+  }, [value, isFullscreen, isdarkMode, is3D, isMobile, geoDatas]);
 
   useEffect(() => {
     if (isFullscreen) {

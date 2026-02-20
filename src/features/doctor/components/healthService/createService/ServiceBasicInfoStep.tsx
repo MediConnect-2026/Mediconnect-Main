@@ -31,6 +31,8 @@ function ServiceBasicInfoStep() {
 
   const [especialidadesOptions, setEspecialidadesOptions] = useState<SelectOption[]>([]);
   const [loadingEspecialidades, setLoadingEspecialidades] = useState(true);
+  const [isFormValid, setIsFormValid] = useState(false);
+
 
   const createServiceData = useCreateServicesStore((s) => s.createServiceData);
   const setCreateServiceData = useCreateServicesStore(
@@ -40,11 +42,8 @@ function ServiceBasicInfoStep() {
   const goToNextStep = useCreateServicesStore((s) => s.goToNextStep);
   const goToPreviousStep = useCreateServicesStore((s) => s.goToPreviousStep);
 
-<<<<<<< HEAD
 
   // Actualizar el formulario cuando cambien los datos del store
-=======
->>>>>>> main
   useEffect(() => {
     if (formRef.current) {
       formRef.current.setValue(
@@ -119,11 +118,6 @@ function ServiceBasicInfoStep() {
     { value: "Mixta", label: t("modality.mixed") },
   ];
 
-  const specialtyOptions = [
-    { value: "cardiologia", label: t("specialty.cardiology") },
-    { value: "pediatria", label: t("specialty.pediatrics") },
-  ];
-
   const formatDurationDisplay = (duration: any) => {
     if (!duration) return "0m";
     if (typeof duration === "object" && duration !== null) {
@@ -142,15 +136,15 @@ function ServiceBasicInfoStep() {
     return "0m";
   };
 
+  const isButtonDisabled = !isFormValid || !createServiceData.specialty 
+  || createServiceData.specialty.trim() === "" || !createServiceData.selectedModality 
+  || createServiceData.selectedModality.trim() === "" || !createServiceData.pricePerSession 
+  || createServiceData.pricePerSession <= 0;
+
   return (
     <ServicesLayoutsSteps
-<<<<<<< HEAD
-      title={t("createService.basicInfoTitle")}
-      description={t("createService.descriptionInfo")}
-=======
       title={t("createService.basicInfo.title")}
       description={t("createService.basicInfo.description")}
->>>>>>> main
     >
       <MCFormWrapper
         formRef={formRef}
@@ -165,14 +159,15 @@ function ServiceBasicInfoStep() {
           duration: createServiceData.duration || { hours: 0, minutes: 30 },
         }}
         onSubmit={handleSubmit}
+        onValidationChange={setIsFormValid}
         className="w-full"
       >
         <div className="space-y-4 mb-6">
           <MCSelect
             name="specialty"
-            label={t("createService.inputs.specialtyLabel")}
+            label={t("form.specialty")}
             options={especialidadesOptions}
-            placeholder={t("createService.inputs.specialtyPlaceholder")}
+            placeholder={t("form.selectSpecialty")}
             disabled={loadingEspecialidades}
             searchable={true}
           />
@@ -236,6 +231,7 @@ function ServiceBasicInfoStep() {
           }}
           continueButtonProps={{
             type: "submit",
+            disabled: isButtonDisabled,
           }}
         />
       </MCFormWrapper>
