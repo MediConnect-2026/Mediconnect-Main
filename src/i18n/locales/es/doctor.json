@@ -228,6 +228,138 @@
     }
   },
 
+  "patients": {
+    "title": "Pacientes",
+    "subtitle": "Gestiona tus pacientes registrados",
+    "searchPlaceholder": "Buscar paciente, especialidad o servicio...",
+    "metrics": {
+      "total": "Total de Pacientes",
+      "totalSubtitle": "Pacientes registrados",
+      "withConditions": "Con Condiciones",
+      "withConditionsSubtitle": "Pacientes con condiciones activas",
+      "withAllergies": "Con Alergias",
+      "withAllergiesSubtitle": "Pacientes con alergias registradas",
+      "avgAge": "Edad Promedio",
+      "avgAgeSubtitle": "Edad promedio de los pacientes",
+      "years": "años"
+    },
+    "table": {
+      "patient": "Paciente",
+      "ageGender": "Edad / Género",
+      "age": "Edad",
+      "gender": "Género",
+      "contact": "Contacto",
+      "medicalInfo": "Info Médica",
+      "lastVisit": "Última Visita",
+      "serviceSpecialty": "Servicio / Especialidad",
+      "location": "Ubicación",
+      "actions": "Acciones",
+      "male": "Masculino",
+      "female": "Femenino",
+      "other": "Otro",
+      "none": "Ninguno",
+      "conditions": "Condiciones",
+      "allergies": "Alergias",
+      "noPatients": "No se encontraron pacientes."
+    },
+    "empty": {
+      "noResults": "No se encontraron resultados",
+      "noResultsDescription": "Ningún paciente coincide con los filtros seleccionados. Intenta ajustarlos o limpiarlos.",
+      "noPatients": "No hay pacientes registrados",
+      "noPatientsDescription": "No tienes ningún paciente registrado en este momento.",
+      "clearFilters": "Limpiar filtros"
+    },
+    "filters": {
+      "labels": {
+        "gender": "Género",
+        "specialty": "Especialidad",
+        "location": "Ubicación",
+        "condition": "Condición",
+        "allergy": "Alergia",
+        "lastVisit": "Última Visita"
+      },
+      "placeholders": {
+        "gender": "Seleccionar género",
+        "specialty": "Seleccionar especialidad",
+        "location": "Seleccionar ubicación",
+        "condition": "Seleccionar condición",
+        "allergy": "Seleccionar alergia"
+      },
+      "gender": {
+        "all": "Todos",
+        "male": "Masculino",
+        "female": "Femenino"
+      },
+      "specialty": {
+        "all": "Todas las especialidades",
+        "cardiology": "Cardiología",
+        "generalSurgery": "Cirugía General",
+        "endocrinology": "Endocrinología",
+        "familyMedicine": "Medicina Familiar",
+        "physiotherapy": "Fisioterapia"
+      },
+      "location": {
+        "all": "Todas las ubicaciones"
+      },
+      "condition": {
+        "all": "Todos",
+        "withCondition": "Con condición",
+        "withoutCondition": "Sin condición"
+      },
+      "allergy": {
+        "all": "Todos",
+        "withAllergy": "Con alergia",
+        "withoutAllergy": "Sin alergia"
+      }
+    },
+    "actions": {
+      "viewProfile": "Ver perfil",
+      "viewDetails": "Ver detalles",
+      "message": "Enviar mensaje"
+    }
+  },
+
+  "patientDetails": {
+    "patientSince": "Paciente desde:",
+    "tabs": {
+      "personal": "Información Personal",
+      "history": "Historial",
+      "appointments": "Próximas Citas"
+    },
+    "personal": {
+      "title": "Datos Personales",
+      "fullName": "Nombre Completo",
+      "age": "Edad",
+      "blood": "Sangre",
+      "height": "Altura",
+      "weight": "Peso",
+      "contactTitle": "Información de Contacto",
+      "email": "Email",
+      "phone": "Teléfono",
+      "medicalTitle": "Información Médica",
+      "allergies": "Alergias",
+      "conditions": "Condiciones"
+    },
+    "history": {
+      "title": "Historial de consultas",
+      "count": "{{filtered}} de {{total}} consultas",
+      "noResults": "No se encontraron resultados",
+      "noResultsDescription": "Ajusta los filtros para ver más consultas.",
+      "empty": "Sin historial disponible",
+      "emptyDescription": "Este paciente no tiene historial de consultas."
+    },
+    "upcoming": {
+      "title": "Próximas Citas",
+      "count": "{{filtered}} de {{total}} citas",
+      "virtual": "Virtual",
+      "inPerson": "Presencial",
+      "empty": "Sin citas próximas",
+      "emptyDescription": "Este paciente no tiene citas programadas.",
+      "noResults": "No se encontraron resultados",
+      "noResultsDescription": "Ajusta los filtros para ver más citas."
+    }
+  },
+
   "profileForm": {
     "cropBanner": "Recortar Banner",
     "cropProfilePhoto": "Recortar Foto de Perfil",

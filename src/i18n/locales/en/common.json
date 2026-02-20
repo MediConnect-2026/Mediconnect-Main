@@ -1,4 +1,16 @@
 {
+  "navbar": {
+    "home": "Home",
+    "appointments": "Appointments",
+    "patients": "Patients",
+    "patientsAppointments": "Appointments",
+    "doctors": "Doctors",
+    "calendar": "Calendar",
+    "services": "Services",
+    "schedule": "Schedule",
+    "noMenuRole": "No menu for role",
+    "noRole": "Unknown"
+  },
   "userMenu": {
     "spanish": "Spanish",
     "english": "English",

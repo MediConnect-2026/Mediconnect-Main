@@ -224,6 +224,138 @@
     }
   },
 
+  "patients": {
+    "title": "Patients",
+    "subtitle": "Manage your registered patients",
+    "searchPlaceholder": "Search patient, specialty or service...",
+    "metrics": {
+      "total": "Total Patients",
+      "totalSubtitle": "Registered patients",
+      "withConditions": "With Conditions",
+      "withConditionsSubtitle": "Patients with active conditions",
+      "withAllergies": "With Allergies",
+      "withAllergiesSubtitle": "Patients with registered allergies",
+      "avgAge": "Average Age",
+      "avgAgeSubtitle": "Average age of patients",
+      "years": "yrs"
+    },
+    "table": {
+      "patient": "Patient",
+      "ageGender": "Age / Gender",
+      "age": "Age",
+      "gender": "Gender",
+      "contact": "Contact",
+      "medicalInfo": "Medical Info",
+      "lastVisit": "Last Visit",
+      "serviceSpecialty": "Service / Specialty",
+      "location": "Location",
+      "actions": "Actions",
+      "male": "Male",
+      "female": "Female",
+      "other": "Other",
+      "none": "None",
+      "conditions": "Conditions",
+      "allergies": "Allergies",
+      "noPatients": "No patients found."
+    },
+    "empty": {
+      "noResults": "No results found",
+      "noResultsDescription": "No patients match the selected filters. Try adjusting or clearing them.",
+      "noPatients": "No patients registered",
+      "noPatientsDescription": "You have no patients registered at this time.",
+      "clearFilters": "Clear filters"
+    },
+    "filters": {
+      "labels": {
+        "gender": "Gender",
+        "specialty": "Specialty",
+        "location": "Location",
+        "condition": "Condition",
+        "allergy": "Allergy",
+        "lastVisit": "Last Visit"
+      },
+      "placeholders": {
+        "gender": "Select gender",
+        "specialty": "Select specialty",
+        "location": "Select location",
+        "condition": "Select condition",
+        "allergy": "Select allergy"
+      },
+      "gender": {
+        "all": "All",
+        "male": "Male",
+        "female": "Female"
+      },
+      "specialty": {
+        "all": "All specialties",
+        "cardiology": "Cardiology",
+        "generalSurgery": "General Surgery",
+        "endocrinology": "Endocrinology",
+        "familyMedicine": "Family Medicine",
+        "physiotherapy": "Physiotherapy"
+      },
+      "location": {
+        "all": "All locations"
+      },
+      "condition": {
+        "all": "All",
+        "withCondition": "With condition",
+        "withoutCondition": "Without condition"
+      },
+      "allergy": {
+        "all": "All",
+        "withAllergy": "With allergy",
+        "withoutAllergy": "Without allergy"
+      }
+    },
+    "actions": {
+      "viewProfile": "View profile",
+      "viewDetails": "View details",
+      "message": "Send message"
+    }
+  },
+
+  "patientDetails": {
+    "patientSince": "Patient since:",
+    "tabs": {
+      "personal": "Personal Information",
+      "history": "History",
+      "appointments": "Upcoming Appointments"
+    },
+    "personal": {
+      "title": "Personal Data",
+      "fullName": "Full Name",
+      "age": "Age",
+      "blood": "Blood Type",
+      "height": "Height",
+      "weight": "Weight",
+      "contactTitle": "Contact Information",
+      "email": "Email",
+      "phone": "Phone",
+      "medicalTitle": "Medical Information",
+      "allergies": "Allergies",
+      "conditions": "Conditions"
+    },
+    "history": {
+      "title": "Consultation History",
+      "count": "{{filtered}} of {{total}} consultations",
+      "noResults": "No results found",
+      "noResultsDescription": "Adjust the filters to see more consultations.",
+      "empty": "No history available",
+      "emptyDescription": "This patient has no consultation history."
+    },
+    "upcoming": {
+      "title": "Upcoming Appointments",
+      "count": "{{filtered}} of {{total}} appointments",
+      "virtual": "Virtual",
+      "inPerson": "In-person",
+      "empty": "No upcoming appointments",
+      "emptyDescription": "This patient has no scheduled appointments.",
+      "noResults": "No results found",
+      "noResultsDescription": "Adjust the filters to see more appointments."
+    }
+  },
+
   "profileForm": {
     "cropBanner": "Crop Banner",
     "cropProfilePhoto": "Crop Profile Photo",

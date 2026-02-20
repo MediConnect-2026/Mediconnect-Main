@@ -1,4 +1,16 @@
 {
+  "navbar": {
+    "home": "Inicio",
+    "appointments": "Citas",
+    "patients": "Pacientes",
+    "patientsAppointments": "Citas",
+    "doctors": "Doctores",
+    "calendar": "Calendario",
+    "services": "Servicios",
+    "schedule": "Horario",
+    "noMenuRole": "Sin menú para el rol",
+    "noRole": "Desconocido"
+  },
   "userMenu": {
     "spanish": "Español",
     "english": "Inglés",
