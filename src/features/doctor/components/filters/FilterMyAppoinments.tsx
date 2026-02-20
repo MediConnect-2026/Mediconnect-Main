@@ -1,5 +1,5 @@
 import { type JSX } from "react";
-import { Calendar, User, Stethoscope } from "lucide-react";
+// import { Calendar, User, Stethoscope } from "lucide-react";
 import MCFilterSelect from "@/shared/components/filters/MCFilterSelect";
 import MCFilterDates from "@/shared/components/filters/MCFilterDates";
 import { useTranslation } from "react-i18next";
@@ -24,7 +24,7 @@ function FilterMyAppointments({
   filters,
   onFiltersChange,
 }: FilterMyAppointmentsProps) {
-  const { t } = useTranslation("patient");
+  const { t } = useTranslation("doctor");
   const isMobile = useIsMobile();
 
   const statusOptions: OptionType[] = [
@@ -67,58 +67,23 @@ function FilterMyAppointments({
     { value: "all", label: t("appointments.filters.specialty.all") },
     {
       value: "medicina-familiar",
-      label: (
-        <span
-          className={`flex items-center gap-1 ${isMobile ? "text-xs" : ""}`}
-        >
-          <Stethoscope className={isMobile ? "w-3 h-3" : "w-4 h-4"} />
-          {t("appointments.filters.specialty.familyMedicine")}
-        </span>
-      ),
+      label: t("appointments.filters.specialty.familyMedicine"),
     },
     {
       value: "cardiologia",
-      label: (
-        <span
-          className={`flex items-center gap-1 ${isMobile ? "text-xs" : ""}`}
-        >
-          <Stethoscope className={isMobile ? "w-3 h-3" : "w-4 h-4"} />
-          {t("appointments.filters.specialty.cardiology")}
-        </span>
-      ),
+      label: t("appointments.filters.specialty.cardiology"),
     },
     {
       value: "medicina-interna",
-      label: (
-        <span
-          className={`flex items-center gap-1 ${isMobile ? "text-xs" : ""}`}
-        >
-          <Stethoscope className={isMobile ? "w-3 h-3" : "w-4 h-4"} />
-          {t("appointments.filters.specialty.internalMedicine")}
-        </span>
-      ),
+      label: t("appointments.filters.specialty.internalMedicine"),
     },
     {
       value: "fisioterapia",
-      label: (
-        <span
-          className={`flex items-center gap-1 ${isMobile ? "text-xs" : ""}`}
-        >
-          <Stethoscope className={isMobile ? "w-3 h-3" : "w-4 h-4"} />
-          {t("appointments.filters.specialty.physiotherapy")}
-        </span>
-      ),
+      label: t("appointments.filters.specialty.physiotherapy"),
     },
     {
       value: "nutricion",
-      label: (
-        <span
-          className={`flex items-center gap-1 ${isMobile ? "text-xs" : ""}`}
-        >
-          <Stethoscope className={isMobile ? "w-3 h-3" : "w-4 h-4"} />
-          {t("appointments.filters.specialty.nutrition")}
-        </span>
-      ),
+      label: t("appointments.filters.specialty.nutrition"),
     },
   ];
 
@@ -136,58 +101,23 @@ function FilterMyAppointments({
     { value: "all", label: t("appointments.filters.dateRange.all") },
     {
       value: "today",
-      label: (
-        <span
-          className={`flex items-center gap-1 ${isMobile ? "text-xs" : ""}`}
-        >
-          <Calendar className={isMobile ? "w-3 h-3" : "w-4 h-4"} />
-          {t("appointments.filters.dateRange.today")}
-        </span>
-      ),
+      label: t("appointments.filters.dateRange.today"),
     },
     {
       value: "this-week",
-      label: (
-        <span
-          className={`flex items-center gap-1 ${isMobile ? "text-xs" : ""}`}
-        >
-          <Calendar className={isMobile ? "w-3 h-3" : "w-4 h-4"} />
-          {t("appointments.filters.dateRange.thisWeek")}
-        </span>
-      ),
+      label: t("appointments.filters.dateRange.thisWeek"),
     },
     {
       value: "this-month",
-      label: (
-        <span
-          className={`flex items-center gap-1 ${isMobile ? "text-xs" : ""}`}
-        >
-          <Calendar className={isMobile ? "w-3 h-3" : "w-4 h-4"} />
-          {t("appointments.filters.dateRange.thisMonth")}
-        </span>
-      ),
+      label: t("appointments.filters.dateRange.thisMonth"),
     },
     {
       value: "next-7-days",
-      label: (
-        <span
-          className={`flex items-center gap-1 ${isMobile ? "text-xs" : ""}`}
-        >
-          <Calendar className={isMobile ? "w-3 h-3" : "w-4 h-4"} />
-          {t("appointments.filters.dateRange.next7Days")}
-        </span>
-      ),
+      label: t("appointments.filters.dateRange.next7Days"),
     },
     {
       value: "past",
-      label: (
-        <span
-          className={`flex items-center gap-1 ${isMobile ? "text-xs" : ""}`}
-        >
-          <Calendar className={isMobile ? "w-3 h-3" : "w-4 h-4"} />
-          {t("appointments.filters.dateRange.past")}
-        </span>
-      ),
+      label: t("appointments.filters.dateRange.past"),
     },
   ];
 

@@ -2,6 +2,7 @@ import React from "react";
 import { MCModalBase } from "@/shared/components/MCModalBase";
 import { useTranslation } from "react-i18next";
 import { useGlobalUIStore } from "@/stores/useGlobalUIStore";
+import { useIsMobile } from "@/lib/hooks/useIsMobile";
 
 interface MarkAsCompletedProps {
   children?: React.ReactNode;
@@ -9,15 +10,13 @@ interface MarkAsCompletedProps {
 }
 
 function MarkAsCompleted({ children, appointmentId }: MarkAsCompletedProps) {
-  const { t } = useTranslation("patient");
+  const { t } = useTranslation("doctor");
+  const isMobile = useIsMobile();
   const setToast = useGlobalUIStore((state) => state.setToast);
 
   const handleConfirm = () => {
     setToast({
-      message: t(
-        "appointment.completedSuccess",
-        "Cita marcada como completada",
-      ),
+      message: t("appointment.completedSuccess"),
       type: "success",
       open: true,
     });
@@ -26,10 +25,7 @@ function MarkAsCompleted({ children, appointmentId }: MarkAsCompletedProps) {
 
   const handleSecondary = () => {
     setToast({
-      message: t(
-        "appointment.completedAborted",
-        "Marcado como completada cancelado",
-      ),
+      message: t("appointment.completedAborted"),
       type: "info",
       open: true,
     });
@@ -39,18 +35,15 @@ function MarkAsCompleted({ children, appointmentId }: MarkAsCompletedProps) {
   return (
     <MCModalBase
       id={appointmentId}
-      title={t("appointment.completeTitle", "Marcar como completada")}
+      title={t("appointment.completeTitle")}
       trigger={children}
-      description={t(
-        "appointment.completeDescription",
-        "¿Estás seguro de que deseas marcar esta cita como completada? El paciente será notificado automáticamente.",
-      )}
+      description={t("appointment.completeDescription")}
       triggerClassName="w-full flex-1"
       variant="decide"
-      size="sm"
+      size={isMobile ? "sm" : "sm"}
       onConfirm={handleConfirm}
       onSecondary={handleSecondary}
-      confirmText={t("appointment.confirmComplete", "Confirmar")}
+      confirmText={t("appointment.confirmComplete")}
       secondaryText={t("appointment.cancelAction")}
     >
       <></>

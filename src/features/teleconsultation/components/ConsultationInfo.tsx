@@ -41,7 +41,7 @@ interface ConsultationInfoProps {
 }
 
 export const ConsultationInfo = (props: ConsultationInfoProps) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation("common");
   const userRole = useAppStore((state) => state.user?.role);
   const isMobile = useIsMobile();
 

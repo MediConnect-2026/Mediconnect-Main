@@ -138,7 +138,7 @@ const mockAppointments: Appointment[] = [
 ];
 
 function AppointmentsPage() {
-  const { t } = useTranslation("patient");
+  const { t } = useTranslation("doctor");
   const isMobile = useIsMobile();
   const navigate = useNavigate();
 

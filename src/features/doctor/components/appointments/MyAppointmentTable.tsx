@@ -60,7 +60,7 @@ const truncate = (text: string | undefined, maxLength: number = 30): string => {
 export default function MyAppointmentTable({
   appointments,
 }: MyAppointmentTableProps) {
-  const { t } = useTranslation("patient");
+  const { t } = useTranslation("doctor");
   const [page, setPage] = React.useState(1);
 
   const totalPages = Math.ceil(appointments.length / PAGE_SIZE);

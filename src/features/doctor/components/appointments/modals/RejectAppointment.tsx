@@ -2,6 +2,7 @@ import React from "react";
 import { MCModalBase } from "@/shared/components/MCModalBase";
 import { useTranslation } from "react-i18next";
 import { useGlobalUIStore } from "@/stores/useGlobalUIStore";
+import { useIsMobile } from "@/lib/hooks/useIsMobile";
 
 interface RejectAppointmentProps {
   children?: React.ReactNode;
@@ -12,13 +13,14 @@ function RejectAppointment({
   children,
   appointmentId,
 }: RejectAppointmentProps) {
-  const { t } = useTranslation("patient");
+  const { t } = useTranslation("doctor");
+  const isMobile = useIsMobile();
   const setToast = useGlobalUIStore((state) => state.setToast);
 
   const handleConfirm = () => {
     console.log("Confirm pressed");
     setToast({
-      message: t("appointment.rejectedSuccess", "Cita rechazada correctamente"),
+      message: t("appointment.rejectedSuccess"),
       type: "success",
       open: true,
     });
@@ -28,10 +30,7 @@ function RejectAppointment({
   const handleSecondary = () => {
     console.log("Cancel pressed");
     setToast({
-      message: t(
-        "appointment.rejectAborted",
-        "Acción de rechazar cita cancelada",
-      ),
+      message: t("appointment.rejectAborted"),
       type: "info",
       open: true,
     });
@@ -41,19 +40,16 @@ function RejectAppointment({
   return (
     <MCModalBase
       id={appointmentId}
-      title={t("appointment.rejectTitle", "Rechazar cita")}
+      title={t("appointment.rejectTitle")}
       trigger={children}
-      description={t(
-        "appointment.rejectDescription",
-        "¿Estás seguro de que deseas rechazar esta cita? El paciente será notificado automáticamente.",
-      )}
+      description={t("appointment.rejectDescription")}
       triggerClassName="w-full flex-1"
       variant="warning"
-      size="sm"
+      size={isMobile ? "sm" : "sm"}
       onConfirm={handleConfirm}
       onSecondary={handleSecondary}
-      confirmText={t("appointment.confirmReject", "Rechazar")}
-      secondaryText={t("appointment.cancelAction", "Cancelar")}
+      confirmText={t("appointment.confirmReject")}
+      secondaryText={t("appointment.cancelAction")}
     >
       <></>
     </MCModalBase>

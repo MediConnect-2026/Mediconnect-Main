@@ -34,6 +34,9 @@ import { useNavigate } from "react-router-dom";
 import { ROUTES } from "@/router/routes";
 import { useTranslation } from "react-i18next";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
+import AcceptAppointment from "@/features/doctor/components/appointments/modals/AcceptAppointment";
+import RejectAppointment from "@/features/doctor/components/appointments/modals/RejectAppointment";
+import RescheduleAppointment from "@/features/doctor/components/appointments/modals/RescheduleAppointment";
 
 interface AppointmentDetailsProps {
   appointment: Appointment | null;
@@ -70,6 +73,10 @@ export const AppointmentDetails = ({
   );
   const isVirtual = appointment?.modality === "virtual";
   const isInProgress = appointment?.status === "in_progress";
+  const isPending = appointment?.status === "pending";
+  const isScheduled = appointment?.status === "scheduled";
+  const isCompleted = appointment?.status === "completed";
+  const isCancelled = appointment?.status === "cancelled";
 
   const handleJoin = (appointmentId: string) => {
     navigate(
@@ -77,9 +84,199 @@ export const AppointmentDetails = ({
     );
   };
 
+  const handleCompleteAppointment = (appointmentId: string) => {
+    // Logic to mark as completed
+    console.log("Completing appointment:", appointmentId);
+  };
+
+  const handleContinueConsultation = (appointmentId: string) => {
+    navigate(ROUTES.DOCTOR.CONSULTATION.replace(":id", appointmentId));
+  };
+
   function handleChatClick(event: React.MouseEvent<HTMLButtonElement>): void {
     // Implementation needed
   }
+
+  // Render actions based on user role and appointment status
+  const renderActions = () => {
+    if (!appointment) return null;
+
+    // Actions for DOCTOR
+    if (userRole === "DOCTOR") {
+      if (isPending) {
+        return (
+          <div className="flex flex-col gap-2">
+            <ViewDetailsAppointmentDialog appointmentId={appointment.id}>
+              <MCButton className="w-full" size="sm">
+                {t("appointments.viewDetails")}
+              </MCButton>
+            </ViewDetailsAppointmentDialog>
+            <AcceptAppointment appointmentId={appointment.id}>
+              <MCButton
+                className="w-full bg-green-600 hover:bg-green-700 text-white"
+                size="sm"
+              >
+                {t("appointments.accept")}
+              </MCButton>
+            </AcceptAppointment>
+            <RejectAppointment appointmentId={appointment.id}>
+              <MCButton variant="outlineDelete" className="w-full" size="sm">
+                {t("appointments.reject")}
+              </MCButton>
+            </RejectAppointment>
+          </div>
+        );
+      }
+
+      if (isScheduled) {
+        return (
+          <div className="flex flex-col gap-2">
+            <ViewDetailsAppointmentDialog appointmentId={appointment.id}>
+              <MCButton className="w-full" size="sm">
+                {t("appointments.viewAppointment")}
+              </MCButton>
+            </ViewDetailsAppointmentDialog>
+            <RescheduleAppointment appointmentId={appointment.id}>
+              <MCButton className="w-full" size="sm" variant="outline">
+                {t("appointments.reschedule")}
+              </MCButton>
+            </RescheduleAppointment>
+            <CancelAppointmentDialog appointmentId={appointment.id}>
+              <MCButton variant="outlineDelete" className="w-full" size="sm">
+                {t("appointments.cancel")}
+              </MCButton>
+            </CancelAppointmentDialog>
+          </div>
+        );
+      }
+
+      if (isCompleted || isCancelled) {
+        return (
+          <ViewDetailsAppointmentDialog appointmentId={appointment.id}>
+            <MCButton className="w-full" size="sm">
+              {t("appointments.viewDetails")}
+            </MCButton>
+          </ViewDetailsAppointmentDialog>
+        );
+      }
+
+      if (isInProgress) {
+        if (isVirtual) {
+          return (
+            <div className="flex flex-col gap-2">
+              <ViewDetailsAppointmentDialog appointmentId={appointment.id}>
+                <MCButton className="w-full" size="sm" variant="outline">
+                  {t("appointments.viewAppointment")}
+                </MCButton>
+              </ViewDetailsAppointmentDialog>
+              <MCButton
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                size="sm"
+                onClick={() => handleJoin(appointment.id)}
+              >
+                {t("appointments.joinTeleconsult")}
+              </MCButton>
+              <MCButton
+                className="w-full bg-green-600 hover:bg-green-700 text-white"
+                size="sm"
+                onClick={() => handleCompleteAppointment(appointment.id)}
+              >
+                {t("appointments.markCompleted")}
+              </MCButton>
+            </div>
+          );
+        } else {
+          return (
+            <div className="flex flex-col gap-2">
+              <ViewDetailsAppointmentDialog appointmentId={appointment.id}>
+                <MCButton className="w-full" size="sm" variant="outline">
+                  {t("appointments.viewAppointment")}
+                </MCButton>
+              </ViewDetailsAppointmentDialog>
+              <MCButton
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                size="sm"
+                onClick={() => handleContinueConsultation(appointment.id)}
+              >
+                {t("appointments.continueConsultation")}
+              </MCButton>
+              <MCButton
+                className="w-full bg-green-600 hover:bg-green-700 text-white"
+                size="sm"
+                onClick={() => handleCompleteAppointment(appointment.id)}
+              >
+                {t("appointments.markCompleted")}
+              </MCButton>
+            </div>
+          );
+        }
+      }
+    }
+
+    // Actions for PATIENT (existing logic)
+    if (isUpcoming) {
+      if (isInProgress) {
+        if (isVirtual) {
+          return (
+            <div className="flex flex-col gap-2">
+              <MCButton
+                className="w-full"
+                size="sm"
+                onClick={() => handleJoin(appointment.id)}
+              >
+                {t("appointments.join")}
+              </MCButton>
+              <ViewDetailsAppointmentDialog appointmentId={appointment.id}>
+                <MCButton className="w-full" size="sm" variant="outline">
+                  {t("appointments.viewDetails")}
+                </MCButton>
+              </ViewDetailsAppointmentDialog>
+            </div>
+          );
+        } else {
+          return (
+            <ViewDetailsAppointmentDialog appointmentId={appointment.id}>
+              <MCButton className="w-full" size="sm">
+                {t("appointments.viewDetails")}
+              </MCButton>
+            </ViewDetailsAppointmentDialog>
+          );
+        }
+      }
+
+      return (
+        <div className="flex flex-col gap-2">
+          <ViewDetailsAppointmentDialog appointmentId={appointment.id}>
+            <MCButton className="w-full" size="sm">
+              {t("appointments.viewDetails")}
+            </MCButton>
+          </ViewDetailsAppointmentDialog>
+          <ScheduleAppointmentDialog
+            idProvider={appointment.doctorId}
+            idAppointment={appointment.id}
+          >
+            <MCButton className="w-full" size="sm" variant="outline">
+              {t("appointments.reschedule")}
+            </MCButton>
+          </ScheduleAppointmentDialog>
+          <CancelAppointmentDialog appointmentId={appointment.id}>
+            <MCButton variant="outlineDelete" className="w-full" size="sm">
+              {t("appointments.cancel")}
+            </MCButton>
+          </CancelAppointmentDialog>
+        </div>
+      );
+    }
+
+    // If not upcoming, only View details
+    return (
+      <ViewDetailsAppointmentDialog appointmentId={appointment.id}>
+        <MCButton className="w-full" size="sm">
+          {t("appointments.viewDetails")}
+        </MCButton>
+      </ViewDetailsAppointmentDialog>
+    );
+  };
 
   if (!appointment) {
     return (
@@ -319,59 +516,7 @@ export const AppointmentDetails = ({
 
       {/* Actions */}
       <div className="p-3 sm:p-4 border-t border-primary/15 space-y-2">
-        {isUpcoming ? (
-          isInProgress ? (
-            isVirtual ? (
-              <div className="flex flex-col gap-2">
-                <MCButton
-                  className="w-full"
-                  size="sm"
-                  onClick={() => handleJoin(appointment.id)}
-                >
-                  {t("appointments.join")}
-                </MCButton>
-                <ViewDetailsAppointmentDialog appointmentId={appointment.id}>
-                  <MCButton className="w-full" size="sm" variant="outline">
-                    {t("appointments.viewDetails")}
-                  </MCButton>
-                </ViewDetailsAppointmentDialog>
-              </div>
-            ) : (
-              <ViewDetailsAppointmentDialog appointmentId={appointment.id}>
-                <MCButton className="w-full" size="sm">
-                  {t("appointments.viewDetails")}
-                </MCButton>
-              </ViewDetailsAppointmentDialog>
-            )
-          ) : (
-            <div className="flex flex-col gap-2">
-              <ViewDetailsAppointmentDialog appointmentId={appointment.id}>
-                <MCButton className="w-full" size="sm">
-                  {t("appointments.viewDetails")}
-                </MCButton>
-              </ViewDetailsAppointmentDialog>
-              <ScheduleAppointmentDialog
-                idProvider={appointment.doctorId}
-                idAppointment={appointment.id}
-              >
-                <MCButton className="w-full" size="sm" variant="outline">
-                  {t("appointments.reschedule")}
-                </MCButton>
-              </ScheduleAppointmentDialog>
-              <CancelAppointmentDialog appointmentId={appointment.id}>
-                <MCButton variant="outlineDelete" className="w-full" size="sm">
-                  {t("appointments.cancel")}
-                </MCButton>
-              </CancelAppointmentDialog>
-            </div>
-          )
-        ) : (
-          <ViewDetailsAppointmentDialog appointmentId={appointment.id}>
-            <MCButton className="w-full" size="sm">
-              {t("appointments.viewDetails")}
-            </MCButton>
-          </ViewDetailsAppointmentDialog>
-        )}
+        {renderActions()}
       </div>
     </div>
   );

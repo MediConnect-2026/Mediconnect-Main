@@ -1,4 +1,16 @@
 {
+  "navbar": {
+    "home": "Inicio",
+    "appointments": "Citas",
+    "patients": "Pacientes",
+    "patientsAppointments": "Citas",
+    "doctors": "Doctores",
+    "calendar": "Calendario",
+    "services": "Servicios",
+    "schedule": "Horario",
+    "noMenuRole": "Sin menú para el rol",
+    "noRole": "Desconocido"
+  },
   "userMenu": {
     "spanish": "Español",
     "english": "Inglés",
@@ -511,8 +523,14 @@
   "appointments": {
     "join": "Unirse",
     "viewDetails": "Ver detalles",
+    "viewAppointment": "Ver cita",
     "reschedule": "Reagendar",
     "cancel": "Cancelar",
+    "accept": "Aceptar",
+    "reject": "Rechazar",
+    "continueConsultation": "Continuar consulta",
+    "joinTeleconsult": "Unirse a teleconsulta",
+    "markCompleted": "Marcar como completada",
     "openChat": "Abrir chat"
   },
   "requests": {

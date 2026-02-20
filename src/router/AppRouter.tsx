@@ -52,6 +52,7 @@ import ProtectedRoute from "@/router/ProtectedRoute";
 import CreateServicesPage from "@/features/doctor/pages/CreateServicesPage";
 import RequestPage from "@/features/request/pages/RequestPage";
 import AppointmentConsultation from "@/features/doctor/pages/AppointmentConsultation";
+import PatientDetailsPage from "@/features/doctor/pages/PatientDetailsPage";
 function AppRouter() {
   const userRole = useAppStore((state) => state.user?.role);
   return (
@@ -136,7 +137,6 @@ function AppRouter() {
                 element={<CenterDashboard />}
               />
             )}
-
             <Route
               path={ROUTES.PATIENT.PATIENT_PROFILE_PRIVATE}
               element={<PatientProfilePage />}
@@ -145,13 +145,11 @@ function AppRouter() {
               path={ROUTES.PATIENT.PATIENT_PROFILE_PUBLIC}
               element={<PatientProfilePage />}
             />
-
             <Route path={ROUTES.COMMON.GLOBAL_SEARCH} element={<Search />} />
             <Route
               path={ROUTES.PATIENT.SCHEDULE_APPOINTMENT}
               element={<ScheduleAppointment />}
             />
-
             {/* SETTINGS */}
             <Route
               path={ROUTES.SETTINGS.ROOT}
@@ -181,12 +179,10 @@ function AppRouter() {
               path={ROUTES.SETTINGS.DELETE_ACCOUNT}
               element={<DeleteAccountPage />}
             />
-
             <Route
               path={ROUTES.PATIENT.APPOINTMENTS}
               element={<MyAppointmentsPage />}
             />
-
             {/* PRIVACY */}
             <Route
               path={ROUTES.PRIVACY.ROOT}
@@ -196,7 +192,6 @@ function AppRouter() {
               path={ROUTES.PRIVACY.PROFILE_VISIBILITY}
               element={<ProfileVisibilityPage />}
             />
-
             <Route
               path={ROUTES.PRIVACY.MESSAGES}
               element={<MessagesPrivacyPage />}
@@ -226,12 +221,10 @@ function AppRouter() {
               path={ROUTES.DOCTOR.DOCTOR_PROFILE_PRIVATE}
               element={<DoctorProfilePage />}
             />
-
             <Route
               path={ROUTES.DOCTOR.APPOINTMENTS}
               element={<AppointmentsPage />}
             />
-
             <Route
               path={ROUTES.VERIFY_INFO.VERIFY_INFO}
               element={
@@ -241,7 +234,6 @@ function AppRouter() {
                 </ProtectedRoute>
               }
             />
-
             <Route
               path={ROUTES.COMMON.REQUESTS}
               element={
@@ -249,11 +241,18 @@ function AppRouter() {
                   <RequestPage />
                 </ProtectedRoute>
               }
+            />{" "}
+            <Route
+              path={ROUTES.DOCTOR.PATIENT_DETAILS}
+              element={
+                <ProtectedRoute doctor>
+                  <PatientDetailsPage />
+                </ProtectedRoute>
+              }
             />
-
+            PatientDetailsPage
             <Route path={ROUTES.DOCTOR.SERVICES} element={<MyServicesPage />} />
             <Route path={ROUTES.DOCTOR.PATIENTS} element={<MyPatientsPage />} />
-
             <Route path={ROUTES.COMMON.CHAT} element={<ChatPage />} />
             <Route path={ROUTES.COMMON.CHAT_WITH} element={<ChatPage />} />
             <Route path={ROUTES.COMMON.SERVICE} element={<ServicesPage />} />

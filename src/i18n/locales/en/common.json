@@ -1,4 +1,16 @@
 {
+  "navbar": {
+    "home": "Home",
+    "appointments": "Appointments",
+    "patients": "Patients",
+    "patientsAppointments": "Appointments",
+    "doctors": "Doctors",
+    "calendar": "Calendar",
+    "services": "Services",
+    "schedule": "Schedule",
+    "noMenuRole": "No menu for role",
+    "noRole": "Unknown"
+  },
   "userMenu": {
     "spanish": "Spanish",
     "english": "English",
@@ -511,8 +523,14 @@
   "appointments": {
     "join": "Join",
     "viewDetails": "View Details",
+    "viewAppointment": "View Appointment",
     "reschedule": "Reschedule",
     "cancel": "Cancel",
+    "accept": "Accept",
+    "reject": "Reject",
+    "continueConsultation": "Continue Consultation",
+    "joinTeleconsult": "Join Teleconsultation",
+    "markCompleted": "Mark as Completed",
     "openChat": "Open chat"
   },
   "requests": {

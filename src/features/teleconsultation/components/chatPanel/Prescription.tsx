@@ -16,7 +16,7 @@ interface PrescriptionProps {
 }
 
 function Prescription({ minHeight, maxHeight }: PrescriptionProps) {
-  const { t } = useTranslation();
+  const { t } = useTranslation("common");
   const addPrescription = usePrescriptionStore(
     (state) => state.addPrescription,
   );

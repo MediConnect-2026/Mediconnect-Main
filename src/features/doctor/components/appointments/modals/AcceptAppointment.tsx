@@ -2,6 +2,7 @@ import React from "react";
 import { MCModalBase } from "@/shared/components/MCModalBase";
 import { useTranslation } from "react-i18next";
 import { useGlobalUIStore } from "@/stores/useGlobalUIStore";
+import { useIsMobile } from "@/lib/hooks/useIsMobile";
 
 interface AcceptAppointmentProps {
   children?: React.ReactNode;
@@ -12,12 +13,13 @@ function AcceptAppointment({
   children,
   appointmentId,
 }: AcceptAppointmentProps) {
-  const { t } = useTranslation("patient");
+  const { t } = useTranslation("doctor");
+  const isMobile = useIsMobile();
   const setToast = useGlobalUIStore((state) => state.setToast);
 
   const handleConfirm = () => {
     setToast({
-      message: t("appointment.acceptedSuccess", "Cita aceptada correctamente"),
+      message: t("appointment.acceptedSuccess"),
       type: "success",
       open: true,
     });
@@ -26,10 +28,7 @@ function AcceptAppointment({
 
   const handleSecondary = () => {
     setToast({
-      message: t(
-        "appointment.acceptAborted",
-        "Acción de aceptar cita cancelada",
-      ),
+      message: t("appointment.acceptAborted"),
       type: "info",
       open: true,
     });
@@ -39,19 +38,16 @@ function AcceptAppointment({
   return (
     <MCModalBase
       id={appointmentId}
-      title={t("appointment.acceptTitle", "Aceptar cita")}
+      title={t("appointment.acceptTitle")}
       trigger={children}
-      description={t(
-        "appointment.acceptDescription",
-        "¿Estás seguro de que deseas aceptar esta cita? El paciente será notificado automáticamente.",
-      )}
+      description={t("appointment.acceptDescription")}
       triggerClassName="w-full flex-1"
       variant="decide"
-      size="sm"
+      size={isMobile ? "sm" : "sm"}
       onConfirm={handleConfirm}
       onSecondary={handleSecondary}
-      confirmText={t("appointment.confirmAccept", "Confirmar")}
-      secondaryText={t("appointment.cancelAction", "Cancelar")}
+      confirmText={t("appointment.confirmAccept")}
+      secondaryText={t("appointment.cancelAction")}
     >
       <></>
     </MCModalBase>

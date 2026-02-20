@@ -34,15 +34,9 @@
       "minLength": "Description must be at least 50 characters",
       "maxLength": "Description cannot exceed 250 characters"
     },
-    "specialty": {
-      "required": "Specialty is required"
-    },
-    "selectedModality": {
-      "required": "Modality is required"
-    },
-    "pricePerSession": {
-      "positive": "Price per session must be positive"
-    },
+    "specialty": { "required": "Specialty is required" },
+    "selectedModality": { "required": "Modality is required" },
+    "pricePerSession": { "positive": "Price per session must be positive" },
     "duration": {
       "minutes": {
         "min": "Minutes must be at least 1",
@@ -53,24 +47,12 @@
       "maxLength": "Maximum 8 images",
       "required": "At least 1 image is required"
     },
-    "address": {
-      "required": "Address is required"
-    },
-    "province": {
-      "required": "Province is required"
-    },
-    "municipality": {
-      "required": "Municipality is required"
-    },
-    "day": {
-      "selectAtLeastOne": "Must select at least one day"
-    },
-    "startTime": {
-      "invalidFormat": "Start time must be in HH:mm:ss format"
-    },
-    "endTime": {
-      "invalidFormat": "End time must be in HH:mm:ss format"
-    },
+    "address": { "required": "Address is required" },
+    "province": { "required": "Province is required" },
+    "municipality": { "required": "Municipality is required" },
+    "day": { "selectAtLeastOne": "Must select at least one day" },
+    "startTime": { "invalidFormat": "Start time must be in HH:mm:ss format" },
+    "endTime": { "invalidFormat": "End time must be in HH:mm:ss format" },
     "time": {
       "cannotBeEqual": "Start and end time cannot be equal",
       "required": "Start and end time are required"
@@ -107,20 +89,61 @@
     }
   },
 
+  "appointment": {
+    "acceptTitle": "Accept Appointment",
+    "acceptDescription": "Are you sure you want to accept this appointment? The patient will be notified automatically.",
+    "confirmAccept": "Confirm",
+    "acceptedSuccess": "Appointment accepted successfully",
+    "acceptAborted": "Accept appointment action cancelled",
+    "cancelAction": "Cancel",
+    "completeTitle": "Mark as Completed",
+    "completeDescription": "Are you sure you want to mark this appointment as completed? The patient will be notified automatically.",
+    "confirmComplete": "Confirm",
+    "completedSuccess": "Appointment marked as completed",
+    "completedAborted": "Mark as completed action cancelled",
+    "rejectTitle": "Reject Appointment",
+    "rejectDescription": "Are you sure you want to reject this appointment? The patient will be notified automatically.",
+    "confirmReject": "Reject",
+    "rejectedSuccess": "Appointment rejected successfully",
+    "rejectAborted": "Reject appointment action cancelled",
+    "rescheduleTitle": "Reschedule Appointment",
+    "rescheduleDescription": "Select the new date and time for the appointment. The patient will be notified automatically.",
+    "confirmReschedule": "Reschedule",
+    "rescheduleSuccess": "Appointment rescheduled successfully",
+    "consultation": {
+      "medicalNotes": "Medical Notes"
+    }
+  },
+
   "appointments": {
+    "title": "Appointments",
+    "subtitle": "Manage all your scheduled appointments",
+    "searchPlaceholder": "Search patient, service or specialty...",
+    "availableTimes": "Available Time Slots",
     "table": {
       "patient": "Patient",
       "status": "Status",
       "service": "Service",
+      "serviceSpecialty": "Service / Specialty",
       "type": "Type",
+      "typeLocation": "Type / Location",
       "schedule": "Schedule",
+      "date": "Date",
       "contact": "Contact",
-      "actions": "Actions"
+      "actions": "Actions",
+      "virtual": "Virtual",
+      "inPerson": "In-person",
+      "noAppointments": "No appointments found."
     },
     "empty": {
       "title": "No appointments registered",
       "description": "No appointments were found to display in this section.",
-      "action": "Schedule new appointment"
+      "action": "Schedule new appointment",
+      "noResults": "No results found",
+      "noResultsDescription": "No appointments match the selected filters. Try adjusting or clearing them.",
+      "noAppointments": "No appointments registered",
+      "noAppointmentsDescription": "You don't have any appointments scheduled at this time.",
+      "clearFilters": "Clear filters"
     },
     "status": {
       "pending": "Pending",
@@ -135,11 +158,201 @@
     },
     "services": {
       "generalConsultation": "General consultation",
-      "physicalSession": "Physical session",
-      "followUp": "Follow-up",
-      "rehabilitation": "Rehabilitation",
-      "bloodPressure": "Blood pressure",
-      "guidedExercises": "Guided exercises"
+      "followUpEvaluation": "Follow-up Evaluation",
+      "bloodPressureControl": "Blood Pressure Control",
+      "postInjuryRehabilitation": "Post-injury Rehabilitation",
+      "nutritionPlan": "Nutrition Plan",
+      "physiotherapySession": "Physiotherapy Session"
+    },
+    "metrics": {
+      "total": "Total Appointments",
+      "totalSubtitle": "All appointments registered",
+      "pending": "Pending",
+      "pendingSubtitle": "Awaiting confirmation",
+      "cancelled": "Cancelled",
+      "cancelledSubtitle": "Appointments cancelled",
+      "completed": "Completed",
+      "completedSubtitle": "Successfully completed"
+    },
+    "filters": {
+      "labels": {
+        "status": "Status",
+        "type": "Type",
+        "specialty": "Specialty",
+        "service": "Service",
+        "dateRange": "Date Range"
+      },
+      "placeholders": {
+        "status": "Select status",
+        "type": "Select type",
+        "specialty": "Select specialty",
+        "service": "Select service",
+        "dateRange": "Select date range"
+      },
+      "status": {
+        "all": "All",
+        "pending": "Pending",
+        "scheduled": "Scheduled",
+        "inProgress": "In Progress",
+        "completed": "Completed",
+        "cancelled": "Cancelled"
+      },
+      "type": {
+        "all": "All",
+        "virtual": "Virtual",
+        "inPerson": "In-person"
+      },
+      "specialty": {
+        "all": "All specialties",
+        "familyMedicine": "Family Medicine",
+        "cardiology": "Cardiology",
+        "internalMedicine": "Internal Medicine",
+        "physiotherapy": "Physiotherapy",
+        "nutrition": "Nutrition"
+      },
+      "service": {
+        "all": "All services"
+      },
+      "dateRange": {
+        "all": "All dates",
+        "today": "Today",
+        "thisWeek": "This week",
+        "thisMonth": "This month",
+        "next7Days": "Next 7 days",
+        "past": "Past"
+      }
+    }
+  },
+
+  "patients": {
+    "title": "Patients",
+    "subtitle": "Manage your registered patients",
+    "searchPlaceholder": "Search patient, specialty or service...",
+    "metrics": {
+      "total": "Total Patients",
+      "totalSubtitle": "Registered patients",
+      "withConditions": "With Conditions",
+      "withConditionsSubtitle": "Patients with active conditions",
+      "withAllergies": "With Allergies",
+      "withAllergiesSubtitle": "Patients with registered allergies",
+      "avgAge": "Average Age",
+      "avgAgeSubtitle": "Average age of patients",
+      "years": "yrs"
+    },
+    "table": {
+      "patient": "Patient",
+      "ageGender": "Age / Gender",
+      "age": "Age",
+      "gender": "Gender",
+      "contact": "Contact",
+      "medicalInfo": "Medical Info",
+      "lastVisit": "Last Visit",
+      "serviceSpecialty": "Service / Specialty",
+      "location": "Location",
+      "actions": "Actions",
+      "male": "Male",
+      "female": "Female",
+      "other": "Other",
+      "none": "None",
+      "conditions": "Conditions",
+      "allergies": "Allergies",
+      "noPatients": "No patients found."
+    },
+    "empty": {
+      "noResults": "No results found",
+      "noResultsDescription": "No patients match the selected filters. Try adjusting or clearing them.",
+      "noPatients": "No patients registered",
+      "noPatientsDescription": "You have no patients registered at this time.",
+      "clearFilters": "Clear filters"
+    },
+    "filters": {
+      "labels": {
+        "gender": "Gender",
+        "specialty": "Specialty",
+        "location": "Location",
+        "condition": "Condition",
+        "allergy": "Allergy",
+        "lastVisit": "Last Visit"
+      },
+      "placeholders": {
+        "gender": "Select gender",
+        "specialty": "Select specialty",
+        "location": "Select location",
+        "condition": "Select condition",
+        "allergy": "Select allergy"
+      },
+      "gender": {
+        "all": "All",
+        "male": "Male",
+        "female": "Female"
+      },
+      "specialty": {
+        "all": "All specialties",
+        "cardiology": "Cardiology",
+        "generalSurgery": "General Surgery",
+        "endocrinology": "Endocrinology",
+        "familyMedicine": "Family Medicine",
+        "physiotherapy": "Physiotherapy"
+      },
+      "location": {
+        "all": "All locations"
+      },
+      "condition": {
+        "all": "All",
+        "withCondition": "With condition",
+        "withoutCondition": "Without condition"
+      },
+      "allergy": {
+        "all": "All",
+        "withAllergy": "With allergy",
+        "withoutAllergy": "Without allergy"
+      }
+    },
+    "actions": {
+      "viewProfile": "View profile",
+      "viewDetails": "View details",
+      "message": "Send message"
+    }
+  },
+
+  "patientDetails": {
+    "patientSince": "Patient since:",
+    "tabs": {
+      "personal": "Personal Information",
+      "history": "History",
+      "appointments": "Upcoming Appointments"
+    },
+    "personal": {
+      "title": "Personal Data",
+      "fullName": "Full Name",
+      "age": "Age",
+      "blood": "Blood Type",
+      "height": "Height",
+      "weight": "Weight",
+      "contactTitle": "Contact Information",
+      "email": "Email",
+      "phone": "Phone",
+      "medicalTitle": "Medical Information",
+      "allergies": "Allergies",
+      "conditions": "Conditions"
+    },
+    "history": {
+      "title": "Consultation History",
+      "count": "{{filtered}} of {{total}} consultations",
+      "noResults": "No results found",
+      "noResultsDescription": "Adjust the filters to see more consultations.",
+      "empty": "No history available",
+      "emptyDescription": "This patient has no consultation history."
+    },
+    "upcoming": {
+      "title": "Upcoming Appointments",
+      "count": "{{filtered}} of {{total}} appointments",
+      "virtual": "Virtual",
+      "inPerson": "In-person",
+      "empty": "No upcoming appointments",
+      "emptyDescription": "This patient has no scheduled appointments.",
+      "noResults": "No results found",
+      "noResultsDescription": "Adjust the filters to see more appointments."
     }
   },
 
@@ -300,15 +513,9 @@
   },
 
   "profile": {
-    "about": {
-      "title": "About the doctor"
-    },
-    "education": {
-      "title": "Academic Education"
-    },
-    "experience": {
-      "title": "Professional Experience"
-    },
+    "about": { "title": "About the doctor" },
+    "education": { "title": "Academic Education" },
+    "experience": { "title": "Professional Experience" },
     "insurance": {
       "title": "Accepted Medical Insurance",
       "question": "Is this doctor within your insurance network?",
@@ -425,7 +632,7 @@
     "viewProfile": "View profile",
     "contactDoctor": "Contact Doctor",
     "about": "About this service",
-    "description": "Comprehensive care for the whole family, focused on preventing, diagnosing and treating common diseases. Our family doctor accompanies each patient through all stages of life, considering their physical, emotional and social well-being.",
+    "description": "Comprehensive care for the whole family, focused on preventing, diagnosing and treating common diseases.",
     "perPatient": "per patient",
     "schedule": "Schedule",
     "showAllReviews": "Show all reviews",
@@ -434,9 +641,7 @@
       "rating": "Rating",
       "experience": "Years of experience"
     },
-    "reviews": {
-      "title": "Reviews"
-    }
+    "reviews": { "title": "Reviews" }
   },
 
   "filters": {
@@ -556,13 +761,13 @@
     },
     "location": {
       "title": "Confirm your location",
-      "description": "Specify the address where you will offer your consultations or medical services so patients can easily find you.",
+      "description": "Specify the address where you will offer your consultations or medical services.",
       "addLocation": "Add Location",
       "manageLocation": "Select Location"
     },
     "review": {
       "title": "Review Service",
-      "description": "Review all your service information before publishing. Make sure everything is correct to attract more patients and provide them with the best possible experience.",
+      "description": "Review all your service information before publishing.",
       "specialty": "Specialty",
       "modality": "Modality",
       "duration": "Duration",
@@ -570,7 +775,7 @@
       "numberOfSessions": "Number of sessions",
       "location": "Location",
       "virtualConsultation": "Virtual consultation",
-      "virtualConsultationDescription": "The consultation will be held through Mediconnect's teleconsultation platform. You will receive a link by email before the appointment.",
+      "virtualConsultationDescription": "The consultation will be held through Mediconnect's teleconsultation platform.",
       "save": "Save"
     },
     "modals": {
@@ -578,15 +783,9 @@
         "title": "Service description",
         "placeholder": "Enter your description here..."
       },
-      "sessions": {
-        "title": "Number of sessions"
-      },
-      "duration": {
-        "title": "Session duration"
-      },
-      "price": {
-        "title": "Price"
-      }
+      "sessions": { "title": "Number of sessions" },
+      "duration": { "title": "Session duration" },
+      "price": { "title": "Price" }
     },
     "common": {
       "save": "Save",
@@ -604,6 +803,7 @@
       "button": "Leave"
     }
   },
+
   "form": {
     "specialty": "Specialty",
     "selectSpecialty": "Select specialty",
@@ -632,15 +832,18 @@
     "municipalityPlaceholder": "Distrito Nacional",
     "available": "Available"
   },
+
   "modality": {
     "presencial": "In-person",
     "teleconsulta": "Teleconsultation",
     "mixed": "Mixed"
   },
+
   "specialty": {
     "cardiology": "Cardiology",
     "pediatrics": "Pediatrics"
   },
+
   "days": {
     "sunday": "Sunday",
     "monday": "Monday",

@@ -48,7 +48,7 @@ function RescheduleAppointment({
   children,
   appointmentId,
 }: RescheduleAppointmentProps) {
-  const { t, i18n } = useTranslation("patient");
+  const { t, i18n } = useTranslation("doctor");
   const currentLocale = i18n.language === "es" ? es : enUS;
   const setToast = useGlobalUIStore((state) => state.setToast);
   const setRescheduleAppointmentByDoctor = useAppointmentStore(

@@ -43,7 +43,7 @@ interface ConsultationInfoVerticalProps {
 export const ConsultationInfoVertical = (
   props: ConsultationInfoVerticalProps,
 ) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation("common");
   const userRole = useAppStore((state) => state.user?.role);
   const isMobile = useIsMobile();
 

@@ -275,8 +275,8 @@ function HistoryCard({
     >
       <div
         className={`flex flex-col md:flex-row bg-accent/30 dark:bg-primary/50 rounded-2xl w-full gap-4 justify-starts p-4 items-center cursor-pointer transition
-          hover:bg-accent/50 dark:hover:bg-primary/70 
-          ${active ? "ring-2 ring-primary/60 bg-accent/60 dark:bg-primary/80" : "opacity-40 hover:opacity-100"}
+          hover:bg-accent/50 dark:hover:bg-primary/30 
+          ${active ? "ring-2 ring-primary/60 bg-accent/60 dark:bg-primary/50" : "opacity-40 hover:opacity-100"}
         `}
         onClick={onClick}
       >

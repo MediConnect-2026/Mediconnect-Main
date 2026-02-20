@@ -58,6 +58,7 @@ export const ROUTES = {
     CREATE_SERVICE: "/doctor/services/create",
     EDIT_SERVICE: "/doctor/services/edit/:serviceId",
     CONSULTATION: "/appointments/:id/consultation",
+    PATIENT_DETAILS: "/patient/:patientId/details", // <-- Detalles del paciente para el doctor
   },
 
   // --- DASHBOARD CENTRO MÉDICO ---

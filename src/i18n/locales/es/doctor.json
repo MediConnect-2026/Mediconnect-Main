@@ -34,15 +34,9 @@
       "minLength": "La descripción debe tener al menos 50 caracteres",
       "maxLength": "La descripción no puede exceder 250 caracteres"
     },
-    "specialty": {
-      "required": "La especialidad es requerida"
-    },
-    "selectedModality": {
-      "required": "La modalidad es requerida"
-    },
-    "pricePerSession": {
-      "positive": "El precio por sesión debe ser positivo"
-    },
+    "specialty": { "required": "La especialidad es requerida" },
+    "selectedModality": { "required": "La modalidad es requerida" },
+    "pricePerSession": { "positive": "El precio por sesión debe ser positivo" },
     "duration": {
       "minutes": {
         "min": "Los minutos deben ser al menos 1",
@@ -53,18 +47,10 @@
       "maxLength": "Máximo 8 imágenes",
       "required": "Se requiere al menos 1 imagen"
     },
-    "address": {
-      "required": "La dirección es requerida"
-    },
-    "province": {
-      "required": "La provincia es requerida"
-    },
-    "municipality": {
-      "required": "El municipio es requerido"
-    },
-    "day": {
-      "selectAtLeastOne": "Debe seleccionar al menos un día"
-    },
+    "address": { "required": "La dirección es requerida" },
+    "province": { "required": "La provincia es requerida" },
+    "municipality": { "required": "El municipio es requerido" },
+    "day": { "selectAtLeastOne": "Debe seleccionar al menos un día" },
     "startTime": {
       "invalidFormat": "La hora de inicio debe estar en formato HH:mm:ss"
     },
@@ -107,20 +93,61 @@
     }
   },
 
+  "appointment": {
+    "acceptTitle": "Aceptar cita",
+    "acceptDescription": "¿Estás seguro de que deseas aceptar esta cita? El paciente será notificado automáticamente.",
+    "confirmAccept": "Confirmar",
+    "acceptedSuccess": "Cita aceptada correctamente",
+    "acceptAborted": "Acción de aceptar cita cancelada",
+    "cancelAction": "Cancelar",
+    "completeTitle": "Marcar como completada",
+    "completeDescription": "¿Estás seguro de que deseas marcar esta cita como completada? El paciente será notificado automáticamente.",
+    "confirmComplete": "Confirmar",
+    "completedSuccess": "Cita marcada como completada",
+    "completedAborted": "Marcado como completada cancelado",
+    "rejectTitle": "Rechazar cita",
+    "rejectDescription": "¿Estás seguro de que deseas rechazar esta cita? El paciente será notificado automáticamente.",
+    "confirmReject": "Rechazar",
+    "rejectedSuccess": "Cita rechazada correctamente",
+    "rejectAborted": "Acción de rechazar cita cancelada",
+    "rescheduleTitle": "Reprogramar cita",
+    "rescheduleDescription": "Selecciona la nueva fecha y hora para la cita. El paciente será notificado automáticamente.",
+    "confirmReschedule": "Reprogramar",
+    "rescheduleSuccess": "Cita reprogramada correctamente",
+    "consultation": {
+      "medicalNotes": "Registro de Notas Médicas"
+    }
+  },
+
   "appointments": {
+    "title": "Citas",
+    "subtitle": "Gestiona todas tus citas agendadas",
+    "searchPlaceholder": "Buscar paciente, servicio o especialidad...",
+    "availableTimes": "Horarios Disponibles",
     "table": {
       "patient": "Paciente",
       "status": "Estado",
       "service": "Servicio",
+      "serviceSpecialty": "Servicio / Especialidad",
       "type": "Tipo",
+      "typeLocation": "Tipo / Ubicación",
       "schedule": "Horario",
+      "date": "Fecha",
       "contact": "Contacto",
-      "actions": "Acciones"
+      "actions": "Acciones",
+      "virtual": "Virtual",
+      "inPerson": "Presencial",
+      "noAppointments": "No se encontraron citas."
     },
     "empty": {
       "title": "No hay citas registradas",
       "description": "No se encontraron citas para mostrar en esta sección.",
-      "action": "Agendar nueva cita"
+      "action": "Agendar nueva cita",
+      "noResults": "No se encontraron resultados",
+      "noResultsDescription": "Ninguna cita coincide con los filtros seleccionados. Intenta ajustarlos o limpiarlos.",
+      "noAppointments": "No hay citas registradas",
+      "noAppointmentsDescription": "No tienes ninguna cita agendada en este momento.",
+      "clearFilters": "Limpiar filtros"
     },
     "status": {
       "pending": "Pendiente",
@@ -140,6 +167,196 @@
       "rehabilitation": "Rehabilitación",
       "bloodPressure": "Presión arterial",
       "guidedExercises": "Ejercicios guiados"
+    },
+    "metrics": {
+      "total": "Total de Citas",
+      "totalSubtitle": "Todas las citas registradas",
+      "pending": "Pendientes",
+      "pendingSubtitle": "En espera de confirmación",
+      "cancelled": "Canceladas",
+      "cancelledSubtitle": "Citas canceladas",
+      "completed": "Completadas",
+      "completedSubtitle": "Completadas con éxito"
+    },
+    "filters": {
+      "labels": {
+        "status": "Estado",
+        "type": "Tipo",
+        "specialty": "Especialidad",
+        "service": "Servicio",
+        "dateRange": "Rango de Fecha"
+      },
+      "placeholders": {
+        "status": "Seleccionar estado",
+        "type": "Seleccionar tipo",
+        "specialty": "Seleccionar especialidad",
+        "service": "Seleccionar servicio",
+        "dateRange": "Seleccionar rango"
+      },
+      "status": {
+        "all": "Todos",
+        "pending": "Pendiente",
+        "scheduled": "Agendada",
+        "inProgress": "En Progreso",
+        "completed": "Completada",
+        "cancelled": "Cancelada"
+      },
+      "type": {
+        "all": "Todos",
+        "virtual": "Virtual",
+        "inPerson": "Presencial"
+      },
+      "specialty": {
+        "all": "Todas las especialidades",
+        "familyMedicine": "Medicina Familiar",
+        "cardiology": "Cardiología",
+        "internalMedicine": "Medicina Interna",
+        "physiotherapy": "Fisioterapia",
+        "nutrition": "Nutrición"
+      },
+      "service": {
+        "all": "Todos los servicios"
+      },
+      "dateRange": {
+        "all": "Todas las fechas",
+        "today": "Hoy",
+        "thisWeek": "Esta semana",
+        "thisMonth": "Este mes",
+        "next7Days": "Próximos 7 días",
+        "past": "Pasadas"
+      }
+    }
+  },
+
+  "patients": {
+    "title": "Pacientes",
+    "subtitle": "Gestiona tus pacientes registrados",
+    "searchPlaceholder": "Buscar paciente, especialidad o servicio...",
+    "metrics": {
+      "total": "Total de Pacientes",
+      "totalSubtitle": "Pacientes registrados",
+      "withConditions": "Con Condiciones",
+      "withConditionsSubtitle": "Pacientes con condiciones activas",
+      "withAllergies": "Con Alergias",
+      "withAllergiesSubtitle": "Pacientes con alergias registradas",
+      "avgAge": "Edad Promedio",
+      "avgAgeSubtitle": "Edad promedio de los pacientes",
+      "years": "años"
+    },
+    "table": {
+      "patient": "Paciente",
+      "ageGender": "Edad / Género",
+      "age": "Edad",
+      "gender": "Género",
+      "contact": "Contacto",
+      "medicalInfo": "Info Médica",
+      "lastVisit": "Última Visita",
+      "serviceSpecialty": "Servicio / Especialidad",
+      "location": "Ubicación",
+      "actions": "Acciones",
+      "male": "Masculino",
+      "female": "Femenino",
+      "other": "Otro",
+      "none": "Ninguno",
+      "conditions": "Condiciones",
+      "allergies": "Alergias",
+      "noPatients": "No se encontraron pacientes."
+    },
+    "empty": {
+      "noResults": "No se encontraron resultados",
+      "noResultsDescription": "Ningún paciente coincide con los filtros seleccionados. Intenta ajustarlos o limpiarlos.",
+      "noPatients": "No hay pacientes registrados",
+      "noPatientsDescription": "No tienes ningún paciente registrado en este momento.",
+      "clearFilters": "Limpiar filtros"
+    },
+    "filters": {
+      "labels": {
+        "gender": "Género",
+        "specialty": "Especialidad",
+        "location": "Ubicación",
+        "condition": "Condición",
+        "allergy": "Alergia",
+        "lastVisit": "Última Visita"
+      },
+      "placeholders": {
+        "gender": "Seleccionar género",
+        "specialty": "Seleccionar especialidad",
+        "location": "Seleccionar ubicación",
+        "condition": "Seleccionar condición",
+        "allergy": "Seleccionar alergia"
+      },
+      "gender": {
+        "all": "Todos",
+        "male": "Masculino",
+        "female": "Femenino"
+      },
+      "specialty": {
+        "all": "Todas las especialidades",
+        "cardiology": "Cardiología",
+        "generalSurgery": "Cirugía General",
+        "endocrinology": "Endocrinología",
+        "familyMedicine": "Medicina Familiar",
+        "physiotherapy": "Fisioterapia"
+      },
+      "location": {
+        "all": "Todas las ubicaciones"
+      },
+      "condition": {
+        "all": "Todos",
+        "withCondition": "Con condición",
+        "withoutCondition": "Sin condición"
+      },
+      "allergy": {
+        "all": "Todos",
+        "withAllergy": "Con alergia",
+        "withoutAllergy": "Sin alergia"
+      }
+    },
+    "actions": {
+      "viewProfile": "Ver perfil",
+      "viewDetails": "Ver detalles",
+      "message": "Enviar mensaje"
+    }
+  },
+
+  "patientDetails": {
+    "patientSince": "Paciente desde:",
+    "tabs": {
+      "personal": "Información Personal",
+      "history": "Historial",
+      "appointments": "Próximas Citas"
+    },
+    "personal": {
+      "title": "Datos Personales",
+      "fullName": "Nombre Completo",
+      "age": "Edad",
+      "blood": "Sangre",
+      "height": "Altura",
+      "weight": "Peso",
+      "contactTitle": "Información de Contacto",
+      "email": "Email",
+      "phone": "Teléfono",
+      "medicalTitle": "Información Médica",
+      "allergies": "Alergias",
+      "conditions": "Condiciones"
+    },
+    "history": {
+      "title": "Historial de consultas",
+      "count": "{{filtered}} de {{total}} consultas",
+      "noResults": "No se encontraron resultados",
+      "noResultsDescription": "Ajusta los filtros para ver más consultas.",
+      "empty": "Sin historial disponible",
+      "emptyDescription": "Este paciente no tiene historial de consultas."
+    },
+    "upcoming": {
+      "title": "Próximas Citas",
+      "count": "{{filtered}} de {{total}} citas",
+      "virtual": "Virtual",
+      "inPerson": "Presencial",
+      "empty": "Sin citas próximas",
+      "emptyDescription": "Este paciente no tiene citas programadas.",
+      "noResults": "No se encontraron resultados",
+      "noResultsDescription": "Ajusta los filtros para ver más citas."
     }
   },
 
@@ -300,15 +517,9 @@
   },
 
   "profile": {
-    "about": {
-      "title": "Acerca del doctor"
-    },
-    "education": {
-      "title": "Formación Académica"
-    },
-    "experience": {
-      "title": "Experiencia Profesional"
-    },
+    "about": { "title": "Acerca del doctor" },
+    "education": { "title": "Formación Académica" },
+    "experience": { "title": "Experiencia Profesional" },
     "insurance": {
       "title": "Seguros Médicos Aceptados",
       "question": "¿Este doctor está dentro de su red de seguros?",
@@ -425,7 +636,7 @@
     "viewProfile": "Ver perfil",
     "contactDoctor": "Contactar Doctor",
     "about": "Acerca de este servicio",
-    "description": "Atención integral para toda la familia, enfocada en prevenir, diagnosticar y tratar enfermedades comunes. Nuestro médico de familia acompaña a cada paciente en todas las etapas de la vida, considerando su bienestar físico, emocional y social.",
+    "description": "Atención integral para toda la familia, enfocada en prevenir, diagnosticar y tratar enfermedades comunes.",
     "perPatient": "por paciente",
     "schedule": "Agendar",
     "showAllReviews": "Mostrar todas las reseñas",
@@ -434,9 +645,7 @@
       "rating": "Calificación",
       "experience": "Años de experiencia"
     },
-    "reviews": {
-      "title": "Reseñas"
-    }
+    "reviews": { "title": "Reseñas" }
   },
 
   "filters": {
@@ -562,7 +771,7 @@
     },
     "review": {
       "title": "Revisar Servicio",
-      "description": "Revisa toda la información de tu servicio antes de publicarlo. Asegúrate de que todo esté correcto para atraer a más pacientes y brindarles la mejor experiencia posible.",
+      "description": "Revisa toda la información de tu servicio antes de publicarlo.",
       "specialty": "Especialidad",
       "modality": "Modalidad",
       "duration": "Duración",
@@ -570,7 +779,7 @@
       "numberOfSessions": "Número de sesiones",
       "location": "Ubicación",
       "virtualConsultation": "Consulta virtual",
-      "virtualConsultationDescription": "La consulta se realizará a través de la plataforma de teleconsultas de Mediconnect. Recibirás un enlace por correo electrónico antes de la cita.",
+      "virtualConsultationDescription": "La consulta se realizará a través de la plataforma de teleconsultas de Mediconnect.",
       "save": "Guardar"
     },
     "modals": {
@@ -578,15 +787,9 @@
         "title": "Descripción del servicio",
         "placeholder": "Ingresa tu descripción aquí..."
       },
-      "sessions": {
-        "title": "Número de sesiones"
-      },
-      "duration": {
-        "title": "Duración de la sesión"
-      },
-      "price": {
-        "title": "Precio"
-      }
+      "sessions": { "title": "Número de sesiones" },
+      "duration": { "title": "Duración de la sesión" },
+      "price": { "title": "Precio" }
     },
     "common": {
       "save": "Guardar",
@@ -604,6 +807,7 @@
       "button": "Abandonar"
     }
   },
+
   "form": {
     "specialty": "Especialidad",
     "selectSpecialty": "Seleccionar especialidad",
@@ -632,15 +836,18 @@
     "municipalityPlaceholder": "Distrito Nacional",
     "available": "Disponible"
   },
+
   "modality": {
     "presencial": "Presencial",
     "teleconsulta": "Teleconsulta",
     "mixed": "Mixta"
   },
+
   "specialty": {
     "cardiology": "Cardiología",
     "pediatrics": "Pediatría"
   },
+
   "days": {
     "sunday": "Domingo",
     "monday": "Lunes",

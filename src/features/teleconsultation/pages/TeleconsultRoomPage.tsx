@@ -8,7 +8,9 @@ import { ConsultationInfo } from "../components/ConsultationInfo";
 import { ChatPanel } from "../components/chatPanel/ChatPanel";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
 import { MessageSquare, Info } from "lucide-react";
-
+import { useTranslation } from "react-i18next";
+import { useAppStore } from "@/stores/useAppStore";
+useAppStore;
 function TeleconsultRoomPage() {
   const { appointmentId } = useParams();
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -17,6 +19,8 @@ function TeleconsultRoomPage() {
     "video",
   );
 
+  const isuserDoctor = useAppStore((state) => state.user?.role);
+  const { t } = useTranslation("common");
   const handleEndCall = () => {
     alert("La llamada ha terminado.");
   };
