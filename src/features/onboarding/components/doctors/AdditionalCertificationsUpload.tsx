@@ -1,5 +1,5 @@
 import MCImageUpload from "@/shared/components/MCAuthImageUpload";
-import Certifciades from "@/assets/doctorOnbording/certificates.png";
+
 import { useAppStore } from "@/stores/useAppStore";
 import { useTranslation } from "react-i18next";
 
@@ -13,11 +13,11 @@ export function AdditionalCertificationsUploadTrigger({
 }: AdditionalCertificationsUploadProps) {
   const { t } = useTranslation("auth");
   const doctorOnboardingData = useAppStore(
-    (state) => state.doctorOnboardingData
+    (state) => state.doctorOnboardingData,
   );
 
   const setDoctorOnboardingData = useAppStore(
-    (state) => state.setDoctorOnboardingData
+    (state) => state.setDoctorOnboardingData,
   );
 
   const handleFileUpload = (fileUrl: string, fileType: string) => {
@@ -54,7 +54,7 @@ export function AdditionalCertificationsUploadTrigger({
     <MCImageUpload
       title={t("additionalCertificationsUpload.title")}
       description={t("additionalCertificationsUpload.description")}
-      imageSrc={Certifciades}
+      imageSrc="https://res.cloudinary.com/dy2wtanhl/image/upload/v1771699903/certificates_bbuaiq.png"
       modalId="additional-certifications"
       cropTitle={t("additionalCertificationsUpload.cropTitle")}
       aspectRatio={1.4}
