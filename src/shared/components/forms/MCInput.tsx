@@ -94,7 +94,7 @@ function MCInput({
   displayMode = "placeholder",
   isPrice = false,
   customDisplayValue,
-  maxLength = 10,
+  maxLength,
 }: MCInputProps) {
   const formContext = standalone ? null : useFormContext();
   const { t } = useTranslation("common");

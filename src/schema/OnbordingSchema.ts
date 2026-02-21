@@ -249,6 +249,10 @@ export function CenterOnboardingSchema(t: (key: string) => string) {
     address: z.string().min(1, t("validation.addressRequired")),
     province: z.string().min(1, t("validation.provinceRequired")),
     municipality: z.string().min(1, t("validation.municipalityRequired")),
+    district: z.string().min(1, t("validation.districtRequired")),
+    section: z.string().min(1, t("validation.sectionRequired")),
+    neighborhood: z.string().min(1, t("validation.neighborhoodRequired")),
+    subNeighborhood: z.string().optional().or(z.literal("")),
     rnc: z.coerce
       .string()
       .min(1, t("validation.rncRequired"))
@@ -320,15 +324,14 @@ export function CenterBasicInfoSchema(t: (key: string) => string) {
 }
 
 export function CenterLocationInfoSchema(t: (key: string) => string) {
-  return BaseCenterSchema.pick({
-    address: true,
-    province: true,
-    municipality: true,
-    coordinates: true,
-  }).extend({
+  return z.object({
     address: z.string().min(1, t("validation.addressRequired")),
     province: z.string().min(1, t("validation.provinceRequired")),
     municipality: z.string().min(1, t("validation.municipalityRequired")),
+    district: z.string().min(1, t("validation.districtRequired")),
+    section: z.string().min(1, t("validation.sectionRequired")),
+    neighborhood: z.string().min(1, t("validation.neighborhoodRequired")),
+    subNeighborhood: z.string().optional().or(z.literal("")),
     coordinates: z.object({
       latitude: z.number(),
       longitude: z.number(),

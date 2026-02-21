@@ -101,7 +101,8 @@ export default function MapSelectLocation({
             zipCode = feature.text;
           }
         }
-
+        console.log("Detalles de ubicación obtenidos:", data);
+      
         const parsedAddress = await ParseDominicanAddress(lat, lng);
         setAddress(parsedAddress);
 

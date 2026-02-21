@@ -113,6 +113,22 @@ export const API_ENDPOINTS = {
     UTILITIES: '/traductor/utilidades',
   },
   
+  // --- Ubicaciones ---
+  UBICACIONES: {
+    PROVINCIAS: '/provincias',
+    MUNICIPIOS: (idProvincia: string | number) => `/municipios/provincia/${idProvincia}`,
+    DISTRITOS: (idMunicipio: string | number) => `/distritos/municipio/${idMunicipio}`,
+    SECCIONES: (idDistrito: string | number) => `/secciones/por-distrito/${idDistrito}`,
+    BARRIOS: (idSeccion: string | number) => `/barrios/seccion/${idSeccion}`,
+    SUBBARRIOS: (idBarrio: string | number) => `/subbarrios/barrio/${idBarrio}`,
+  },
+
+  // --- Tipos de centro ---
+  TIPOS_CENTRO: {
+    BASE: '/tipos-centros-salud',
+    BY_ID: (id: string | number) => `/tipos-centros-salud/${id}`,
+  },
+
   // --- SEGUROS ---
   SEGUROS: {
     ACEPTADOS: '/seguros/seguros-aceptados',

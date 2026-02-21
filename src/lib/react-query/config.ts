@@ -79,6 +79,14 @@ export const QUERY_KEYS = {
   ESPECIALIDADES: (language?: string, params?: Record<string, any>) => 
     ['especialidades', language, params].filter(Boolean),
   ESPECIALIDADES_CUSTOM: (params?: Record<string, any>) => ['especialidades', 'custom', params],
+
+  // Tipos de centro (datos relativamente estáticos)
+  TIPOS_CENTROS: (language?: string, params?: Record<string, any>) => 
+    ['tipos_centro', language, params].filter(Boolean),
+  TIPOS_CENTRO_CUSTOM: (params?: Record<string, any>) => ['tipos_centro', 'custom', params],
+
+  UBICACIONES: ( nivel: string, params?: Record<string, any>) => 
+    ['ubicaciones', nivel, params].filter(Boolean),
 } as const;
 
 export default queryClient;

@@ -7,6 +7,7 @@ import { useAppStore } from "@/stores/useAppStore";
 import { CenterBasicInfoSchema } from "@/schema/OnbordingSchema";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { useTiposCentros } from "@/features/onboarding/services/useTiposCentros";
 
 type CenterInfoStep1Props = {
   children?: React.ReactNode;
@@ -24,6 +25,7 @@ function CenterInfoStep1({
     (state) => state.centerOnboardingData,
   );
   const setCenterField = useAppStore((state) => state.setCenterField);
+  const { data: tiposCentroOptions = [], isLoading: isLoadingCentro } = useTiposCentros();
 
   const typeOptions = [
     { value: "clinica", label: t("centerInfoStep.typeOptions.clinica") },
@@ -45,7 +47,6 @@ function CenterInfoStep1({
   };
 
   useEffect(() => {
-    console.log("Center Onboarding Data:", centerOnboardingData);
   }, [centerOnboardingData]);
 
   return (
@@ -77,14 +78,16 @@ function CenterInfoStep1({
             <MCSelect
               name="centerType"
               label={t("centerInfoStep.centerTypeLabel")}
-              placeholder={t("centerInfoStep.centerTypePlaceholder")}
-              options={typeOptions}
-              onChange={(value) =>
-                setCenterField?.(
-                  "centerType",
-                  Array.isArray(value) ? value[0] : value,
-                )
-              }
+              placeholder={isLoadingCentro ? t("centerInfoStep.loadingCenterTypes") : t("centerInfoStep.centerTypePlaceholder")}
+              options={tiposCentroOptions}
+              disabled={isLoadingCentro}
+              onChange={(value) => {
+                if (Array.isArray(value)) {
+                  setCenterField?.("centerType", value[0]);
+                } else {
+                  setCenterField?.("centerType", value);
+                }
+              }}
             />
           </div>
 
