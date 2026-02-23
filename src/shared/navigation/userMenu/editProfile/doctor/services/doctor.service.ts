@@ -12,8 +12,6 @@ import type {
   UpdateRejectedDocumentRequest,
   UpdateRejectedDocumentResponse,
   UpdateDocumentError,
-  GetFormacionesAcademicasResponse,
-  GetFormacionesAcademicasParams,
   GetExperienciasLaboralesResponse,
   GetExperienciasLaboralesParams,
   CreateExperienciaLaboralRequest,
@@ -335,47 +333,6 @@ export const doctorService = {
         errorData?.message || 
         error.message || 
         'Error al actualizar el banner. Intenta nuevamente.'
-      );
-    }
-  },
-
-  /**
-   * Obtiene las formaciones académicas del doctor autenticado
-   * @param params - Parámetros opcionales para traducción
-   * @returns Respuesta con las formaciones académicas
-   * 
-   * Este endpoint devuelve todas las formaciones académicas del doctor.
-   * Soporta traducción automática de campos mediante query params.
-   */
-  getFormacionesAcademicas: async (
-    params?: GetFormacionesAcademicasParams
-  ): Promise<GetFormacionesAcademicasResponse> => {
-    try {
-      const response = await apiClient.get<GetFormacionesAcademicasResponse>(
-        '/formaciones-academicas',
-        { params }
-      );
-
-      return response.data;
-    } catch (error: any) {
-      console.error('❌ [Doctor Service] Error al obtener formaciones académicas:', error);
-      
-      const errorData = error.response?.data as DoctorServiceError;
-      
-      if (error.response?.status === 404) {
-        // Si no hay formaciones, devolver array vacío
-        return {
-          success: true,
-          message: 'No se encontraron formaciones académicas',
-          data: []
-        };
-      }
-      
-      // Error genérico del servidor o del cliente API
-      throw new Error(
-        errorData?.message || 
-        error.message || 
-        'Error al obtener las formaciones académicas. Intenta nuevamente.'
       );
     }
   },

@@ -22,6 +22,7 @@ export interface UpdateDoctorProfileRequest {
   biografia?: string;
   anosExperiencia?: number;
   tarifas?: number;
+  fechaNacimiento?: string; // ISO Date string
   duracionCitaPromedio?: number;
   nacionalidad?: string;
   estado?: 'Activo' | 'Inactivo';
@@ -142,45 +143,6 @@ export interface DoctorServiceError {
 }
 
 // Utilidades para trabajar con los doctores
-
-// --- FORMACIONES ACADÉMICAS ---
-
-/**
- * Estructura de una formación académica del doctor
- */
-export interface FormacionAcademica {
-  id: number;
-  doctorId: number;
-  titulo: string;
-  institucion: string;
-  ubicacion: string | null;
-  fechaInicio: string; // ISO Date string
-  fechaFin: string | null; // ISO Date string
-  enCurso: boolean;
-  descripcion: string | null;
-  estado: string;
-  creadoEn: string;
-  actualizadoEn: string | null;
-}
-
-/**
- * Respuesta del endpoint GET /doctores/formaciones-academicas
- * Obtiene las formaciones académicas del doctor autenticado
- */
-export interface GetFormacionesAcademicasResponse {
-  success: boolean;
-  message: string;
-  data: FormacionAcademica[];
-}
-
-/**
- * Parámetros opcionales para obtener formaciones académicas
- */
-export interface GetFormacionesAcademicasParams {
-  target?: string; // Código de idioma para traducción
-  translate_fields?: string; // Campos a traducir
-}
-
 // --- EXPERIENCIAS LABORALES ---
 
 /**

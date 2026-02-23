@@ -1,12 +1,14 @@
 import apiClient from '@/services/api/client';
 
 export const educationService = {
-  getPaises: async (params?: { target?: string }) => {
-    const response = await apiClient.get('/paises', { params });
+  getPaises: async (params?: { target?: string, limite?: number, pagina?: number, translate_fields?: string }) => {
+    const mergedParams = { limite: 100, pagina: 1, translate_fields: "nombre", ...params };
+    const response = await apiClient.get('/paises', { params: mergedParams });
     return response.data;
   },
-  getUniversidadesByPais: async (paisId: number, params?: { target?: string }) => {
-    const response = await apiClient.get(`/universidades/pais/${paisId}`, { params });
+  getUniversidadesByPais: async (paisId: number, params?: { target?: string, limite?: number, pagina?: number, translate_fields?: string }) => {
+    const mergedParams = { limite: 1000, pagina: 1, translate_fields: "nombre", ...params };
+    const response = await apiClient.get(`/universidades/pais/${paisId}`, { params: mergedParams });
     return response.data;
   },
   getFormacionesAcademicas: async (params?: { target?: string; translate_fields?: string }) => {

@@ -7,50 +7,117 @@ import {
 import { Card, CardHeader, CardTitle, CardContent } from "@/shared/ui/card";
 import { GraduationCap } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useCallback } from "react";
 import MCButton from "@/shared/components/forms/MCButton";
-import { doctorService } from "@/shared/navigation/userMenu/editProfile/doctor/services/doctor.service";
-import type { FormacionAcademica } from "@/shared/navigation/userMenu/editProfile/doctor/services/doctor.types";
+import { educationService } from "@/shared/navigation/userMenu/editProfile/doctor/services/education.service";
+import type { FormacionAcademicaBackend } from "../../../../shared/navigation/userMenu/editProfile/doctor/services/education.types";
+import { onAcademicChanged } from "@/lib/events/academicFormation";
 
 interface Props {
   isMyProfile?: boolean;
   onOpenSheet?: () => void;
 }
 
+// ✅ Subcomponente separado para que los hooks se llamen siempre en el nivel superior
+interface EducationItemProps {
+  formacion: FormacionAcademicaBackend;
+  formatPeriod: (fechaInicio: string, fechaFin: string | null, enCurso: boolean) => string;
+}
+
+const EducationItem = ({ formacion, formatPeriod }: EducationItemProps) => {
+  const institutionRef = useRef<HTMLDivElement>(null);
+  const [showTooltip, setShowTooltip] = useState(false);
+
+  const handleMouseEnter = () => {
+    const el = institutionRef.current;
+    if (el && el.scrollWidth > el.clientWidth) {
+      setShowTooltip(true);
+    } else {
+      setShowTooltip(false);
+    }
+  };
+
+  const handleMouseLeave = () => setShowTooltip(false);
+
+  return (
+    <li key={formacion.id} className="space-y-1">
+      <div className="flex gap-2 items-center">
+        <span className="w-2 h-2 rounded-full bg-secondary flex-shrink-0" />
+        <TooltipProvider>
+          <Tooltip open={showTooltip}>
+            <TooltipTrigger asChild>
+              <div
+                ref={institutionRef}
+                className="font-semibold max-w-full truncate cursor-pointer"
+                style={{ maxWidth: "100%" }}
+                onMouseEnter={handleMouseEnter}
+                onMouseLeave={handleMouseLeave}
+              >
+                {formacion.universidad.nombre}
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>{formacion.universidad.nombre}</TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </div>
+      <div className="text-sm">{formacion.nombre}</div>
+      <div className="text-xs text-muted-foreground">
+        {formatPeriod(formacion.fechaInicio, formacion.fechaFinalizacion, formacion.enCurso)}
+      </div>
+    </li>
+  );
+};
+
 const DoctorEducationSection = ({ isMyProfile = false, onOpenSheet }: Props) => {
   const { t, i18n } = useTranslation("doctor");
-  const [formaciones, setFormaciones] = useState<FormacionAcademica[]>([]);
+  const [formaciones, setFormaciones] = useState<FormacionAcademicaBackend[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchFormaciones = async () => {
-      try {
-        setIsLoading(true);
-        const response = await doctorService.getFormacionesAcademicas({
-          target: i18n.language,
-          translate_fields: 'titulo,institucion,descripcion'
-        });
-        setFormaciones(response.data || []);
-      } catch (err) {
-        console.error("Error al obtener formaciones académicas:", err);
-        setError(t("profile.education.errorLoadingData", "Error al cargar las formaciones académicas"));
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchFormaciones();
+  const fetchFormaciones = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const response = await educationService.getFormacionesAcademicas({
+        target: i18n.language,
+        translate_fields: "nombre",
+      });
+      setFormaciones(response.data?.formaciones || []);
+    } catch (err) {
+      console.error("Error al obtener formaciones académicas:", err);
+      setError(
+        t(
+          "profile.education.errorLoadingData",
+          "Error al cargar las formaciones académicas",
+        ),
+      );
+    } finally {
+      setIsLoading(false);
+    }
   }, [i18n.language]);
 
-  // Función para formatear el período de la formación
-  const formatPeriod = (fechaInicio: string, fechaFin: string | null, enCurso: boolean) => {
+  useEffect(() => {
+    fetchFormaciones();
+  }, [i18n.language, fetchFormaciones]);
+
+  useEffect(() => {
+    const unsubscribe = onAcademicChanged(() => {
+      fetchFormaciones();
+    });
+
+    return unsubscribe;
+  }, [fetchFormaciones]);
+
+  const formatPeriod = (
+    fechaInicio: string,
+    fechaFin: string | null,
+    enCurso: boolean,
+  ) => {
     const startYear = new Date(fechaInicio).getFullYear();
     if (enCurso) {
       return `${startYear} - Presente`;
     }
-    const endYear = fechaFin ? new Date(fechaFin).getFullYear() : '';
-    return `${startYear}${endYear ? ` - ${endYear}` : ''}`;
+    const endYear = fechaFin ? new Date(fechaFin).getFullYear() : "";
+    return `${startYear}${endYear ? ` - ${endYear}` : ""}`;
   };
 
   return (
@@ -76,52 +143,14 @@ const DoctorEducationSection = ({ isMyProfile = false, onOpenSheet }: Props) => 
           </div>
         ) : formaciones.length > 0 ? (
           <ul className="space-y-3">
-            {formaciones.map((formacion) => {
-              const institutionRef = useRef<HTMLDivElement>(null);
-              const [showTooltip, setShowTooltip] = useState(false);
-
-              const handleMouseEnter = () => {
-                const el = institutionRef.current;
-                if (el && el.scrollWidth > el.clientWidth) {
-                  setShowTooltip(true);
-                } else {
-                  setShowTooltip(false);
-                }
-              };
-
-              const handleMouseLeave = () => setShowTooltip(false);
-
-              return (
-                <li key={formacion.id} className="space-y-1">
-                  <div className="flex gap-2 items-center">
-                    <span className="w-2 h-2 rounded-full bg-secondary flex-shrink-0" />
-                    <TooltipProvider>
-                      <Tooltip open={showTooltip}>
-                        <TooltipTrigger asChild>
-                          <div
-                            ref={institutionRef}
-                            className="font-semibold max-w-full truncate cursor-pointer"
-                            style={{ maxWidth: "100%" }}
-                            onMouseEnter={handleMouseEnter}
-                            onMouseLeave={handleMouseLeave}
-                          >
-                            {formacion.institucion}
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent>{formacion.institucion}</TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  </div>
-                  <div className="text-sm">{formacion.titulo}</div>
-                  <div className="text-xs text-muted-foreground">
-                    {formatPeriod(formacion.fechaInicio, formacion.fechaFin, formacion.enCurso)}
-                  </div>
-                  {formacion.ubicacion && (
-                    <div className="text-xs text-muted-foreground">{formacion.ubicacion}</div>
-                  )}
-                </li>
-              );
-            })}
+            {/* ✅ Usando el subcomponente en lugar de hooks dentro del map */}
+            {formaciones.map((formacion) => (
+              <EducationItem
+                key={formacion.id}
+                formacion={formacion}
+                formatPeriod={formatPeriod}
+              />
+            ))}
           </ul>
         ) : (
           <div className="flex flex-col items-center justify-center py-8 text-center px-6">
@@ -138,10 +167,7 @@ const DoctorEducationSection = ({ isMyProfile = false, onOpenSheet }: Props) => 
             </p>
             {isMyProfile && onOpenSheet && (
               <MCButton variant="outline" onClick={onOpenSheet} size="sm">
-                {t(
-                  "profile.education.addButton",
-                  "Agregar formación académica",
-                )}
+                {t("profile.education.addButton", "Agregar formación académica")}
               </MCButton>
             )}
           </div>

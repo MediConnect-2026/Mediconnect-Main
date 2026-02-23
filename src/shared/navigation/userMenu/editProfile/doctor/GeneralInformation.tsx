@@ -283,6 +283,7 @@ function GeneralInformation({ onOpenChange }: GeneralInformationProps) {
         telefono: data.phone || undefined,
         biografia: data.biography || undefined,
         anosExperiencia: data.yearsExperience ? Number(data.yearsExperience) : undefined,
+        fechaNacimiento: data.birthDate || undefined,
         nacionalidad: data.nationality || undefined,
       };
 
@@ -594,6 +595,7 @@ function GeneralInformation({ onOpenChange }: GeneralInformationProps) {
           label={t("profileForm.licenseNumber")}
           variant="exequatur"
           placeholder={t("profileForm.licenseNumberPlaceholder")}
+          disabled
         />
 
         <MCInput

@@ -16,6 +16,7 @@ export interface FormacionAcademicaBackend {
   id: number;
   universidadId: number;
   nombre: string;
+  universidad: Universidad;
   fechaInicio: string;
   fechaFinalizacion: string | null;
   enCurso: boolean;

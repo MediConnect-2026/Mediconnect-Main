@@ -12,6 +12,7 @@ import DoctorAboutSection from "../components/profile/DoctorAboutSection";
 import DoctorServicesSection from "../components/profile/DoctorServicesSection";
 import DoctorCentersSection from "../components/profile/DoctorCentersSection";
 import MCDashboardContent from "@/shared/layout/MCDashboardContent"; // <-- importa tu layout
+import { useParams } from "react-router-dom";
 
 function DoctorProfilePage() {
   const { doctorId } = useParams();

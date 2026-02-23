@@ -143,7 +143,7 @@ function MCSheetDoctor({ onOpenChange, whatTab }: MCSheetDoctorProps) {
           </TabsContent>
 
           <TabsContent value="education" className="m-0 p-0">
-            <Education onOpenChange={onOpenChange} />
+            <Education />
           </TabsContent>
 
           <TabsContent value="language" className="m-0 p-0">

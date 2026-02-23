@@ -21,6 +21,8 @@
     "deleteProfilePhoto": "Eliminar foto de perfil",
     "confirmDeleteTitle": "¿Eliminar foto de perfil?",
     "confirmDeleteDescription": "Esta acción no se puede deshacer. La foto de perfil será eliminada permanentemente.",
+    "birthDate": "Fecha de Nacimiento",
+    "birthDatePlaceholder": "Selecciona tu fecha de nacimiento",
     "fullName": "Nombre Completo",
     "fullNamePlaceholder": "Ingresa tu nombre completo",
     "identityDocument": "Número de Cédula",

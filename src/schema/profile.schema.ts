@@ -32,7 +32,7 @@ export function doctorProfileSchema(t: (key: string) => string) {
         .refine((val) => !val || val.length === 10, {
           message: t("validation.phoneInvalid"),
         }),
-      yearsExperience: z.string().min(0, t("validation.yearsPositive")),
+      yearsExperience: z.coerce.number().min(0, t("validation.yearsPositive")),
       biography: z.string().optional(),
       secondarySpecialties: z
         .array(z.string().min(1, t("validation.secondarySpecialtyRequired")))
@@ -137,11 +137,7 @@ export function patientProfileSchema(t: (key: string) => string) {
       .refine((val) => !val || val.length === 10, {
         message: t("validation.phoneInvalid"),
       }),
-    age: z.coerce
-      .number()
-      .min(0, t("validation.agePositive"))
-      .max(150, t("validation.ageMax"))
-      .optional(),
+    birthDate: z.coerce.date().optional(),
     gender: z
       .enum(["MALE", "FEMALE", "OTHER"], {
         message: t("validation.genderRequired"),

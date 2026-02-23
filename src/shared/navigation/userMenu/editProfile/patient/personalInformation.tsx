@@ -72,6 +72,21 @@ function PersonalInformation({
   ];
 
   // Obtener datos del paciente logueado
+  // birthDate debe estar en formato YYYY-MM-DD para inputs tipo date
+  let birthDateValue = "";
+  if (user?.paciente?.fechaNacimiento) {
+    const fecha = user.paciente.fechaNacimiento;
+    // Si es un string tipo YYYY-MM-DD, usarlo directamente
+    if (/^\d{4}-\d{2}-\d{2}$/.test(fecha)) {
+      birthDateValue = fecha;
+    } else {
+      // Si es un string de otro formato o un timestamp, intentar convertir
+      const dateObj = new Date(fecha);
+      if (!isNaN(dateObj.getTime())) {
+        birthDateValue = dateObj.toISOString().split('T')[0];
+      }
+    }
+  }
   const patientData = {
     role: "PATIENT" as const,
     fullName: getUserFullName(user) || "",
@@ -79,7 +94,7 @@ function PersonalInformation({
     apellido: user?.paciente?.apellido || "",
     identityDocument: user?.paciente?.numero_documento_identificacion || "",
     email: user?.email || "",
-    age: getPatientAge(user?.paciente || null) || "0",
+    birthDate: birthDateValue,
     height: user?.paciente?.altura?.toString() || "",
     weight: user?.paciente?.peso?.toString() || "",
     bloodType: user?.paciente?.tipoSangre || "",
@@ -134,7 +149,7 @@ function PersonalInformation({
     }
 
     setIsSubmitting(true);
-
+    console.log("Datos a enviar al servicio:", data);
     try {
       // 1. Si la foto de perfil cambió, actualizarla primero
       let newProfilePhotoUrl = originalProfileImage;
@@ -210,10 +225,11 @@ function PersonalInformation({
         }
       }
 
-      // 3. Actualizar datos personales (altura, peso, tipo de sangre)
+      // 3. Actualizar datos personales (altura, peso, tipo de sangre, fecha de nacimiento)
       const updateData: UpdatePatientProfileRequest = {
         altura: data.height ? Number(data.height) : undefined,
         peso: data.weight ? Number(data.weight) : undefined,
+        fechaNacimiento: data.birthDate || undefined,
         tipoSangre: data.bloodType || undefined,
       };
 
@@ -480,11 +496,10 @@ function PersonalInformation({
         />
 
         <MCInput
-          name="age"
-          label={t("profileForm.age")}
-          type="number"
-          placeholder={t("profileForm.agePlaceholder")}
-          disabled
+          name="birthDate"
+          label={t("profileForm.birthDate")}
+          type="date"
+          placeholder={t("profileForm.birthDatePlaceholder")}
         />
 
         <MCInput

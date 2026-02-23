@@ -19,6 +19,7 @@ import { reorder } from "@atlaskit/pragmatic-drag-and-drop/reorder";
 import { educationService } from "./services/education.service";
 import type { FormacionAcademicaBackend, Pais, Universidad } from "./services/education.types";
 import { toast } from "sonner";
+import { emitAcademicChanged } from "@/lib/events/academicFormation";
 
 interface EducationFormData {
   id?: number;
@@ -36,7 +37,7 @@ interface DraggableEducationCardProps {
   education: EducationFormData;
   index: number;
   onDelete: (index: number) => void;
-  onSave: (index: number) => Promise<void>;
+  onSave: (index: number, educationData: EducationFormData) => Promise<void>;
   onReorder: (startIndex: number, finishIndex: number) => void;
   isMobile: boolean;
   months: Array<{ value: string; label: string }>;
@@ -83,25 +84,32 @@ function DraggableEducationCard({
       `educations.${index}.startMonth`,
       `educations.${index}.startYear`,
     ] as const;
-    
     const additionalFields = !isCurrent 
       ? [`educations.${index}.endMonth`, `educations.${index}.endYear`] as const
       : [];
-    
     const allFields = [...fieldsToValidate, ...additionalFields];
     const isValid = await trigger(allFields as any);
-    
     if (isValid) {
+      // Validación de fechas: endYear-endMonth >= startYear-startMonth
+      const educationData = watch(`educations.${index}`);
+      if (!isCurrent && educationData.endYear && educationData.endMonth && educationData.startYear && educationData.startMonth) {
+        const start = parseInt(educationData.startYear + educationData.startMonth);
+        const end = parseInt(educationData.endYear + educationData.endMonth);
+        if (end < start) {
+          toast.error(t("educationForm.invalidEndDate", "La fecha de finalización no puede ser menor que la fecha de inicio."));
+          return;
+        }
+      }
       setIsSaving(true);
       try {
-        await onSave(index);
+        await onSave(index, educationData);
       } catch (error) {
         console.error("Error saving education:", error);
       } finally {
         setIsSaving(false);
       }
     }
-  }, [index, isCurrent, trigger, onSave]);
+  }, [index, isCurrent, trigger, onSave, t, watch]);
 
   const ref = useRef<HTMLDivElement>(null);
   const handleRef = useRef<HTMLButtonElement>(null);
@@ -194,6 +202,7 @@ function DraggableEducationCard({
           options={paises}
           size="small"
           onChange={handlePaisSelectChange}
+          searchable
         />
         <MCSelect
           name={`educations.${index}.institution`}
@@ -202,6 +211,7 @@ function DraggableEducationCard({
           options={universidades}
           size="small"
           onChange={handleUniversidadSelectChange}
+          searchable
         />
         <MCInput
           name={`educations.${index}.degree`}
@@ -329,8 +339,8 @@ function Education() {
     const loadPaises = async () => {
       try {
         const res = await educationService.getPaises({ target: i18n.language });
-        if (res.success && Array.isArray(res.data)) {
-          setPaises(res.data);
+        if (res.success && Array.isArray(res.data.paises)) {
+          setPaises(res.data.paises);
         }
       } catch (e) {
         console.error("Error loading countries:", e);
@@ -338,6 +348,38 @@ function Education() {
     };
     loadPaises();
   }, [i18n.language]);
+
+  useEffect(() => {
+    if (educations.length === 0) return;
+
+    const loadUniversidadesIniciales = async () => {
+      const paisesUnicos = [...new Set(educations.map((e) => e.paisId).filter(Boolean))];
+
+      for (const paisId of paisesUnicos) {
+        if (universidadesPorPais[paisId]) continue; // ya cargadas, no repetir
+
+        try {
+          const res = await educationService.getUniversidadesByPais(Number(paisId), {
+            target: i18n.language,
+          });
+          if (res.success && Array.isArray(res.data)) {
+            setUniversidadesPorPais((prev) => ({ ...prev, [paisId]: res.data }));
+
+            // También poblar universidadesSeleccionadas por índice
+            educations.forEach((edu, index) => {
+              if (edu.paisId === paisId) {
+                setUniversidadesSeleccionadas((prev) => ({ ...prev, [index]: res.data }));
+              }
+            });
+          }
+        } catch (e) {
+          console.error("Error cargando universidades iniciales:", e);
+        }
+      }
+    };
+
+    loadUniversidadesIniciales();
+  }, [educations, i18n.language]);
 
   // Cargar formaciones académicas del backend
   useEffect(() => {
@@ -349,13 +391,15 @@ function Education() {
           target: i18n.language,
           translate_fields: "nombre",
         });
-        if (response.success && Array.isArray(response.data)) {
-          const mapped: EducationFormData[] = response.data.map((edu: FormacionAcademicaBackend) => {
+        
+        if (response.success && Array.isArray(response.data.formaciones)) {
+          const mapped: EducationFormData[] = response.data.formaciones.map((edu: FormacionAcademicaBackend) => {
             const start = parseDateToMonthYear(edu.fechaInicio);
             const end = parseDateToMonthYear(edu.fechaFinalizacion);
+
             return {
               id: edu.id,
-              paisId: edu.paisId ? String(edu.paisId) : "",
+              paisId: edu.universidad.paisId ? String(edu.universidad.paisId) : "",
               institution: edu.universidadId ? String(edu.universidadId) : "",
               degree: edu.nombre,
               startMonth: start.month,
@@ -472,12 +516,10 @@ function Education() {
   }, [setDoctorEducation]);
 
   // Guardar (crear o actualizar) una formación académica
-  const handleSaveEducation = useCallback(async (index: number): Promise<void> => {
-    const edu = educations[index];
+  const handleSaveEducation = useCallback(async (index: number, edu: EducationFormData): Promise<void> => {
     try {
       setIsSaving(true);
       if (!edu) throw new Error("Formación no encontrada");
-      
       const data = {
         universidadId: Number(edu.institution),
         nombre: edu.degree,
@@ -486,7 +528,7 @@ function Education() {
         enCurso: edu.isCurrent || (!edu.endYear || !edu.endMonth),
         estado: "Activo" as const,
       };
-      
+      console.log("Saving education with data:", data);
       let newId = edu.id;
       if (edu.id) {
         await educationService.updateFormacionAcademica(edu.id, data);
@@ -503,10 +545,9 @@ function Education() {
         }
         toast.success(t("educationForm.createdSuccessfully", "Formación creada exitosamente"));
       }
-      
       // Actualizar store global
       setDoctorEducation({ 
-        educations: educations.map((e, i) => i === index ? { ...e, id: newId } : e) 
+        educations: educations.map((e, i) => i === index ? { ...edu, id: newId } : e) 
       });
     } catch (error: any) {
       const errorMessage = error?.message || t("educationForm.errorSaving", "Error al guardar formación académica");
@@ -514,6 +555,7 @@ function Education() {
       throw error;
     } finally {
       setIsSaving(false);
+      emitAcademicChanged(); // Emitir evento para notificar cambios en formaciones académicas
     }
   }, [educations, t, setDoctorEducation]);
 
@@ -527,12 +569,16 @@ function Education() {
         await educationService.deleteFormacionAcademica(eduToDelete.id);
         toast.success(t("educationForm.deletedSuccessfully", "Formación eliminada exitosamente"));
       }
+      
+      emitAcademicChanged(); // Emitir evento para notificar cambios en formaciones académicas
+
       setEducations((prev) => {
         const newEducations = prev.filter((_, i) => i !== deleteIndex);
         setDoctorEducation({ educations: newEducations });
         return newEducations;
       });
       setDeleteIndex(null);
+      
     } catch (error: any) {
       const errorMessage = error?.message || t("educationForm.errorDeleting", "Error al eliminar formación académica");
       toast.error(errorMessage);
