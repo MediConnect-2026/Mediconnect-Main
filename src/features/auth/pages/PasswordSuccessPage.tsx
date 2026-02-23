@@ -1,7 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import SuccessImg from "@/assets/successPassword.png";
 import MCButton from "@/shared/components/forms/MCButton";
 import { useGlobalUIStore } from "@/stores/useGlobalUIStore";
 
@@ -35,7 +34,7 @@ function PasswordSuccessPage() {
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] px-4">
       <img
-        src={SuccessImg}
+        src="https://res.cloudinary.com/dy2wtanhl/image/upload/v1771694169/successPassword_gcxlbt.png"
         alt={t("passwordSuccess.imgAlt")}
         className="w-90 h-90 mb-8 pointer-events-none"
       />

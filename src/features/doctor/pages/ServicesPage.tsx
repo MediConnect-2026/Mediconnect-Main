@@ -18,12 +18,7 @@ import { Separator } from "@/shared/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/avatar";
 import { MCUserAvatar } from "@/shared/navigation/userMenu/MCUserAvatar";
 import gallery1 from "@/assets/tryOuts/0a2523c730e041428f78c4cba0930230~tplv-jj85edgx6n-image-origin.jpeg";
-import gallery2 from "@/assets/Register-Center.png";
-import gallery3 from "@/assets/doctorOnbording/profile-picture.png";
-import gallery4 from "@/assets/tryOuts/0a2523c730e041428f78c4cba0930230~tplv-jj85edgx6n-image-origin.jpeg";
-import gallery5 from "@/assets/tryOuts/1242061.jpg";
-import gallery6 from "@/assets/flag-spain.png";
-import doctorAvatar from "@/assets/Register-Doctor.png";
+
 import MapScheduleLocation from "@/shared/components/maps/MapScheduleLocation";
 import ScheduleAppointmentDialog from "@/features/patient/components/appoiments/ScheduleAppointmentDialog";
 import { Link } from "react-router-dom";
@@ -42,7 +37,8 @@ const galleryImages = [
 const PATIENT_PROFILE_PUBLIC = "/patient/profile/:patientId";
 const DOCTOR_PROFILE_PUBLIC = "/doctor/profile/:doctorId";
 const CHAT_WITH = "/chat/:conversationId";
-
+const doctorAvatar =
+  "https://res.cloudinary.com/dy2wtanhl/image/upload/v1771694159/Register-Doctor_wiwfsg.png";
 const reviews = [
   {
     id: "user-1",

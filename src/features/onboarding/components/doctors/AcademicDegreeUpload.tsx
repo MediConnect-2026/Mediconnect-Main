@@ -1,5 +1,5 @@
 import MCImageUpload from "@/shared/components/MCAuthImageUpload";
-import academicImg from "@/assets/doctorOnbording/studies.png";
+// import academicImg from "@/assets/doctorOnbording/studies.png";
 import { useAppStore } from "@/stores/useAppStore";
 import { useTranslation } from "react-i18next";
 
@@ -13,11 +13,11 @@ export function AcademicDegreeUploadTrigger({
 }: AcademicDegreeUploadProps) {
   const { t } = useTranslation("auth");
   const doctorOnboardingData = useAppStore(
-    (state) => state.doctorOnboardingData
+    (state) => state.doctorOnboardingData,
   );
 
   const setDoctorOnboardingData = useAppStore(
-    (state) => state.setDoctorOnboardingData
+    (state) => state.setDoctorOnboardingData,
   );
 
   const handleFileUpload = (fileUrl: string, fileType: string) => {
@@ -45,7 +45,7 @@ export function AcademicDegreeUploadTrigger({
     <MCImageUpload
       title={t("academicDegreeUpload.title")}
       description={t("academicDegreeUpload.description")}
-      imageSrc={academicImg}
+      imageSrc="https://res.cloudinary.com/dy2wtanhl/image/upload/v1771699898/studies_tuhyqv.png"
       modalId="academic-degree"
       cropTitle={t("academicDegreeUpload.cropTitle")}
       aspectRatio={1.4}

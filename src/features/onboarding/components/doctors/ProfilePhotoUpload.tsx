@@ -1,5 +1,5 @@
 import MCImageUpload from "@/shared/components/MCAuthImageUpload";
-import documentImg from "@/assets/doctorOnbording/profile-picture.png";
+
 import { useAppStore } from "@/stores/useAppStore";
 import { useTranslation } from "react-i18next";
 
@@ -13,11 +13,11 @@ export function ProfilePhotoUploadTrigger({
 }: ProfilePhotoUploadProps) {
   const { t } = useTranslation("auth");
   const doctorOnboardingData = useAppStore(
-    (state) => state.doctorOnboardingData
+    (state) => state.doctorOnboardingData,
   );
 
   const setDoctorOnboardingData = useAppStore(
-    (state) => state.setDoctorOnboardingData
+    (state) => state.setDoctorOnboardingData,
   );
 
   const handleFileUpload = (fileUrl: string) => {
@@ -46,7 +46,7 @@ export function ProfilePhotoUploadTrigger({
     <MCImageUpload
       title={t("profilePhotoUpload.title")}
       description={t("profilePhotoUpload.description")}
-      imageSrc={documentImg}
+      imageSrc="https://res.cloudinary.com/dy2wtanhl/image/upload/v1771699897/profile-picture_t3ezpd.png"
       modalId="profile-photo"
       cropTitle={t("profilePhotoUpload.cropTitle")}
       aspectRatio={1}

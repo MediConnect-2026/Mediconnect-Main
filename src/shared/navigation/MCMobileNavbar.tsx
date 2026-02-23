@@ -1,6 +1,4 @@
-import React, { useState } from "react";
-import LogoImg from "@/assets/MediConnectLanding-green.png";
-import LogoImgdDark from "@/assets/MediConnectLanding.png";
+import { useState } from "react";
 import MCUserMenu from "./userMenu/MCUserMenu";
 import { Button } from "@/shared/ui/button";
 import { useLocation, Link, useNavigate } from "react-router-dom";
@@ -43,7 +41,11 @@ function MCMobileNavbar() {
       {/* Logo */}
       <div className="flex items-center gap-3">
         <img
-          src={theme === "dark" ? LogoImgdDark : LogoImg}
+          src={
+            theme === "dark"
+              ? "https://res.cloudinary.com/dy2wtanhl/image/upload/v1771637881/MediConnectLanding_ryopcw.png"
+              : "https://res.cloudinary.com/dy2wtanhl/image/upload/v1771637879/MediConnectLanding-green_trpgvu.png"
+          }
           alt="MediConnect"
           className="h-16 w-auto"
         />
@@ -108,7 +110,11 @@ function MCMobileNavbar() {
               {/* Header */}
               <div className="flex items-center justify-between p-6 border-b border-border">
                 <img
-                  src={theme === "dark" ? LogoImgdDark : LogoImg}
+                  src={
+                    theme === "dark"
+                      ? "https://res.cloudinary.com/dy2wtanhl/image/upload/v1771637881/MediConnectLanding_ryopcw.png"
+                      : "https://res.cloudinary.com/dy2wtanhl/image/upload/v1771637879/MediConnectLanding-green_trpgvu.png"
+                  }
                   alt="MediConnect"
                   className="h-12 w-auto"
                 />

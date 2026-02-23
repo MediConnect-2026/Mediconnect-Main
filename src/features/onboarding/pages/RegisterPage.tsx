@@ -1,8 +1,5 @@
 import { useState, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import PacienteIMG from "@/assets/Register-Patient.png";
-import DoctorIMG from "@/assets/Register-Doctor.png";
-import CenterIMG from "@/assets/Register-Center.png";
 import AuthFooterContainer from "@/features/auth/components/AuthFooterContainer";
 import AuthContentContainer from "@/features/auth/components/AuthContentContainer";
 import { useNavigate } from "react-router-dom";
@@ -11,9 +8,18 @@ import { useAppStore } from "@/stores/useAppStore";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
 
 const roles = [
-  { key: "Patient", img: PacienteIMG },
-  { key: "Doctor", img: DoctorIMG },
-  { key: "Center", img: CenterIMG },
+  {
+    key: "Patient",
+    img: "https://res.cloudinary.com/dy2wtanhl/image/upload/v1771695711/ONB-PATIENT_ie2wcu.png",
+  },
+  {
+    key: "Doctor",
+    img: "https://res.cloudinary.com/dy2wtanhl/image/upload/v1771695704/ONB-DOCTOR_o0xr6m.png",
+  },
+  {
+    key: "Center",
+    img: "https://res.cloudinary.com/dy2wtanhl/image/upload/v1771699015/CenterImgREP2_vn0amw.png",
+  },
 ];
 
 function RegisterPage() {
@@ -49,7 +55,7 @@ function RegisterPage() {
             duration: 0.22,
             ease: "power1.out",
             stagger: 0.08,
-          }
+          },
         );
       }
     }
@@ -85,8 +91,8 @@ function RegisterPage() {
                   isSelected
                     ? "outline outline-8 outline-accent shadow-[0_0_40px_10px_rgba(0,180,255,0.5)]"
                     : isHovered
-                    ? "outline outline-4 outline-accent shadow-2xl"
-                    : ""
+                      ? "outline outline-4 outline-accent shadow-2xl"
+                      : ""
                 }
               `}
               onMouseEnter={() => setHovered(role.key)}

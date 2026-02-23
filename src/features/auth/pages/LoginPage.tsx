@@ -1,8 +1,7 @@
 import { useRef } from "react";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
-import LoginAsideImg from "@/assets/LoginAside.png";
-import Logo from "@/assets//MediConnectLanding-green.png";
+
 import MCFormWrapper from "@/shared/components/forms/MCFormWrapper";
 import MCInput from "@/shared/components/forms/MCInput";
 import MCButton from "@/shared/components/forms/MCButton";
@@ -14,8 +13,6 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import OAuthProvider from "../components/OAuthProvider";
 import { useGlobalUIStore } from "@/stores/useGlobalUIStore";
-import EnIMG from "@/assets/flag-usa.png";
-import EsIMG from "@/assets/flag-spain.png";
 import { ToggleGroup, ToggleGroupItem } from "@/shared/ui/toggle-group";
 function LoginPage() {
   const { t } = useTranslation("auth");
@@ -88,14 +85,22 @@ function LoginPage() {
                   aria-label="English"
                   className={currentLanguage !== "en" ? "opacity-50" : ""}
                 >
-                  <img src={EnIMG} alt="English" className="w-6 h-6" />
+                  <img
+                    src="https://res.cloudinary.com/dy2wtanhl/image/upload/v1771637851/flag-usa_ubewc7.png"
+                    alt="English"
+                    className="w-6 h-6"
+                  />
                 </ToggleGroupItem>
                 <ToggleGroupItem
                   value="es"
                   aria-label="Español"
                   className={currentLanguage !== "es" ? "opacity-50" : ""}
                 >
-                  <img src={EsIMG} alt="Español" className="w-6 h-6" />
+                  <img
+                    src="https://res.cloudinary.com/dy2wtanhl/image/upload/v1771637850/flag-spain_u9cses.png"
+                    alt="Español"
+                    className="w-6 h-6"
+                  />
                 </ToggleGroupItem>
               </ToggleGroup>
             </div>
@@ -115,7 +120,7 @@ function LoginPage() {
           <div className="flex flex-col justify-center items-center gap-1 mb-2 w-full">
             <img
               ref={logoRef}
-              src={Logo}
+              src="https://res.cloudinary.com/dy2wtanhl/image/upload/v1771637879/MediConnectLanding-green_trpgvu.png"
               alt="Logo"
               className="w-24 sm:w-32 mb-6"
             />
@@ -186,7 +191,7 @@ function LoginPage() {
         {!isMobile && (
           <aside className="h-full w-full">
             <img
-              src={LoginAsideImg}
+              src="https://res.cloudinary.com/dy2wtanhl/image/upload/v1771699006/ASIDE_IMAGE._esqkji.png"
               alt="Login Aside"
               className="h-full w-full object-cover"
             />

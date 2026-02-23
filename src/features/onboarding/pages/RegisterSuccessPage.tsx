@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
-import SuccessImg from "@/assets/successPassword.png";
+
 import MCButton from "@/shared/components/forms/MCButton";
 import { useGlobalUIStore } from "@/stores/useGlobalUIStore";
 
@@ -13,7 +13,7 @@ function RegisterSuccessPage() {
 
   // Buscar el objeto de la página actual para obtener el reason
   const currentPage = allowedPages.find(
-    (p) => p.page === "/auth/register-success"
+    (p) => p.page === "/auth/register-success",
   );
   const reason = currentPage?.reason;
 
@@ -41,10 +41,13 @@ function RegisterSuccessPage() {
       ? t("RegisterSuccessPage.passwordMessage")
       : t("RegisterSuccessPage.message");
 
+  const successImgUrl =
+    "https://res.cloudinary.com/dy2wtanhl/image/upload/v1771694169/successPassword_gcxlbt.png";
+
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] px-4">
       <img
-        src={SuccessImg}
+        src={successImgUrl}
         alt={t("passwordSuccess.imgAlt")}
         className="w-90 h-90 mb-8 pointer-events-none"
       />

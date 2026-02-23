@@ -31,8 +31,6 @@ import {
   Inbox,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import flagSpain from "@/assets/flag-spain.png";
-import flagUSA from "@/assets/flag-usa.png";
 import type { Theme } from "@/stores/useGlobalUISlice";
 import { cn } from "@/lib/utils";
 import { ROUTES } from "@/router/routes";
@@ -178,12 +176,12 @@ export function MCUserMenuContent({
     {
       code: "es",
       label: t("userMenu.spanish", { defaultValue: "Español" }),
-      flag: flagSpain,
+      flag: "https://res.cloudinary.com/dy2wtanhl/image/upload/v1771637850/flag-spain_u9cses.png",
     },
     {
       code: "en",
       label: t("userMenu.english", { defaultValue: "English" }),
-      flag: flagUSA,
+      flag: "https://res.cloudinary.com/dy2wtanhl/image/upload/v1771637851/flag-usa_ubewc7.png",
     },
   ];
 

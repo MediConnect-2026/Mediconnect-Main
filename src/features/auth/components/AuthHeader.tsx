@@ -1,11 +1,8 @@
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import LogoWhite from "@/assets/MediConnectLanding.png";
 import { useTranslation } from "react-i18next";
 import { useAppStore } from "@/stores/useAppStore";
 import { MCModalBase } from "@/shared/components/MCModalBase";
-import EnIMG from "@/assets/flag-usa.png";
-import EsIMG from "@/assets/flag-spain.png";
 import { ToggleGroup, ToggleGroupItem } from "@/shared/ui/toggle-group";
 import { useGlobalUIStore } from "@/stores/useGlobalUIStore";
 
@@ -70,7 +67,7 @@ function AuthHeader() {
           {/* Center: Logo */}
           <div className="flex-1 flex justify-center">
             <img
-              src={LogoWhite}
+              src="https://res.cloudinary.com/dy2wtanhl/image/upload/v1771637881/MediConnectLanding_ryopcw.png"
               alt="MediConnect Logo"
               className="h-20 object-contain pointer-events-none"
             />
@@ -89,14 +86,22 @@ function AuthHeader() {
                 aria-label="English"
                 className={currentLanguage !== "en" ? "opacity-70" : ""}
               >
-                <img src={EnIMG} alt="English" className="w-6 h-6" />
+                <img
+                  src="https://res.cloudinary.com/dy2wtanhl/image/upload/v1771637851/flag-usa_ubewc7.png"
+                  alt="English"
+                  className="w-6 h-6"
+                />
               </ToggleGroupItem>
               <ToggleGroupItem
                 value="es"
                 aria-label="Español"
                 className={currentLanguage !== "es" ? "opacity-70" : ""}
               >
-                <img src={EsIMG} alt="Español" className="w-6 h-6" />
+                <img
+                  src="https://res.cloudinary.com/dy2wtanhl/image/upload/v1771637850/flag-spain_u9cses.png"
+                  alt="Español"
+                  className="w-6 h-6"
+                />
               </ToggleGroupItem>
             </ToggleGroup>
           </div>
