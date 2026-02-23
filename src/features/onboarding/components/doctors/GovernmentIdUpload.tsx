@@ -1,5 +1,5 @@
 import MCImageUpload from "@/shared/components/MCAuthImageUpload";
-import documentImg from "@/assets/doctorOnbording/documents.png";
+
 import { useAppStore } from "@/stores/useAppStore";
 import { useTranslation } from "react-i18next";
 
@@ -13,11 +13,11 @@ export function GovernmentIdUploadTrigger({
 }: GovernmentIdUploadProps) {
   const { t } = useTranslation("auth");
   const doctorOnboardingData = useAppStore(
-    (state) => state.doctorOnboardingData
+    (state) => state.doctorOnboardingData,
   );
 
   const setDoctorOnboardingData = useAppStore(
-    (state) => state.setDoctorOnboardingData
+    (state) => state.setDoctorOnboardingData,
   );
 
   const handleFileUpload = (fileUrl: string, fileType: string) => {
@@ -54,7 +54,7 @@ export function GovernmentIdUploadTrigger({
     <MCImageUpload
       title={t("governmentIdUpload.title")}
       description={t("governmentIdUpload.description")}
-      imageSrc={documentImg}
+      imageSrc="https://res.cloudinary.com/dy2wtanhl/image/upload/v1771700315/ChatGPT_Image_21_feb_2026_02_58_05_p.m._paem0h.png"
       modalId="government-id"
       cropTitle={t("governmentIdUpload.cropTitle")}
       aspectRatio={1.6}

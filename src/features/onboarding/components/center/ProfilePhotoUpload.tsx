@@ -1,5 +1,5 @@
 import MCImageUpload from "@/shared/components/MCAuthImageUpload";
-import centerImg from "@/assets/centerOnboarding/centerpfp.png";
+// import centerImg from "@/assets/centerOnboarding/centerpfp.png";
 import { useAppStore } from "@/stores/useAppStore";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -14,11 +14,11 @@ export function ProfilePhotoUpload({
 }: ProfilePhotoUploadProps) {
   const { t } = useTranslation("auth");
   const centerOnboardingData = useAppStore(
-    (state) => state.centerOnboardingData
+    (state) => state.centerOnboardingData,
   );
 
   const setCenterOnboardingData = useAppStore(
-    (state) => state.setCenterOnboardingData
+    (state) => state.setCenterOnboardingData,
   );
 
   const handleFileUpload = (fileUrl: string) => {
@@ -47,7 +47,7 @@ export function ProfilePhotoUpload({
     <MCImageUpload
       title={t("centerProfilePhotoUpload.title")}
       description={t("centerProfilePhotoUpload.description")}
-      imageSrc={centerImg}
+      imageSrc="https://res.cloudinary.com/dy2wtanhl/image/upload/v1771700522/centerpfp_ub2xr2.png"
       modalId="center-profile-photo"
       cropTitle={t("centerProfilePhotoUpload.cropTitle")}
       aspectRatio={1}

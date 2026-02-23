@@ -117,10 +117,7 @@ function RequestPage() {
   };
 
   return (
-    <MCDashboardContent
-      mainWidth={isMobile ? "w-full" : "max-w-2xl"}
-      disabledBackButton={true}
-    >
+    <MCDashboardContent mainWidth={isMobile ? "w-full" : "max-w-2xl"}>
       <div
         className={`flex flex-col gap-6 items-center justify-center w-full mb-8 ${isMobile ? "px-4" : "px-0"}`}
       >

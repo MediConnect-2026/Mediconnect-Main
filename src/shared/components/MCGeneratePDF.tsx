@@ -1,6 +1,5 @@
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
-import MediConnectLogo from "@/assets/MediConnectLanding-green.png";
 
 // Type definitions
 interface Column {
@@ -215,7 +214,9 @@ export const MCGeneratePDF = async <T extends Record<string, any>>({
         });
       };
 
-      const logoBase64 = await loadImage(MediConnectLogo);
+      const logoBase64 = await loadImage(
+        "https://res.cloudinary.com/dy2wtanhl/image/upload/v1771637879/MediConnectLanding-green_trpgvu.png",
+      );
       if (logoBase64) {
         doc.addImage(logoBase64, "PNG", 10, 10, 40, 20);
       }
