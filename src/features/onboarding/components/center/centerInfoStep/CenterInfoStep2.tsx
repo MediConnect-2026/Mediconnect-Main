@@ -117,21 +117,115 @@ function CenterInfoStep2({ children, onValidationChange, onNext }: CenterInfoSte
   const seccionesOptions  = autocompleteOptions.secciones  ?? seccionesFromQuery;
   const barriosOptions    = autocompleteOptions.barrios    ?? barriosFromQuery;
 
-  // ─── Limpiar store al montar ──────────────────────────────────────────────
+  // ─── Inicializar valores desde el store al montar ────────────────────────
   useEffect(() => {
-    setCenterField?.("province", "");
-    setCenterField?.("municipality", "");
-    setCenterField?.("district", "");
-    setCenterField?.("section", "");
-    setCenterField?.("neighborhood", "");
-    setCenterField?.("subNeighborhood", "");
+    const initializeFromStore = async () => {
+      if (!centerOnboardingData) return;
+
+      const {
+        province: provId,
+        municipality: munId,
+        district: distId,
+        section: secId,
+        neighborhood: barrioId,
+      } = centerOnboardingData;
+
+      if (!provId) return;
+
+      try {
+        // 1. OBTENER DATOS PRIMERO (Sin tocar el estado local aún)
+        const [municipiosData, distritosData, seccionesData, barriosData] = await Promise.all([
+          ubicacionesService.getMunicipios(currentLanguage, Number(provId)),
+          munId ? ubicacionesService.getDistritos(currentLanguage, Number(munId)) : Promise.resolve([]),
+          distId
+            ? ubicacionesService.getSecciones(currentLanguage, { idDistrito: distId })
+            : munId
+              ? ubicacionesService.getSecciones(currentLanguage, { idMunicipio: munId })
+              : Promise.resolve([]),
+          secId
+            ? ubicacionesService.getBarrios(currentLanguage, Number(secId))
+            : Promise.resolve([]),
+        ]);
+
+        // 2. POBLAR CACHÉ DE REACT QUERY Y AUTOCOMPLETE
+        setAutocompleteOptions({
+          municipios: municipiosData,
+          distritos: distritosData,
+          secciones: seccionesData,
+          barrios: barriosData,
+        });
+
+        queryClient.setQueryData(
+          QUERY_KEYS.UBICACIONES("municipios", { idProvincia: provId }),
+          municipiosData
+        );
+
+        if (munId) {
+          queryClient.setQueryData(
+            QUERY_KEYS.UBICACIONES("distritos", { idMunicipio: munId }),
+            distritosData
+          );
+        }
+
+        if (distId) {
+          queryClient.setQueryData(
+            QUERY_KEYS.UBICACIONES("secciones", { idDistrito: distId }),
+            seccionesData
+          );
+        } else if (munId) {
+          queryClient.setQueryData(
+            QUERY_KEYS.UBICACIONES("secciones", { idMunicipio: munId }),
+            seccionesData
+          );
+        }
+
+        if (secId) {
+          queryClient.setQueryData(
+            QUERY_KEYS.UBICACIONES("barrios", { idSeccion: secId }),
+            barriosData
+          );
+        }
+
+        // 3. AHORA SÍ, SETEAR ESTADOS (React Query los verá como resueltos al instante)
+        setSelectedProvince(provId);
+        if (munId) setSelectedMunicipality(munId);
+        if (distId) setSelectedDistrict(distId);
+        if (secId) setSelectedSection(secId);
+        if (barrioId) setSelectedNeighborhood(barrioId);
+
+        if (barrioId) {
+          const geo = await ubicacionesService.getGeoPointsByBarrios(Number(barrioId));
+          setNeighborhoodGeo(geo.geom ?? null);
+        }
+
+        // 4. ACTUALIZAR STORE Y FORMULARIO
+        setCenterField?.("province", provId);
+        setCenterField?.("municipality", munId);
+        setCenterField?.("district", distId);
+        setCenterField?.("section", secId);
+        setCenterField?.("neighborhood", barrioId);
+
+        setTimeout(() => {
+          if (formSetValueRef.current) {
+            formSetValueRef.current("province", provId);
+            formSetValueRef.current("municipality", munId);
+            formSetValueRef.current("district", distId);
+            formSetValueRef.current("section", secId);
+            formSetValueRef.current("neighborhood", barrioId);
+          }
+        }, 0);
+      } catch (err) {
+        console.error("Error inicializando datos desde el store:", err);
+      }
+    };
+
+    initializeFromStore();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, []); // Solo al montar
 
   // ─── Submit ───────────────────────────────────────────────────────────────
 
   const handleSubmit = (data: any) => {
-    console.log("Step 2 submitted:", data);
     setOnboardingStep?.(0);
     onValidationChange?.(true);
     onNext?.();
@@ -354,6 +448,10 @@ function CenterInfoStep2({ children, onValidationChange, onNext }: CenterInfoSte
 
       <div className="h-[350px] mb-6">
         <MapSelectLocation
+          value={{
+            lat: centerOnboardingData?.coordinates?.latitude || 0,
+            lng: centerOnboardingData?.coordinates?.longitude || 0,
+          }}
           onChange={(lat, lng) =>
             setCenterField?.("coordinates", { latitude: lat, longitude: lng })
           }
@@ -367,6 +465,15 @@ function CenterInfoStep2({ children, onValidationChange, onNext }: CenterInfoSte
         schema={CenterLocationInfoSchema((key: string) => t(key))}
         onSubmit={handleSubmit}
         onValidationChange={onValidationChange}
+        defaultValues={{
+          address: centerOnboardingData?.address || "",
+          province: centerOnboardingData?.province || "",
+          municipality: centerOnboardingData?.municipality || "",
+          district: centerOnboardingData?.district || "",
+          section: centerOnboardingData?.section || "",
+          neighborhood: centerOnboardingData?.neighborhood || "",
+          coordinates: centerOnboardingData?.coordinates || { latitude: 0, longitude: 0 },
+        }}
       >
         <FormBridge formSetValueRef={formSetValueRef} />
 
@@ -408,7 +515,7 @@ function CenterInfoStep2({ children, onValidationChange, onNext }: CenterInfoSte
               value={selectedMunicipality}
               options={municipiosOptions}
               searchable={true}
-              disabled={isLoadingMunicipios || !selectedProvince}
+              disabled={(isLoadingMunicipios && !autocompleteOptions.municipios) || !selectedProvince}
               onChange={handleMunicipalityChange}
             />
 
@@ -424,7 +531,7 @@ function CenterInfoStep2({ children, onValidationChange, onNext }: CenterInfoSte
               }
               value={selectedDistrict}
               options={distritosOptions}
-              disabled={isLoadingDistritos || !selectedMunicipality}
+              disabled={(isLoadingDistritos && !autocompleteOptions.distritos) || !selectedMunicipality}
               searchable={true}
               onChange={handleDistrictChange}
             />
@@ -444,7 +551,7 @@ function CenterInfoStep2({ children, onValidationChange, onNext }: CenterInfoSte
               value={selectedSection}
               options={seccionesOptions}
               searchable={true}
-              disabled={isLoadingSecciones || !seccionesParams}
+              disabled={(isLoadingSecciones && !autocompleteOptions.secciones) || !seccionesParams}
               onChange={handleSectionChange}
             />
 
@@ -460,7 +567,7 @@ function CenterInfoStep2({ children, onValidationChange, onNext }: CenterInfoSte
               }
               value={selectedNeighborhood}
               options={barriosOptions}
-              disabled={isLoadingBarrios || !selectedSection}
+              disabled={(isLoadingBarrios && !autocompleteOptions.barrios) || !selectedSection}
               searchable={true}
               onChange={handleNeighborhoodChange}
             />

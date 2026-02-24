@@ -53,6 +53,8 @@ export default function MapSelectLocation({
   const isdarkMode = useGlobalUIStore((state) => state.theme);
   const isMobile = useIsMobile();
 
+  const [isMapLoaded, setIsMapLoaded] = useState(false);
+
   const [address, setAddress] = useState<ParsedDominicanAddress | null>(null);
 
   const neighborhoodGeoRef = useRef<Geometry | null>(null);
@@ -199,6 +201,7 @@ export default function MapSelectLocation({
 
     mapRef.current.on("load", () => {
       setisLoading(false);
+      setIsMapLoaded(true);
       mapRef.current!.addSource("limite-sd", {
         type: "geojson",
         data: geoDatas.santoDomingo ?? undefined,
@@ -336,6 +339,7 @@ export default function MapSelectLocation({
     });
 
     return () => {
+      setIsMapLoaded(false);
       if (markerRef.current) {
         markerRef.current.remove();
         markerRef.current = null;
@@ -346,7 +350,23 @@ export default function MapSelectLocation({
       }
       setisLoading(false);
     };
-  }, [value, isFullscreen, isdarkMode, is3D, isMobile, geoDatas]);
+  }, [isFullscreen, isdarkMode, is3D, isMobile, geoDatas]);
+
+  useEffect(() => {
+    if (!mapRef.current || !markerRef.current || !value || !isMapLoaded) return;
+
+    const currentLngLat = markerRef.current.getLngLat();
+    // Solo actualizamos si las coordenadas cambiaron de forma notoria
+    // Esto evita loops infinitos al arrastrar el marcador manualmente
+    if (
+      Math.abs(currentLngLat.lng - value.lng) > 0.0001 || 
+      Math.abs(currentLngLat.lat - value.lat) > 0.0001
+    ) {
+      if (value.lat !== 0 && value.lng !== 0) {
+        markerRef.current.setLngLat([value.lng, value.lat]);
+      }
+    }
+  }, [value, isMapLoaded]);
 
   useEffect(() => {
     if (isFullscreen) {
@@ -365,7 +385,9 @@ export default function MapSelectLocation({
 
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || !map.isStyleLoaded()) return;
+    
+    // Cambiamos !map.isStyleLoaded() por nuestra variable de estado confiable
+    if (!map || !isMapLoaded) return; 
 
     const SOURCE_ID = "barrio-geo";
     const FILL_LAYER_ID = "barrio-fill";
@@ -424,7 +446,7 @@ export default function MapSelectLocation({
       [[minLng, minLat], [maxLng, maxLat]],
       { padding: 60, maxZoom: 16, duration: 800 },
     );
-  }, [neighborhoodGeo]);
+  }, [neighborhoodGeo, isMapLoaded]);
 
   // Función para mostrar la dirección formateada
   const getFormattedAddress = () => {
