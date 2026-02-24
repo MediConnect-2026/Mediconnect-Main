@@ -3,6 +3,8 @@ import mapboxgl from "mapbox-gl";
 import type { FeatureCollection, Geometry } from "geojson";
 import type { LngLatBoundsLike } from "mapbox-gl";
 import bbox from "@turf/bbox";
+import { point } from "@turf/helpers";
+import booleanPointInPolygon from "@turf/boolean-point-in-polygon";
 import {
   ParseDominicanAddress,
   type ParsedDominicanAddress,
@@ -22,12 +24,14 @@ interface Props {
   onChange: (lat: number, lng: number) => void;
   onLocationDetails?: (details: {
     address: string;
-    neighborhood: string;
+    neighborhood?: string;
     zipCode: string;
     province?: string;
     municipality?: string;
   }) => void;
-  fontSizeVariant?: "xs" | "s" | "m" | "l"; // <-- Añade esto
+  fontSizeVariant?: "xs" | "s" | "m" | "l"; // <-- Añade esto,
+  neighborhoodGeo?: Geometry | null;
+  onPointSelected?: (lat: number, lng: number, isInsideNeighborhood: boolean) => void;
 }
 
 export default function MapSelectLocation({
@@ -35,6 +39,8 @@ export default function MapSelectLocation({
   onChange,
   onLocationDetails,
   fontSizeVariant = "m", // <-- Añade esto
+  neighborhoodGeo,
+  onPointSelected,
 }: Props) {
   const { t } = useTranslation("common");
   const mapRef = useRef<mapboxgl.Map | null>(null);
@@ -48,13 +54,23 @@ export default function MapSelectLocation({
   const isMobile = useIsMobile();
 
   const [address, setAddress] = useState<ParsedDominicanAddress | null>(null);
- const [geoDatas, setGeoDatas] = useState<{
-    santoDomingo: FeatureCollection<Geometry> | null;
-    distritoNacional: FeatureCollection<Geometry> | null;
-  }>({
-    santoDomingo: null,
-    distritoNacional: null,
-  });
+
+  const neighborhoodGeoRef = useRef<Geometry | null>(null);
+  // Refs para callbacks: evitan que los event listeners del mapa (closures)
+  // capturen versiones desactualizadas de las props entre re-renders.
+  const onLocationDetailsRef = useRef(onLocationDetails);
+  const onPointSelectedRef = useRef(onPointSelected);
+
+  useEffect(() => { onLocationDetailsRef.current = onLocationDetails; }, [onLocationDetails]);
+  useEffect(() => { onPointSelectedRef.current = onPointSelected; }, [onPointSelected]);
+
+  const [geoDatas, setGeoDatas] = useState<{
+      santoDomingo: FeatureCollection<Geometry> | null;
+      distritoNacional: FeatureCollection<Geometry> | null;
+    }>({
+      santoDomingo: null,
+      distritoNacional: null,
+    });
 
   useEffect(() => {
     const fetchGeoJSON = async () => {
@@ -81,8 +97,9 @@ export default function MapSelectLocation({
   }, []); // El array vacío asegura que solo se descargue al montar el componente
 
   // Función para obtener detalles de la ubicación usando Mapbox Geocoding API
+  // Usa onLocationDetailsRef para siempre llamar a la versión actual del callback
+  // aunque esta función haya sido capturada en un closure antiguo del mapa.
   const getLocationDetails = async (lng: number, lat: number) => {
-    // ... (Tu código de getLocationDetails se mantiene igual)
     try {
       const response = await fetch(
         `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${mapboxgl.accessToken}&language=es&types=address,place,neighborhood,district,postcode`,
@@ -101,17 +118,14 @@ export default function MapSelectLocation({
             zipCode = feature.text;
           }
         }
-        console.log("Detalles de ubicación obtenidos:", data);
-      
-        const parsedAddress = await ParseDominicanAddress(lat, lng);
-        setAddress(parsedAddress);
 
-        onLocationDetails?.({
-          address: parsedAddress.direccion,
-          neighborhood: neighborhood || "",
+        const parsedAddress = await ParseDominicanAddress(lat, lng);
+        setAddress(parsedAddress.direccion ? parsedAddress : null);
+
+        // Usar el ref → siempre apunta al callback más reciente del padre
+        onLocationDetailsRef.current?.({
+          address: parsedAddress.direccion || "",
           zipCode: zipCode || "",
-          province: parsedAddress.provincia,
-          municipality: parsedAddress.municipio,
         });
       }
     } catch (error) {
@@ -283,17 +297,40 @@ export default function MapSelectLocation({
       getLocationDetails(defaultCoords.lng, defaultCoords.lat);
     }
 
+    const handleMapPoint = (lat: number, lng: number) => {
+      onChange(lat, lng);
+      const activeGeo = neighborhoodGeoRef.current;
+      if (activeGeo && (activeGeo.type === "Polygon" || activeGeo.type === "MultiPolygon")) {
+        const pt = point([lng, lat]);
+        const geoFeature = {
+          type: "Feature" as const,
+          geometry: activeGeo as import("geojson").Polygon | import("geojson").MultiPolygon,
+          properties: {},
+        };
+        const isInside = booleanPointInPolygon(pt, geoFeature);
+        if (isInside) {
+          // Punto dentro del barrio → solo enviar coordenadas, no cambiar selects
+          onPointSelectedRef.current?.(lat, lng, true);
+        } else {
+          // Punto fuera del barrio → notificar para que se consulte el endpoint
+          onPointSelectedRef.current?.(lat, lng, false);
+          getLocationDetails(lng, lat);
+        }
+      } else {
+        // Sin polígono activo → comportamiento normal
+        onPointSelectedRef.current?.(lat, lng, false);
+      }
+    };
+
     markerRef.current.on("dragend", () => {
       const position = markerRef.current!.getLngLat();
-      onChange(position.lat, position.lng);
-      getLocationDetails(position.lng, position.lat);
+      handleMapPoint(position.lat, position.lng);
     });
 
     mapRef.current.on("click", (e) => {
       const { lng, lat } = e.lngLat;
       markerRef.current!.setLngLat([lng, lat]);
-      onChange(lat, lng);
-      getLocationDetails(lng, lat);
+      handleMapPoint(lat, lng);
     });
 
     return () => {
@@ -319,6 +356,73 @@ export default function MapSelectLocation({
       document.body.style.overflow = "";
     };
   }, [isFullscreen]);
+
+   useEffect(() => {
+    neighborhoodGeoRef.current = neighborhoodGeo ?? null;
+  }, [neighborhoodGeo]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !map.isStyleLoaded()) return;
+
+    const SOURCE_ID = "barrio-geo";
+    const FILL_LAYER_ID = "barrio-fill";
+    const LINE_LAYER_ID = "barrio-line";
+
+    // Limpiar capas y fuente previas
+    const cleanup = () => {
+      if (map.getLayer(FILL_LAYER_ID)) map.removeLayer(FILL_LAYER_ID);
+      if (map.getLayer(LINE_LAYER_ID)) map.removeLayer(LINE_LAYER_ID);
+      if (map.getSource(SOURCE_ID)) map.removeSource(SOURCE_ID);
+    };
+
+    if (!neighborhoodGeo) {
+      cleanup();
+      return;
+    }
+
+    cleanup();
+
+    const geoFeature: FeatureCollection<Geometry> = {
+      type: "FeatureCollection",
+      features: [{ type: "Feature", geometry: neighborhoodGeo, properties: {} }],
+    };
+
+    map.addSource(SOURCE_ID, { type: "geojson", data: geoFeature });
+
+    map.addLayer({
+      id: FILL_LAYER_ID,
+      type: "fill",
+      source: SOURCE_ID,
+      paint: {
+        "fill-color": "#e11d48",
+        "fill-opacity": 0.12,
+      },
+    });
+
+    map.addLayer({
+      id: LINE_LAYER_ID,
+      type: "line",
+      source: SOURCE_ID,
+      paint: {
+        "line-color": "#e11d48",
+        "line-width": 2,
+        "line-opacity": 0.8,
+      },
+    });
+
+    if (!neighborhoodGeo?.type || !neighborhoodGeo) {
+      console.warn("Geometría inválida:", neighborhoodGeo);
+      return;
+    }
+
+    // Calcular bounds del polígono y hacer fitBounds
+    const [minLng, minLat, maxLng, maxLat] = bbox(geoFeature);
+    map.fitBounds(
+      [[minLng, minLat], [maxLng, maxLat]],
+      { padding: 60, maxZoom: 16, duration: 800 },
+    );
+  }, [neighborhoodGeo]);
 
   // Función para mostrar la dirección formateada
   const getFormattedAddress = () => {

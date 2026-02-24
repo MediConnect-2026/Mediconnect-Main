@@ -1,5 +1,5 @@
 import MCImageUpload from "@/shared/components/MCAuthImageUpload";
-import centerDocImg from "@/assets/centerOnboarding/center.png";
+// import centerDocImg from "@/assets/centerOnboarding/center.png";
 import { useAppStore } from "@/stores/useAppStore";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -46,7 +46,7 @@ export function HealthCertificateUpload({
     <MCImageUpload
       title={t("healthCertificateUpload.title")}
       description={t("healthCertificateUpload.description")}
-      imageSrc={centerDocImg}
+      imageSrc={"" /*centerDocImg*/}
       modalId="health-certificate"
       cropTitle={t("healthCertificateUpload.cropTitle")}
       aspectRatio={1.6}

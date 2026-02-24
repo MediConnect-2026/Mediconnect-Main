@@ -45,14 +45,15 @@ const ubicacionesService = {
         }
 	},
 
-	async getSecciones(language: string, idDistrito: number): Promise<SelectOption[]> {
-		if (!idDistrito) return [];
+	async getSecciones(language: string, params: any): Promise<SelectOption[]> {
+		if (!params) return [];
 		
         try {
-            const response = await apiClient.get<SeccionResponse>(`${API_ENDPOINTS.UBICACIONES.SECCIONES(idDistrito)}`, { params: { target: language, translate_fields: 'nombre', estado: 'activo' } });
+            console.log(`Fetching secciones with params:`, params);
+            const response = await apiClient.get<SeccionResponse>(`${API_ENDPOINTS.UBICACIONES.SECCIONES(params.idDistrito || params.idMunicipio)}`, { params: { target: language, translate_fields: 'nombre', estado: 'activo' } });
             return (response.data.data || []).map((sec) => ({ value: String(sec.id), label: sec.nombre }));
         } catch (error) {
-            console.error(`Error obteniendo secciones para distritoId ${idDistrito}:`, error);
+            console.error(`Error obteniendo secciones para params ${JSON.stringify(params)}:`, error);
             return [];
         }
 	},
@@ -80,6 +81,28 @@ const ubicacionesService = {
             return [];
         }
 	},
+
+    async getGeoPointsByBarrios(idBarrio: number): Promise<any> {
+        if (!idBarrio) return [];
+        try {
+            const response = await apiClient.get(`${API_ENDPOINTS.UBICACIONES.GEOPOINTS_BY_BARRIOS(idBarrio)}`);
+            return response.data.data || {};
+        } catch (error) {
+            console.error(`Error obteniendo geo points para barriosId ${idBarrio}:`, error);
+            return {};
+        }
+    },
+
+    async getDataBarrioFromGeoPoint(lng: number, lat: number): Promise<any> {
+        if (!lng || !lat) return [];
+        try {
+            const response = await apiClient.get(`${API_ENDPOINTS.UBICACIONES.BARRIO_BY_GEOPOINT}`, { params: { longitud : lng, latitud: lat } });
+            return response.data.data || {};
+        } catch (error) {
+            console.error(`Error obteniendo geo points para lat ${lat}, lng ${lng}:`, error);
+            return {};
+        }
+    }
 };
 
 export default ubicacionesService;

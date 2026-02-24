@@ -30,6 +30,7 @@ interface MCSelectProps {
   searchable?: boolean;
   onChange?: (value: string | string[]) => void;
   labelPosition?: LabelPosition;
+  value?: string;
 }
 
 function MCSelect({
@@ -48,6 +49,7 @@ function MCSelect({
   searchable = false,
   onChange,
   labelPosition = "left",
+  value: externalValue,
 }: MCSelectProps) {
   const { t } = useTranslation("common");
 
@@ -76,6 +78,13 @@ function MCSelect({
       }
     }
   }, [currentValue, multiple]); // No incluir selectedValues para evitar loop infinito
+
+  useEffect(() => {
+    if (externalValue === undefined) return;
+    if (currentValue !== externalValue) {
+      setValue(name, externalValue, { shouldValidate: true, shouldDirty: true });
+    }
+  }, [externalValue]);
 
   const handleStatusColor = () => {
     switch (status) {

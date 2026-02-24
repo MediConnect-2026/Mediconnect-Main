@@ -45,7 +45,7 @@ export const useUbicaciones = (
 			case 'distritos':
 				return ubicacionesService.getDistritos(currentLanguage, Number(params?.idMunicipio));
 			case 'secciones':
-				return ubicacionesService.getSecciones(currentLanguage, Number(params?.idDistrito));
+				return ubicacionesService.getSecciones(currentLanguage, params);
 			case 'barrios':
 				return ubicacionesService.getBarrios(currentLanguage, Number(params?.idSeccion));
 			case 'subbarrios':

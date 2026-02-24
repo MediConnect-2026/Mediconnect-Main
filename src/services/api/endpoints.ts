@@ -121,6 +121,8 @@ export const API_ENDPOINTS = {
     SECCIONES: (idDistrito: string | number) => `/secciones/por-distrito/${idDistrito}`,
     BARRIOS: (idSeccion: string | number) => `/barrios/seccion/${idSeccion}`,
     SUBBARRIOS: (idBarrio: string | number) => `/subbarrios/barrio/${idBarrio}`,
+    GEOPOINTS_BY_BARRIOS: (idBarrio: string | number) => `/barrios/geo/${idBarrio}`,
+    BARRIO_BY_GEOPOINT: '/barrios/geo/punto',
   },
 
   // --- Tipos de centro ---

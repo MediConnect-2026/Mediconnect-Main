@@ -41,6 +41,7 @@
     "@tiptap/react": "^3.19.0",
     "@tiptap/starter-kit": "^3.19.0",
     "@turf/bbox": "^7.3.4",
+    "@turf/boolean-point-in-polygon": "^7.3.4",
     "axios": "^1.13.5",
     "blendy": "^0.0.1",
     "boring-avatars": "^2.0.4",
