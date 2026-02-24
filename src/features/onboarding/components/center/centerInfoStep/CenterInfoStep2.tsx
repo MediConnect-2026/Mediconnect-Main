@@ -7,10 +7,15 @@ import { useTranslation } from "react-i18next";
 import { useGlobalUIStore } from "@/stores/useGlobalUIStore";
 import { useUbicaciones } from "@/features/onboarding/services/useUbicaciones";
 import MCSelect from "@/shared/components/forms/MCSelect";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { useFormContext } from "react-hook-form";
+import { useQueryClient } from "@tanstack/react-query";
+import { QUERY_KEYS } from "@/lib/react-query/config";
 import type { Geometry } from "geojson";
+import type { SelectOption } from "@/features/onboarding/services/ubicaciones.types";
 import ubicacionesService from "@/features/onboarding/services/ubicaciones.services";
+
+// ─── Tipos ───────────────────────────────────────────────────────────────────
 
 type CenterInfoStep2Props = {
   children?: React.ReactNode;
@@ -18,85 +23,101 @@ type CenterInfoStep2Props = {
   onNext?: () => void;
 };
 
-function CenterInfoStep2({
-  children,
-  onValidationChange,
-  onNext,
-}: CenterInfoStep2Props) {
-  const { t } = useTranslation("auth");
-  const centerOnboardingData = useAppStore(
-    (state) => state.centerOnboardingData,
-  );
-  const setOnboardingStep = useGlobalUIStore(
-    (state) => state.setOnboardingStep,
-  );
-  const setCenterField = useAppStore((state) => state.setCenterField);
+// FormBridge fuera del componente para evitar re-creaciones en cada render.
+// Expone setValue del FormContext hacia arriba mediante un ref.
+function FormBridge({
+  formSetValueRef,
+}: {
+  formSetValueRef: React.MutableRefObject<((name: string, value: any) => void) | null>;
+}) {
+  const { setValue } = useFormContext();
+  useEffect(() => {
+    formSetValueRef.current = (name: string, value: any) =>
+      setValue(name, value, { shouldValidate: true, shouldDirty: true });
+  }, [setValue, formSetValueRef]);
+  return null;
+}
 
-  // Estado local para controlar exactamente cuándo se dispara cada búsqueda.
-  // Al resetear un nivel, sus dependientes se limpian aquí antes de que
-  // useUbicaciones haga el fetch, evitando peticiones con IDs obsoletos.
+// ─── Componente ──────────────────────────────────────────────────────────────
+
+function CenterInfoStep2({ children, onValidationChange, onNext }: CenterInfoStep2Props) {
+  const { t } = useTranslation("auth");
+  const { i18n } = useTranslation();
+  const currentLanguage = i18n.language;
+
+  const centerOnboardingData = useAppStore((state) => state.centerOnboardingData);
+  const setOnboardingStep = useGlobalUIStore((state) => state.setOnboardingStep);
+  const setCenterField = useAppStore((state) => state.setCenterField);
+  const queryClient = useQueryClient();
+
+  // ─── Estado de selects (valores seleccionados) ────────────────────────────
   const [selectedProvince, setSelectedProvince] = useState<string>("");
   const [selectedMunicipality, setSelectedMunicipality] = useState<string>("");
   const [selectedDistrict, setSelectedDistrict] = useState<string>("");
   const [selectedSection, setSelectedSection] = useState<string>("");
   const [selectedNeighborhood, setSelectedNeighborhood] = useState<string>("");
   const [neighborhoodGeo, setNeighborhoodGeo] = useState<Geometry | null>(null);
-  // Cuando el autocompletado por punto setea la sección, los barrios aún no han
-  // llegado del servidor. Guardamos el ID pendiente y lo aplicamos cuando lleguen.
-  const [pendingNeighborhoodId, setPendingNeighborhoodId] = useState<string | null>(null);
 
+  // ─── Estado de opciones (override del autocompletado) ────────────────────
+  // Durante el autocompletado por punto, los datos fetcheados se inyectan
+  // aquí directamente. Los selects los leen de forma combinada: si hay opciones
+  // locales las usan; si no, usan las del hook. Esto evita depender del ciclo
+  // de React Query para mostrar los valores inmediatamente.
+  const [autocompleteOptions, setAutocompleteOptions] = useState<{
+    municipios: SelectOption[] | null;
+    distritos: SelectOption[] | null;
+    secciones: SelectOption[] | null;
+    barrios: SelectOption[] | null;
+  }>({ municipios: null, distritos: null, secciones: null, barrios: null });
+
+  // Ref para acceder a setValue del form desde fuera del MCFormWrapper
+  const formSetValueRef = useRef<((name: string, value: any) => void) | null>(null);
+
+  // ─── Hooks de ubicaciones (para interacción manual) ───────────────────────
 
   const { data: provinciasOptions = [], isLoading: isLoadingProvincias } =
     useUbicaciones("provincias");
 
   const municipiosParams = useMemo(
-    () => selectedProvince ? { idProvincia: selectedProvince } : undefined,
+    () => (selectedProvince ? { idProvincia: selectedProvince } : undefined),
     [selectedProvince]
   );
-  const { data: municipiosOptions = [], isLoading: isLoadingMunicipios } =
+  const { data: municipiosFromQuery = [], isLoading: isLoadingMunicipios } =
     useUbicaciones("municipios", municipiosParams);
 
   const distritosParams = useMemo(
-    () => selectedMunicipality ? { idMunicipio: selectedMunicipality } : undefined,
+    () => (selectedMunicipality ? { idMunicipio: selectedMunicipality } : undefined),
     [selectedMunicipality]
   );
-  const { data: distritosOptions = [], isLoading: isLoadingDistritos } =
+  const { data: distritosFromQuery = [], isLoading: isLoadingDistritos } =
     useUbicaciones("distritos", distritosParams);
 
-  // Secciones: si hay distrito → fetch por distrito; si no y hay municipio → fetch por municipio.
-  // useMemo estabiliza el objeto params para que React Query no lo trate como nuevo en cada render.
   const seccionesParams = useMemo(() => {
     if (selectedDistrict) return { idDistrito: selectedDistrict };
     if (selectedMunicipality) return { idMunicipio: selectedMunicipality };
     return undefined;
   }, [selectedDistrict, selectedMunicipality]);
 
-  const { data: seccionesOptions = [], isLoading: isLoadingSecciones } =
+  const { data: seccionesFromQuery = [], isLoading: isLoadingSecciones } =
     useUbicaciones("secciones", seccionesParams);
 
   const barriosParams = useMemo(
-    () => selectedSection ? { idSeccion: selectedSection } : undefined,
+    () => (selectedSection ? { idSeccion: selectedSection } : undefined),
     [selectedSection]
   );
-  const { data: barriosOptions = [], isLoading: isLoadingBarrios } =
+  const { data: barriosFromQuery = [], isLoading: isLoadingBarrios } =
     useUbicaciones("barrios", barriosParams);
 
-  // Cuando llegan las opciones de barrios y hay un ID pendiente por seleccionar
-  // (caso: autocompletado por punto en el mapa), aplicar la selección ahora que
-  // las opciones ya están disponibles en el select.
-  useEffect(() => {
-    if (!pendingNeighborhoodId || isLoadingBarrios || barriosOptions.length === 0) return;
-    const exists = barriosOptions.some(
-      (opt: { value: string }) => String(opt.value) === String(pendingNeighborhoodId)
-    );
-    if (exists) {
-      setSelectedNeighborhood(pendingNeighborhoodId);
-      setCenterField?.("neighborhood", pendingNeighborhoodId);
-      setPendingNeighborhoodId(null);
-    }
-  }, [barriosOptions, isLoadingBarrios, pendingNeighborhoodId]);
+  // ─── Opciones combinadas: autocompletado tiene prioridad sobre el hook ────
+  // Cuando el autocompletado setea opciones locales, los selects las usan
+  // inmediatamente sin esperar el ciclo de React Query. La interacción manual
+  // limpia autocompleteOptions y vuelve a usar las del hook.
+  const municipiosOptions = autocompleteOptions.municipios ?? municipiosFromQuery;
+  const distritosOptions  = autocompleteOptions.distritos  ?? distritosFromQuery;
+  const seccionesOptions  = autocompleteOptions.secciones  ?? seccionesFromQuery;
+  const barriosOptions    = autocompleteOptions.barrios    ?? barriosFromQuery;
 
-  // Al montar, limpiar el store para que los selects arranquen siempre vacíos.
+  // ─── Limpiar store al montar ──────────────────────────────────────────────
   useEffect(() => {
     setCenterField?.("province", "");
     setCenterField?.("municipality", "");
@@ -104,222 +125,221 @@ function CenterInfoStep2({
     setCenterField?.("section", "");
     setCenterField?.("neighborhood", "");
     setCenterField?.("subNeighborhood", "");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Ref para acceder a setValue del form desde fuera del MCFormWrapper
-  const formSetValueRef = useRef<((name: string, value: any) => void) | null>(null);
-
-  // Componente puente: vive dentro del FormContext y expone setValue hacia arriba
-  // sin necesidad de prop-drilling ni de refactorizar MCFormWrapper.
-  const FormBridge = () => {
-    const { setValue } = useFormContext();
-    useEffect(() => {
-      formSetValueRef.current = (name: string, value: any) =>
-        setValue(name, value, { shouldValidate: true, shouldDirty: true });
-    }, [setValue]);
-    return null;
-  };
+  // ─── Submit ───────────────────────────────────────────────────────────────
 
   const handleSubmit = (data: any) => {
-    console.log("Step 2 submitted with data:", data);
+    console.log("Step 2 submitted:", data);
     setOnboardingStep?.(0);
     onValidationChange?.(true);
     onNext?.();
   };
 
-  const handleLocationDetails = (details: {
-    address: string;
-    zipCode: string;
-    province?: string;
-    municipality?: string;
-    district?: string;
-    section?: string;
-    neighborhood?: string;
-    subNeighborhood?: string;
-  }) => {
-    console.log("Detalles de ubicación recibidos:", details);
-    setCenterField?.("address", details.address);
-    // Sincronizar address en el form context para que MCInput lo muestre
-    formSetValueRef.current?.("address", details.address);
+  // ─── Handler: dirección desde Mapbox (solo address) ──────────────────────
+  const handleLocationDetails = useCallback(
+    (details: { address: string; zipCode: string }) => {
+      setCenterField?.("address", details.address);
+      formSetValueRef.current?.("address", details.address);
+    },
+    [setCenterField]
+  );
 
-    if (details.province) {
-      setCenterField?.("province", details.province);
-      setSelectedProvince(details.province);
-    }
-    if (details.municipality) {
-      setCenterField?.("municipality", details.municipality);
-      setSelectedMunicipality(details.municipality);
-    }
-    if (details.district) {
-      setCenterField?.("district", details.district);
-      setSelectedDistrict(details.district);
-    }
-    if (details.section) {
-      setCenterField?.("section", details.section);
-      setSelectedSection(details.section);
-    }
-    if (details.neighborhood) {
-      setCenterField?.("neighborhood", details.neighborhood);
-      setSelectedNeighborhood(details.neighborhood);
-    }
-    if (details.subNeighborhood) {
-      setCenterField?.("subNeighborhood", details.subNeighborhood);
-    }
-  };
+  // ─── Helper: sincronizar estado + store + form ────────────────────────────
+  const applyField = useCallback(
+    (
+      field: string,
+      value: string,
+      stateSetter: React.Dispatch<React.SetStateAction<string>>
+    ) => {
+      stateSetter(value);
+      setCenterField?.(field as any, value);
+      formSetValueRef.current?.(field, value);
+    },
+    [setCenterField]
+  );
 
-  // ─── Handlers con reset en cascada ───────────────────────────────────────
+  // ─── Handlers manuales con reset en cascada ───────────────────────────────
+  // Al interactuar manualmente, se limpian las opciones del autocompletado
+  // para que los hooks de React Query vuelvan a tomar el control.
 
-  const handleProvinceChange = (value: string | string[]) => {
-    const province = Array.isArray(value) ? value[0] : value;
-    // 1. Limpiar estado local → los hooks dejan de fetchear con IDs obsoletos
-    setSelectedMunicipality("");
-    setSelectedDistrict("");
-    setSelectedSection("");
-    setSelectedNeighborhood("");
-    setNeighborhoodGeo(null);
-    // 2. Limpiar store
-    setCenterField?.("municipality", "");
-    setCenterField?.("district", "");
-    setCenterField?.("section", "");
-    setCenterField?.("neighborhood", "");
-    setCenterField?.("subNeighborhood", "");
-    // 3. Setear el nuevo valor → dispara el fetch de municipios
-    setSelectedProvince(province);
-    setCenterField?.("province", province);
-  };
-
-  const handleMunicipalityChange = (value: string | string[]) => {
-    const municipality = Array.isArray(value) ? value[0] : value;
-    setSelectedDistrict("");
-    setSelectedSection("");
-    setSelectedNeighborhood("");
-    setNeighborhoodGeo(null);
-    setCenterField?.("district", "");
-    setCenterField?.("section", "");
-    setCenterField?.("neighborhood", "");
-    setCenterField?.("subNeighborhood", "");
-    setSelectedMunicipality(municipality);
-    setCenterField?.("municipality", municipality);
-  };
-
-  const handleDistrictChange = (value: string | string[]) => {
-    const district = Array.isArray(value) ? value[0] : value;
-    setSelectedSection("");
-    setSelectedNeighborhood("");
-    setNeighborhoodGeo(null);
-    setCenterField?.("section", "");
-    setCenterField?.("neighborhood", "");
-    setCenterField?.("subNeighborhood", "");
-    setSelectedDistrict(district);
-    setCenterField?.("district", district);
-  };
-
-  const handleSectionChange = (value: string | string[]) => {
-    const section = Array.isArray(value) ? value[0] : value;
-    setSelectedNeighborhood("");
-    setNeighborhoodGeo(null);
-    setCenterField?.("neighborhood", "");
-    setCenterField?.("subNeighborhood", "");
-    setSelectedSection(section);
-    setCenterField?.("section", section);
-  };
-
-  const handleNeighborhoodChange = async (value: string | string[]) => {
-    const neighborhood = Array.isArray(value) ? value[0] : value;
-    setCenterField?.("subNeighborhood", "");
-    setSelectedNeighborhood(neighborhood);
-    setCenterField?.("neighborhood", neighborhood);
-
-    // Limpiar polígono si se deselecciona el barrio
-    if (!neighborhood) {
-      setNeighborhoodGeo(null);
-      return;
-    }
-
-    // Obtener geometría del barrio para centrar el mapa
-    try {
-      const geo = await ubicacionesService.getGeoPointsByBarrios(Number(neighborhood)); // tu función de request existente
-      console.log("Geometría del barrio obtenida:", geo);
-      setNeighborhoodGeo(geo.geom ?? null);
-    } catch (err) {
-      console.error("Error obteniendo geometría del barrio:", err);
-      setNeighborhoodGeo(null);
-    }
-  };
-
-  const handlePointSelected = async (lat: number, lng: number, isInsideNeighborhood: boolean) => {
-    // Siempre actualizar las coordenadas en el store
-    setCenterField?.("coordinates", { latitude: lat, longitude: lng });
-
-    if (isInsideNeighborhood) {
-      // El punto está dentro del barrio seleccionado → solo guardar coordenadas.
-      // Los selects ya tienen los valores correctos, no hace falta tocarlos.
-      return;
-    }
-
-    // El punto está fuera del barrio activo → consultar la jerarquía completa
-    // por las nuevas coordenadas y autocompletar todos los selects.
-    try {
-      const data = await ubicacionesService.getDataBarrioFromGeoPoint(lng, lat); // tu función existente → GET /barrios/geo/punto
-      if (!data) return;
-
-      console.log("Datos de ubicación obtenidos por punto:", data);
-      // Resetear estado local en cascada antes de setear los nuevos valores
-      // para que useUbicaciones re-fetche con los IDs correctos
+  const handleProvinceChange = useCallback(
+    (value: string | string[]) => {
+      const province = Array.isArray(value) ? value[0] : value;
       setSelectedMunicipality("");
       setSelectedDistrict("");
       setSelectedSection("");
       setSelectedNeighborhood("");
       setNeighborhoodGeo(null);
+      // Limpiar todas las opciones del autocompletado al cambiar provincia
+      setAutocompleteOptions({ municipios: null, distritos: null, secciones: null, barrios: null });
+      setCenterField?.("municipality", "");
+      setCenterField?.("district", "");
+      setCenterField?.("section", "");
+      setCenterField?.("neighborhood", "");
+      setCenterField?.("subNeighborhood", "");
+      applyField("province", province, setSelectedProvince);
+    },
+    [applyField, setCenterField]
+  );
 
-      // Provincia
-      if (data.provincia?.id) {
-        const provId = String(data.provincia.id);
-        setSelectedProvince(provId);
-        setCenterField?.("province", provId);
-        formSetValueRef.current?.("province", provId);
+  const handleMunicipalityChange = useCallback(
+    (value: string | string[]) => {
+      const municipality = Array.isArray(value) ? value[0] : value;
+      setSelectedDistrict("");
+      setSelectedSection("");
+      setSelectedNeighborhood("");
+      setNeighborhoodGeo(null);
+      setAutocompleteOptions((prev) => ({ ...prev, distritos: null, secciones: null, barrios: null }));
+      setCenterField?.("district", "");
+      setCenterField?.("section", "");
+      setCenterField?.("neighborhood", "");
+      setCenterField?.("subNeighborhood", "");
+      applyField("municipality", municipality, setSelectedMunicipality);
+    },
+    [applyField, setCenterField]
+  );
+
+  const handleDistrictChange = useCallback(
+    (value: string | string[]) => {
+      const district = Array.isArray(value) ? value[0] : value;
+      setSelectedSection("");
+      setSelectedNeighborhood("");
+      setNeighborhoodGeo(null);
+      setAutocompleteOptions((prev) => ({ ...prev, secciones: null, barrios: null }));
+      setCenterField?.("section", "");
+      setCenterField?.("neighborhood", "");
+      setCenterField?.("subNeighborhood", "");
+      applyField("district", district, setSelectedDistrict);
+    },
+    [applyField, setCenterField]
+  );
+
+  const handleSectionChange = useCallback(
+    (value: string | string[]) => {
+      const section = Array.isArray(value) ? value[0] : value;
+      setSelectedNeighborhood("");
+      setNeighborhoodGeo(null);
+      setAutocompleteOptions((prev) => ({ ...prev, barrios: null }));
+      setCenterField?.("neighborhood", "");
+      setCenterField?.("subNeighborhood", "");
+      applyField("section", section, setSelectedSection);
+    },
+    [applyField, setCenterField]
+  );
+
+  const handleNeighborhoodChange = useCallback(
+    async (value: string | string[]) => {
+      const neighborhood = Array.isArray(value) ? value[0] : value;
+      applyField("neighborhood", neighborhood, setSelectedNeighborhood);
+
+      if (!neighborhood) {
+        setNeighborhoodGeo(null);
+        return;
       }
-      // Municipio
-      if (data.municipio?.id) {
-        const munId = String(data.municipio.id);
-        setSelectedMunicipality(munId);
-        setCenterField?.("municipality", munId);
-        formSetValueRef.current?.("municipality", munId);
+
+      try {
+        const geo = await ubicacionesService.getGeoPointsByBarrios(Number(neighborhood));
+        setNeighborhoodGeo(geo.geom ?? null);
+      } catch (err) {
+        console.error("Error obteniendo geometría del barrio:", err);
+        setNeighborhoodGeo(null);
       }
-      // Distrito municipal (puede ser null)
-      if (data.distritoMunicipal?.id) {
-        const distId = String(data.distritoMunicipal.id);
-        setSelectedDistrict(distId);
-        setCenterField?.("district", distId);
-        formSetValueRef.current?.("district", distId);
-      } else {
-        // Sin distrito → seccionesParams usará idMunicipio automáticamente
-        setSelectedDistrict("");
-        setCenterField?.("district", "");
-      }
-      // Sección
-      if (data.seccion?.id) {
-        const secId = String(data.seccion.id);
-        setSelectedSection(secId);
-        setCenterField?.("section", secId);
-        formSetValueRef.current?.("section", secId);
-      }
-      // Barrio + polígono
-      // No seteamos selectedNeighborhood aquí todavía: useUbicaciones necesita
-      // primero re-fetchear los barrios con el nuevo selectedSection. Guardamos
-      // el ID como pendiente y el useEffect lo aplicará cuando lleguen las opciones.
-      if (data.id) {
-        const barrioId = String(data.id);
-        setPendingNeighborhoodId(barrioId);
-        // Cargar el polígono del nuevo barrio para que el mapa lo dibuje
-        if (data.geom) {
-          setNeighborhoodGeo(data.geom);
+    },
+    [applyField, setCenterField]
+  );
+
+  // ─── Handler: punto seleccionado en el mapa ───────────────────────────────
+  //
+  // Estrategia CORREGIDA:
+  // 1. Fetch geopoint → jerarquía completa.
+  // 2. Fetch paralelo de todos los niveles dependientes al servicio.
+  // 3. Inyectar datos en cache de React Query Y en estado local simultáneamente.
+  // 4. Setear valores una sola vez: estado local + store + form (sin llamadas redundantes).
+
+  const handlePointSelected = useCallback(
+    async (lat: number, lng: number, isInsideNeighborhood: boolean) => {
+      setCenterField?.("coordinates", { latitude: lat, longitude: lng });
+
+      if (isInsideNeighborhood) return;
+
+      try {
+        const data = await ubicacionesService.getDataBarrioFromGeoPoint(lng, lat);
+        if (!data?.municipio?.id) return;
+
+        const provId   = String(data.provincia?.id ?? "");
+        const munId    = String(data.municipio.id);
+        const distId   = data.distritoMunicipal?.id ? String(data.distritoMunicipal.id) : "";
+        const secId    = data.seccion?.id ? String(data.seccion.id) : "";
+        const barrioId = data.id ? String(data.id) : "";
+
+        const newMunicipiosParams = { idProvincia: provId };
+        const newDistritosParams  = { idMunicipio: munId };
+        const newSeccionesParams  = distId ? { idDistrito: distId } : { idMunicipio: munId };
+        const newBarriosParams    = secId ? { idSeccion: secId } : null;
+
+        // Fetch paralelo de todos los niveles
+        const [municipiosData, distritosData, seccionesData, barriosData] = await Promise.all([
+          ubicacionesService.getMunicipios(currentLanguage, Number(provId)),
+          ubicacionesService.getDistritos(currentLanguage, Number(munId)),
+          ubicacionesService.getSecciones(currentLanguage, newSeccionesParams),
+          newBarriosParams
+            ? ubicacionesService.getBarrios(currentLanguage, Number(secId))
+            : Promise.resolve([]),
+        ]);
+
+        // Inyectar en cache de React Query (para navegación futura y selects manuales)
+        queryClient.setQueryData(QUERY_KEYS.UBICACIONES("municipios", newMunicipiosParams), municipiosData);
+        queryClient.setQueryData(QUERY_KEYS.UBICACIONES("distritos", newDistritosParams), distritosData);
+        queryClient.setQueryData(QUERY_KEYS.UBICACIONES("secciones", newSeccionesParams), seccionesData);
+        if (newBarriosParams) {
+          queryClient.setQueryData(QUERY_KEYS.UBICACIONES("barrios", newBarriosParams), barriosData);
         }
+
+        // Inyectar en estado local → los selects tienen las opciones disponibles
+        // en el MISMO render en que reciben el valor seleccionado.
+        setAutocompleteOptions({
+          municipios: municipiosData,
+          distritos:  distritosData,
+          secciones:  seccionesData,
+          barrios:    newBarriosParams ? barriosData : [],
+        });
+
+        // Setear valores en estado local
+        setSelectedProvince(provId);
+        setSelectedMunicipality(munId);
+        setSelectedDistrict(distId);
+        setSelectedSection(secId);
+        setSelectedNeighborhood(barrioId);
+        setNeighborhoodGeo(data.geom ?? null);
+
+        // Setear valores en store
+        setCenterField?.("province", provId);
+        setCenterField?.("municipality", munId);
+        setCenterField?.("district", distId);
+        setCenterField?.("section", secId);
+        setCenterField?.("neighborhood", barrioId);
+
+        // Setear valores en el form usando el ref
+        // Usar setTimeout para asegurar que el form context esté disponible
+        setTimeout(() => {
+          if (formSetValueRef.current) {
+            formSetValueRef.current("province", provId);
+            formSetValueRef.current("municipality", munId);
+            formSetValueRef.current("district", distId);
+            formSetValueRef.current("section", secId);
+            formSetValueRef.current("neighborhood", barrioId);
+          }
+        }, 0);
+      } catch (err) {
+        console.error("Error obteniendo barrio por punto:", err);
       }
-    } catch (err) {
-      console.error("Error obteniendo barrio por punto:", err);
-    }
-  };
+    },
+    [setCenterField, queryClient, currentLanguage]
+  );
+
+  // ─── Render ───────────────────────────────────────────────────────────────
 
   return (
     <div className="w-full flex flex-col gap-4">
@@ -335,10 +355,7 @@ function CenterInfoStep2({
       <div className="h-[350px] mb-6">
         <MapSelectLocation
           onChange={(lat, lng) =>
-            setCenterField?.("coordinates", {
-              latitude: lat,
-              longitude: lng,
-            })
+            setCenterField?.("coordinates", { latitude: lat, longitude: lng })
           }
           onLocationDetails={handleLocationDetails}
           neighborhoodGeo={neighborhoodGeo}
@@ -351,7 +368,8 @@ function CenterInfoStep2({
         onSubmit={handleSubmit}
         onValidationChange={onValidationChange}
       >
-        <FormBridge />
+        <FormBridge formSetValueRef={formSetValueRef} />
+
         <div className="space-y-4 py-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <MCInput
@@ -369,7 +387,7 @@ function CenterInfoStep2({
                   ? t("centerInfoStep.loadingProvincias")
                   : t("centerInfoStep.provincePlaceholder")
               }
-              value={centerOnboardingData?.province ?? ""}
+              value={selectedProvince}
               options={provinciasOptions}
               disabled={isLoadingProvincias}
               onChange={handleProvinceChange}
@@ -387,7 +405,7 @@ function CenterInfoStep2({
                     ? t("centerInfoStep.municipalityPlaceholder")
                     : t("centerInfoStep.municipalityPlaceholderRequiredPrevValue")
               }
-              value={centerOnboardingData?.municipality ?? ""}
+              value={selectedMunicipality}
               options={municipiosOptions}
               searchable={true}
               disabled={isLoadingMunicipios || !selectedProvince}
@@ -404,7 +422,7 @@ function CenterInfoStep2({
                     ? t("centerInfoStep.districtPlaceholder")
                     : t("centerInfoStep.districtPlaceholderRequiredPrevValue")
               }
-              value={centerOnboardingData?.district ?? ""}
+              value={selectedDistrict}
               options={distritosOptions}
               disabled={isLoadingDistritos || !selectedMunicipality}
               searchable={true}
@@ -423,7 +441,7 @@ function CenterInfoStep2({
                     ? t("centerInfoStep.sectionPlaceholder")
                     : t("centerInfoStep.sectionPlaceholderRequiredPrevValue")
               }
-              value={centerOnboardingData?.section ?? ""}
+              value={selectedSection}
               options={seccionesOptions}
               searchable={true}
               disabled={isLoadingSecciones || !seccionesParams}
@@ -440,7 +458,7 @@ function CenterInfoStep2({
                     ? t("centerInfoStep.neighborhoodPlaceholder")
                     : t("centerInfoStep.neighborhoodPlaceholderRequiredPrevValue")
               }
-              value={centerOnboardingData?.neighborhood ?? ""}
+              value={selectedNeighborhood}
               options={barriosOptions}
               disabled={isLoadingBarrios || !selectedSection}
               searchable={true}

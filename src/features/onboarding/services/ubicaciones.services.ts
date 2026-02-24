@@ -49,9 +49,16 @@ const ubicacionesService = {
 		if (!params) return [];
 		
         try {
-            console.log(`Fetching secciones with params:`, params);
-            const response = await apiClient.get<SeccionResponse>(`${API_ENDPOINTS.UBICACIONES.SECCIONES(params.idDistrito || params.idMunicipio)}`, { params: { target: language, translate_fields: 'nombre', estado: 'activo' } });
-            return (response.data.data || []).map((sec) => ({ value: String(sec.id), label: sec.nombre }));
+            if(params.idDistrito) {
+                const response = await apiClient.get<SeccionResponse>(`${API_ENDPOINTS.UBICACIONES.SECCIONESBYDISTRITO(params.idDistrito)}`);
+                return (response.data.data || []).map((sec) => ({ value: String(sec.id), label: sec.nombre }));
+            } else if (params.idMunicipio) {
+                const response = await apiClient.get<SeccionResponse>(`${API_ENDPOINTS.UBICACIONES.SECCIONESBYMUNICIPIO(params.idMunicipio)}`);
+                return (response.data.data || []).map((sec) => ({ value: String(sec.id), label: sec.nombre }));
+            } else {
+                console.warn("No se proporcionó idDistrito ni idMunicipio para obtener secciones.");
+                return [];
+            }
         } catch (error) {
             console.error(`Error obteniendo secciones para params ${JSON.stringify(params)}:`, error);
             return [];

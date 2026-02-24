@@ -249,7 +249,8 @@ export function CenterOnboardingSchema(t: (key: string) => string) {
     address: z.string().min(1, t("validation.addressRequired")),
     province: z.string().min(1, t("validation.provinceRequired")),
     municipality: z.string().min(1, t("validation.municipalityRequired")),
-    district: z.string().min(1, t("validation.districtRequired")),
+    // Distrito es opcional: la API puede devolver distritoMunicipal: null
+    district: z.string().optional().or(z.literal("")),
     section: z.string().min(1, t("validation.sectionRequired")),
     neighborhood: z.string().min(1, t("validation.neighborhoodRequired")),
     subNeighborhood: z.string().optional().or(z.literal("")),
@@ -328,7 +329,9 @@ export function CenterLocationInfoSchema(t: (key: string) => string) {
     address: z.string().min(1, t("validation.addressRequired")),
     province: z.string().min(1, t("validation.provinceRequired")),
     municipality: z.string().min(1, t("validation.municipalityRequired")),
-    district: z.string().min(1, t("validation.districtRequired")),
+    // Distrito es opcional: distritoMunicipal puede ser null en la respuesta
+    // del API de geopoint (zonas sin distrito municipal asignado).
+    district: z.string().optional().or(z.literal("")),
     section: z.string().min(1, t("validation.sectionRequired")),
     neighborhood: z.string().min(1, t("validation.neighborhoodRequired")),
     subNeighborhood: z.string().optional().or(z.literal("")),

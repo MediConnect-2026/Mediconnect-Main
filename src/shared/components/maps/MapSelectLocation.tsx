@@ -299,6 +299,9 @@ export default function MapSelectLocation({
 
     const handleMapPoint = (lat: number, lng: number) => {
       onChange(lat, lng);
+
+      getLocationDetails(lng, lat);
+
       const activeGeo = neighborhoodGeoRef.current;
       if (activeGeo && (activeGeo.type === "Polygon" || activeGeo.type === "MultiPolygon")) {
         const pt = point([lng, lat]);
@@ -314,7 +317,6 @@ export default function MapSelectLocation({
         } else {
           // Punto fuera del barrio → notificar para que se consulte el endpoint
           onPointSelectedRef.current?.(lat, lng, false);
-          getLocationDetails(lng, lat);
         }
       } else {
         // Sin polígono activo → comportamiento normal
