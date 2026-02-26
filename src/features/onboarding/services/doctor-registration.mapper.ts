@@ -1,7 +1,7 @@
 import type { DoctorOnboardingSchemaType } from '@/types/OnbordingTypes';
 import type { RegisterDoctorRequest } from './doctor-registration.types';
 import { base64ToFile } from '@/utils/base64ToFile';
-import type { CreateDoctorServiceRequest, CreateDoctorServiceResponse } from '@/shared/navigation/userMenu/editProfile/doctor/services';
+import type { CreateDoctorServiceRequest } from '@/shared/navigation/userMenu/editProfile/doctor/services';
 import type { CreateServiceType } from '@/types/CreateServiceType';
 
 /**
@@ -304,6 +304,7 @@ export async function mapDoctorServices(
     sesiones: doctorData.numberOfSessions,
     modalidad: modalidad,
     horariosIds: doctorData.comercial_schedule || undefined,
+    ubicacionIds: doctorData.location && doctorData.location > 0 ? [doctorData.location] : undefined,
     imagenes: convertedImages,
   };
 

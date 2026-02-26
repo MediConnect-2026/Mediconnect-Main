@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
@@ -37,6 +37,9 @@ import MCServiceCards from "@/shared/components/MCServiceCards";
 import FilterMyServices from "../components/filters/FilterMyServices";
 import MCNewButton from "@/shared/components/forms/MCNewButton";
 import { ROUTES } from "@/router/routes";
+import { doctorService } from "@/shared/navigation/userMenu/editProfile/doctor/services"; // Asegúrate de tener esta función implementada para obtener los servicios del doctor
+import { useAppStore } from "@/stores/useAppStore";
+import type { GetServicesOfDoctor } from "@/shared/navigation/userMenu/editProfile/doctor/services"; // Asegúrate de tener este tipo definido correctamente según la respuesta de tu API
 
 const mockServices = [
   {
@@ -179,6 +182,11 @@ function MyServicesPage() {
   const { t } = useTranslation("doctor");
   const isMobile = useIsMobile();
   const navigate = useNavigate();
+
+  const user = useAppStore((state) => state.user); 
+  const [isLoading, setIsLoading] = useState(false);
+  const [services, setServices] = useState<GetServicesOfDoctor[]>([]); // Estado para almacenar los servicios reales del doctor
+
   // Estados
   const [showCards, setShowCards] = useState(() => {
     const saved = localStorage.getItem("myServicesView");
@@ -213,6 +221,29 @@ function MyServicesPage() {
     });
   };
 
+  useEffect(() => {
+    const loadServices = async () => {
+      try {
+        if (!user?.id) return; 
+
+        setIsLoading(true);
+
+        const response = await doctorService.getServicesOfDoctor(Number(user.id));
+        if (response && response.success && Array.isArray(response.data)) {
+          setServices(response.data);
+        } else {
+          setServices([]); 
+        }
+      } catch (error) {
+        console.error("Error al cargar los servicios del doctor:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    loadServices();
+  }, [user?.id]);
+
   // Guardar en localStorage cuando cambia
   const handleToggle = (val: string) => {
     setShowCards(val === "card");
@@ -239,30 +270,30 @@ function MyServicesPage() {
 
   // Filtrar servicios
   const filteredServices = useMemo(() => {
-    return mockServices.filter((service) => {
+    return services.filter((service) => {
       // Búsqueda por texto
-      const matchesSearch = service.title
+      const matchesSearch = service.nombre
         .toLowerCase()
         .includes(searchTerm.toLowerCase());
 
       // Filtros
       const matchesServicio =
         !filters.servicio ||
-        service.title
+        service.nombre
           .toLowerCase()
           .includes(filters.servicio.replace("-", " "));
       const matchesEspecialidad =
         !filters.especialidad ||
-        service.especialidad
+        service.especialidad.nombre
           .toLowerCase()
           .includes(filters.especialidad.replace("-", " "));
       const matchesTipo =
-        !filters.tipo || service.tipo.toLowerCase().includes(filters.tipo);
+        !filters.tipo || service.modalidad.toLowerCase().includes(filters.tipo);
       const matchesEstado =
-        filters.estado === "all" || service.status === filters.estado;
-      const matchesRating = !filters.rating || service.rating >= filters.rating;
+        filters.estado === "all" || service.estado === filters.estado;
+      const matchesRating = !filters.rating || service.calificacionPromedio >= filters.rating;
       const matchesDuracion = matchesDuracionRange(
-        service.duracion,
+        service.duracionMinutos.toString(),
         filters.duracion,
       );
 
@@ -274,27 +305,43 @@ function MyServicesPage() {
         matchesEstado &&
         matchesRating &&
         matchesDuracion
-      );
+      ); 
     });
-  }, [searchTerm, filters]);
+  }, [searchTerm, filters, services]);
+
 
   // Transformar data para MCServiceCards
   const transformedServices = useMemo(() => {
     return filteredServices.map((service) => ({
-      idProvider: service.id,
-      image: service.image,
-      status: service.status as "active" | "inactive",
-      title: service.title,
-      price: service.price,
-      description: service.description,
-      rating: service.rating,
-      reviews: service.reviews,
-      duration: service.duration,
-      type: service.type,
-      serviceId: service.serviceId,
-      isOwner: service.isOwner,
+      image: service.imagenes && service.imagenes.length > 0 ? service.imagenes[0].url : "https://randomuser.me/api/portraits/men/1.jpg",
+      status: service.estado as "active" | "inactive",
+      title: service.nombre,
+      price: service.precio.toString(),
+      description: service.descripcion,
+      rating: service.calificacionPromedio,
+      // reviews: service.cantidadReviews,
+      duration: service.duracionMinutos.toString() + " min",
+      type: service.modalidad,
+      serviceId: service.id.toString(),
+      isOwner: true,
     }));
   }, [filteredServices]);
+
+  const transformedDataForServiceTable = useMemo(() => {
+    return filteredServices.map((service) => ({
+      id: service.id.toString(),
+      servicio: service.nombre,
+      especialidad: service.especialidad.nombre,
+      ubicacion: service.ubicacion.map((u) => `${u.barrio.nombre} ${u.direccion}`).join(", "),
+      tipo: service.modalidad,
+      precio: service.precio.toString(),
+      duracion: service.duracionMinutos.toString() + " min",
+      rating: service.calificacionPromedio,
+      estado: service.estado === "active" ? t("services.table.active") : t("services.table.inactive"),
+      imagen: service.imagenes && service.imagenes.length > 0 ? service.imagenes[0].url : "https://randomuser.me/api/portraits/men/1.jpg",
+    }));
+  }, [filteredServices]);
+
 
   // Toggle cards/list
   const toggleView = (
@@ -406,7 +453,14 @@ function MyServicesPage() {
   );
 
   // Cards/List table con paginación y empty
-  const tableComponent = showCards ? (
+  const tableComponent = isLoading ? (
+    <div className="flex justify-center items-center p-12 w-full">
+      {/* Puedes reemplazar esto con un componente MCSpinner o Skeleton si tienes uno en @/shared/ui */}
+      <span className="text-muted-foreground text-lg">
+        Cargando servicios...
+      </span>
+    </div>
+  ) : showCards ? (
     transformedServices.length === 0 ? (
       emptyState
     ) : (
@@ -455,7 +509,7 @@ function MyServicesPage() {
   ) : filteredServices.length === 0 ? (
     emptyState
   ) : (
-    <MyServicesTable services={filteredServices} />
+    <MyServicesTable services={transformedDataForServiceTable} />
   );
 
   // Botón para crear nuevo servicio
@@ -470,13 +524,13 @@ function MyServicesPage() {
   const metrics = [
     {
       title: t("services.metrics.activeServices"),
-      value: filteredServices.filter((s) => s.status === "active").length,
+      value: filteredServices.filter((s) => s.estado === "active").length,
       subtitle: t("services.metrics.activeServicesSubtitle"),
       icon: <CheckCircle />,
     },
     {
       title: t("services.metrics.inactiveServices"),
-      value: filteredServices.filter((s) => s.status === "inactive").length,
+      value: filteredServices.filter((s) => s.estado === "inactive").length,
       subtitle: t("services.metrics.inactiveServicesSubtitle"),
       icon: <Ban />,
     },
@@ -485,7 +539,7 @@ function MyServicesPage() {
       value:
         filteredServices.length > 0
           ? (
-              filteredServices.reduce((acc, s) => acc + s.rating, 0) /
+              filteredServices.reduce((acc, s) => acc + s.calificacionPromedio, 0) /
               filteredServices.length
             ).toFixed(2)
           : "0.00",

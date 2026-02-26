@@ -51,6 +51,8 @@
       "maxLength": "Máximo 8 imágenes",
       "required": "Se requiere al menos 1 imagen"
     },
+    "section": { "required": "La sección es requerida" },
+    "neighborhood": { "required": "El barrio es requerido" },
     "address": { "required": "La dirección es requerida" },
     "province": { "required": "La provincia es requerida" },
     "municipality": { "required": "El municipio es requerido" },
@@ -856,7 +858,15 @@
       "title": "Confirma tu ubicación",
       "description": "Especifica la dirección donde ofrecerás tus consultas o servicios médicos para que los pacientes puedan encontrarte fácilmente.",
       "addLocation": "Agregar Ubicación",
-      "manageLocation": "Seleccionar Ubicación"
+      "manageLocation": "Seleccionar Ubicación",
+      "locationCreatedSuccess": "Ubicación creada exitosamente",
+      "locationCreatedError": "Error al crear la ubicación",
+      "missingRequiredFields": "Por favor complete todos los campos requeridos",
+      "invalidFormData": "Los datos del formulario son inválidos",
+      "noLocations": "No tienes ubicaciones registradas",
+      "addFirstLocation": "Agrega tu primera ubicación para continuar",
+      "noLocationsYet": "Aún no tienes ubicaciones",
+      "errorLoadingLocations": "Error al cargar las ubicaciones"
     },
     "review": {
       "title": "Revisar Servicio",
@@ -927,11 +937,25 @@
     "locationNamePlaceholder": "Ej: Consultorio Principal",
     "address": "Dirección",
     "addressPlaceholder": "Calle Principal #123",
+    "available": "Disponible",
     "province": "Provincia",
-    "provincePlaceholder": "Santo Domingo",
+    "provincePlaceholder": "Seleccione una provincia",
+    "loadingProvinces": "Cargando provincias...",
     "municipality": "Municipio",
-    "municipalityPlaceholder": "Distrito Nacional",
-    "available": "Disponible"
+    "municipalityPlaceholder": "Seleccione un municipio",
+    "loadingMunicipalities": "Cargando municipios...",
+    "selectProvinceFirst": "Primero seleccione una provincia",
+    "district": "Distrito Municipal",
+    "districtPlaceholder": "Seleccione un distrito (opcional)",
+    "loadingDistricts": "Cargando distritos...",
+    "selectMunicipalityFirst": "Primero seleccione un municipio",
+    "section": "Sección",
+    "sectionPlaceholder": "Seleccione una sección",
+    "loadingSections": "Cargando secciones...",
+    "neighborhood": "Barrio",
+    "neighborhoodPlaceholder": "Seleccione un barrio",
+    "loadingNeighborhoods": "Cargando barrios...",
+    "selectSectionFirst": "Primero seleccione una sección"
   },
 
   "modality": {

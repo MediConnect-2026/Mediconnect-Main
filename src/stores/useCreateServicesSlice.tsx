@@ -51,6 +51,7 @@ const createServicesSlice: StateCreator<CreateServicesSlice> = (set, get) => ({
   createServiceData: {
     name: "",
     specialty: "",
+    specialityName: "",
     selectedModality: "presencial",
     numberOfSessions: 1,
     duration: {
@@ -77,6 +78,9 @@ const createServicesSlice: StateCreator<CreateServicesSlice> = (set, get) => ({
     address: "",
     province: "",
     municipality: "",
+    section: "",
+    district: "",
+    neighborhood: "",
     coordinates: {
       latitude: 0,
       longitude: 0,
@@ -102,6 +106,9 @@ const createServicesSlice: StateCreator<CreateServicesSlice> = (set, get) => ({
           latitude: 0,
           longitude: 0,
         },
+        section: "",
+        district: "",
+        neighborhood: "",
       },
     }),
   comercialScheduleData: {
@@ -332,6 +339,9 @@ const createServicesSlice: StateCreator<CreateServicesSlice> = (set, get) => ({
         address: "",
         province: "",
         municipality: "",
+        section: "",
+        district: "",
+        neighborhood: "",
         coordinates: {
           latitude: 0,
           longitude: 0,

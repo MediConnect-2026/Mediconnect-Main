@@ -124,6 +124,8 @@ export const API_ENDPOINTS = {
     SUBBARRIOS: (idBarrio: string | number) => `/subbarrios/barrio/${idBarrio}`,
     GEOPOINTS_BY_BARRIOS: (idBarrio: string | number) => `/barrios/geo/${idBarrio}`,
     BARRIO_BY_GEOPOINT: '/barrios/geo/punto',
+    LOCATIONS_BY_DOCTOR: '/ubicaciones/mis-ubicaciones',
+    CREATE_LOCATION: '/ubicaciones/mis-ubicaciones',
   },
 
   // --- Tipos de centro ---

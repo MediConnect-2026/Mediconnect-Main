@@ -22,6 +22,7 @@ function ServiceBasicInfoStep() {
 
   const basicInfoSchema = serviceSchema(t).pick({
     specialty: true,
+    specialityName: true,
     selectedModality: true,
     pricePerSession: true,
     description: true,
@@ -32,11 +33,6 @@ function ServiceBasicInfoStep() {
   const [especialidadesOptions, setEspecialidadesOptions] = useState<SelectOption[]>([]);
   const [loadingEspecialidades, setLoadingEspecialidades] = useState(true);
   const [isFormValid, setIsFormValid] = useState(false);
-
-  // Debug: Log isFormValid changes
-  useEffect(() => {
-    console.log("isFormValid:", isFormValid);
-  }, [isFormValid]);
 
 
   const createServiceData = useCreateServicesStore((s) => s.createServiceData);
@@ -63,10 +59,14 @@ function ServiceBasicInfoStep() {
         "pricePerSession",
         createServiceData.pricePerSession || 1,
       );
-      formRef.current.setValue(
-        "description",
-        createServiceData.description || "",
-      );
+
+      if (createServiceData.description) {
+        formRef.current.setValue(
+          "description",
+          createServiceData.description || "",
+        );
+      }
+      
       formRef.current.setValue(
         "selectedModality",
         createServiceData.selectedModality || "presencial",
@@ -74,6 +74,11 @@ function ServiceBasicInfoStep() {
       formRef.current.setValue(
         "specialty",
         createServiceData.specialty || "",
+        { shouldValidate: true },
+      );
+      formRef.current.setValue(
+        "specialityName",
+        createServiceData.specialityName || "",
         { shouldValidate: true },
       );
     }
@@ -84,6 +89,7 @@ function ServiceBasicInfoStep() {
     createServiceData.duration,
     createServiceData.pricePerSession,
     createServiceData.description,
+    createServiceData.specialityName,
   ]);
 
   //Cargar especialidades para el select
@@ -131,10 +137,19 @@ function ServiceBasicInfoStep() {
   const handleEspecialidadChange = (option: any | null) => {
     const value = option ? option : "";
     formRef.current.setValue("specialty", value, { shouldValidate: true });
-    setCreateServiceData({
-      ...createServiceData,
-      specialty: value,
-    });
+    if(especialidadesOptions.length > 0) {
+      const selectedOption = especialidadesOptions.find((opt) => opt.value === value);
+      setCreateServiceData({
+        ...createServiceData,
+        specialty: value,
+        specialityName: selectedOption?.label || "",
+      });
+    } else {
+      setCreateServiceData({
+        ...createServiceData,
+        specialty: value
+      });
+    }
   };
 
   const handleModalityChange = (option: any | null) => {
@@ -221,7 +236,7 @@ function ServiceBasicInfoStep() {
               label={t("form.description")}
               placeholder={t("form.serviceDescription")}
               variant="internal-vertical"
-              internalTitle={t("form.optional")}
+              internalTitle={t("form.serviceDescription")}
               internalPlaceholder={t("form.descriptionPlaceholder")}
             />
           </DescriptionModal>

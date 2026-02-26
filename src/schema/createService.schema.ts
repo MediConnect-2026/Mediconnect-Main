@@ -19,6 +19,7 @@ export const defaultServiceSchema = z.object({
     .min(50, "Description must be at least 50 characters")
     .max(250, "Description cannot exceed 250 characters"),
   specialty: z.string(),
+  specialityName: z.string().optional(),
   selectedModality: z.enum(["presencial", "teleconsulta", "Mixta"]),
   pricePerSession: z.number().min(1, "Price per session must be positive"),
   numberOfSessions: z
@@ -53,6 +54,7 @@ export const serviceSchema = (t: (key: string) => string) =>
       .min(50, t("validation.description.minLength"))
       .max(250, t("validation.description.maxLength")),
     specialty: z.string().min(1, t("validation.specialty.required")), // <-- Validación obligatoria
+    specialityName: z.string().optional(),
     selectedModality: z
       .enum(["presencial", "teleconsulta", "Mixta"])
       .refine((val) => !!val, {
@@ -91,6 +93,9 @@ export const defaultLocationSchema = z.object({
   address: z.string(),
   province: z.string(),
   municipality: z.string(),
+  section: z.string(),
+  district: z.string().optional(),
+  neighborhood: z.string(),
   coordinates: z.object({
     latitude: z.number(),
     longitude: z.number(),
@@ -103,12 +108,13 @@ export const locationSchema = (t: (key: string) => string) =>
     name: z
       .string()
       .min(1, t("validation.name.required"))
-      .max(30, t("validation.name.maxLength30"))
-      .optional(),
-
+      .max(30, t("validation.name.maxLength30")),
     address: z.string().min(1, t("validation.address.required")),
     province: z.string().min(1, t("validation.province.required")),
     municipality: z.string().min(1, t("validation.municipality.required")),
+    section: z.string().min(1, t("validation.section.required")),
+    district: z.string().optional(),
+    neighborhood: z.string().min(1, t("validation.neighborhood.required")),
     coordinates: z.object({
       latitude: z.number(),
       longitude: z.number(),

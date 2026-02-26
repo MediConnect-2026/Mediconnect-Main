@@ -50,6 +50,8 @@
       "maxLength": "Maximum 8 images",
       "required": "At least 1 image is required"
     },
+    "section": { "required": "Section is required" },
+    "neighborhood": { "required": "Neighborhood is required" },
     "address": { "required": "Address is required" },
     "province": { "required": "Province is required" },
     "municipality": { "required": "Municipality is required" },
@@ -849,7 +851,15 @@
       "title": "Confirm your location",
       "description": "Specify the address where you will offer your consultations or medical services.",
       "addLocation": "Add Location",
-      "manageLocation": "Select Location"
+      "manageLocation": "Select Location",
+      "locationCreatedSuccess": "Location created successfully",
+      "locationCreatedError": "Error creating location",
+      "missingRequiredFields": "Please complete all required fields",
+      "invalidFormData": "Form data is invalid. Please check the information.",
+      "noLocations": "No tienes ubicaciones registradas",
+      "addFirstLocation": "Agrega tu primera ubicación para continuar",
+      "noLocationsYet": "Aún no tienes ubicaciones",
+      "errorLoadingLocations": "Error al cargar las ubicaciones"
     },
     "review": {
       "title": "Review Service",
@@ -920,11 +930,24 @@
     "locationNamePlaceholder": "E.g.: Main Office",
     "address": "Address",
     "addressPlaceholder": "Main Street #123",
+    "available": "Available",
     "province": "Province",
-    "provincePlaceholder": "Santo Domingo",
+    "provincePlaceholder": "Select a province",
+    "loadingProvinces": "Loading provinces...",
     "municipality": "Municipality",
-    "municipalityPlaceholder": "Distrito Nacional",
-    "available": "Available"
+    "municipalityPlaceholder": "Select a municipality",
+    "loadingMunicipalities": "Loading municipalities...",
+    "selectProvinceFirst": "First select a province",
+    "district": "Municipal District",
+    "districtPlaceholder": "Select a municipal district (optional)",
+    "loadingDistricts": "Loading districts...",
+    "selectMunicipalityFirst": "First select a municipality",
+    "section": "Section",
+    "sectionPlaceholder": "Select a section",
+    "loadingSections": "Loading sections...",
+    "neighborhood": "Neighborhood",
+    "loadingNeighborhoods": "Loading neighborhoods...",
+    "selectSectionFirst": "First select a section"
   },
 
   "modality": {

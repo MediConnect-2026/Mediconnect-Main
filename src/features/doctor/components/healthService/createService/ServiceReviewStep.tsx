@@ -11,30 +11,6 @@ import { doctorService } from "@/shared/navigation/userMenu/editProfile/doctor/s
 import { useGlobalUIStore } from "@/stores/useGlobalUIStore";
 import { useState } from "react";
 
-const locationsData = [
-  {
-    id: 1,
-    name: "Clínica Abreu",
-    address: "Av. Independencia 105, Santo Domingo",
-    latitude: 18.4636,
-    longitude: -69.9271,
-  },
-  {
-    id: 2,
-    name: "Centro Médico UCE",
-    address: "Av. Máximo Gómez 46, Santo Domingo",
-    latitude: 18.4762,
-    longitude: -69.9117,
-  },
-];
-
-const mappedLocations = locationsData.map((loc) => ({
-  lat: loc.latitude,
-  lng: loc.longitude,
-  label: loc.name || loc.address,
-  color: "#e11d48",
-}));
-
 function ServiceReviewStep() {
   const { t } = useTranslation("doctor");
   const isMobile = useIsMobile();
@@ -46,9 +22,10 @@ function ServiceReviewStep() {
   const serviceCreateData = useCreateServicesStore((s) => s.createServiceData);
   const goToPreviousStep = useCreateServicesStore((s) => s.goToPreviousStep);
   const clearCreateServiceData = useCreateServicesStore((s) => s.clearComercialScheduleData); // ✅ Opcional: limpiar datos después de crear
+  const locationData = useCreateServicesStore((s) => s.locationData);
+
 
   const handleSubmit = async () => {
-    console.log("Service data to submit:", serviceCreateData);
     
     setIsSubmitting(true);
 
@@ -57,8 +34,7 @@ function ServiceReviewStep() {
       const request = await mapDoctorServices(serviceCreateData);
       
       // ✅ Crear servicio
-      const response = await doctorService.createService(request);
-      console.log("Create service response:", response);
+      await doctorService.createService(request);
 
       // ✅ Mostrar mensaje de éxito
       setToast({
@@ -139,6 +115,13 @@ function ServiceReviewStep() {
   };
 
   const modality = serviceCreateData.selectedModality;
+  const selectedEspecialty = serviceCreateData.specialityName || serviceCreateData.specialty || "";
+  const locationSelected = [{
+    lat: locationData.coordinates?.latitude || 0,
+    lng: locationData.coordinates?.longitude || 0,
+    label: locationData.name || "",
+    color: "#e11d48",
+  }];
 
   return (
     <ServicesLayoutsSteps
@@ -170,7 +153,7 @@ function ServiceReviewStep() {
               {t("createService.review.specialty")}
             </h4>
             <p className={isMobile ? "text-base" : "text-lg"}>
-              {serviceCreateData.specialty}
+              {selectedEspecialty}
             </p>
           </div>
           <div>
@@ -221,8 +204,8 @@ function ServiceReviewStep() {
               {t("createService.review.location")}
             </h2>
             <MapScheduleLocation
-              showAddressInfo
-              multipleLocations={mappedLocations}
+              showAddressInfo={false}
+              multipleLocations={locationSelected}
             />
           </div>
         )}

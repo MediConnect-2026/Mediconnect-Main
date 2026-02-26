@@ -35,7 +35,9 @@ import type {
   DeleteDoctorLanguageResponse,
   LanguageError,
   CreateDoctorServiceResponse,
-  CreateDoctorServiceRequest
+  CreateDoctorServiceRequest,
+  GetServicesOfDoctor,
+  GetServicesOfDoctorResponse
 } from './doctor.types';
 
 /**
@@ -820,9 +822,52 @@ export const doctorService = {
   
   createService: async (data: CreateDoctorServiceRequest): Promise<CreateDoctorServiceResponse> => {
     try {
+      const formData = new FormData();
+
+      // Append standard primitive fields
+      formData.append('especialidadId', data.especialidadId.toString());
+      formData.append('nombre', data.nombre);
+      if (data.descripcion) formData.append('descripcion', data.descripcion);
+      formData.append('precio', data.precio.toString());
+      formData.append('duracionMinutos', data.duracionMinutos.toString());
+      formData.append('sesiones', data.sesiones.toString());
+      formData.append('modalidad', data.modalidad);
+      if (data.maxPacientesDia) formData.append('maxPacientesDia', data.maxPacientesDia.toString());
+
+      // Append Arrays of primitive IDs
+      // Note: How arrays are received depends entirely on your backend (NestJS, Express, etc.)
+      // Method A: Multiple appends (Standard for many frameworks like NestJS with FileInterceptor)
+      if (data.centroSaludIds) {
+        data.centroSaludIds.forEach((id) => formData.append('centroSaludIds', id.toString()));
+      }
+      if (data.ubicacionIds) {
+        data.ubicacionIds.forEach((id) => formData.append('ubicacionIds', id.toString()));
+      }
+      if (data.horariosIds) {
+        data.horariosIds.forEach((id) => formData.append('horarioIds', id.toString()));
+      }
+
+      // Method B: Send as JSON string (Use this if your backend expects a stringified array)
+      // if (data.horariosIds) formData.append('horariosIds', JSON.stringify(data.horariosIds));
+      // if (data.ubicacionIds) formData.append('ubicacionIds', JSON.stringify(data.ubicacionIds));
+
+      // Append Files
+      if (data.imagenes && data.imagenes.length > 0) {
+        data.imagenes.forEach((file) => {
+          // 'imagenes' must match the field name your backend file interceptor expects
+          formData.append('imagenes', file); 
+        });
+      }
+
+      // Send the request using FormData and the correct headers
       const response = await apiClient.post<CreateDoctorServiceResponse>(
         '/servicios',
-        data
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        }
       );
 
       return response.data;
@@ -837,6 +882,27 @@ export const doctorService = {
         response: error.response,
         originalError: error
       };
+    }
+  },
+
+  getServicesOfDoctor: async (doctorId: number, params: any | null = null): Promise<GetServicesOfDoctorResponse> => {
+    try {
+      const response = await apiClient.get<GetServicesOfDoctorResponse>(
+        `/servicios/doctor/${doctorId}`,
+        { params }
+      );
+      
+      return response.data;
+    } catch (error: any) {
+      console.error('❌ [Doctor Service] Error al obtener servicios del doctor:', error);
+      
+      const errorData = error.response?.data as DoctorServiceError;
+      
+      throw new Error(
+        errorData?.message || 
+        error.message || 
+        'Error al obtener servicios del doctor. Intenta nuevamente.'
+      );
     }
   },
 };

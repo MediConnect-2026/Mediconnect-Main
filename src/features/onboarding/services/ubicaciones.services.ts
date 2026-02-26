@@ -5,7 +5,9 @@ import type {
 	SeccionResponse,
 	BarrioResponse,
 	SubBarrioResponse,
-	SelectOption
+	SelectOption,
+    CreateLocationResponse,
+    createLocationRequest
 } from './ubicaciones.types';
 import apiClient from '@/services/api/client';
 import API_ENDPOINTS from '@/services/api/endpoints';
@@ -108,6 +110,26 @@ const ubicacionesService = {
         } catch (error) {
             console.error(`Error obteniendo geo points para lat ${lat}, lng ${lng}:`, error);
             return {};
+        }
+    },
+
+    async getLocationsByDoctor(language: string, params: any): Promise<any> {
+        try {
+            const response = await apiClient.get(`${API_ENDPOINTS.UBICACIONES.LOCATIONS_BY_DOCTOR}`, { params: { target: language, translate_fields: 'name,address' } });
+            return (response.data.data || []);
+        } catch (error) {
+            console.error(`Error obteniendo ubicaciones para doctorId ${params.doctorId}:`, error);
+            return [];
+        }
+    },
+
+    async createLocation(data: createLocationRequest): Promise<CreateLocationResponse> {
+        try {
+            const response = await apiClient.post(`${API_ENDPOINTS.UBICACIONES.CREATE_LOCATION}`, data);
+            return response.data;
+        } catch (error) {
+            console.error(`Error creando ubicación:`, error);
+            throw error;
         }
     }
 };

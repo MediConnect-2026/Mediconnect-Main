@@ -23,7 +23,7 @@ interface MCServiceCardProps {
   price: string;
   description: string;
   rating: number;
-  reviews: number;
+  review?: number;
   duration: string;
   type: string;
   onDetails?: () => void;
@@ -43,7 +43,7 @@ const MCServiceCards = ({
   price,
   description,
   rating,
-  reviews,
+  review,
   duration,
   type,
   onDetails,
@@ -62,7 +62,7 @@ const MCServiceCards = ({
   const { t } = useTranslation("doctor");
   const isMobile = useIsMobile();
   const navigate = useNavigate(); // <-- NAVEGAR
-  const currentUser = useAppStore((state) => state.user?.role);
+  const currentUser = useAppStore((state) => state.user?.rol);
 
   if (currentUser === "PATIENT") {
     // El usuario es paciente

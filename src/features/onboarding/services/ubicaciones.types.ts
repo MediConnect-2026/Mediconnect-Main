@@ -107,3 +107,35 @@ export interface SubBarrioResponse {
     count: number;
     message: string;
 }
+
+export interface createLocationRequest {
+    barrioId: number;
+    direccion: string;
+    nombre: string;
+    codigoPostal?: string;
+    puntoGeografico: {
+        type: 'Point';
+        coordinates: [number, number];
+    };
+}
+
+export interface CreateLocationResponse {
+    success: boolean;
+    data: any; // Ajusta el tipo según la respuesta real de tu API
+    count: number;
+}
+
+export interface DoctorLocation {
+  id: number;
+  nombre: string;
+  direccion: string;
+  puntoGeografico: {
+    type: string;
+    coordinates: [number, number]; // [longitude, latitude]
+  };
+  barrio?: {
+    id: number;
+    nombre: string;
+  };
+  estado?: string;
+}

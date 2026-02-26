@@ -47,6 +47,8 @@ interface MCModalBaseProps {
   disabledConfirm?: boolean; // Nueva prop para deshabilitar el botón de confirmar
   description?: string; // <-- Agrega esta línea
   autoCloseOnConfirm?: boolean;
+  hideConfirm?: boolean; // Nueva prop para ocultar el botón de confirmar
+  showConfirm?: boolean; // Prop para controlar la visibilidad del botón de confirmar (opcional, si se prefiere sobre hideConfirm)
 }
 
 export function MCModalBase({
@@ -71,7 +73,9 @@ export function MCModalBase({
   actionOne = false,
   defaultOpen = false,
   disabledConfirm = false, // Valor por defecto
+  hideConfirm = false, // Nueva prop para ocultar el botón de confirmar
   description = "", // <-- Agrega aquí
+  showConfirm = true, // Valor por defecto para mostrar el botón de confirmar
   autoCloseOnConfirm = true,
 }: MCModalBaseProps) {
   const isControlled = externalIsOpen !== undefined;
@@ -277,15 +281,17 @@ export function MCModalBase({
               >
                 {secondaryText}
               </MCButton>
-              <MCButton
-                variant="primary"
-                size={isMobile ? "l" : "m"}
-                onClick={handleConfirm}
-                className={isMobile ? "w-full" : ""}
-                disabled={disabledConfirm}
-              >
-                {confirmText}
-              </MCButton>
+              {showConfirm && !hideConfirm && (
+                <MCButton
+                  variant="primary"
+                  size={isMobile ? "l" : "m"}
+                  onClick={handleConfirm}
+                  className={isMobile ? "w-full" : ""}
+                  disabled={disabledConfirm}
+                >
+                  {confirmText}
+                </MCButton>
+              )}
             </div>
           )}
         </MorphingDialogContent>

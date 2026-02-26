@@ -174,7 +174,7 @@ function ServiceScheduleStep() {
                   {getDaysAndHours(item)}
                 </p>
               </div>
-              <ManageSchedule locationSelected={item.id} scheduleData={item} onScheduleCreated={loadSchedules}>
+              <ManageSchedule locationSelected={item.id} scheduleData={item} onScheduleCreated={loadSchedules} readonly={true}>
                 <Button
                   variant="outline"
                   className="rounded-4xl p-2 border-none bg-transparent shadow-none text-primary/75 hover:bg-primary/10 hover:text-primary focus:ring-0 focus:ring-offset-0 focus-visible:ring-0"

@@ -3,7 +3,6 @@ import { Controller, useFormContext } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { MCModalBase } from "@/shared/components/MCModalBase";
 import MCInput from "@/shared/components/forms/MCInput";
-import MCSelect from "@/shared/components/forms/MCSelect";
 import MCFormWrapper from "@/shared/components/forms/MCFormWrapper";
 import { useCreateServicesStore } from "@/stores/useCreateServicesStore";
 import { comercialScheduleSchema } from "@/schema/createService.schema";
@@ -11,33 +10,18 @@ import { scheduleService } from "@/shared/navigation/userMenu/editProfile/doctor
 import { useGlobalUIStore } from "@/stores/useGlobalUIStore";
 const DAY_ORDER = [1, 2, 3, 4, 5, 6, 0];
 
-const LOCATIONS_DATA = [
-  {
-    id: 1,
-    name: "Clínica Abreu",
-    address: "Av. Independencia 105, Santo Domingo",
-    latitude: 18.4636,
-    longitude: -69.9271,
-  },
-  {
-    id: 2,
-    name: "Centro Médico UCE",
-    address: "Av. Máximo Gómez 46, Santo Domingo",
-    latitude: 18.4762,
-    longitude: -69.9117,
-  },
-];
-
 interface ManageLocationProps {
   locationSelected?: number | undefined;
   children: React.ReactNode;
   scheduleData?: any;
   onScheduleCreated?: () => void;
+  readonly?: boolean;
 }
 
 interface DaysSelectorProps {
   name: string;
   onChange?: (value: number[]) => void;
+  readonly?: boolean;
 }
 
 function timeToMinutes(time: string): number {
@@ -70,7 +54,7 @@ function timeToMinutes(time: string): number {
   return hour * 60 + minute;
 }
 
-function DaysSelector({ name, onChange }: DaysSelectorProps) {
+function DaysSelector({ name, onChange, readonly }: DaysSelectorProps) {
   const { t } = useTranslation("doctor");
   const {
     control,
@@ -110,6 +94,7 @@ function DaysSelector({ name, onChange }: DaysSelectorProps) {
                     key={dayNum}
                     type="button"
                     onClick={() => {
+                      if (readonly) return;
                       const current = field.value ?? [];
                       const next = selected
                         ? current.filter((d: number) => d !== dayNum)
@@ -140,7 +125,7 @@ function DaysSelector({ name, onChange }: DaysSelectorProps) {
   );
 }
 
-function ManageSchedule({ locationSelected, scheduleData, children, onScheduleCreated }: ManageLocationProps) {
+function ManageSchedule({ locationSelected, scheduleData, children, onScheduleCreated, readonly }: ManageLocationProps) {
   const { t } = useTranslation("doctor");
   const submitRef = useRef<(() => void) | null>(null);
   const formRef = useRef<any>(null);
@@ -181,11 +166,6 @@ function ManageSchedule({ locationSelected, scheduleData, children, onScheduleCr
   );
 
   const comercialScheduleFormSchema = comercialScheduleSchema(t);
-
-  const locationOptions = LOCATIONS_DATA.map((location) => ({
-    value: location.id.toString(),
-    label: location.name,
-  }));
 
   const minDurationMinutes =
     (serviceDuration?.hours || 0) * 60 + (serviceDuration?.minutes || 0);
@@ -341,6 +321,7 @@ function ManageSchedule({ locationSelected, scheduleData, children, onScheduleCr
       onClose={handleClose}
       closeRef={closeModalRef}
       autoCloseOnConfirm={false}
+      showConfirm={!readonly}
       disabledConfirm={
         isLoading ||
         !comercialScheduleData.name ||
@@ -376,12 +357,13 @@ function ManageSchedule({ locationSelected, scheduleData, children, onScheduleCr
           placeholder={t("createService.schedule.scheduleNamePlaceholder")}
           value={comercialScheduleData.name || ""}
           onChange={(e) => setComercialScheduleField("name", e.target.value)}
-          disabled={isLoading}
+          disabled={isLoading || readonly}
         />
 
         <DaysSelector
           name="day"
           onChange={(value) => setComercialScheduleField("day", value)}
+          readonly={readonly}
         />
 
         <MCInput
@@ -395,7 +377,7 @@ function ManageSchedule({ locationSelected, scheduleData, children, onScheduleCr
             setComercialScheduleField("startTime", e.target.value);
             setStartTimeTouched(true);
           }}
-          disabled={isLoading}
+          disabled={isLoading || readonly}
         />
 
         <MCInput
@@ -409,20 +391,8 @@ function ManageSchedule({ locationSelected, scheduleData, children, onScheduleCr
             setComercialScheduleField("endTime", e.target.value);
             setEndTimeTouched(true);
           }}
-          disabled={isLoading}
+          disabled={isLoading || readonly}
         />
-
-        {isPresentialOrMixed && (
-          <MCSelect
-            name="locationId"
-            label={t("createService.schedule.location")}
-            placeholder={t("createService.schedule.selectLocation")}
-            options={locationOptions}
-            searchable
-            onChange={(value) => setComercialScheduleField("locationId", value)}
-            disabled={isLoading}
-          />
-        )}
 
         {hasTimeConflict && (
           <div className="text-red-500 text-sm mt-2 p-3 bg-red-50 rounded-4xl border border-red-200">

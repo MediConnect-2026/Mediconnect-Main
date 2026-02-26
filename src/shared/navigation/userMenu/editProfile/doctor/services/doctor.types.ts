@@ -423,6 +423,81 @@ export interface CreateDoctorServiceResponse{
   data: any;
 }
 
+export interface ServicioImagen {
+  id: number;
+  servicioId: number;
+  url: string;
+  orden: number;
+  estado: string;
+  creadoEn: string;
+}
+
+export interface ServicioEspecialidad {
+  id: number;
+  nombre: string;
+}
+
+export interface HorarioDia {
+  dia_semana: number;
+}
+
+export interface HorarioDetalle {
+  id: number;
+  nombre: string;
+  horaInicio: string; // Formato "HH:mm"
+  horaFin: string;    // Formato "HH:mm"
+  centroSaludId: number | null;
+  centroSalud: any | null; // Considera tiparlo si tienes la entidad CentroSalud
+  ubicacion: any | null;   // Considera tiparlo si tienes la entidad Ubicacion extendida
+  horarios_dias: HorarioDia[];
+}
+
+export interface ServicioHorario {
+  servicioId: number;
+  horarioId: number;
+  estado: string;
+  creadoEn: string;
+  horario: HorarioDetalle;
+}
+
+export interface ServicioUbicacionBarrio {
+  nombre: string;
+}
+
+export interface ServicioUbicacion {
+  id: number;
+  direccion: string;
+  barrio: ServicioUbicacionBarrio;
+}
+
+export interface GetServicesOfDoctor {
+  id: number;
+  doctorId: number;
+  especialidadId: number;
+  nombre: string;
+  descripcion: string;
+  precio: number;
+  duracionMinutos: number;
+  maxPacientesDia: number | null;
+  calificacionPromedio: number;
+  modalidad: string; // ej. "Presencial" | "Teleconsulta" | "Mixta"
+  estado: string;    // ej. "Activo" | "Inactivo"
+  creadoEn: string;  // Fecha ISO
+  actualizadoEn: string | null;
+  imagenes: ServicioImagen[];
+  especialidad: ServicioEspecialidad;
+  horarios: ServicioHorario[];
+  centros: any[]; // Tipar según la estructura de centros que maneje tu backend
+  ubicacionId: number | null;
+  ubicacion: ServicioUbicacion[];
+}
+
+export interface GetServicesOfDoctorResponse {
+  success: boolean;
+  message?: string;
+  data: GetServicesOfDoctor[];
+}
+
 // --- RE-EXPORTAR TIPOS RELACIONADOS ---
 
 /**

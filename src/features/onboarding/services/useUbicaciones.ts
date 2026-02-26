@@ -1,9 +1,13 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import type {UseQueryResult} from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { QUERY_KEYS } from '@/lib/react-query/config';
 import ubicacionesService from './ubicaciones.services';
 import type { SelectOption } from './ubicaciones.types';
+import type { DoctorLocation } from './ubicaciones.types';
 import { useTranslation } from 'react-i18next';
+
+type NivelGeografico = 'provincias' | 'municipios' | 'distritos' | 'secciones' | 'barrios' | 'subbarrios';
 
 /**
  * Hook para obtener ubicaciones geográficas jerárquicas
@@ -13,30 +17,41 @@ import { useTranslation } from 'react-i18next';
  * - secciones: requiere idDistrito
  * - barrios: requiere idSeccion
  * - subbarrios: requiere idBarrio
- *
- * OPTIMIZACIONES:
+ * * OPTIMIZACIONES:
  * - Cache en memoria: 24 horas
  * - Cache persistente: localStorage (7 días)
  * - staleTime: 30 minutos
  * - No refetch automático en windowFocus o reconnect
  * - Placeholder data para UX fluida durante updates
- *
- * @param nivel - provincia | municipio | distrito | seccion | barrio | subbarrio
- * @param params - parámetros para la búsqueda (ej: { idProvincia })
- * @param options - enabled, refetchOnMount
  */
-export const useUbicaciones = (
-	nivel: 'provincias' | 'municipios' | 'distritos' | 'secciones' | 'barrios' | 'subbarrios',
+
+// --- 1. SOBRECARGA PARA EL NIVEL 'DOCTOR' ---
+export function useUbicaciones(
+	nivel: 'doctor',
 	params?: Record<string, any>,
 	options?: { enabled?: boolean; refetchOnMount?: boolean }
-) => {
+): UseQueryResult<DoctorLocation[], Error>;
+
+// --- 2. SOBRECARGA PARA LOS NIVELES GEOGRÁFICOS ---
+export function useUbicaciones(
+	nivel: NivelGeografico,
+	params?: Record<string, any>,
+	options?: { enabled?: boolean; refetchOnMount?: boolean }
+): UseQueryResult<SelectOption[], Error>;
+
+// --- 3. IMPLEMENTACIÓN REAL DEL HOOK ---
+export function useUbicaciones(
+	nivel: NivelGeografico | 'doctor',
+	params?: Record<string, any>,
+	options?: { enabled?: boolean; refetchOnMount?: boolean }
+) {
 	const queryClient = useQueryClient();
-    const {i18n} = useTranslation();
-    const currentLanguage = i18n.language;
+	const { i18n } = useTranslation();
+	const currentLanguage = i18n.language;
 
 	// Mapear nivel a función de servicio
 	const fetchFn = () => {
-        console.log(`Fetching ubicaciones for nivel: ${nivel} with params:`, params);
+		console.log(`Fetching ubicaciones for nivel: ${nivel} with params:`, params);
 		switch (nivel) {
 			case 'provincias':
 				return ubicacionesService.getProvincias(currentLanguage);
@@ -50,14 +65,27 @@ export const useUbicaciones = (
 				return ubicacionesService.getBarrios(currentLanguage, Number(params?.idSeccion));
 			case 'subbarrios':
 				return ubicacionesService.getSubbarrios(currentLanguage, Number(params?.idBarrio));
+			case 'doctor':
+				return ubicacionesService.getLocationsByDoctor(currentLanguage, params);
 			default:
 				return Promise.resolve([]);
 		}
 	};
 
-	const query = useQuery<SelectOption[], Error>({
+	// Cambia el tipo de retorno según el nivel
+	const query = nivel === 'doctor' ? useQuery<DoctorLocation[], Error>({
 		queryKey: QUERY_KEYS.UBICACIONES(nivel, params),
 		queryFn: fetchFn,
+		staleTime: 1000 * 60 * 30, // 30 minutos
+		gcTime: 1000 * 60 * 60 * 24, // 24 horas
+		refetchOnWindowFocus: false,
+		refetchOnReconnect: false,
+		refetchOnMount: options?.refetchOnMount ?? false,
+		enabled: options?.enabled ?? true,
+		placeholderData: (previousData) => previousData,
+	}) : useQuery<SelectOption[], Error>({
+		queryKey: QUERY_KEYS.UBICACIONES(nivel, params),
+		queryFn: fetchFn as () => Promise<SelectOption[]>, // Pequeño casteo interno para evitar quejas de TS en el switch
 		staleTime: 1000 * 60 * 30,
 		gcTime: 1000 * 60 * 60 * 24,
 		refetchOnWindowFocus: false,
@@ -104,7 +132,9 @@ export const useUbicaciones = (
 		}
 	}, [currentLanguage, nivel, params, queryClient, query.data]);
 
-	return query;
-};
+	// Hacemos un "as any" en el return de la implementación base 
+	// porque las sobrecargas de arriba ya se encargan de dictar el tipado estricto hacia afuera.
+	return query as any;
+}
 
 export default useUbicaciones;

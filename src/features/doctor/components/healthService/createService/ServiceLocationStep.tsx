@@ -1,8 +1,9 @@
+// Imports necesarios que debes asegurarte de tener al inicio
 import MapScheduleLocation from "@/shared/components/maps/MapScheduleLocation";
 import { useCreateServicesStore } from "@/stores/useCreateServicesStore";
 import ServicesLayoutsSteps from "./ServicesLayoutsSteps";
 import AuthFooterContainer from "@/features/auth/components/AuthFooterContainer";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, MapPin } from "lucide-react";
 import MCButton from "@/shared/components/forms/MCButton";
 import { Button } from "@/shared/ui/button";
 import {
@@ -12,9 +13,11 @@ import {
   TooltipProvider,
 } from "@/shared/ui/tooltip";
 import ManageLocation from "./Modals/ManageLocation";
-import { useRef, useState } from "react";
+import { useRef, useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
+import { useUbicaciones } from "@/features/onboarding/services/useUbicaciones";
+import { Skeleton } from "@/shared/ui/skeleton";
 
 interface LocationCoordinate {
   lat: number;
@@ -23,115 +26,51 @@ interface LocationCoordinate {
   color?: string;
 }
 
+interface DoctorLocation {
+  id: number;
+  nombre: string;
+  direccion: string;
+  puntoGeografico: {
+    type: string;
+    coordinates: [number, number];
+  };
+  barrio?: {
+    id: number;
+    nombre: string;
+  };
+  estado?: string;
+}
+
 function ServiceLocationStep() {
   const { t } = useTranslation("doctor");
   const isMobile = useIsMobile();
 
-  const locationSelected = useCreateServicesStore(
-    (s) => s.createServiceData.location,
-  );
-
-  const setLocationData = useCreateServicesStore(
-    (s) => s.setCreateServiceField,
-  );
-
+  const locationSelected = useCreateServicesStore((s) => s.createServiceData.location);
+  const setLocationData = useCreateServicesStore((s) => s.setCreateServiceField);
+  const setLocationDataInStore = useCreateServicesStore((s) => s.setLocationData);
   const goToNextStep = useCreateServicesStore((s) => s.goToNextStep);
   const goToPreviousStep = useCreateServicesStore((s) => s.goToPreviousStep);
 
-  const locationsData = [
-    {
-      id: 1,
-      name: "Clínica Abreu",
-      address: "Av. Independencia 105, Santo Domingo",
-      latitude: 18.4636,
-      longitude: -69.9271,
-    },
-    {
-      id: 2,
-      name: "Centro Médico UCE",
-      address: "Av. Máximo Gómez 46, Santo Domingo",
-      latitude: 18.4762,
-      longitude: -69.9117,
-    },
-    {
-      id: 3,
-      name: "Centro Médico Moderno",
-      address: "C. Dr. Defilló 6, Santo Domingo",
-      latitude: 18.4732,
-      longitude: -69.9451,
-    },
-    {
-      id: 4,
-      name: "Hospital General Plaza de la Salud",
-      address: "Av. Ortega y Gasset, Santo Domingo",
-      latitude: 18.4865,
-      longitude: -69.9368,
-    },
-    {
-      id: 5,
-      name: "Centro Cardio-Neuro-Oftalmológico y Trasplante (Cecanot)",
-      address: "Av. Dr. Fernando Defilló, Santo Domingo",
-      latitude: 18.4741,
-      longitude: -69.9442,
-    },
-    {
-      id: 6,
-      name: "Centro Médico Real",
-      address: "Av. Charles Sumner 25, Santo Domingo",
-      latitude: 18.4698,
-      longitude: -69.9305,
-    },
-    {
-      id: 7,
-      name: "Clínica Independencia",
-      address: "Av. Independencia 501, Santo Domingo",
-      latitude: 18.4552,
-      longitude: -69.9387,
-    },
-    {
-      id: 8,
-      name: "Centro Médico Dominicano",
-      address: "Av. Bolívar 208, Santo Domingo",
-      latitude: 18.4689,
-      longitude: -69.9112,
-    },
-    {
-      id: 9,
-      name: "Clínica Gómez Patiño",
-      address: "C. José Amado Soler 53, Santo Domingo",
-      latitude: 18.4711,
-      longitude: -69.9279,
-    },
-    {
-      id: 10,
-      name: "Centro Médico Vista del Jardín",
-      address: "C. Euclides Morillo 53, Santo Domingo",
-      latitude: 18.4892,
-      longitude: -69.9301,
-    },
-    {
-      id: 11,
-      name: "Clínica Corominas",
-      address: "Av. 27 de Febrero 301, Santo Domingo",
-      latitude: 18.4715,
-      longitude: -69.9223,
-    },
-  ];
+  // ─── NUEVO: Estado y Ref para controlar el modal de visualización ─────────
+  const [viewLocation, setViewLocation] = useState<DoctorLocation | null>(null);
+  const hiddenViewTriggerRef = useRef<HTMLButtonElement>(null);
 
-  const mappedLocations: LocationCoordinate[] = locationsData.map((loc) => ({
-    lat: loc.latitude,
-    lng: loc.longitude,
-    label: loc.name,
-    color: "#e11d48",
-  }));
+  const { data: doctorLocations = [], isLoading: isLoadingLocations, isError, refetch } = useUbicaciones("doctor", {});
 
-  function TruncatableTooltip({
-    text,
-    className,
-  }: {
-    text: string;
-    className: string;
-  }) {
+  const mappedLocations: LocationCoordinate[] = useMemo(() => {
+    if (!doctorLocations || doctorLocations.length === 0) return [];
+    const locations = doctorLocations as DoctorLocation[];
+    return locations
+      .filter((loc) => loc.puntoGeografico?.coordinates && loc.puntoGeografico.coordinates.length === 2)
+      .map((loc) => ({
+        lat: loc.puntoGeografico.coordinates[1],
+        lng: loc.puntoGeografico.coordinates[0],
+        label: loc.nombre,
+        color: locationSelected === loc.id ? "#10b981" : "#e11d48",
+      }));
+  }, [doctorLocations, locationSelected]);
+
+  function TruncatableTooltip({ text, className }: { text: string; className: string }) {
     const textRef = useRef<HTMLParagraphElement>(null);
     const [showTooltip, setShowTooltip] = useState(false);
 
@@ -163,64 +102,118 @@ function ServiceLocationStep() {
     );
   }
 
+  const LocationSkeleton = () => (
+    <div className="border border-primary/15 p-3 rounded-2xl flex items-center justify-between">
+      <div className="flex flex-col gap-2 flex-1">
+        <Skeleton className="h-5 w-3/4" />
+        <Skeleton className="h-4 w-full" />
+      </div>
+      <Skeleton className="h-10 w-10 rounded-full" />
+    </div>
+  );
+
+  if (isError) {
+    return (
+      <ServicesLayoutsSteps title={t("createService.location.title")} description={t("createService.location.description")}>
+        <div className="flex flex-col items-center justify-center gap-4 py-8">
+          <MapPin className="w-16 h-16 text-muted-foreground/50" />
+          <p className="text-center text-muted-foreground">
+            {t("createService.location.errorLoadingLocations")}
+          </p>
+          <Button onClick={() => refetch()} variant="outline">
+            {t("common.tryAgain")}
+          </Button>
+        </div>
+      </ServicesLayoutsSteps>
+    );
+  }
+
   return (
     <ServicesLayoutsSteps
       title={t("createService.location.title")}
       description={t("createService.location.description")}
     >
       <div className="flex flex-col gap-8 items-center">
-        <MapScheduleLocation
-          showAddressInfo
-          multipleLocations={mappedLocations}
-        />
-        <div
-          className={`w-full ${locationsData.length > 4 ? "max-h-72 overflow-y-auto" : ""}`}
-        >
-          <div
-            className={`grid ${isMobile ? "grid-cols-1" : "grid-cols-2"} gap-4`}
-          >
-            {locationsData.map((loc) => (
-              <div
-                key={loc.id}
-                className={`border w-full border-primary/15 p-3 rounded-2xl flex items-center justify-between cursor-pointer transition
-                  ${locationSelected === loc.id ? "bg-accent/50 border-none " : ""}
-                `}
-                onClick={() =>
-                  setLocationData(
-                    "location",
-                    locationSelected === loc.id ? null : loc.id,
-                  )
-                }
-              >
-                <div
-                  className={`flex flex-col gap-1 ${isMobile ? "max-w-[220px]" : "max-w-[220px]"}`}
-                >
-                  <TruncatableTooltip
-                    text={loc.name}
-                    className={`${isMobile ? "text-sm" : "text-base"} font-medium truncate cursor-help`}
-                  />
-                  <TruncatableTooltip
-                    text={loc.address}
-                    className={`${isMobile ? "text-xs" : "text-sm"} font-normal truncate cursor-help`}
-                  />
-                </div>
-                <ManageLocation
-                  locationSelected={loc.id}
-                  triggerClassName="p-0"
-                >
-                  <Button
-                    variant="outline"
-                    className="rounded-4xl p-2 border-none bg-transparent shadow-none text-primary/75 hover:bg-primary/10 hover:text-primary focus:ring-0 focus:ring-offset-0 focus-visible:ring-0 data-[state=open]:bg-secondary"
-                  >
-                    <ChevronRight
-                      className={isMobile ? "w-4 h-4" : "w-5 h-5"}
-                    />
-                  </Button>
-                </ManageLocation>
-              </div>
-            ))}
+        {/* Mapa con todas las ubicaciones */}
+        {isLoadingLocations ? (
+          <Skeleton className="w-full h-[300px] rounded-xl" />
+        ) : mappedLocations.length > 0 ? (
+          <MapScheduleLocation showAddressInfo={false} multipleLocations={mappedLocations} />
+        ) : (
+          <div className="w-full h-[300px] rounded-xl border-2 border-dashed border-primary/20 flex items-center justify-center">
+            <div className="flex flex-col items-center gap-2 text-muted-foreground">
+              <MapPin className="w-12 h-12" />
+              <p className="text-sm text-center">{t("createService.location.noLocationsYet")}</p>
+            </div>
           </div>
+        )}
+
+        {/* Lista de ubicaciones */}
+        <div className={`w-full ${doctorLocations.length > 4 ? "max-h-72 overflow-y-auto" : ""}`}>
+          {isLoadingLocations ? (
+            <div className={`grid ${isMobile ? "grid-cols-1" : "grid-cols-2"} gap-4`}>
+              {[1, 2, 3, 4].map((i) => <LocationSkeleton key={i} />)}
+            </div>
+          ) : doctorLocations.length > 0 ? (
+            <div className={`grid ${isMobile ? "grid-cols-1" : "grid-cols-2"} gap-4`}>
+              {doctorLocations.map((loc: DoctorLocation) => (
+                <div
+                  key={loc.id}
+                  className={`border w-full border-primary/15 p-3 rounded-2xl flex items-center justify-between cursor-pointer transition hover:shadow-md
+                    ${locationSelected === loc.id ? "bg-accent/50 border-primary/50 ring-2 ring-primary/20" : "hover:border-primary/30"}`}
+                  onClick={() => {
+                    setLocationDataInStore({
+                      name: loc.nombre,
+                      address: loc.direccion,
+                      coordinates: { latitude: loc.puntoGeografico.coordinates[1], longitude: loc.puntoGeografico.coordinates[0] },
+                      neighborhood: loc.barrio ? String(loc.barrio.id) : undefined,
+                    }); // Guardamos toda la información de la ubicación en el store
+                    
+                    setLocationData("location", locationSelected === loc.id ? null : loc.id)
+                  }}
+                >
+                  <div className={`flex flex-col gap-1 ${isMobile ? "max-w-[220px]" : "max-w-[220px]"}`}>
+                    <TruncatableTooltip text={loc.nombre} className={`${isMobile ? "text-sm" : "text-base"} font-medium truncate cursor-help`} />
+                    <TruncatableTooltip text={loc.direccion} className={`${isMobile ? "text-xs" : "text-sm"} font-normal text-muted-foreground truncate cursor-help`} />
+                    {loc.barrio && <span className="text-xs text-muted-foreground/75">{loc.barrio.nombre}</span>}
+                  </div>
+                  
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="rounded-full p-2 h-auto w-auto hover:bg-primary/10 hover:text-primary"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setViewLocation(loc); // 1. Guardamos la ubicación que queremos ver
+                      setTimeout(() => hiddenViewTriggerRef.current?.click(), 0); // 2. Disparamos el click en el modal oculto
+                    }}
+                  >
+                    <ChevronRight className={isMobile ? "w-4 h-4" : "w-5 h-5"} />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center gap-4 py-8 text-center">
+              <MapPin className="w-12 h-12 text-muted-foreground/50" />
+              <div>
+                <p className="text-base font-medium text-foreground">{t("createService.location.noLocations")}</p>
+                <p className="text-sm text-muted-foreground mt-1">{t("createService.location.addFirstLocation")}</p>
+              </div>
+            </div>
+          )}
         </div>
+
+        {/* ─── NUEVO: Modal oculto dedicado EXCLUSIVAMENTE a Modo Lectura ───────── */}
+        <ManageLocation 
+          isReadOnly 
+          locationToView={viewLocation} 
+          onCloseModal={() => setViewLocation(null)}
+        >
+          <button ref={hiddenViewTriggerRef} className="hidden" aria-hidden="true" />
+        </ManageLocation>
+
+        {/* Botón clásico para agregar nueva ubicación (Sigue funcionando igual que antes) */}
         <ManageLocation triggerClassName="w-full">
           <MCButton className="w-full rounded-xl" variant="tercero">
             {t("createService.location.addLocation")}
@@ -228,13 +221,8 @@ function ServiceLocationStep() {
         </ManageLocation>
 
         <AuthFooterContainer
-          continueButtonProps={{
-            disabled: !locationSelected,
-            onClick: () => goToNextStep(),
-          }}
-          backButtonProps={{
-            onClick: () => goToPreviousStep(),
-          }}
+          continueButtonProps={{ disabled: !locationSelected, onClick: () => goToNextStep() }}
+          backButtonProps={{ onClick: () => goToPreviousStep() }}
         />
       </div>
     </ServicesLayoutsSteps>
