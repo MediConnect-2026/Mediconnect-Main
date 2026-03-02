@@ -39,6 +39,9 @@ import type {
   GetServicesOfDoctorResponse,
   UpdateStatusDoctorServiceResponse,
   DeleteDoctorServiceResponse,
+  AddImageToServiceResponse,
+  RemoveImageFromServiceResponse,
+  UpdateDoctorServiceRequest,
 } from './doctor.types';
 
 /**
@@ -962,6 +965,80 @@ export const doctorService = {
       
       throw {
         message: errorData?.message || 'Error al eliminar servicio. Intenta nuevamente.',
+        statusCode: error.response?.status || 500,
+        response: error.response,
+        originalError: error
+      };
+    }
+  },
+
+  addImageToService: async (serviceId: number, imageFile: (File | Blob)[]): Promise<AddImageToServiceResponse> => {
+    try {
+      const formData = new FormData();
+
+      if (imageFile && imageFile.length > 0) {
+        imageFile.forEach((file) => {
+          // 'imagenes' must match the field name your backend file interceptor expects
+          formData.append('imagenes', file); 
+        });
+      }
+      
+
+      const response = await apiClient.post<AddImageToServiceResponse>(`/servicios/${serviceId}/imagenes`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+
+      return response.data;
+    } catch (error: any) {
+      console.error('❌ [Doctor Service] Error al agregar imagen al servicio:', error);
+      
+      const errorData = error.response?.data;
+      
+      throw {
+        message: errorData?.message || 'Error al agregar imagen al servicio. Intenta nuevamente.',
+        statusCode: error.response?.status || 500,
+        response: error.response,
+        originalError: error
+      };
+    }
+  },
+
+  removeImageFromService: async (serviceId: number, imageId: number): Promise<RemoveImageFromServiceResponse> => {
+    try {
+      const response = await apiClient.delete<RemoveImageFromServiceResponse>(
+        `/servicios/${serviceId}/imagenes/${imageId}`
+      );
+      return response.data;
+    } catch (error: any) {
+      console.error('❌ [Doctor Service] Error al eliminar imagen del servicio:', error);
+      
+      const errorData = error.response?.data;
+      
+      throw {
+        message: errorData?.message || 'Error al eliminar imagen del servicio. Intenta nuevamente.',
+        statusCode: error.response?.status || 500,
+        response: error.response,
+        originalError: error
+      };
+    }
+  },
+
+  updateService: async (id: number, data: UpdateDoctorServiceRequest): Promise<CreateDoctorServiceResponse> => {
+    try {
+      const response = await apiClient.put<CreateDoctorServiceResponse>(
+        `/servicios/${id}`,
+        data
+      );
+      return response.data;
+    } catch (error: any) {
+      console.error('❌ [Doctor Service] Error al actualizar servicio:', error);
+      
+      const errorData = error.response?.data;
+      
+      throw {
+        message: errorData?.message || 'Error al actualizar el servicio. Intenta nuevamente.',
         statusCode: error.response?.status || 500,
         response: error.response,
         originalError: error

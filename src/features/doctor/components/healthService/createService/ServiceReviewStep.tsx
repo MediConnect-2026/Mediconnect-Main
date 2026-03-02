@@ -10,8 +10,9 @@ import { mapDoctorServices } from "@/features/onboarding/services/doctor-registr
 import { doctorService } from "@/shared/navigation/userMenu/editProfile/doctor/services";
 import { useGlobalUIStore } from "@/stores/useGlobalUIStore";
 import { useState } from "react";
+import { ROUTES } from "@/router/routes";
 
-function ServiceReviewStep({ isEditMode = false, originalData = null }) {
+function ServiceReviewStep({ isEditMode = false, serviceId }: { isEditMode?: boolean; serviceId?: number }) {
   const { t } = useTranslation("doctor");
   const isMobile = useIsMobile();
   const navigate = useNavigate();
@@ -115,15 +116,44 @@ function ServiceReviewStep({ isEditMode = false, originalData = null }) {
   };
 
   const handleUpdate = async () => {
+    if (!serviceId) return;
+
+    if(!serviceCreateData.location || serviceCreateData.location <= 0) {
+      setToast({
+        type: "error",
+        message: t("createService.review.locationError"),
+        open: true,
+      });
+      return;
+    }
     // Lógica similar a handleSubmit pero para actualizar un servicio existente
     setIsSubmitting(true);
 
       try {
         // ✅ Mapear datos
-        console.log("Datos a mapear para actualización:", serviceCreateData);
-        const request = await mapDoctorServices(serviceCreateData);
-        console.log("Mapped request for update:", request);
+        const mappedDataForUpdate = {
+          especialidadId: Number(serviceCreateData.specialty),
+          nombre: serviceCreateData.name,
+          descripcion: serviceCreateData.description,
+          precio: serviceCreateData.pricePerSession,
+          duracionMinutos: (serviceCreateData.duration.hours * 60 + serviceCreateData.duration.minutes),
+          sesiones: serviceCreateData.numberOfSessions,
+          modalidad: serviceCreateData.selectedModality === 'presencial' ? "Presencial" : serviceCreateData.selectedModality === 'teleconsulta' ? "Teleconsulta" : "Mixta",
+          ubicacionIds: [serviceCreateData.location || 0],
+          horarioIds: serviceCreateData.comercial_schedule || [],
+        };
 
+        await doctorService.updateService(serviceId, mappedDataForUpdate);
+        
+        // ✅ Mostrar mensaje de éxito
+        setToast({
+          type: "success",
+          message: t("createService.review.updateSuccessMessage"),
+          open: true,
+        });
+
+        // ✅ Navegar a la página de servicios
+        navigate(ROUTES.DOCTOR.SERVICES, { replace: true });
       } catch (error) {
         console.log("Error al actualizar el servicio:", error);
         setToast({

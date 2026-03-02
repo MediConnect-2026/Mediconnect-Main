@@ -35,11 +35,10 @@ function CreateServicesPage() {
   const currentStep = useCreateServicesStore((state) => state.currentStep);
   const createServiceData = useCreateServicesStore((s) => s.createServiceData);
   const setCreateServiceData = useCreateServicesStore((s) => s.setCreateServiceData);
-  const setIsTitleSeted = useCreateServicesStore((s) => s.setIsTitleSeted);
+  const setLocationDataInStore = useCreateServicesStore((s) => s.setLocationData);
+
   const location = useLocation();
   const [loadingService, setLoadingService] = useState(false);
-
-  const [originalData, setOriginalData] = useState<any>(null);
 
   const [serviceError, setServiceError] = useState<string | null>(null);
 
@@ -112,7 +111,6 @@ function CreateServicesPage() {
         const svc = res?.data ?? res;
         if (!svc) throw new Error("Servicio no encontrado");
 
-        setOriginalData(svc); // Guardar datos originales para comparación futura
         const mapped = {
           name: svc.nombre || "",
           description: svc.descripcion || "",
@@ -126,7 +124,7 @@ function CreateServicesPage() {
             minutes: (svc.duracionMinutos || 0) % 60,
           },
           images: Array.isArray(svc.imagenes)
-            ? svc.imagenes.map((img: any) => ({ url: img.url, name: img.name || "", type: img.type || "image" }))
+            ? svc.imagenes.map((img: any) => ({ id: img.id, url: img.url, name: img.name || "", type: img.type || "image" }))
             : [],
           location: svc.ubicacionId ?? undefined,
           comercial_schedule: Array.isArray(svc.horarios) && svc.horarios.length > 0
@@ -134,8 +132,47 @@ function CreateServicesPage() {
             : null,
         };
 
+        const provinceInLocation = {
+          id: svc.ubicacion[0]?.barrio?.seccion?.municipio?.provincia?.id || undefined,
+          name: svc.ubicacion[0]?.barrio?.seccion?.municipio?.provincia?.nombre || "",
+        };
+
+        const municipalityInLocation = {
+          id: svc.ubicacion[0]?.barrio?.seccion?.municipio?.id || undefined,
+          name: svc.ubicacion[0]?.barrio?.seccion?.municipio?.nombre || "",
+        };
+
+        const sectionInLocation = {
+          id: svc.ubicacion[0]?.barrio?.seccion?.id || undefined,
+          name: svc.ubicacion[0]?.barrio?.seccion?.nombre || "",
+        };
+
+        const districtInLocation = {
+          id: svc.ubicacion[0]?.barrio?.seccion?.distritoMunicipal?.id || undefined,
+          name: svc.ubicacion[0]?.barrio?.seccion?.distritoMunicipal?.nombre || "",
+        };
+
+        const neighborhoodInLocation = {
+          id: svc.ubicacion[0]?.barrio?.id || undefined,
+          name: svc.ubicacion[0]?.barrio?.nombre || "",
+        };
+
+        const locationData = {
+          name: svc.ubicacion[0]?.nombre || "",
+          address: svc.ubicacion[0]?.direccion || "",
+          province: provinceInLocation.id || "",
+          municipality: municipalityInLocation.id || "",
+          section: sectionInLocation.id || "",
+          district: districtInLocation.id || "",
+          neighborhood: neighborhoodInLocation.id || "",
+          coordinates: {
+            latitude: svc.ubicacion[0]?.latitud ?? undefined,
+            longitude: svc.ubicacion[0]?.longitud ?? undefined,
+          },
+        };
+
+        setLocationDataInStore(locationData);
         setCreateServiceData(mapped as any);
-        setIsTitleSeted(true);
       } catch (err: any) {
         if (err?.name === "AbortError") return;
         console.error("Error loading service for edit:", err);
@@ -145,7 +182,6 @@ function CreateServicesPage() {
       }
     };
     
-    console.log("isEditMode:", isEditMode, "serviceId:", serviceId, "location.pathname:", location.pathname);
     if (isEditMode && serviceId) {
       if (serviceId.startsWith(":")) {
         const parts = location.pathname.split("/").filter(Boolean);
@@ -175,11 +211,11 @@ function CreateServicesPage() {
         case 0:
           return <ServiceBasicInfoStep />;
         case 2:
-          return <ServiceScheduleStep />;
+          return <ServiceScheduleStep isEditMode={isEditMode} />;
         case 3:
-          return <ServiceImagesStep />;
+          return <ServiceImagesStep isEditMode={isEditMode} serviceId={serviceId ? Number(serviceId) : undefined} />;
         case 4:
-          return <ServiceReviewStep isEditMode originalData={originalData} />;
+          return <ServiceReviewStep isEditMode serviceId={serviceId ? Number(serviceId) : undefined} />;
         default:
           return <ServiceBasicInfoStep />;
       }
@@ -190,11 +226,11 @@ function CreateServicesPage() {
         case 1:
           return <ServiceLocationStep />;
         case 2:
-          return <ServiceScheduleStep />;
+          return <ServiceScheduleStep isEditMode={isEditMode} />;
         case 3:
-          return <ServiceImagesStep />;
+          return <ServiceImagesStep isEditMode={isEditMode} serviceId={serviceId ? Number(serviceId) : undefined} />;
         case 4:
-          return <ServiceReviewStep isEditMode originalData={originalData} />;
+          return <ServiceReviewStep isEditMode serviceId={serviceId ? Number(serviceId) : undefined} />;
         default:
           return <ServiceBasicInfoStep />;
       }

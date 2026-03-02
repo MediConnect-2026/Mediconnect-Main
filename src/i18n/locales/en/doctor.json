@@ -861,7 +861,10 @@
       "minImagesText": "minimum images",
       "addedImages": "of",
       "addedImagesText": "images added",
-      "imageAlt": "Image"
+      "imageAlt": "Image",
+      "addSuccess": "Image added successfully",
+      "addError": "Error adding image. Please try again.",
+      "fileTooLarge": "File {{name}} exceeds the maximum size of {{max}}MB"
     },
     "location": {
       "title": "Confirm your location",
@@ -896,7 +899,10 @@
       "conflictError": "A similar service already exists. Please check your services.",
       "authError": "You don't have permission to create this service.",
       "serverError": "Server error. Please try again later.",
-      "networkError": "Connection error. Please check your internet connection."
+      "networkError": "Connection error. Please check your internet connection.",
+      "locationError": "Error with the selected location. Please review your location information.",
+      "updateErrorMessage": "Error updating service. Please try again.",
+      "updateSuccessMessage": "Service updated successfully!"
     },
     "modals": {
       "description": {

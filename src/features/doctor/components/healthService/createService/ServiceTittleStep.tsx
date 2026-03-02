@@ -23,11 +23,12 @@ function ServiceTittleStep() {
     setIsTitleSeted(true);
   };
 
-  const isButtondisabled = !isFormValid || !name || name.trim() === "";
+  const isButtondisabled = !name || name.trim() === "";
 
   return (
     <ServicesLayoutsSteps title={t("createService.title.title")}>
       <MCFormWrapper
+        key={name || "service-title"}
         schema={nameSchema}
         defaultValues={{ name }}
         onSubmit={handleSubmit}
@@ -37,6 +38,7 @@ function ServiceTittleStep() {
         <MCAnimatedInput
           name="name"
           label={t("createService.title.serviceName")}
+          value={name}
           onChange={(value) => setName("name", value)}
         />
         <AuthFooterContainer

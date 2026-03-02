@@ -12,7 +12,7 @@ import { scheduleService } from "@/shared/navigation/userMenu/editProfile/doctor
 import { useAppStore } from "@/stores/useAppStore";
 import type { ValidateScheduleResponse } from "@/shared/navigation/userMenu/editProfile/doctor/services/schedule.types";
 
-function ServiceScheduleStep() {
+function ServiceScheduleStep({ isEditMode = false }: { isEditMode?: boolean }) {
   const isMobile = useIsMobile();
   const { t } = useTranslation("doctor");
 
@@ -245,7 +245,7 @@ function ServiceScheduleStep() {
         </div>
       )}
 
-      <ManageSchedule onScheduleCreated={loadSchedules}>
+      <ManageSchedule onScheduleCreated={loadSchedules} readonly={!isEditMode}>
         <MCButton className="w-full rounded-xl mt-6" variant="tercero">
           {t("createService.schedule.addSchedule")}
         </MCButton>

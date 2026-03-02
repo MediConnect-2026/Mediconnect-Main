@@ -272,7 +272,7 @@ function MyServicesPage() {
       duration: `${service.duracionMinutos} min`,
       modalidad: service.modalidad,
       isOwner: true,
-      onEdit: () => navigate(`${ROUTES.DOCTOR.EDIT_SERVICE}/${service.id}`),
+      onEdit: () => navigate(ROUTES.DOCTOR.EDIT_SERVICE.replace(":serviceId", service.id.toString())),
       onDeactivate: () => handleServiceAction(service.id, "deactivate"),
       onActivate: () => handleServiceAction(service.id, "activate"),
       onDelete: () => handleServiceAction(service.id, "delete"),
@@ -299,7 +299,7 @@ function MyServicesPage() {
           ? service.imagenes[0].url
           : "https://via.placeholder.com/100x100?text=Servicio",
       descripcion: service.descripcion || "Sin descripción disponible",
-      onEdit: () => navigate(`${ROUTES.DOCTOR.EDIT_SERVICE}/${service.id}`),
+      onEdit: () => navigate(ROUTES.DOCTOR.EDIT_SERVICE.replace(":serviceId", service.id.toString())),
       onDeactivate: () => handleServiceAction(service.id, "deactivate"),
       onActivate: () => handleServiceAction(service.id, "activate"),
       onDelete: () => handleServiceAction(service.id, "delete"),
@@ -554,7 +554,7 @@ function MyServicesPage() {
     <MyServicesTable
       services={transformedServicesForTable}
       onViewDetails={(id) => navigate(`/service/${id}`)}
-      onEdit={(serviceId) => navigate(`${ROUTES.DOCTOR.EDIT_SERVICE}/${serviceId}`)}
+      onEdit={(serviceId) => navigate(ROUTES.DOCTOR.EDIT_SERVICE.replace(":serviceId", String(serviceId)))}
       onDeactivate={(id) => handleServiceAction(Number(id), "deactivate")}
       onActivate={(id) => handleServiceAction(Number(id), "activate")}
       onDelete={(id) => handleServiceAction(Number(id), "delete")}

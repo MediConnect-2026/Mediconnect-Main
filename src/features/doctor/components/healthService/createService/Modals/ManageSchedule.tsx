@@ -143,12 +143,6 @@ function ManageSchedule({ locationSelected, scheduleData, children, onScheduleCr
     (s) => s.createServiceData.duration,
   );
 
-  const isPresentialOrMixed = useCreateServicesStore(
-    (s) =>
-      s.createServiceData.selectedModality === "presencial" ||
-      s.createServiceData.selectedModality === "Mixta",
-  );
-
   const setComercialScheduleField = useCreateServicesStore(
     (s) => s.setComercialScheduleField,
   );
@@ -178,17 +172,16 @@ function ManageSchedule({ locationSelected, scheduleData, children, onScheduleCr
       setComercialScheduleField("day", scheduleData.dias);
       setComercialScheduleField("startTime", scheduleData.horaInicio);
       setComercialScheduleField("endTime", scheduleData.horaFin);
-      setComercialScheduleField("locationId", scheduleData.ubicacionId?.toString());
       
       setStartTimeTouched(true);
       setEndTimeTouched(true);
+
     } else {
       // ✅ Si no hay datos, limpiar el formulario
       setComercialScheduleField("name", "");
       setComercialScheduleField("day", []);
       setComercialScheduleField("startTime", "");
       setComercialScheduleField("endTime", "");
-      setComercialScheduleField("locationId", undefined);
       
       setStartTimeTouched(false);
       setEndTimeTouched(false);
@@ -254,6 +247,7 @@ function ManageSchedule({ locationSelected, scheduleData, children, onScheduleCr
     }
   };
 
+  
   const handleConfirm = async () => {
     submitRef.current?.();
   };
@@ -280,8 +274,7 @@ function ManageSchedule({ locationSelected, scheduleData, children, onScheduleCr
         name: comercialScheduleData.name || "",
         day: comercialScheduleData.day || [],
         startTime: comercialScheduleData.startTime || "",
-        endTime: comercialScheduleData.endTime || "",
-        locationId: comercialScheduleData.locationId || undefined,
+        endTime: comercialScheduleData.endTime || ""
       });
     }
   }, [comercialScheduleData]);
@@ -329,7 +322,6 @@ function ManageSchedule({ locationSelected, scheduleData, children, onScheduleCr
         !comercialScheduleData.endTime ||
         !startTimeTouched ||
         !endTimeTouched ||
-        (isPresentialOrMixed && !comercialScheduleData.locationId) ||
         comercialScheduleData.day.length === 0 ||
         !!hasTimeConflict ||
         !!hasInsufficientDuration
@@ -342,8 +334,7 @@ function ManageSchedule({ locationSelected, scheduleData, children, onScheduleCr
           name: comercialScheduleData.name || "",
           day: comercialScheduleData.day || [],
           startTime: comercialScheduleData.startTime || "",
-          endTime: comercialScheduleData.endTime || "",
-          locationId: comercialScheduleData.locationId || undefined,
+          endTime: comercialScheduleData.endTime || ""
         }}
         onSubmit={handleSubmit}
         className="flex flex-col"

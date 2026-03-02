@@ -513,6 +513,50 @@ export interface DeleteDoctorServiceResponse {
   message: string;
 }
 
+export type AddImageToServiceRequest = {
+  id: number;
+  imagenes : (File | Blob)[];
+}
+
+export interface AddImageToServiceResponse {
+  success: boolean;
+  message: string;
+  data: {
+    id: number;
+    servicioId: number;
+    url: string;
+    orden: number;
+    estado: string;
+    creadoEn: string;
+  }[];
+}
+
+export interface RemoveImageFromServiceResponse {
+  success: boolean;
+  message: string;
+}
+
+export interface RemoveServiceImageRequest {
+  id: number;
+  imagenId: number;
+}
+
+export interface UpdateDoctorServiceRequest {
+  especialidadId?: number;
+  nombre?: string;
+  descripcion?: string;
+  precio?: number;
+  duracionMinutos?: number;
+  sesiones?: number;
+  maxPacientesDia?: number;
+  modalidad?: string;
+  estado?: string;
+  centroSaludIds?: number[];
+  ubicacionIds?: number[];
+  horarioIds?: number[];
+}
+
+
 // --- RE-EXPORTAR TIPOS RELACIONADOS ---
 
 /**
