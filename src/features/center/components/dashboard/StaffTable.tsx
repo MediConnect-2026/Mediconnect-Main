@@ -253,43 +253,58 @@ function StaffTable({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Doctor</TableHead>
-            <TableHead>Especialidad</TableHead>
-            <TableHead>Fecha Conexión</TableHead>
-            <TableHead className="text-center">
+            <TableHead className="w-[250px]">Doctor</TableHead>
+            <TableHead className="w-[200px]">Especialidad</TableHead>
+            <TableHead className="w-[150px]">Fecha Conexión</TableHead>
+            <TableHead className="w-[120px]">
               <div className="flex items-center justify-center gap-1">
                 <span>Calificación</span>
               </div>
             </TableHead>
-            <TableHead>Acciones</TableHead>
+            <TableHead className="w-[80px]">Acciones</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {paginatedData.map((doctor) => (
             <TableRow key={doctor.id}>
-              <TableCell>
-                <div className="flex items-center gap-3">
-                  {doctor.avatar ? (
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src={doctor.avatar} alt={doctor.name} />
-                      <AvatarFallback>
-                        {getInitials(doctor.name)}
-                      </AvatarFallback>
-                    </Avatar>
-                  ) : (
-                    <MCUserAvatar
-                      name={doctor.name}
-                      square={false}
-                      size={32}
-                      className="h-8 w-8"
-                    />
-                  )}
-                  <span className="font-medium">{doctor.name}</span>
+              <TableCell className="w-[250px]">
+                <div className="flex items-center gap-2">
+                  <div className="h-16 w-16 relative overflow-hidden rounded-full border border-primary/10 bg-muted flex items-center justify-center">
+                    {doctor.avatar ? (
+                      <Avatar className="h-16 w-16 rounded-full overflow-hidden">
+                        <AvatarImage
+                          src={doctor.avatar}
+                          alt={doctor.name}
+                          className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
+                        />
+                        <AvatarFallback className="bg-muted text-muted-foreground">
+                          {doctor.name
+                            .split(" ")
+                            .map((n) => n[0])
+                            .join("")}
+                        </AvatarFallback>
+                      </Avatar>
+                    ) : (
+                      <MCUserAvatar
+                        name={doctor.name}
+                        square
+                        size={64}
+                        className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
+                      />
+                    )}
+                  </div>
+                  <div>
+                    <div className="font-medium">{doctor.name}</div>
+                  </div>
                 </div>
               </TableCell>
-              <TableCell>{doctor.specialty}</TableCell>
-              <TableCell>{doctor.connectionDate}</TableCell>
-              <TableCell className="text-center">
+              <TableCell className="w-[200px]">
+                <div className="font-medium">{doctor.specialty}</div>
+              </TableCell>
+              <TableCell className="w-[150px]">
+                <div className="font-medium">{doctor.connectionDate}</div>
+              </TableCell>
+              <TableCell className="w-[120px]">
                 <div className="flex items-center justify-center gap-1">
                   <span className="font-medium">{doctor.rating}</span>
                   <Star
@@ -298,13 +313,13 @@ function StaffTable({
                   />
                 </div>
               </TableCell>
-              <TableCell>
+              <TableCell className="w-[80px]">
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="bg-bg-btn-secondary p-2 w-fit h-fit m-0 rounded-full transition-colors hover:bg-primary/10 active:bg-primary/20 group"
+                      className="bg-bg-btn-secondary rounded-full transition-colors hover:bg-primary/10 active:bg-primary/20 group"
                     >
                       <Ellipsis className="h-4 w-4 text-primary group-hover:text-primary/80 group-active:text-primary/60" />
                     </Button>

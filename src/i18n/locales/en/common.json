@@ -34,6 +34,7 @@
   "clinicCard": {
     "connect": "Connect",
     "connected": "Connected",
+    "pending": "Request pending",
     "viewProfile": "View profile",
     "insurances": "Insurances:",
     "acceptedInsurances": "Accepted insurances:",
@@ -46,7 +47,8 @@
     "availableAvailability": "Available slots:",
     "noSlots": "No",
     "appointments": "Appointments",
-    "more": "More"
+    "more": "More",
+    "pending": "Request pending"
   },
   "search": {
     "providerType": "Provider type",

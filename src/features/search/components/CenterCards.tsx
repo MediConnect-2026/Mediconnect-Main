@@ -8,9 +8,11 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/tooltip";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
 import { useTranslation } from "react-i18next";
 
+import ToogleConfirmConnection from "@/features/center/components/ToogleConfirmConnection";
+
 interface ClinicCardProps {
   clinic: Clinic;
-  isConnected: boolean;
+  isConnected: "connected" | "not_connected" | "pending";
   onConnect: (id: string) => void;
   onViewProfile: (id: string) => void;
 }
@@ -29,6 +31,23 @@ export const CenterCards = ({
     navigate(`/center/profile/${clinic.id}`);
   };
 
+  const handleConfirmConnect = () => {
+    onConnect(clinic.id);
+  };
+
+  // Nuevo texto y estado para el botón
+  let connectBtnText = t("clinicCard.connect");
+  let connectBtnDisabled = false;
+  let connectVariant: "primary" | "outline" = "outline";
+
+  if (isConnected === "connected") {
+    connectBtnText = t("clinicCard.connected");
+    connectVariant = "primary";
+  } else if (isConnected === "pending") {
+    connectBtnText = t("clinicCard.pending");
+    connectBtnDisabled = true;
+  }
+
   return (
     <div
       className={cn(
@@ -37,7 +56,7 @@ export const CenterCards = ({
       )}
     >
       <div className="flex gap-3 sm:gap-4 h-full">
-        {/* Clinic Image - Responsive sizing */}
+        {/* Clinic Image */}
         <div
           className={cn(
             "relative overflow-hidden rounded-2xl sm:rounded-3xl border border-primary/5 flex-shrink-0",
@@ -51,9 +70,9 @@ export const CenterCards = ({
           />
         </div>
 
-        {/* Clinic Info - Flexible container */}
+        {/* Clinic Info */}
         <div className="flex-1 min-w-0">
-          {/* Header with name and rating */}
+          {/* Header */}
           <div className="flex items-start justify-between gap-2">
             <div className="flex-1 min-w-0">
               <h3
@@ -65,7 +84,6 @@ export const CenterCards = ({
               >
                 {clinic.name}
               </h3>
-
               {/* Rating */}
               <div
                 className={cn(
@@ -109,7 +127,7 @@ export const CenterCards = ({
             <span className="line-clamp-1">{clinic.address}</span>
           </div>
 
-          {/* Languages & Phone - Now visible on all devices */}
+          {/* Languages & Phone */}
           <div
             className={cn(
               "flex flex-wrap items-center gap-x-4 gap-y-1 mt-2",
@@ -156,7 +174,7 @@ export const CenterCards = ({
             )}
           </div>
 
-          {/* Insurances - Simplified on mobile */}
+          {/* Insurances */}
           <div
             className={cn(
               "flex items-start gap-1.5 mt-2 text-muted-foreground",
@@ -197,29 +215,35 @@ export const CenterCards = ({
             )}
           </div>
 
-          {/* Action buttons - Responsive layout */}
+          {/* Action buttons */}
           <div
             className={cn("flex gap-2 sm:gap-3", isMobile ? "mt-3" : "mt-4")}
           >
             {userRole === "DOCTOR" ? (
               <>
-                <MCButton
-                  variant={isConnected ? "primary" : "outline"}
-                  size={isMobile ? "xs" : "sm"}
-                  className={cn(
-                    "flex-1",
-                    isMobile && "text-xs px-2",
-                    isConnected &&
-                      "bg-secondary hover:bg-secondary/90 text-white border-none active:bg-secondary/80",
-                    !isConnected &&
-                      "border-secondary text-secondary hover:bg-secondary/10 hover:border-secondary/80 active:bg-secondary/20",
-                  )}
-                  onClick={() => onConnect(clinic.id)}
+                <ToogleConfirmConnection
+                  status={isConnected}
+                  id={parseInt(clinic.id)}
+                  onConfirm={handleConfirmConnect}
                 >
-                  {isConnected
-                    ? t("clinicCard.connected")
-                    : t("clinicCard.connect")}
-                </MCButton>
+                  <MCButton
+                    variant={connectVariant}
+                    size={isMobile ? "xs" : "sm"}
+                    className={cn(
+                      "flex-1",
+                      isMobile && "text-xs px-2",
+                      isConnected === "connected" &&
+                        "bg-secondary hover:bg-secondary/90 text-white border-none active:bg-secondary/80",
+                      isConnected === "not_connected" &&
+                        "border-secondary text-secondary hover:bg-secondary/10 hover:border-secondary/80 active:bg-secondary/20",
+                      isConnected === "pending" &&
+                        "border-gray-300 text-gray-500 bg-gray-100 cursor-not-allowed",
+                    )}
+                    disabled={connectBtnDisabled}
+                  >
+                    {connectBtnText}
+                  </MCButton>
+                </ToogleConfirmConnection>
                 <MCButton
                   variant="outline"
                   size={isMobile ? "xs" : "sm"}

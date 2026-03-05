@@ -29,9 +29,9 @@ export const createAuthSlice: StateCreator<AuthSlice> = (set) => ({
     email: "",
     role: "CENTER",
   },
-
-  //DOCTOR
   //PATIENT
+  //DOCTOR
+
   //CENTER
 
   login: (token, user) =>

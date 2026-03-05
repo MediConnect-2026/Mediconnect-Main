@@ -34,6 +34,7 @@
   "clinicCard": {
     "connect": "Conectar",
     "connected": "Conectado",
+    "pending": "Esperando solicitud",
     "viewProfile": "Ver perfil",
     "insurances": "Seguros:",
     "acceptedInsurances": "Seguros aceptados:",
@@ -46,7 +47,8 @@
     "availableAvailability": "Disponibilidad disponible:",
     "noSlots": "No",
     "appointments": "Citas",
-    "more": "Más"
+    "more": "Más",
+    "pending": "Esperando solicitud"
   },
   "search": {
     "providerType": "Tipo de proveedor",

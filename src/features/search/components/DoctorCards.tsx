@@ -18,12 +18,15 @@ import { useIsMobile } from "@/lib/hooks/useIsMobile";
 import { useTranslation } from "react-i18next";
 import { Heart as HeartFilled, Heart as HeartOutlined } from "lucide-react";
 import ScheduleAppointmentDialog from "@/features/patient/components/appoiments/ScheduleAppointmentDialog";
+import ToogleConfirmConnection from "@/features/center/components/ToogleConfirmConnection";
 
 interface DoctorCardsProps {
   doctor: Doctor;
   isSelected: boolean;
   onSelect: (id: string) => void;
   onViewProfile: (id: string) => void;
+  connectionStatus?: "connected" | "not_connected" | "pending";
+  onConnect?: (id: string) => void;
 }
 
 export const DoctorCards = ({
@@ -31,22 +34,36 @@ export const DoctorCards = ({
   isSelected,
   onSelect,
   onViewProfile,
+  connectionStatus = "not_connected",
+  onConnect,
 }: DoctorCardsProps) => {
   const userRole = useAppStore((state) => state.user?.role);
-  const [isConnected, setIsConnected] = useState(doctor.isConnected ?? false);
-  const [isFavorite, setIsFavorite] = useState(doctor.isFavorite ?? false); // <-- Nuevo estado
+  const [isFavorite, setIsFavorite] = useState(doctor.isFavorite ?? false);
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const { t } = useTranslation("common");
-
-  const handleConnectToggle = () => {
-    setIsConnected((prev) => !prev);
-  };
 
   const handleFavoriteToggle = (e: React.MouseEvent) => {
     e.stopPropagation();
     setIsFavorite((prev) => !prev);
   };
+
+  const handleConfirmConnect = () => {
+    onConnect?.(doctor.id);
+  };
+
+  // Texto y estado del botón de conexión
+  let connectBtnText = t("clinicCard.connect");
+  let connectBtnDisabled = false;
+  let connectVariant: "primary" | "outline" = "outline";
+
+  if (connectionStatus === "connected") {
+    connectBtnText = t("clinicCard.connected");
+    connectVariant = "primary";
+  } else if (connectionStatus === "pending") {
+    connectBtnText = t("clinicCard.pending");
+    connectBtnDisabled = true;
+  }
 
   return (
     <div
@@ -96,7 +113,7 @@ export const DoctorCards = ({
                 WebkitBackdropFilter:
                   "blur(16px) saturate(180%) contrast(120%)",
               }}
-              onClick={handleFavoriteToggle} // <-- Toggle favorito
+              onClick={handleFavoriteToggle}
             >
               {isFavorite ? (
                 <HeartFilled size={20} fill="red" className="text-red-500" />
@@ -511,27 +528,33 @@ export const DoctorCards = ({
           >
             {userRole === "CENTER" ? (
               <>
-                <MCButton
-                  variant={isConnected ? "primary" : "outline"}
-                  size={isMobile ? "xs" : "sm"}
-                  className={cn(
-                    "flex-1",
-                    isMobile && "text-xs px-2",
-                    isConnected &&
-                      "bg-secondary hover:bg-secondary/90 text-white border-none active:bg-secondary/80",
-                    !isConnected &&
-                      "border-secondary text-secondary hover:bg-secondary/10 hover:border-secondary/80 active:bg-secondary/20",
-                  )}
-                  onClick={handleConnectToggle}
+                <ToogleConfirmConnection
+                  status={connectionStatus}
+                  id={parseInt(doctor.id)}
+                  onConfirm={handleConfirmConnect}
                 >
-                  {isConnected
-                    ? t("clinicCard.connected")
-                    : t("clinicCard.connect")}
-                </MCButton>
+                  <MCButton
+                    variant={connectVariant}
+                    size={isMobile ? "xs" : "sm"}
+                    className={cn(
+                      "flex-1 w-full",
+                      isMobile && "text-xs px-2",
+                      connectionStatus === "connected" &&
+                        "bg-secondary hover:bg-secondary/90 text-white border-none active:bg-secondary/80",
+                      connectionStatus === "not_connected" &&
+                        "border-secondary text-secondary hover:bg-secondary/10 hover:border-secondary/80 active:bg-secondary/20",
+                      connectionStatus === "pending" &&
+                        "border-gray-300 text-gray-500 bg-gray-100 cursor-not-allowed",
+                    )}
+                    disabled={connectBtnDisabled}
+                  >
+                    {connectBtnText}
+                  </MCButton>
+                </ToogleConfirmConnection>
                 <MCButton
                   variant="outline"
                   size={isMobile ? "xs" : "sm"}
-                  className={cn("flex-1", isMobile && "text-xs px-2")}
+                  className={cn("flex-1 w-full", isMobile && "text-xs px-2")}
                   onClick={() => navigate(`/doctor/profile/${doctor.id}`)}
                 >
                   {t("clinicCard.viewProfile")}
@@ -542,7 +565,7 @@ export const DoctorCards = ({
                 <MCButton
                   variant="outline"
                   size={isMobile ? "xs" : "sm"}
-                  className={cn("flex-1", isMobile && "text-xs px-2")}
+                  className={cn("flex-1 w-full", isMobile && "text-xs px-2")}
                   onClick={() => navigate(`/doctor/profile/${doctor.id}`)}
                 >
                   {t("clinicCard.viewProfile")}

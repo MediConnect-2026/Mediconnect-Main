@@ -239,14 +239,12 @@ const ProviderCard = memo(
   ({
     provider,
     isSelected,
-    isConnected,
     onSelect,
     onConnect,
     onViewProfile,
   }: {
     provider: Provider;
     isSelected: boolean;
-    isConnected: boolean;
     onSelect: (id: string) => void;
     onConnect: (id: string) => void;
     onViewProfile: (id: string) => void;
@@ -258,13 +256,17 @@ const ProviderCard = memo(
           isSelected={isSelected}
           onSelect={onSelect}
           onViewProfile={onViewProfile}
+          connectionStatus={
+            (provider as Doctor).connectionStatus ?? "not_connected"
+          }
+          onConnect={onConnect}
         />
       );
     } else {
       return (
         <CenterCards
           clinic={provider as Clinic}
-          isConnected={isConnected}
+          isConnected={(provider as Clinic).connectionStatus ?? "not_connected"}
           onConnect={onConnect}
           onViewProfile={onViewProfile}
         />
@@ -628,7 +630,6 @@ function Search() {
                     key={provider.id}
                     provider={provider}
                     isSelected={selectedProviders.includes(provider.id)}
-                    isConnected={connectedClinics.includes(provider.id)}
                     onSelect={handleProviderSelect}
                     onConnect={handleClinicConnect}
                     onViewProfile={handleViewProfile}

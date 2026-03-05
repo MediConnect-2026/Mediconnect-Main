@@ -1,8 +1,8 @@
-import React from "react";
 import { useTranslation } from "react-i18next";
 import { Eye, UserX } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { ROUTES } from "@/router/routes";
+import ToogleConfirmConnection from "./ToogleConfirmConnection";
 
 interface StaffActionsProps {
   doctor: {
@@ -22,7 +22,7 @@ function StaffActions({ doctor }: StaffActionsProps) {
     );
   };
 
-  const handleDisconnect = () => {
+  const handleConfirmDisconnect = () => {
     // Lógica para desconectar al médico
     console.log("Desconectar médico:", doctor.id);
   };
@@ -36,13 +36,16 @@ function StaffActions({ doctor }: StaffActionsProps) {
         <Eye className="h-4 w-4" />
         {t("staff.viewProfile", "Ver Perfil")}
       </div>
-      <div
-        className="p-2 cursor-pointer rounded-lg hover:bg-destructive/10 text-destructive transition text-sm flex items-center gap-2"
-        onClick={handleDisconnect}
+      <ToogleConfirmConnection
+        status={doctor.status === "active" ? "connected" : "not_connected"}
+        id={parseInt(doctor.id)}
+        onConfirm={handleConfirmDisconnect}
       >
-        <UserX className="h-4 w-4" />
-        {t("staff.disconnect", "Desconectar")}
-      </div>
+        <div className="p-2 cursor-pointer rounded-lg hover:bg-destructive/10 text-destructive transition text-sm flex items-center gap-2">
+          <UserX className="h-4 w-4" />
+          {t("staff.disconnect", "Desconectar")}
+        </div>
+      </ToogleConfirmConnection>
     </div>
   );
 }
