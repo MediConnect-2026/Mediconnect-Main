@@ -280,6 +280,7 @@ export function AppointmentsCalendar({
                       key={appointment.id}
                       appointment={appointment}
                       index={index}
+                      isVertical={isVertical}
                     />
                   ))}
                 </motion.div>
@@ -380,6 +381,7 @@ export function AppointmentsCalendar({
                     key={appointment.id}
                     appointment={appointment}
                     index={index}
+                    isVertical={isVertical}
                   />
                 ))}
               </motion.div>
