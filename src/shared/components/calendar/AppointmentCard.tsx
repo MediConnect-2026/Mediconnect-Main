@@ -27,10 +27,15 @@ export interface Appointment {
 
 interface AppointmentCardProps {
   appointment: Appointment;
+  isVertical?: boolean; // Para forzar diseño vertical en móviles
   index: number;
 }
 
-export function AppointmentCard({ appointment, index }: AppointmentCardProps) {
+export function AppointmentCard({
+  appointment,
+  index,
+  isVertical,
+}: AppointmentCardProps) {
   const isMobile = useIsMobile();
   const { t } = useTranslation("patient");
 
@@ -45,18 +50,14 @@ export function AppointmentCard({ appointment, index }: AppointmentCardProps) {
 
     if (status === "scheduled" || status === "pending") {
       return (
-        <div className="flex flex-col sm:flex-row w-full sm:w-fit gap-2">
-          <MCButton
-            variant="outline"
-            size="s"
-            className="rounded-full w-full sm:w-auto"
-          >
+        <div className="flex flex-col gap-2 w-full">
+          <MCButton variant="outline" size="s" className="rounded-full w-full">
             {t("appointments.reschedule")}
           </MCButton>
           <MCButton
             variant="outlineDelete"
             size="s"
-            className="rounded-full w-full sm:w-auto"
+            className="rounded-full w-full"
           >
             {t("appointments.cancel")}
           </MCButton>
@@ -67,14 +68,14 @@ export function AppointmentCard({ appointment, index }: AppointmentCardProps) {
     if (status === "in_progress") {
       if (isVirtual) {
         return (
-          <div className="flex flex-col sm:flex-row w-full sm:w-fit gap-2">
-            <MCButton size="s" className="rounded-full w-full sm:w-auto">
+          <div className="flex flex-col gap-2 w-full">
+            <MCButton size="s" className="rounded-full w-full">
               {t("appointments.join")}
             </MCButton>
             <MCButton
               variant="outline"
               size="s"
-              className="rounded-full w-full sm:w-auto"
+              className="rounded-full w-full"
             >
               {t("appointments.details")}
             </MCButton>
@@ -106,7 +107,7 @@ export function AppointmentCard({ appointment, index }: AppointmentCardProps) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.1, duration: 0.3 }}
-      className={`w-full flex flex-col gap-3 p-3 bg-none border-b border-primary/15 last:border-b-0 hide-scrollbar  `}
+      className={`w-full flex gap-3 p-3 bg-none border-b border-primary/15 last:border-b-0 hide-scrollbar ${isVertical ? "flex-col" : "flex-row justify-between items-center"}`}
       // Elimina sm:flex-row y sm:items-center para forzar vertical
     >
       {/* Contenido principal */}
@@ -160,7 +161,7 @@ export function AppointmentCard({ appointment, index }: AppointmentCardProps) {
       </div>
 
       {/* Botones de acción */}
-      <div className="flex gap-2 w-full sm:w-fit">{renderButtons()}</div>
+      <div className="flex flex-col gap-2 w-full mt-2">{renderButtons()}</div>
     </motion.div>
   );
 }
