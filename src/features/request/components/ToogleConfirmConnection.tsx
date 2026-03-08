@@ -22,30 +22,34 @@ function ToogleConfirmConnection({
   const { t } = useTranslation("center");
   const userRole = useAppStore((state) => state.user?.role);
 
-  // Si está pendiente, no mostrar modal
   if (isPending) {
     return <>{children}</>;
   }
 
-  // Mensajes según el rol
   let title = "";
   let description = "";
   let confirmText = "";
+
   if (userRole === "DOCTOR") {
     title = isConnected
-      ? "Desconectar Centro Médico"
-      : "Conectar Centro Médico";
+      ? t("connection.disconnectMedicalCenter")
+      : t("connection.connectMedicalCenter");
     description = isConnected
-      ? "¿Estás seguro de que deseas desconectar este centro médico? Esta acción no se puede deshacer."
-      : "¿Deseas conectar este centro médico?";
-    confirmText = isConnected ? "Desconectar" : "Conectar";
+      ? t("connection.disconnectMedicalCenterDesc")
+      : t("connection.connectMedicalCenterDesc");
+    confirmText = isConnected
+      ? t("connection.disconnect")
+      : t("connection.connect");
   } else {
-    // CENTER
-    title = isConnected ? "Desconectar Doctor" : "Conectar Doctor";
+    title = isConnected
+      ? t("connection.disconnectDoctor")
+      : t("connection.connectDoctor");
     description = isConnected
-      ? "¿Estás seguro de que deseas desconectar a este doctor? Esta acción no se puede deshacer."
-      : "¿Deseas conectar a este doctor a tu centro médico?";
-    confirmText = isConnected ? "Desconectar" : "Conectar";
+      ? t("connection.disconnectDoctorDesc")
+      : t("connection.connectDoctorDesc");
+    confirmText = isConnected
+      ? t("connection.disconnect")
+      : t("connection.connect");
   }
 
   return (
@@ -54,10 +58,10 @@ function ToogleConfirmConnection({
       trigger={children}
       variant={isConnected ? "warning" : "decide"}
       title={title}
-      triggerClassName="flex-1   w-full"
+      triggerClassName="flex-1 w-full"
       description={description}
       confirmText={confirmText}
-      secondaryText="Cancelar"
+      secondaryText={t("connection.cancel")}
       onConfirm={onConfirm}
       onSecondary={onCancel}
       size="sm"

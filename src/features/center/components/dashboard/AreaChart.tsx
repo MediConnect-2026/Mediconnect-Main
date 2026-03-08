@@ -14,6 +14,7 @@ import {
   ChartTooltipContent,
   type ChartConfig,
 } from "@/shared/ui/chart";
+import { useTranslation } from "react-i18next";
 
 interface ChartDataItem {
   day: string;
@@ -23,13 +24,6 @@ interface ChartDataItem {
 interface AreaChartProps {
   dateRange?: "week" | "month" | "3months" | "year" | "all";
 }
-
-const chartConfig: ChartConfig = {
-  medicos: {
-    label: "Médicos Afiliados",
-    color: "var(--accent)",
-  },
-};
 
 const dataByPeriod: Record<string, ChartDataItem[]> = {
   week: [
@@ -76,7 +70,15 @@ const dataByPeriod: Record<string, ChartDataItem[]> = {
 };
 
 function AreaChart({ dateRange = "month" }: AreaChartProps) {
+  const { t } = useTranslation("center");
   const chartData = dataByPeriod[dateRange];
+
+  const chartConfig: ChartConfig = {
+    medicos: {
+      label: t("dashboard.chart.affiliatedDoctorsLabel"),
+      color: "var(--accent)",
+    },
+  };
 
   return (
     <Card className="h-full flex flex-col rounded-3xl border-none shadow-none p-0 m-0">

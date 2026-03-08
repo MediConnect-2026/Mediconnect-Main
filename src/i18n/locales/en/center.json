@@ -65,5 +65,162 @@
   },
   "common": {
     "close": "Close"
+  },
+  "connection": {
+    "disconnectMedicalCenter": "Disconnect Medical Center",
+    "connectMedicalCenter": "Connect Medical Center",
+    "disconnectMedicalCenterDesc": "Are you sure you want to disconnect this medical center? This action cannot be undone.",
+    "connectMedicalCenterDesc": "Do you want to connect this medical center?",
+    "disconnectDoctor": "Disconnect Doctor",
+    "connectDoctor": "Connect Doctor",
+    "disconnectDoctorDesc": "Are you sure you want to disconnect this doctor? This action cannot be undone.",
+    "connectDoctorDesc": "Do you want to connect this doctor to your medical center?",
+    "disconnect": "Disconnect",
+    "connect": "Connect",
+    "cancel": "Cancel"
+  },
+  "dashboard": {
+    "metrics": {
+      "totalDoctors": "Total Doctors",
+      "totalDoctorsSubtitle": "Total number of doctors",
+      "specialtiesCovered": "Specialties Covered",
+      "specialtiesCoveredSubtitle": "Total number of specialties",
+      "appointmentsThisWeek": "Appointments This Week",
+      "appointmentsThisWeekSubtitle": "Total number of appointments",
+      "averageRating": "Average Rating",
+      "averageRatingSubtitle": "Across all doctors"
+    },
+    "chart": {
+      "affiliatedDoctorsGrowth": "Affiliated Doctors Growth",
+      "affiliatedDoctorsLabel": "Affiliated Doctors",
+      "week": "Week",
+      "month": "Month",
+      "threeMonths": "3 Months",
+      "year": "Year",
+      "all": "All"
+    },
+    "specialties": {
+      "distributionTitle": "Distribution by Specialty",
+      "others": "Others"
+    },
+    "staffTable": {
+      "title": "Your care team"
+    }
+  },
+  "staff": {
+    "pageTitle": "Medical Staff",
+    "searchPlaceholder": "Search doctor...",
+    "viewProfile": "View Profile",
+    "disconnect": "Disconnect",
+    "inviteDoctor": "Invite Doctor",
+    "clearFilters": "Clear filters",
+    "table": {
+      "doctor": "Doctor",
+      "specialty": "Specialty",
+      "rating": "Rating",
+      "experience": "Experience",
+      "languages": "Languages",
+      "connectionDate": "Connection Date",
+      "appointments": "Appointments",
+      "status": "Status",
+      "actions": "Actions",
+      "allLanguages": "All languages:",
+      "years": "years",
+      "noStaff": "No medical staff available."
+    },
+    "empty": {
+      "noResults": "No results found",
+      "noResultsDescription": "Try adjusting the filters to find what you're looking for.",
+      "noStaff": "No medical staff",
+      "noStaffDescription": "You have no medical staff registered in your center yet.",
+      "noDoctors": "No doctors found",
+      "noDoctorsDescription": "No doctors match the search criteria.",
+      "noDoctorsRegistered": "No doctors registered",
+      "noDoctorsRegisteredDescription": "You have no doctors connected to your medical center yet."
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive",
+      "pending": "Pending",
+      "suspended": "Suspended"
+    },
+    "filters": {
+      "title": "Filters",
+      "specialty": "Specialty",
+      "specialties": "Medical Specialties",
+      "specialtyPlaceholder": "All specialties",
+      "specialtiesPlaceholder": "Select specialties...",
+      "rating": "Rating",
+      "ratingMinimum": "Minimum Rating",
+      "ratingPlaceholder": "All ratings",
+      "ratingSelectPlaceholder": "Select ratings...",
+      "allRatings": "All ratings",
+      "languages": "Spoken Languages",
+      "languagesPlaceholder": "Select languages...",
+      "experience": "Years of Experience",
+      "experiencePlaceholder": "Select experience...",
+      "status": "Staff Status",
+      "statusPlaceholder": "Select statuses...",
+      "connectionDate": "Connection Date",
+      "allSpecialties": "All specialties",
+      "allLanguages": "All languages",
+      "allExperience": "All experience levels",
+      "allStatuses": "All statuses"
+    },
+    "specialties": {
+      "cardiology": "Cardiology",
+      "dermatology": "Dermatology",
+      "pediatrics": "Pediatrics",
+      "neurology": "Neurology",
+      "internalMedicine": "Internal Medicine",
+      "gynecology": "Gynecology",
+      "traumatology": "Traumatology",
+      "psychiatry": "Psychiatry",
+      "ophthalmology": "Ophthalmology",
+      "otolaryngology": "Otolaryngology",
+      "urology": "Urology",
+      "endocrinology": "Endocrinology",
+      "gastroenterology": "Gastroenterology",
+      "hematology": "Hematology",
+      "infectology": "Infectology",
+      "nephrology": "Nephrology",
+      "pulmonology": "Pulmonology",
+      "oncology": "Oncology",
+      "rheumatology": "Rheumatology"
+    },
+    "languages": {
+      "es": "Spanish",
+      "en": "English",
+      "fr": "French",
+      "it": "Italian",
+      "pt": "Portuguese",
+      "de": "German",
+      "ja": "Japanese",
+      "ko": "Korean",
+      "zh": "Chinese",
+      "ru": "Russian",
+      "ar": "Arabic"
+    },
+    "experience": {
+      "0-2": "0-2 years (Recent graduate)",
+      "3-5": "3-5 years (Junior)",
+      "6-10": "6-10 years (Intermediate)",
+      "11-15": "11-15 years (Senior)",
+      "16-20": "16-20 years (Expert)",
+      "21-25": "21-25 years (Veteran)",
+      "25+": "More than 25 years (Eminence)"
+    },
+    "pdf": {
+      "fileName": "medical-staff",
+      "title": "Medical Care Team",
+      "subtitle": "Medical Center - Staff",
+      "columnDoctor": "Doctor",
+      "columnSpecialty": "Specialty",
+      "columnRating": "Rating",
+      "columnExperience": "Experience (years)",
+      "columnAppointments": "Total Appointments",
+      "columnConnectionDate": "Connection Date",
+      "columnStatus": "Status"
+    }
   }
 }
