@@ -1,4 +1,5 @@
 import { useState } from "react";
+import FilterMyDoctors from "../components/filters/FilterMyDoctors";
 import MCTablesLayouts from "@/shared/components/tables/MCTablesLayouts";
 import MCDoctorsCards from "@/shared/components/MCDoctorsCards";
 import MCFilterInput from "@/shared/components/filters/MCFilterInput";
@@ -12,7 +13,7 @@ import {
 } from "@/shared/ui/pagination";
 import MCPDFButton from "@/shared/components/forms/MCPDFButton";
 import MCGeneratePDF from "@/shared/components/MCGeneratePDF";
-import FilterMyDoctors from "../components/filters/FilterMyDoctors";
+
 import {
   Empty,
   EmptyHeader,
