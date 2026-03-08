@@ -1,4 +1,5 @@
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/avatar";
 import { Button } from "@/shared/ui/button";
 import { Star, Ellipsis } from "lucide-react";
@@ -69,16 +70,24 @@ function formatDate(dateStr: string) {
   });
 }
 
-const languageLabels: Record<string, string> = {
-  es: "Español",
-  en: "Inglés",
-  fr: "Francés",
-  it: "Italiano",
-};
-
 function StaffTable({ staffData = [] }: StaffTableProps) {
+  const { t } = useTranslation("center");
   const isMobile = useIsMobile();
   const [page, setPage] = React.useState(1);
+
+  const languageLabels: Record<string, string> = {
+    es: t("staff.languages.es"),
+    en: t("staff.languages.en"),
+    fr: t("staff.languages.fr"),
+    it: t("staff.languages.it"),
+    pt: t("staff.languages.pt"),
+    de: t("staff.languages.de"),
+    ja: t("staff.languages.ja"),
+    ko: t("staff.languages.ko"),
+    zh: t("staff.languages.zh"),
+    ru: t("staff.languages.ru"),
+    ar: t("staff.languages.ar"),
+  };
 
   const totalPages = Math.ceil(staffData.length / PAGE_SIZE);
   const startIndex = (page - 1) * PAGE_SIZE;
@@ -86,17 +95,11 @@ function StaffTable({ staffData = [] }: StaffTableProps) {
   const paginatedData = staffData.slice(startIndex, endIndex);
 
   React.useEffect(() => {
-    if (page > totalPages && totalPages > 0) {
-      setPage(1);
-    }
+    if (page > totalPages && totalPages > 0) setPage(1);
   }, [page, totalPages]);
 
-  // Función para formatear idiomas
   const formatLanguages = (languages: string[]) => {
-    const translatedLanguages = languages.map(
-      (lang) => languageLabels[lang] || lang,
-    );
-    return translatedLanguages.join(", ");
+    return languages.map((lang) => languageLabels[lang] || lang).join(", ");
   };
 
   return (
@@ -108,49 +111,49 @@ function StaffTable({ staffData = [] }: StaffTableProps) {
               <TableHead
                 className={`min-w-[220px] ${isMobile ? "text-xs" : ""}`}
               >
-                Doctor
+                {t("staff.table.doctor")}
               </TableHead>
               <TableHead
                 className={`min-w-[140px] ${isMobile ? "text-xs" : ""}`}
               >
-                Especialidad
+                {t("staff.table.specialty")}
               </TableHead>
               <TableHead
                 className={`min-w-[120px] ${isMobile ? "text-xs" : ""}`}
               >
                 <div className="flex items-center justify-center gap-1">
-                  <span>Calificación</span>
+                  <span>{t("staff.table.rating")}</span>
                 </div>
               </TableHead>
               <TableHead
                 className={`min-w-[100px] ${isMobile ? "text-xs" : ""}`}
               >
-                Experiencia
+                {t("staff.table.experience")}
               </TableHead>
               <TableHead
                 className={`min-w-[150px] ${isMobile ? "text-xs" : ""}`}
               >
-                Idiomas
+                {t("staff.table.languages")}
               </TableHead>
               <TableHead
                 className={`min-w-[130px] ${isMobile ? "text-xs" : ""}`}
               >
-                Fecha Conexión
+                {t("staff.table.connectionDate")}
               </TableHead>
               <TableHead
                 className={`min-w-[100px] ${isMobile ? "text-xs" : ""}`}
               >
-                Citas
+                {t("staff.table.appointments")}
               </TableHead>
               <TableHead
                 className={`min-w-[100px] ${isMobile ? "text-xs" : ""}`}
               >
-                Estado
+                {t("staff.table.status")}
               </TableHead>
               <TableHead
                 className={`min-w-[80px] ${isMobile ? "text-xs" : ""}`}
               >
-                Acciones
+                {t("staff.table.actions")}
               </TableHead>
             </TableRow>
           </TableHeader>
@@ -161,7 +164,6 @@ function StaffTable({ staffData = [] }: StaffTableProps) {
                   key={staff.id}
                   className="cursor-pointer hover:bg-muted/50"
                 >
-                  {/* Doctor - imagen grande */}
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <div
@@ -188,7 +190,6 @@ function StaffTable({ staffData = [] }: StaffTableProps) {
                     </div>
                   </TableCell>
 
-                  {/* Especialidad - sin badge */}
                   <TableCell>
                     <div
                       className={`font-medium ${isMobile ? "text-xs" : "text-sm"}`}
@@ -197,7 +198,6 @@ function StaffTable({ staffData = [] }: StaffTableProps) {
                     </div>
                   </TableCell>
 
-                  {/* Calificación - estrella después del número */}
                   <TableCell>
                     <div className="flex items-center justify-center gap-1">
                       <span
@@ -213,14 +213,12 @@ function StaffTable({ staffData = [] }: StaffTableProps) {
                     </div>
                   </TableCell>
 
-                  {/* Experiencia */}
                   <TableCell
                     className={`text-muted-foreground ${isMobile ? "text-xs" : "text-sm"}`}
                   >
-                    {staff.yearsOfExperience} años
+                    {staff.yearsOfExperience} {t("staff.table.years")}
                   </TableCell>
 
-                  {/* Idiomas - con tooltip si son muchos */}
                   <TableCell>
                     {staff.languages.length > 2 ? (
                       <Tooltip>
@@ -235,7 +233,7 @@ function StaffTable({ staffData = [] }: StaffTableProps) {
                         <TooltipContent>
                           <div className="flex flex-col gap-1">
                             <span className="text-xs font-medium">
-                              Todos los idiomas:
+                              {t("staff.table.allLanguages")}
                             </span>
                             <span className="text-xs">
                               {formatLanguages(staff.languages)}
@@ -250,7 +248,6 @@ function StaffTable({ staffData = [] }: StaffTableProps) {
                     )}
                   </TableCell>
 
-                  {/* Fecha Conexión */}
                   <TableCell>
                     <div
                       className={`font-medium ${isMobile ? "text-xs" : "text-sm"}`}
@@ -259,14 +256,12 @@ function StaffTable({ staffData = [] }: StaffTableProps) {
                     </div>
                   </TableCell>
 
-                  {/* Citas Totales */}
                   <TableCell
                     className={`font-medium ${isMobile ? "text-xs" : "text-sm"}`}
                   >
                     {staff.totalAppointments}
                   </TableCell>
 
-                  {/* Estado */}
                   <TableCell>
                     <MCServicesStatus
                       variant="default"
@@ -274,7 +269,6 @@ function StaffTable({ staffData = [] }: StaffTableProps) {
                     />
                   </TableCell>
 
-                  {/* Acciones */}
                   <TableCell>
                     <Popover>
                       <PopoverTrigger asChild>
@@ -305,7 +299,7 @@ function StaffTable({ staffData = [] }: StaffTableProps) {
                   colSpan={9}
                   className={`text-center ${isMobile ? "text-xs" : ""}`}
                 >
-                  No hay personal médico disponible.
+                  {t("staff.table.noStaff")}
                 </TableCell>
               </TableRow>
             )}

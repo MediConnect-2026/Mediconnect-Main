@@ -24,7 +24,7 @@ import { Filter, UserX } from "lucide-react";
 import MCButton from "@/shared/components/forms/MCButton";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
 import MCToogle from "@/shared/components/forms/MCToogle";
-import FullFilterStaff from "@/features/center/filters/FullFilterStaff";
+import FullFilterStaff from "@/features/center/components/filters/FullFilterStaff";
 
 import StaffTable from "../components/staff/StaffTable";
 
@@ -209,13 +209,11 @@ function StaffPage() {
     joinDate: { from: null, to: null },
   });
 
-  // Normaliza string | string[] → string[] siempre
   const toArray = (val: string | string[]): string[] => {
     if (!val || (Array.isArray(val) && val.length === 0)) return [];
     return Array.isArray(val) ? val : [val];
   };
 
-  // ---------- FILTRADO ----------
   const filteredStaff = useMemo(() => {
     const specialty = toArray(filters.specialty);
     const rating = toArray(filters.rating);
@@ -230,12 +228,9 @@ function StaffPage() {
           staff.specialty.toLowerCase().includes(search.toLowerCase()),
       )
       .filter((staff) => {
-        // Especialidad
         if (specialty.length > 0 && !specialty.includes("all")) {
           if (!specialty.includes(staff.specialty)) return false;
         }
-
-        // Calificación — múltiples selecciones = OR: pasa si cumple al menos una
         if (
           rating.length > 0 &&
           !rating.includes("0") &&
@@ -244,16 +239,12 @@ function StaffPage() {
           const minRating = Math.min(...rating.map((r) => parseFloat(r)));
           if (staff.rating < minRating) return false;
         }
-
-        // Idiomas — OR: pasa si habla al menos uno de los seleccionados
         if (languages.length > 0 && !languages.includes("all")) {
           const hasCommonLanguage = staff.languages.some((lang) =>
             languages.includes(lang),
           );
           if (!hasCommonLanguage) return false;
         }
-
-        // Experiencia — OR: pasa si cae en al menos uno de los rangos seleccionados
         if (experience.length > 0 && !experience.includes("all")) {
           const matchesExperience = experience.some((exp) => {
             switch (exp) {
@@ -289,13 +280,9 @@ function StaffPage() {
           });
           if (!matchesExperience) return false;
         }
-
-        // Estado
         if (status.length > 0 && !status.includes("all")) {
           if (!status.includes(staff.status)) return false;
         }
-
-        // Fecha de conexión
         if (filters.joinDate.from) {
           const staffDate = new Date(staff.joinDate);
           const fromDate = new Date(filters.joinDate.from);
@@ -308,19 +295,16 @@ function StaffPage() {
           toDate.setHours(23, 59, 59, 999);
           if (staffDate > toDate) return false;
         }
-
         return true;
       });
   }, [search, filters]);
 
-  // ---------- Pagination ----------
   const totalPages = Math.ceil(filteredStaff.length / ITEMS_PER_PAGE);
   const paginatedStaff = filteredStaff.slice(
     (page - 1) * ITEMS_PER_PAGE,
     page * ITEMS_PER_PAGE,
   );
 
-  // ---------- HELPERS ----------
   function getActiveFiltersCount() {
     let count = 0;
     const s = toArray(filters.specialty);
@@ -359,7 +343,6 @@ function StaffPage() {
 
   const hasActiveFilters = getActiveFiltersCount() > 0;
 
-  // ---------- Toggle view ----------
   const handleToggle = (val: string) => {
     setShowCards(val === "card");
     try {
@@ -371,24 +354,29 @@ function StaffPage() {
     <MCToogle value={showCards ? "card" : "list"} onChange={handleToggle} />
   );
 
-  // ---------- PDF ----------
   const pdfGeneratorComponent = (
     <MCPDFButton
       onClick={async () => {
         setIsLoading(true);
         await MCGeneratePDF({
           columns: [
-            { title: "Doctor", key: "name" },
-            { title: "Especialidad", key: "specialty" },
-            { title: "Calificación", key: "rating" },
-            { title: "Experiencia (años)", key: "yearsOfExperience" },
-            { title: "Citas Totales", key: "totalAppointments" },
-            { title: "Fecha Conexión", key: "joinDate" },
+            { title: t("staff.pdf.columnDoctor"), key: "name" },
+            { title: t("staff.pdf.columnSpecialty"), key: "specialty" },
+            { title: t("staff.pdf.columnRating"), key: "rating" },
+            {
+              title: t("staff.pdf.columnExperience"),
+              key: "yearsOfExperience",
+            },
+            {
+              title: t("staff.pdf.columnAppointments"),
+              key: "totalAppointments",
+            },
+            { title: t("staff.pdf.columnConnectionDate"), key: "joinDate" },
           ],
           data: filteredStaff,
-          fileName: "equipo-medico",
-          title: "Equipo de Atención Médica",
-          subtitle: "Centro Médico - Staff",
+          fileName: t("staff.pdf.fileName"),
+          title: t("staff.pdf.title"),
+          subtitle: t("staff.pdf.subtitle"),
         });
         setIsLoading(false);
       }}
@@ -396,7 +384,6 @@ function StaffPage() {
     />
   );
 
-  // ---------- Filter component ----------
   const filterComponent = (
     <FullFilterStaff
       filters={filters}
@@ -406,11 +393,10 @@ function StaffPage() {
     />
   );
 
-  // ---------- Search ----------
   const searchComponent = (
     <div className="w-full sm:w-auto sm:min-w-[200px] lg:min-w-[250px]">
       <MCFilterInput
-        placeholder="Buscar médico..."
+        placeholder={t("staff.searchPlaceholder")}
         value={search}
         onChange={(value: string) => {
           setPage(1);
@@ -420,7 +406,6 @@ function StaffPage() {
     </div>
   );
 
-  // ---------- Empty state ----------
   const emptyComponent = (
     <Empty>
       <EmptyHeader>
@@ -435,8 +420,8 @@ function StaffPage() {
               className={`font-semibold ${isMobile ? "text-lg" : "text-xl"}`}
             >
               {hasActiveFilters
-                ? "No se encontraron resultados"
-                : "No hay personal médico"}
+                ? t("staff.empty.noResults")
+                : t("staff.empty.noStaff")}
             </EmptyTitle>
           </span>
           <EmptyDescription
@@ -445,8 +430,8 @@ function StaffPage() {
             }`}
           >
             {hasActiveFilters
-              ? "Intenta ajustar los filtros para encontrar lo que buscas."
-              : "Aún no tienes personal médico registrado en tu centro."}
+              ? t("staff.empty.noResultsDescription")
+              : t("staff.empty.noStaffDescription")}
           </EmptyDescription>
         </div>
       </EmptyHeader>
@@ -459,7 +444,7 @@ function StaffPage() {
               className={isMobile ? "px-4 py-2" : "px-6 py-2"}
               size="sm"
             >
-              Limpiar filtros
+              {t("staff.clearFilters")}
             </MCButton>
           )}
         </div>
@@ -467,7 +452,6 @@ function StaffPage() {
     </Empty>
   );
 
-  // ---------- Pagination component ----------
   const paginationComponent = totalPages > 1 && (
     <Pagination className="mt-6">
       <PaginationContent>
@@ -504,7 +488,6 @@ function StaffPage() {
     </Pagination>
   );
 
-  // ---------- Table component ----------
   const tableComponent = showCards ? (
     filteredStaff.length === 0 ? (
       emptyComponent
@@ -541,7 +524,7 @@ function StaffPage() {
 
   return (
     <MCTablesLayouts
-      title="Personal Médico"
+      title={t("staff.pageTitle")}
       filtersInlineWithTitle
       searchComponent={searchComponent}
       pdfGeneratorComponent={pdfGeneratorComponent}
