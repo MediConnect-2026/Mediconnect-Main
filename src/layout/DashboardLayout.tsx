@@ -60,11 +60,11 @@ function DashboardLayout() {
       }
     >
       {/* Navbar */}
-      <div className="block md:hidden flex-shrink-0 animate-fade-in">
+      <div className="block md:hidden sticky top-0 z-30 animate-fade-in">
         <MCNavbarMobile />
       </div>
 
-      <div className="hidden md:block flex-shrink-0 animate-fade-in">
+      <div className="hidden md:block sticky top-5 z-30 animate-fade-in">
         <MCNavbar />
       </div>
 
