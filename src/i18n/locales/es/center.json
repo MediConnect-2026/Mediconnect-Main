@@ -66,6 +66,36 @@
   "common": {
     "close": "Cerrar"
   },
+  "profilePage": {
+    "aboutTitle": "Acerca de",
+    "aboutDescription": "Atención integral para toda la familia, enfocada en prevenir, diagnosticar y tratar enfermedades comunes. Nuestro médico de familia acompaña a cada paciente en todas las etapas de la vida, considerando su bienestar físico, emocional y social.",
+    "insurancesTitle": "Seguros aceptados",
+    "morePlans": "Ver más planes...",
+    "locationTitle": "Ubicación",
+    "connectedDoctors": "Directorio médico",
+    "searchPlaceholder": "Buscar por nombre",
+    "emptyTitle": "No se encontraron doctores",
+    "emptyDescription": "Intenta ajustar tus filtros o criterios de búsqueda.",
+    "clearFilters": "Limpiar filtros"
+  },
+  "profileBanner": {
+    "rating": "{{rating}}",
+    "reviews": "reseñas",
+    "phone": "Teléfono",
+    "website": "Sitio web",
+    "editProfile": "Editar perfil",
+    "connect": "Conectar",
+    "connected": "Conectado",
+    "pending": "Esperando solicitud",
+    "viewProfile": "Ver perfil",
+    "menu": {
+      "history": "Historial",
+      "settings": "Configuración",
+      "privacy": "Privacidad",
+      "copyProfile": "Copiar perfil",
+      "logout": "Cerrar sesión"
+    }
+  },
   "connection": {
     "disconnectMedicalCenter": "Desconectar Centro Médico",
     "connectMedicalCenter": "Conectar Centro Médico",

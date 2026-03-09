@@ -310,7 +310,9 @@
     "attachedDocuments": "Documentos adjuntos",
     "download": "Descargar",
     "noDocumentsTitle": "Sin documentos adjuntos",
-    "noDocuments": "No hay documentos adjuntos para esta receta."
+    "noDocuments": "No hay documentos adjuntos para esta receta.",
+    "insure": "Seguro médico",
+    "noInsurance": "No tiene seguro médico"
   },
   "serviceCards": {
     "howWantAppointment": "¿Cómo quieres tu cita?",

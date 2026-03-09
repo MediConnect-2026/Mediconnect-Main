@@ -5,13 +5,7 @@ import { useAppStore } from "@/stores/useAppStore";
 import { Card, CardContent, CardHeader } from "@/shared/ui/card";
 import MCDoctorsCards from "@/shared/components/MCDoctorsCards";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
-import PatientProfileBannerMobile from "@/features/patient/components/PatientProfileBannerMobile";
-import { MCFilterPopover } from "@/shared/components/filters/MCFilterPopover";
 import MCFilterInput from "@/shared/components/filters/MCFilterInput";
-import PatientProfileBanner from "../components/PatientProfileBanner";
-import FilterMyDoctors from "../components/filters/FilterMyDoctors";
-import MedicalInfoCard from "@/features/patient/components/dashboard/MedicalInfoCard";
-import { useNavigate } from "react-router-dom";
 import {
   Empty,
   EmptyHeader,
@@ -21,22 +15,17 @@ import {
 } from "@/shared/ui/empty";
 import MCButton from "@/shared/components/forms/MCButton";
 import { Filter } from "lucide-react";
-import MCDashboardContent from "@/shared/layout/MCDashboardContent"; // <-- importa el layout
+import MCDashboardContent from "@/shared/layout/MCDashboardContent";
+import CenterProfileBanner from "../components/profile/CenterProfileBanner";
+import CenterProfileBannerMobile from "../components/profile/CenterProfileBannerMobile";
+import FilterStaff from "../components/filters/FilterStaff";
+import MapScheduleLocation from "@/shared/components/maps/MapScheduleLocation";
 
-// Interfaz para los filtros de doctores
-interface DoctorFilters {
-  specialty: string;
-  languages: string[];
-  acceptingInsurance: string[];
-  yearsOfExperience: number | null;
-  rating: number | null;
-  isFavorite: boolean | null;
-}
-
+// Mock data for connected doctors
 const doctorsList = [
   {
-    name: "Cristiano Ronaldo",
-    specialty: "cardiology",
+    name: "Dr. Carlos Méndez",
+    specialty: "Cardiología",
     rating: 4.8,
     yearsOfExperience: 15,
     languages: ["es", "en", "fr"],
@@ -45,8 +34,8 @@ const doctorsList = [
     urlImage: "",
   },
   {
-    name: "María López",
-    specialty: "Dermatóloga",
+    name: "Dra. María López",
+    specialty: "Dermatología",
     rating: 4.9,
     yearsOfExperience: 10,
     languages: ["es", "en"],
@@ -55,8 +44,8 @@ const doctorsList = [
     urlImage: "",
   },
   {
-    name: "Carlos Méndez",
-    specialty: "Pediatra",
+    name: "Dr. Juan Reyes",
+    specialty: "Pediatría",
     rating: 4.7,
     yearsOfExperience: 8,
     languages: ["es"],
@@ -65,70 +54,94 @@ const doctorsList = [
     urlImage: "",
   },
   {
-    name: "Sofía Ramírez",
-    specialty: "Endocrinóloga",
+    name: "Dra. Sofía Ramírez",
+    specialty: "Endocrinología",
     rating: 4.6,
     yearsOfExperience: 12,
     languages: ["es", "fr"],
     insuranceAccepted: ["senasa", "mapfre", "yunen"],
-    isFavorite: true,
+    isFavorite: false,
     urlImage: "",
   },
 ];
 
-function PatientProfilePage() {
+// Mock insurances
+const insurancesList = [
+  { name: "SENASA" },
+  { name: "Humano" },
+  { name: "Universal" },
+  { name: "PALIC" },
+  { name: "MAPFRE" },
+  { name: "Yunen" },
+  { name: "ARS Crecer" },
+];
+
+interface StaffFilters {
+  specialty: string | string[];
+  rating: string | string[];
+  joinDate: { from: Date | null; to: Date | null };
+}
+
+function CenterProfilePage() {
   const [openSheet, setOpenSheet] = useState(false);
   const [searchName, setSearchName] = useState("");
-  const { t } = useTranslation("patient");
+  const { t } = useTranslation("center");
 
-  const [doctorFilters, setDoctorFilters] = useState<DoctorFilters>({
+  const [staffFilters, setStaffFilters] = useState<StaffFilters>({
     specialty: "",
-    languages: [],
-    acceptingInsurance: [],
-    yearsOfExperience: null,
-    rating: null,
-    isFavorite: null,
+    rating: "",
+    joinDate: { from: null, to: null },
   });
 
   const user = useAppStore((state) => state.user);
   const isMobile = useIsMobile();
 
-  const insuranceLogos = [
-    { name: t("filters.insurances.senasa") },
-    { name: t("filters.insurances.palic") },
-    { name: t("filters.insurances.humano") },
-    { name: t("filters.insurances.mapfre") },
-    { name: t("filters.insurances.universal") },
-    { name: t("filters.insurances.crecer") },
-    { name: t("filters.insurances.yunen") },
-  ];
-
-  const navigate = useNavigate();
-
-  const updateDoctorFilters = (newFilters: Partial<DoctorFilters>) => {
-    setDoctorFilters((prev) => ({ ...prev, ...newFilters }));
+  // Mock center data
+  const center = {
+    id: "1",
+    name: user?.name || "Hospital Dario Contreras",
+    avatar: user?.avatar,
+    banner: user?.banner,
+    rating: 4.8,
+    reviewCount: 12,
+    phone: "809-093-2342",
+    website: "https://www.dariocontreras.gob.do",
+    description: "",
   };
 
-  const resetDoctorFilters = () => {
-    setDoctorFilters({
+  // Center location (Santo Domingo, RD - Hospital Dario Contreras)
+  const centerLocation = { lat: 18.4861, lng: -69.8887 };
+
+  const updateStaffFilters = (newFilters: Partial<StaffFilters>) => {
+    setStaffFilters((prev) => ({ ...prev, ...newFilters }));
+  };
+
+  const resetStaffFilters = () => {
+    setStaffFilters({
       specialty: "",
-      languages: [],
-      acceptingInsurance: [],
-      yearsOfExperience: null,
-      rating: null,
-      isFavorite: null,
+      rating: "",
+      joinDate: { from: null, to: null },
     });
     setSearchName("");
   };
 
   const getActiveFiltersCount = () => {
     let count = 0;
-    if (doctorFilters.specialty) count++;
-    if (doctorFilters.languages.length > 0) count++;
-    if (doctorFilters.acceptingInsurance.length > 0) count++;
-    if (doctorFilters.yearsOfExperience) count++;
-    if (doctorFilters.rating && doctorFilters.rating > 0) count++;
-    if (doctorFilters.isFavorite) count++;
+    if (
+      staffFilters.specialty &&
+      (Array.isArray(staffFilters.specialty)
+        ? staffFilters.specialty.length > 0
+        : staffFilters.specialty !== "")
+    )
+      count++;
+    if (
+      staffFilters.rating &&
+      (Array.isArray(staffFilters.rating)
+        ? staffFilters.rating.length > 0
+        : staffFilters.rating !== "" && staffFilters.rating !== "0")
+    )
+      count++;
+    if (staffFilters.joinDate.from || staffFilters.joinDate.to) count++;
     if (searchName) count++;
     return count;
   };
@@ -139,67 +152,72 @@ function PatientProfilePage() {
       !doctor.name.toLowerCase().includes(searchName.toLowerCase())
     )
       return false;
-    if (
-      doctorFilters.specialty &&
-      doctor.specialty.toLowerCase() !== doctorFilters.specialty.toLowerCase()
-    )
-      return false;
-    if (
-      doctorFilters.languages.length &&
-      !doctorFilters.languages.some((lang: any) =>
-        doctor.languages.includes(lang),
+
+    if (staffFilters.specialty) {
+      const specs = Array.isArray(staffFilters.specialty)
+        ? staffFilters.specialty
+        : [staffFilters.specialty];
+      if (
+        specs.length > 0 &&
+        !specs.some((s) => doctor.specialty.toLowerCase() === s.toLowerCase())
       )
-    )
-      return false;
-    if (
-      doctorFilters.acceptingInsurance.length &&
-      !doctorFilters.acceptingInsurance.some((ins) =>
-        doctor.insuranceAccepted.includes(ins),
-      )
-    )
-      return false;
-    if (
-      doctorFilters.yearsOfExperience &&
-      doctor.yearsOfExperience < doctorFilters.yearsOfExperience
-    )
-      return false;
-    if (doctorFilters.rating && doctor.rating < doctorFilters.rating)
-      return false;
-    if (doctorFilters.isFavorite === true && !doctor.isFavorite) return false;
+        return false;
+    }
+
+    if (staffFilters.rating) {
+      const minRating = Array.isArray(staffFilters.rating)
+        ? Math.max(...staffFilters.rating.map(Number))
+        : Number(staffFilters.rating);
+      if (minRating > 0 && doctor.rating < minRating) return false;
+    }
+
     return true;
   });
 
   return (
     <MCDashboardContent mainWidth="w-[100%]" noBg>
       <div className="min-h-screen w-full flex flex-col gap-4">
-        {/* Banner del paciente */}
+        {/* Banner del centro */}
         <div className="w-full">
           {isMobile ? (
-            <PatientProfileBannerMobile
-              user={user}
+            <CenterProfileBannerMobile
+              center={center}
               setOpenSheet={setOpenSheet}
             />
           ) : (
-            <PatientProfileBanner user={user} setOpenSheet={setOpenSheet} />
+            <CenterProfileBanner center={center} setOpenSheet={setOpenSheet} />
           )}
         </div>
 
-        {/* Info de seguros y datos médicos */}
-        <div className={isMobile ? "w-full px-2" : "w-full"}>
+        {/* Acerca de - Full width card */}
+        <Card className="animate-fade-in rounded-4xl border-0 shadow-md bg-background w-full">
+          <CardContent className={isMobile ? "p-4" : "p-6"}>
+            <h2
+              className={`mb-3 ${isMobile ? "text-lg" : "text-2xl"} font-semibold text-foreground`}
+            >
+              {t("profilePage.aboutTitle")}
+            </h2>
+            <p className="text-muted-foreground leading-relaxed text-sm md:text-base">
+              {center?.description || t("profilePage.aboutDescription")}
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* Grid: Seguros + Mapa */}
+        <div className={isMobile ? "w-full px-0" : "w-full"}>
           <div
-            className={`grid ${isMobile ? "grid-cols-1 gap-4" : "grid-cols-[6.5fr_3.5fr]"} gap-4 w-full`}
+            className={`grid ${isMobile ? "grid-cols-1 gap-4" : "grid-cols-2 gap-4"} w-full`}
           >
+            {/* Seguros aceptados */}
             <Card className="animate-fade-in rounded-4xl border-0 shadow-md bg-background">
-              <CardContent className={isMobile ? "p-4" : "p-2"}>
+              <CardContent className={isMobile ? "p-4" : "p-6"}>
                 <h2
-                  className={`mb-6 ${isMobile ? "text-lg" : "text-2xl"} font-semibold text-foreground`}
+                  className={`mb-4 ${isMobile ? "text-lg" : "text-2xl"} font-semibold text-foreground`}
                 >
-                  {t("insurance.title")}
+                  {t("profilePage.insurancesTitle")}
                 </h2>
-                <div
-                  className={`grid ${isMobile ? "grid-cols-2" : "grid-cols-2"} gap-2`}
-                >
-                  {insuranceLogos.map((insurance, index) => (
+                <div className="grid grid-cols-2 gap-2">
+                  {insurancesList.map((insurance, index) => (
                     <div
                       key={index}
                       className="flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-accent/20 cursor-pointer"
@@ -214,69 +232,54 @@ function PatientProfilePage() {
                   ))}
                   <div className="flex items-center gap-3 p-2">
                     <span className="text-sm text-primary hover:underline hover:text-secondary cursor-pointer">
-                      {t("insurance.morePlans")}
+                      {t("profilePage.morePlans")}
                     </span>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <MedicalInfoCard
-              isMobile={isMobile}
-              age={t("profileForm.agePlaceholder")}
-              bmi="26.1"
-              height={t("profileForm.heightPlaceholder") + " cm"}
-              weight={t("profileForm.weightPlaceholder") + " kg"}
-              bloodType={t("profileForm.bloodTypePlaceholder")}
-              allergies={[
-                t("clinicalHistory.allergies") + " (Penicillin, skin rash)",
-                t("clinicalHistory.allergies") + " (Penicillin, skin rash)",
-              ]}
-              conditions={[
-                t(
-                  "clinicalHistory.conditionPlaceholder",
-                  "Appendectomy in 2010",
-                ),
-                t(
-                  "clinicalHistory.conditionPlaceholder",
-                  "Family history of type 2 diabetes",
-                ),
-              ]}
-            />
+            {/* Ubicación / Mapa */}
+            <Card className="animate-fade-in rounded-4xl border-0 shadow-md bg-background">
+              <CardContent className={isMobile ? "p-4" : "p-6"}>
+                <h2
+                  className={`mb-4 ${isMobile ? "text-lg" : "text-2xl"} font-semibold text-foreground`}
+                >
+                  {t("profilePage.locationTitle")}
+                </h2>
+                <MapScheduleLocation
+                  initialLocation={centerLocation}
+                  fontSizeVariant={isMobile ? "xs" : "s"}
+                  showAddressInfo={true}
+                />
+              </CardContent>
+            </Card>
           </div>
         </div>
 
-        {/* Doctores */}
-        <Card
-          className={`animate-fade-in rounded-4xl border-0 shadow-md bg-background ${isMobile ? "w-full" : "w-full"}`}
-        >
+        {/* Directorio médico (Doctores conectados) */}
+        <Card className="animate-fade-in rounded-4xl border-0 shadow-md bg-background w-full">
           <CardHeader className={isMobile ? "p-4 pb-2" : "p-6 pb-4"}>
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <h2
                 className={`${isMobile ? "text-lg" : "text-2xl"} font-semibold text-foreground`}
               >
-                {t("navbar.doctors")}
+                {t("profilePage.connectedDoctors")}
               </h2>
               <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
                 <div className="w-full sm:w-auto flex-1 sm:flex-none">
                   <MCFilterInput
-                    placeholder={t(
-                      "filters.placeholders.name",
-                      "Search by name",
-                    )}
+                    placeholder={t("profilePage.searchPlaceholder")}
                     value={searchName}
                     onChange={setSearchName}
                   />
                 </div>
-                <MCFilterPopover
+                <FilterStaff
+                  filters={staffFilters}
+                  onFiltersChange={updateStaffFilters}
+                  onClearFilters={resetStaffFilters}
                   activeFiltersCount={getActiveFiltersCount()}
-                  onClearFilters={resetDoctorFilters}
-                >
-                  <FilterMyDoctors
-                    filters={doctorFilters}
-                    onFiltersChange={updateDoctorFilters}
-                  />
-                </MCFilterPopover>
+                />
               </div>
             </div>
           </CardHeader>
@@ -289,11 +292,11 @@ function PatientProfilePage() {
                     <span className="flex items-center gap-2 text-primary">
                       <Filter className="w-7 h-7" />
                       <EmptyTitle className="text-lg font-semibold">
-                        {t("doctors.emptyTitle")}
+                        {t("profilePage.emptyTitle")}
                       </EmptyTitle>
                     </span>
                     <EmptyDescription className="text-muted-foreground text-center max-w-md mx-auto">
-                      {t("doctors.emptyDescription")}
+                      {t("profilePage.emptyDescription")}
                     </EmptyDescription>
                   </div>
                 </EmptyHeader>
@@ -301,17 +304,17 @@ function PatientProfilePage() {
                   {getActiveFiltersCount() > 0 && (
                     <MCButton
                       variant="outline"
-                      onClick={resetDoctorFilters}
+                      onClick={resetStaffFilters}
                       className="px-6 py-2"
                       size="sm"
                     >
-                      {t("doctors.clearFilters")}
+                      {t("profilePage.clearFilters")}
                     </MCButton>
                   )}
                 </EmptyContent>
               </Empty>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4 gap-4">
                 {filteredDoctors.map((doctor, idx) => (
                   <MCDoctorsCards
                     id={idx}
@@ -324,6 +327,7 @@ function PatientProfilePage() {
                     insuranceAccepted={doctor.insuranceAccepted}
                     isFavorite={doctor.isFavorite}
                     urlImage={doctor.urlImage}
+                    connectionStatus="connected" // <-- Fuerza el estado conectado
                   />
                 ))}
               </div>
@@ -337,4 +341,4 @@ function PatientProfilePage() {
   );
 }
 
-export default PatientProfilePage;
+export default CenterProfilePage;

@@ -66,6 +66,36 @@
   "common": {
     "close": "Close"
   },
+  "profilePage": {
+    "aboutTitle": "About",
+    "aboutDescription": "Comprehensive care for the whole family, focused on preventing, diagnosing and treating common diseases. Our family doctor accompanies each patient at all stages of life, considering their physical, emotional and social well-being.",
+    "insurancesTitle": "Accepted insurances",
+    "morePlans": "See more plans...",
+    "locationTitle": "Location",
+    "connectedDoctors": "Medical directory",
+    "searchPlaceholder": "Search by name",
+    "emptyTitle": "No doctors found",
+    "emptyDescription": "Try adjusting your filters or search criteria.",
+    "clearFilters": "Clear filters"
+  },
+  "profileBanner": {
+    "rating": "{{rating}}",
+    "reviews": "reviews",
+    "phone": "Phone",
+    "website": "Website",
+    "editProfile": "Edit profile",
+    "connect": "Connect",
+    "connected": "Connected",
+    "pending": "Request pending",
+    "viewProfile": "View profile",
+    "menu": {
+      "history": "History",
+      "settings": "Settings",
+      "privacy": "Privacy",
+      "copyProfile": "Copy profile",
+      "logout": "Logout"
+    }
+  },
   "connection": {
     "disconnectMedicalCenter": "Disconnect Medical Center",
     "connectMedicalCenter": "Connect Medical Center",

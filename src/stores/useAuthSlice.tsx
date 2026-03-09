@@ -27,7 +27,7 @@ export const createAuthSlice: StateCreator<AuthSlice> = (set) => ({
     id: "",
     name: "",
     email: "",
-    role: "DOCTOR",
+    role: "CENTER",
   },
   //PATIENT
   //DOCTOR

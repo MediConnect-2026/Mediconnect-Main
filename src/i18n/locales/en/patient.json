@@ -315,7 +315,9 @@
     "attachedDocuments": "Attached documents",
     "download": "Download",
     "noDocumentsTitle": "No attached documents",
-    "noDocuments": "No documents attached to this prescription."
+    "noDocuments": "No documents attached to this prescription.",
+    "insure": "Medical insurance",
+    "noInsurance": "No medical insurance"
   },
   "serviceCards": {
     "howWantAppointment": "How do you want your appointment?",
