@@ -10,7 +10,8 @@ import { MCUserAvatar } from "@/shared/navigation/userMenu/MCUserAvatar";
 import { useTranslation } from "react-i18next";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
 
-const hours = Array.from({ length: 12 }, (_, i) => i + 7); // 7 AM to 6 PM
+// Rango de horas completo de 24 horas (00:00 - 23:00)
+const hours = Array.from({ length: 24 }, (_, i) => i); // 12 AM (00:00) to 11 PM (23:00)
 
 const statusColors: Record<AppointmentStatus, string> = {
   scheduled: "border-l-[#6A1B9A] bg-[#6A1B9A]/10",
@@ -37,6 +38,15 @@ export const DayView = ({
     isSameDay(apt.date, currentDate),
   );
 
+  console.debug("DayView - all appointments:", appointments.map(apt => ({
+    id: apt.id,
+    date: apt.date,
+    time: apt.time,
+    isSameDay: isSameDay(apt.date, currentDate),
+    address: apt.address,
+    modality: apt.modality,
+  })));
+  
   const getAppointmentsForHour = (hour: number) => {
     return dayAppointments.filter((apt) => {
       const aptHour = parseInt(apt.time.split(":")[0]);
@@ -44,12 +54,12 @@ export const DayView = ({
     });
   };
 
-  const userRole = useAppStore((state) => state.user?.role);
+  const userRole = useAppStore((state) => state.user?.rol);
 
   return (
-    <div className="flex-1 overflow-hidden h-full">
+    <div className="flex flex-col h-full overflow-hidden">
       {/* Day header */}
-      <div className="p-3 sm:p-4 md:p-6 border-b border-primary/15 bg-accent/40 dark:bg-accent/20 rounded-t-2xl sticky top-0 z-10">
+      <div className="p-3 sm:p-4 md:p-6 border-b border-primary/15 bg-accent/40 dark:bg-accent/20 rounded-t-2xl shrink-0">
         <h2 className="text-lg sm:text-xl md:text-2xl font-bold">
           {format(currentDate, "EEEE, d 'de' MMMM", { locale: es })}
         </h2>
@@ -61,7 +71,7 @@ export const DayView = ({
       </div>
 
       {/* Time slots */}
-      <div className="divide-y divide-primary/15 overflow-auto">
+      <div className="flex-1 overflow-y-auto divide-y divide-primary/15">
         {hours.map((hour) => {
           const hourAppointments = getAppointmentsForHour(hour);
 

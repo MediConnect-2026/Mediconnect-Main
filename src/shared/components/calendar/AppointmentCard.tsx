@@ -56,8 +56,6 @@ export function AppointmentCard({ appointment, index, onCancel, isVertical }: Ap
     .map((n) => n[0])
     .join("");
 
-  console.log("appointment in [appointmentCard]: ", appointment);
-
   // Botones según estado y tipo
   const renderButtons = () => {
     const { status, isVirtual } = appointment;

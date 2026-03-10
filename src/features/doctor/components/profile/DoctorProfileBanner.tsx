@@ -43,6 +43,9 @@ import { useVerifyInfoStore } from "@/stores/useVerifyInfoStore";
 import { useGlobalUIStore } from "@/stores/useGlobalUIStore";
 import { useAppStore } from "@/stores/useAppStore";
 import { useStartConversation } from "@/lib/hooks/useStartConversation";
+import { useAddDoctorToFavorites, useRemoveDoctorFromFavorites } from "@/lib/hooks/useFavoriteDoctor";
+import { MCModalBase } from "@/shared/components/MCModalBase";
+import { Spinner } from "@/shared/ui/spinner";
 
 interface Props {
   doctor: any;
@@ -65,7 +68,7 @@ const AVAILABLE_LANGUAGES = [
   { label: "Ruso", labelEn: "Russian" },
 ];
 
-function DoctorProfileBanner({
+function DoctorProfileBanner({ 
   doctor,
   setOpenSheet,
   onToggleFavorite,
@@ -81,6 +84,8 @@ function DoctorProfileBanner({
   const currentUser = useAppStore((state) => state.user);
 
   const { startConversation, isLoading: isStartingConversation } = useStartConversation();
+  const { mutate: addToFavorites, isPending: isAddingFavorite } = useAddDoctorToFavorites();
+  const { mutate: removeFromFavorites, isPending: isRemovingFavorite } = useRemoveDoctorFromFavorites();
 
   // El ID de usuario del doctor que se está viendo
   const doctorUserId: number | undefined = doctor?.id ?? doctor?.usuarioId;
@@ -138,6 +143,52 @@ function DoctorProfileBanner({
       message: t("profileForm.menu.profileCopied", "Enlace de perfil copiado al portapapeles"),
       type: "success",
       open: true,
+    });
+  };
+
+  const handleAddToFavorites = () => {
+    const doctorIdNum = Number(doctor?.id ?? doctor?.usuarioId);
+    if (!doctorIdNum) return;
+
+    // If it's already favorite, call remove mutation
+    if (doctor?.isFavorite) {
+      removeFromFavorites(doctorIdNum, {
+        onSuccess: () => {
+          onToggleFavorite?.();
+          setToast({
+            message: t('doctorCard.favoriteRemoved', { ns: 'common' }) || t('doctorCard.favoriteAdded', { ns: 'common' }),
+            type: 'success',
+            open: true,
+          });
+        },
+        onError: (err: any) => {
+          setToast({
+            message: err?.message || t('doctorCard.favoriteRemoveError', { ns: 'common' }) || t('doctorCard.favoriteAddError', { ns: 'common' }),
+            type: 'error',
+            open: true,
+          });
+        },
+      });
+      return;
+    }
+
+    // Otherwise add to favorites
+    addToFavorites(doctorIdNum, {
+      onSuccess: () => {
+        onToggleFavorite?.();
+        setToast({
+          message: t('doctorCard.favoriteAdded', { ns: 'common' }),
+          type: 'success',
+          open: true,
+        });
+      },
+      onError: (err: any) => {
+        setToast({
+          message: err?.message || t('doctorCard.favoriteAddError', { ns: 'common' }),
+          type: 'error',
+          open: true,
+        });
+      },
     });
   };
 
@@ -280,22 +331,38 @@ function DoctorProfileBanner({
                           : t("profileForm.sendMessage")}
                       </MCButton>
                     )}
-                    <MCButton
-                      variant={doctor.isFavorite ? "secondary" : "outline"}
-                      size="m"
-                      className="font-medium rounded-full transition-colors transition-opacity transition-transform duration-200 focus:outline-none px-6 py-3 text-base md:px-8 md:py-6 md:text-lg bg-transparent border border-primary text-primary hover:bg-primary/10 hover:opacity-90 active:bg-primary/20 active:opacity-80 active:scale-95 active:shadow-inner"
-                      onClick={onToggleFavorite}
+
+                    <MCModalBase
+                      id={`fav-${doctor?.id}`}
+                      title={t('doctorCard.confirmFavoriteTitle', { ns: 'common' })}
+                      trigger={
+                        <MCButton
+                          variant={doctor.isFavorite ? "secondary" : "outline"}
+                          size="m"
+                          className="font-medium rounded-full transition-colors transition-opacity transition-transform duration-200 focus:outline-none px-6 py-3 text-base md:px-8 md:py-6 md:text-lg bg-transparent border border-primary text-primary hover:bg-primary/10 hover:opacity-90 active:bg-primary/20 active:opacity-80 active:scale-95 active:shadow-inner"
+                        >
+                          { (isAddingFavorite || isRemovingFavorite) ? (
+                            <Spinner className="text-red-500" />
+                          ) : doctor.isFavorite ? (
+                            <HeartOff className=" text-red-500" />
+                          ) : (
+                            <Heart fill="red" className="text-red-500" />
+                          )}
+                        </MCButton>
+                      }
+                      size="sm"
+                      variant="confirm"
+                      confirmText={t('confirm', { ns: 'common' })}
+                      secondaryText={t('back', { ns: 'patient' })}
+                      onConfirm={() => handleAddToFavorites()}
+                      disabledConfirm={isAddingFavorite || isRemovingFavorite}
                     >
-                      {doctor.isFavorite ? (
-                        <>
-                          <HeartOff className=" text-red-500" />
-                        </>
-                      ) : (
-                        <>
-                          <Heart fill="red" className="text-red-500" />
-                        </>
-                      )}
-                    </MCButton>
+                      <div className="py-4 px-2">
+                        <p className="text-sm text-muted-foreground">
+                          {t('doctorCard.confirmFavoriteDescription', { name: getUserFullName(doctor), ns: 'common' })}
+                        </p>
+                      </div>
+                    </MCModalBase>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button className="font-medium rounded-full transition-colors transition-opacity transition-transform duration-200 focus:outline-none px-6 py-3 text-base md:px-8 md:py-6 md:text-lg bg-transparent border border-primary text-primary hover:bg-primary/10 hover:opacity-90 active:bg-primary/20 active:opacity-80 active:scale-95 active:shadow-inner">
@@ -313,9 +380,7 @@ function DoctorProfileBanner({
                         </DropdownMenuItem>
                         <DropdownMenuItem>
                           <Ban className="w-4 h-4 mr-2 text-red-500" />
-                          <span className="text-red-500">
-                            {t("profileForm.menu.block")}
-                          </span>
+                          <span className="text-red-500">{t("profileForm.menu.block")}</span>
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>

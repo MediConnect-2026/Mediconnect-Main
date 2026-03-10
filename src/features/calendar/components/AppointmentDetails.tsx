@@ -37,6 +37,7 @@ import { useIsMobile } from "@/lib/hooks/useIsMobile";
 import AcceptAppointment from "@/features/doctor/components/appointments/modals/AcceptAppointment";
 import RejectAppointment from "@/features/doctor/components/appointments/modals/RejectAppointment";
 import RescheduleAppointment from "@/features/doctor/components/appointments/modals/RescheduleAppointment";
+import { useStartConversation } from "@/lib/hooks/useStartConversation";
 
 interface AppointmentDetailsProps {
   appointment: Appointment | null;
@@ -47,10 +48,13 @@ export const AppointmentDetails = ({
   appointment,
   onClose,
 }: AppointmentDetailsProps) => {
-  const userRole = useAppStore((state) => state.user?.role);
+  const userRole = useAppStore((state) => state.user?.rol);
   const { t } = useTranslation("common");
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+
+  const { startConversation, isLoading: isStartingConversation } = useStartConversation();
+
 
   const statusLabels: Record<AppointmentStatus, string> = {
     scheduled: t("calendar.status.scheduled"),
@@ -78,6 +82,8 @@ export const AppointmentDetails = ({
   const isCompleted = appointment?.status === "completed";
   const isCancelled = appointment?.status === "cancelled";
 
+  console.log("Renderizando AppointmentDetails para cita:", appointment);
+  
   const handleJoin = (appointmentId: string) => {
     navigate(
       ROUTES.TELECONSULT.CONFIRM.replace(":appointmentId", appointmentId),
@@ -94,7 +100,12 @@ export const AppointmentDetails = ({
   };
 
   function handleChatClick(event: React.MouseEvent<HTMLButtonElement>): void {
-    // Implementation needed
+    event.stopPropagation(); // Evita que el clic se propague al contenedor padre
+
+    const recipientId = userRole === "DOCTOR" ? appointment?.patientId : appointment?.doctorId;
+    if (recipientId) {
+      startConversation(Number(recipientId));
+    }
   }
 
   // Render actions based on user role and appointment status
@@ -360,6 +371,7 @@ export const AppointmentDetails = ({
                 variant="ghost"
                 size="icon"
                 onClick={handleChatClick}
+                disabled={isStartingConversation}
                 className="rounded-full h-6 w-6 sm:h-7 sm:w-7 flex-shrink-0 hover:bg-primary/10 hover:text-primary"
                 title={t("appointments.openChat")}
               >
@@ -414,7 +426,7 @@ export const AppointmentDetails = ({
           {/* Modality */}
           <div className="flex items-center gap-2 p-2.5 sm:p-3 sm:py-3 g-muted rounded-lg">
             <div className="w-7 h-7 sm:w-8 sm:h-8 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
-              {appointment.modality === "virtual" ? (
+              {appointment.modality.includes("virtual") || appointment.modality.includes("teleconsulta") ? (
                 <Video className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary" />
               ) : (
                 <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary" />
@@ -444,7 +456,7 @@ export const AppointmentDetails = ({
                 </p>
                 {appointment.price && (
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    ${appointment.price.toLocaleString("es-MX")} MXN
+                    RD$ {appointment.price}
                     {appointment.numberOfSessions &&
                       appointment.numberOfSessions > 1 &&
                       ` • ${appointment.numberOfSessions} sesiones`}

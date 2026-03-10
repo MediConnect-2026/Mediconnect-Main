@@ -84,17 +84,20 @@ function ServiceCards({
     return `${hours > 0 ? `${hours}h ` : ""}${remainingMinutes}m`;
   }
 
+  console.debug("[ServiceCards] Servicios recibidos:", services);
   return (
     <div className="space-y-6">
       {services.map((service) => {
         const timeSelected = selectedTimeSlots[service.id.toString()];
-        const modalitySelected = selectedModality[service.id.toString()];
+        const modalitySelected = selectedModality[service.id.toString()] || "";
+
         const modalidadLower = (service.modalidad || "").toLowerCase();
-        const isMixta = modalidadLower.includes("mixta");
-        // Check for both Spanish "presencial" and English "present"
-        const isPresencial = modalidadLower.includes("presencial") || modalidadLower.includes("present");
+
+        const isMixta = modalidadLower.includes("mixta") || modalidadLower.includes("mixed");
+        // Check for both Spanish "presencial" and English "present"/"in-person"
+        const isPresencial = modalidadLower.includes("presencial") || modalidadLower.includes("present") || modalidadLower.includes("in-person");
         // Also consider common virtual labels
-        const isVirtual = modalidadLower.includes("teleconsulta") || modalidadLower.includes("virtual") || modalidadLower.includes("telehealth");
+        const isVirtual = modalidadLower.includes("teleconsulta") || modalidadLower.includes("virtual") || modalidadLower.includes("telehealth") || modalidadLower.includes("remote");
       
         // Verificar si este servicio está bloqueado por selección en otro servicio
         const isBlocked = hasTimeSlotInOtherService(service.id.toString());

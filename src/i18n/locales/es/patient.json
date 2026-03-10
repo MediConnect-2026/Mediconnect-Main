@@ -171,7 +171,11 @@
     "error": "Error al programar la cita. Por favor, intenta nuevamente.",
     "rescheduleSuccess": "Cita reagendada exitosamente",
     "noInsurance": "Sin seguro",
-    "ongoing": "En progreso"
+    "ongoing": "En progreso",
+    "withInsurance": "Con seguro",
+    "submitting": "Procesando...",
+    "loadingDoctorData": "Cargando información del doctor...",
+    "noDoctorData": "No se pudo cargar la información del doctor"
   },
   "dashboard": {
     "searchTitle": "Busca médicos, especialidades o clínicas cercanas"
@@ -270,7 +274,9 @@
       "santaMariaClinic": "Clínica Santa María",
       "specializedCenter": "Centro Especializado",
       "virtualConsultation": "Consulta Virtual"
-    }
+    },
+    "loading": "Cargando servicios...",
+    "noResults": "No hay servicios que coincidan con los filtros seleccionados"
   },
   "searchBar": {
     "searchLabel": "Buscar",
@@ -297,6 +303,7 @@
     "clearFilters": "Limpiar",
     "profile": "Perfil",
     "history": "Historial",
+    "specialty": "Especialidad",
     "doctors": {
       "profile": "Perfil",
       "schedule": "Agendar",
@@ -317,6 +324,7 @@
     "specialty": "Especialidad",
     "date": "Fecha",
     "schedule": "Horario",
+    "insure": "Aseguradora",
     "price": "Precio",
     "numberOfPatients": "Número de Pacientes",
     "modality": "Modalidad",
@@ -397,6 +405,10 @@
     "upcomingTitle": "Próximas Citas",
     "historyTitle": "Historial de Citas",
     "searchPlaceholder": "Buscar por nombre del doctor...",
+    "loadingAppointments": "Cargando citas...",
+    "errorTitle": "Error al cargar citas",
+    "errorDescription": "No se pudieron cargar tus citas. Por favor, verifica tu conexión e intenta nuevamente.",
+    "retry": "Reintentar",
     "noResults": "No se encontraron resultados",
     "noUpcoming": "No hay próximas citas",
     "noHistory": "No hay historial de citas",
@@ -409,6 +421,8 @@
     "historySection": "citas en historial",
     "clearFilters": "Limpiar",
     "scheduleNew": "Agendar Nueva Cita",
+    "cancelSuccess": "Cita cancelada exitosamente",
+    "cancelError": "Error al cancelar la cita. Por favor, intenta nuevamente.",
     "pdfTitle": "Mis Citas",
     "pdfSubtitle": "Lista completa de citas médicas",
     "accept": "Aceptar",
@@ -418,10 +432,13 @@
     "continueConsultation": "Continuar consulta",
     "pdfColumns": {
       "doctor": "Doctor",
+      "patient": "Paciente",
       "specialty": "Especialidad",
+      "service": "Servicio",
       "evaluationType": "Tipo de Evaluación",
       "date": "Fecha",
       "time": "Hora",
+      "modality": "Modalidad",
       "appointmentType": "Tipo de Cita",
       "location": "Ubicación",
       "status": "Estado"
@@ -468,5 +485,9 @@
     "connect": "Conectar",
     "connected": "Conectado",
     "pending": "Pendiente"
+  },
+  "errors": {
+    "noDoctorServices": "No se encontraron servicios del doctor",
+    "loadDoctorData": "Error al cargar datos del doctor"
   }
 }

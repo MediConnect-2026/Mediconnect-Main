@@ -493,6 +493,8 @@ export interface ServicioUbicacion {
   direccion: string;
   nombre: string;
   codigoPostal: string | null;
+  latitud?: number;
+  longitud?: number;
   barrio: ServicioUbicacionBarrio;
 }
 

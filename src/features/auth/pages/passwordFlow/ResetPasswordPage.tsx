@@ -68,7 +68,7 @@ function ResetPasswordPage() {
       );
 
       if (response.success) {
-        toast.success(t("resetPassword.success") || response.message || "Contraseña actualizada correctamente");
+        toast.success(t("resetPassword.success") || "Contraseña actualizada correctamente");
         
         // Guardar en el store
         setResetPassword({

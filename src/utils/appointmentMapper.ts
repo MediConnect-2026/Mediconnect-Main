@@ -27,24 +27,15 @@ export const mapCitaEstadoToAppointmentStatus = (estado: CitaEstado): Appointmen
  * Verifica si la modalidad es virtual/teleconsulta
  */
 export const isVirtualModality = (modalidad: string): boolean => {
-  return modalidad.toLowerCase().includes('virtual') || 
-         modalidad.toLowerCase().includes('teleconsulta');
+  return modalidad.toLowerCase().includes('virtual') || modalidad.toLowerCase().includes('teleconsulta');
 };
-
-/**
- * Convierte una CitaDetalle del backend al formato Appointment del componente
- */
-export const mapCitaDetalleToAppointment = (cita: CitaDetalle, userRole: string): Appointment => {
-  // Parseamos solo para obtener el `Date` completo (fecha en local)
-  const fechaInicio = parseISO(cita.fechaInicio);
-  const fechaFin = cita.fechaFin ? parseISO(cita.fechaFin) : undefined;
 
   // Formatear la hora en 12h aceptando varios formatos:
   // - ISO datetime (2026-03-09T09:30:00.000Z)
   // - Hora simple ("11:00" o "9:30")
   // - Hora con segundos ("11:00:00")
   // - Con sufijo am/pm ("9:30 a.m.", "9:30 pm")
-  const formatTimeTo12h = (time?: string | null): string | undefined => {
+  export const formatTimeTo12h = (time?: string | null): string | undefined => {
     if (!time) return undefined;
 
     // Caso: datetime ISO
@@ -92,6 +83,14 @@ export const mapCitaDetalleToAppointment = (cita: CitaDetalle, userRole: string)
 
     return undefined;
   };
+  
+/**
+ * Convierte una CitaDetalle del backend al formato Appointment del componente
+ */
+export const mapCitaDetalleToAppointment = (cita: CitaDetalle, userRole: string): Appointment => {
+  // Parseamos solo para obtener el `Date` completo (fecha en local)
+  const fechaInicio = parseISO(cita.fechaInicio);
+  const fechaFin = cita.fechaFin ? parseISO(cita.fechaFin) : undefined;
 
   const startTime = formatTimeTo12h(cita.horaInicio) || format(fechaInicio, 'h:mm a');
   const endTime = cita.horaFin ? (formatTimeTo12h(cita.horaFin) || (fechaFin ? format(fechaFin, 'h:mm a') : undefined)) : undefined;

@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/tooltip";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
 import { useTranslation } from "react-i18next";
+import { memo } from "react";
 
 import ToogleConfirmConnection from "@/features/request/components/ToogleConfirmConnection";
 
@@ -17,12 +18,12 @@ interface ClinicCardProps {
   onViewProfile: (id: string) => void;
 }
 
-export const CenterCards = ({
+const CenterCardsComponent = ({
   clinic,
   isConnected,
   onConnect,
 }: ClinicCardProps) => {
-  const userRole = useAppStore((state) => state.user?.role);
+  const userRole = useAppStore((state) => state.user?.rol);
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const { t } = useTranslation("common");
@@ -269,3 +270,5 @@ export const CenterCards = ({
     </div>
   );
 };
+
+export const CenterCards = memo(CenterCardsComponent);

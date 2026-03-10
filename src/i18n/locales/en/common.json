@@ -52,7 +52,9 @@
     "favoriteAdded": "Doctor added to favorites",
     "favoriteAddError": "Could not add to favorites",
     "confirmFavoriteTitle": "Add to favorites",
-    "confirmFavoriteDescription": "Do you want to add {{name}} to your favorites doctors?"
+    "confirmFavoriteDescription": "Do you want to add {{name}} to your favorites doctors?",
+    "favoriteRemoved": "Doctor removed from favorites",
+    "favoriteRemoveError": "Could not remove from favorites"
   },
   "confirm": "Confirm",
   "search": {
@@ -97,6 +99,11 @@
         "3": "3 years or more",
         "5": "5 years or more",
         "10": "10 years or more"
+      },
+      "languages": {
+        "spanish": "Spanish",
+        "english": "English",
+        "french": "French"
       }
     },
     "selectedProviders": "{{count}} of {{max}} providers selected for comparison",
@@ -655,5 +662,6 @@
     "noExperience": "Experience not specified",
     "acceptedInsurances": "Accepted insurances",
     "noLanguages": "Languages not specified"
-  }
+  },
+  "retry": "Retry"
 }

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   format,
   addMonths,
@@ -9,11 +9,13 @@ import {
   subDays,
 } from "date-fns";
 import { es } from "date-fns/locale";
-import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Loader2, AlertCircle } from "lucide-react";
 import { Button } from "@/shared/ui/button";
 import type { CalendarView, Appointment } from "@/types/CalendarTypes";
-import { mockAppointments } from "@/data/mockAppointments";
+import type { CalendarioVista } from "@/types/AppointmentTypes";
 import { useTranslation } from "react-i18next";
+import { useCalendarCitas } from "../hooks/useCalendarCitas";
+import { flattenCalendarioDias } from "../utils/calendarTransformers";
 import { ViewSelector } from "../components/ViewSelector";
 import { MonthView } from "../components/MonthView";
 import { WeekView } from "../components/WeekView";
@@ -28,13 +30,46 @@ import { motion } from "framer-motion";
 export const CalendarPage = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [selectedAppointment, setSelectedAppointment] =
-    useState<Appointment | null>(null);
+  const [selectedAppointment, setSelectedAppointment] =useState<Appointment | null>(null);
   const [view, setView] = useState<CalendarView>("month");
   const [showMobileDetails, setShowMobileDetails] = useState(false);
   const { t } = useTranslation("common");
   const isMobile = useIsMobile();
 
+  // Mapear la vista del calendario local a la vista de la API
+  const apiVista = useMemo((): CalendarioVista => {
+    if (view === "list") return "mes"; // Para list view, cargar el mes completo
+    const vistaMap: Record<CalendarView, CalendarioVista> = {
+      month: "mes",
+      week: "semana",
+      day: "dia",
+      list: "mes",
+    };
+    return vistaMap[view];
+  }, [view]);
+
+  // Formatear la fecha actual en formato YYYY-MM-DD para la API
+  const fechaParam = useMemo(() => format(currentDate, "yyyy-MM-dd"), [currentDate]);
+
+  // Fetch calendar data from API
+  const {
+    data: calendarData,
+    isLoading,
+    error,
+    refetch,
+  } = useCalendarCitas({
+    params: {
+      vista: apiVista,
+      fecha: fechaParam,
+    },
+  });
+
+  // Transform API data to local Appointment format
+  const appointments = useMemo<Appointment[]>(() => {
+    if (!calendarData?.dias) return [];
+    return flattenCalendarioDias(calendarData.dias);
+  }, [calendarData]);
+  
   const navigatePrevious = () => {
     switch (view) {
       case "month":
@@ -244,39 +279,79 @@ export const CalendarPage = () => {
             animate={fadeInUp.animate}
             exit={fadeInUp.exit}
             transition={fadeInUp.transition}
-          >
-            <div className="flex-1 flex flex-col min-h-0">
+          >            <div className="flex-1 flex flex-col min-h-0">
               <div className="flex-1 overflow-hidden rounded-2xl  backdrop-blur-sm">
-                {view === "month" && (
-                  <MonthView
-                    currentDate={currentDate}
-                    appointments={mockAppointments}
-                    onSelectDate={handleSelectDate}
-                    onSelectAppointment={handleSelectAppointment}
-                    selectedDate={selectedDate}
-                  />
+                {/* Loading state */}
+                {isLoading && (
+                  <div className="flex flex-col items-center justify-center h-full gap-4">
+                    <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                    <p className="text-muted-foreground">
+                      {t("calendar.loadingAppointments", {
+                        defaultValue: "Cargando citas...",
+                      })}
+                    </p>
+                  </div>
                 )}
-                {view === "week" && (
-                  <WeekView
-                    currentDate={currentDate}
-                    appointments={mockAppointments}
-                    onSelectDate={handleSelectDate}
-                    onSelectAppointment={handleSelectAppointment}
-                    selectedDate={selectedDate}
-                  />
+
+                {/* Error state */}
+                {error && !isLoading && (
+                  <div className="flex flex-col items-center justify-center h-full gap-4 px-6">
+                    <AlertCircle className="w-12 h-12 text-destructive" />
+                    <div className="text-center">
+                      <h3 className="font-semibold mb-2">
+                        {t("calendar.errorLoadingAppointments", {
+                          defaultValue: "Error al cargar las citas",
+                        })}
+                      </h3>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        {error.message}
+                      </p>
+                      <MCButton
+                        variant="outline"
+                        size="s"
+                        onClick={() => refetch()}
+                      >
+                        {t("common.tryAgain", { defaultValue: "Intentar de nuevo" })}
+                      </MCButton>
+                    </div>
+                  </div>
                 )}
-                {view === "day" && (
-                  <DayView
-                    currentDate={currentDate}
-                    appointments={mockAppointments}
-                    onSelectAppointment={handleSelectAppointment}
-                  />
-                )}
-                {view === "list" && (
-                  <ListView
-                    appointments={mockAppointments}
-                    onSelectAppointment={handleSelectAppointment}
-                  />
+
+                {/* Calendar views */}
+                {!isLoading && !error && (
+                  <>
+                    {view === "month" && (
+                      <MonthView
+                        currentDate={currentDate}
+                        appointments={appointments}
+                        onSelectDate={handleSelectDate}
+                        onSelectAppointment={handleSelectAppointment}
+                        selectedDate={selectedDate}
+                      />
+                    )}
+                    {view === "week" && (
+                      <WeekView
+                        currentDate={currentDate}
+                        appointments={appointments}
+                        onSelectDate={handleSelectDate}
+                        onSelectAppointment={handleSelectAppointment}
+                        selectedDate={selectedDate}
+                      />
+                    )}
+                    {view === "day" && (
+                      <DayView
+                        currentDate={currentDate}
+                        appointments={appointments}
+                        onSelectAppointment={handleSelectAppointment}
+                      />
+                    )}
+                    {view === "list" && (
+                      <ListView
+                        appointments={appointments}
+                        onSelectAppointment={handleSelectAppointment}
+                      />
+                    )}
+                  </>
                 )}
               </div>
             </div>

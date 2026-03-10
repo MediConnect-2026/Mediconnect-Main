@@ -7,17 +7,33 @@ import InsuranceDropdown from "@/features/patient/components/searchComponent/Ins
 import type { Doctor, Specialty, InsurancePlan } from "@/data/searchData";
 import { useTranslation } from "react-i18next";
 
-const DoctorSearchBar = () => {
+interface DoctorSearchBarProps {
+  onSearchChange?: (searchTerm: string) => void;
+  onInsuranceChange?: (insurance: string) => void;
+}
+
+const DoctorSearchBar = ({ onSearchChange, onInsuranceChange }: DoctorSearchBarProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [insurance, setInsurance] = useState("");
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
   const [showInsuranceDropdown, setShowInsuranceDropdown] = useState(false);
 
-  const debouncedSearch = useDebounce(searchTerm, 150);
+  const debouncedSearch = useDebounce(searchTerm, 300);
+  const debouncedInsurance = useDebounce(insurance, 300);
   const searchRef = useRef<HTMLDivElement>(null);
   const insuranceRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
   const { t } = useTranslation("patient");
+
+  // Update parent with debounced search term
+  useEffect(() => {
+    onSearchChange?.(debouncedSearch);
+  }, [debouncedSearch, onSearchChange]);
+
+  // Update parent with debounced insurance
+  useEffect(() => {
+    onInsuranceChange?.(debouncedInsurance);
+  }, [debouncedInsurance, onInsuranceChange]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

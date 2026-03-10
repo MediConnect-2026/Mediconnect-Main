@@ -38,6 +38,8 @@ import { Loader2, CheckCircle2, XCircle } from "lucide-react";
 import apiClient from "@/services/api/client";
 import { Label } from "@/shared/ui/label";
 import { Switch } from "@/shared/ui/switch";
+import { getCitaById } from "@/services/api/appointments.service";
+import type { CitaDetalle } from "@/types/AppointmentTypes";
 
 interface AppointmentFilters {
   serviceTypes: string[];
@@ -54,6 +56,7 @@ interface ScheduleAppointmentDialogProps {
   children: React.ReactNode;
   serviceData?: ServiceDetail;
   initialRescheduleData?: Partial<scheduleAppointment>;
+  onSuccess?: () => void; // Callback opcional cuando se guarda exitosamente
 }
 
 const formatDateForStorage = (date: Date): string => {
@@ -156,7 +159,7 @@ function ScheduleAppointmentForm({
           },
         }
       );
-      console.log("Respuesta de compatibilidad del seguro:", response.data.data);
+
       setInsuranceStatus({
         isChecking: false,
         isCompatible: response.data.data.compatible,
@@ -214,7 +217,7 @@ function ScheduleAppointmentForm({
               try {
                 const resp = await getSlotsForService(s.id.toString());
                 // Map backend response to array of formatted start times
-                const slots = resp && resp.data && Array.isArray(resp.data)
+                let slots = resp && resp.data && Array.isArray(resp.data)
                   ? resp.data.map((d: any) => d.horaInicio)
                   : [];
                 
@@ -224,6 +227,22 @@ function ScheduleAppointmentForm({
                   resp.data.forEach((d: any) => {
                     slotMap[s.id.toString()][d.horaInicio] = d.horarioId;
                   });
+                }
+                
+                // Si estamos en modo rescheduling y este es el servicio seleccionado,
+                // agregar manualmente el slot actual si no está en la lista de disponibles
+                if (isRescheduling && formValues.serviceId === s.id.toString() && formValues.time) {
+                  const currentSlot = formValues.time;
+                  if (!slots.includes(currentSlot)) {
+                    slots = [...slots, currentSlot];
+                    // Agregar al slotMap con el horarioId existente
+                    if (formValues.horarioId) {
+                      if (!slotMap[s.id.toString()]) {
+                        slotMap[s.id.toString()] = {};
+                      }
+                      slotMap[s.id.toString()][currentSlot] = formValues.horarioId;
+                    }
+                  }
                 }
                 
                 return { ...s, timeSlots: slots };
@@ -249,6 +268,50 @@ function ScheduleAppointmentForm({
     loadServices();
   }, [serviceData?.doctorId, i18n.language]);
 
+  // Efecto separado para agregar el slot reservado cuando se cargan los datos en modo rescheduling
+  useEffect(() => {
+    if (!isRescheduling || !formValues.serviceId || !formValues.time) return;
+
+    // Actualizar los servicios usando la función de actualización para evitar dependencia directa
+    setServices(prevServices => {
+      if (prevServices.length === 0) return prevServices;
+
+      const serviceIndex = prevServices.findIndex(s => s.id.toString() === formValues.serviceId);
+      if (serviceIndex === -1) return prevServices;
+
+      const service = prevServices[serviceIndex] as GetServicesOfDoctor & { timeSlots?: string[] };
+      const currentSlot = formValues.time;
+
+      // Si el slot ya está en la lista, no hacer nada
+      if (service.timeSlots?.includes(currentSlot)) {
+        return prevServices;
+      }
+
+      // Crear una copia actualizada con el slot agregado
+      return prevServices.map(s => {
+        if (s.id.toString() === formValues.serviceId) {
+          const serviceWithSlots = s as GetServicesOfDoctor & { timeSlots?: string[] };
+          return {
+            ...serviceWithSlots,
+            timeSlots: [...(serviceWithSlots.timeSlots || []), currentSlot]
+          };
+        }
+        return s;
+      });
+    });
+
+    // Actualizar el slotHorarioMap con el horarioId del slot actual
+    if (formValues.horarioId) {
+      setSlotHorarioMap(prev => ({
+        ...prev,
+        [formValues.serviceId]: {
+          ...(prev[formValues.serviceId] || {}),
+          [formValues.time]: formValues.horarioId!
+        }
+      }));
+    }
+  }, [isRescheduling, formValues.serviceId, formValues.time, formValues.horarioId]);
+
   // Fetch available slots for all services whenever the selected date changes
   useEffect(() => {
     const fetchSlotsForAllServices = async () => {
@@ -261,7 +324,7 @@ function ScheduleAppointmentForm({
             try {
               const resp = await getSlotsForService(s.id.toString());
               // Map backend response to array of formatted start times
-              const slots = resp && resp.data && Array.isArray(resp.data)
+              let slots = resp && resp.data && Array.isArray(resp.data)
                 ? resp.data.map((d: any) => d.horaInicio)
                 : [];
               
@@ -271,6 +334,22 @@ function ScheduleAppointmentForm({
                 resp.data.forEach((d: any) => {
                   slotMap[s.id.toString()][d.horaInicio] = d.horarioId;
                 });
+              }
+              
+              // Si estamos en modo rescheduling y este es el servicio seleccionado,
+              // agregar manualmente el slot actual si no está en la lista de disponibles
+              if (isRescheduling && formValues.serviceId === s.id.toString() && formValues.time) {
+                const currentSlot = formValues.time;
+                if (!slots.includes(currentSlot)) {
+                  slots = [...slots, currentSlot];
+                  // Agregar al slotMap con el horarioId existente
+                  if (formValues.horarioId) {
+                    if (!slotMap[s.id.toString()]) {
+                      slotMap[s.id.toString()] = {};
+                    }
+                    slotMap[s.id.toString()][currentSlot] = formValues.horarioId;
+                  }
+                }
               }
               
               return { ...s, timeSlots: slots };
@@ -460,7 +539,7 @@ function ScheduleAppointmentForm({
       
       // Guardar el horarioId correspondiente al slot seleccionado
       const horarioId = slotHorarioMap[serviceId]?.[time24];
-      console.log("Horario ID encontrado para servicio", serviceId, "y hora", time24, ":", horarioId);
+
       if (horarioId) {
         setValue("horarioId", horarioId);
       }
@@ -734,11 +813,12 @@ function ScheduleAppointmentForm({
 function ScheduleAppointmentDialog({
   idProvider,
   idAppointment,
-  serviceData,
+  serviceData: externalServiceData,
   initialRescheduleData,
   children,
+  onSuccess,
 }: ScheduleAppointmentDialogProps) {
-  const { t } = useTranslation("patient");
+  const { t, i18n } = useTranslation("patient");
   const addAppointment = useAppointmentStore((s) => s.addAppointment);
   const setIsRescheduling = useAppointmentStore((s) => s.setIsRescheduling);
   const appointment = useAppointmentStore((s) => s.appointment);
@@ -748,36 +828,197 @@ function ScheduleAppointmentDialog({
   const closeRef = useRef<{ close: () => void } | null>(null);
   const navigate = useNavigate();
   
+  // Estado para cargar datos del doctor dinámicamente
+  const [serviceData, setServiceData] = useState<ServiceDetail | undefined>(externalServiceData);
+  const [isLoadingDoctorData, setIsLoadingDoctorData] = useState(false);
+  const [doctorDataError, setDoctorDataError] = useState<string | null>(null);
+  
   // Obtener seguros del paciente en el componente padre
   const { data: availableInsurances = [] } = useMyInsurances();
 
+  // Actualizar serviceData si se pasa externamente
+  useEffect(() => {
+    if (externalServiceData) {
+      setServiceData(externalServiceData);
+    }
+  }, [externalServiceData]);
+
   const handleTriggerClick = useCallback(() => {
     setShouldLoadData(true);
-  }, []);
+    // Si no hay serviceData externa, cargar datos del doctor
+    if (!externalServiceData && !serviceData) {
+      loadDoctorData();
+    }
+  }, [externalServiceData, serviceData]);
+  
+  // Función para cargar datos del doctor
+  const loadDoctorData = useCallback(async () => {
+    if (isLoadingDoctorData) return;
+    
+    setIsLoadingDoctorData(true);
+    setDoctorDataError(null);
+    
+    try {
+      // Cargar servicios y datos del doctor en paralelo
+      const [servicesResponse, doctorResponse] = await Promise.all([
+        doctorService.getServicesOfDoctor(
+          Number(idProvider),
+          {
+            target: i18n.language || "es",
+            source: i18n.language === "es" ? "en" : "es",
+            translate_fields: "nombre,descripcion,modalidad",
+          }
+        ),
+        doctorService.getDoctorById(Number(idProvider))
+      ]);
+      
+      if (servicesResponse && servicesResponse.success && Array.isArray(servicesResponse.data) && servicesResponse.data.length > 0) {
+        // Usar el primer servicio como referencia para obtener datos del doctor
+        const firstService = servicesResponse.data[0];
+        const doctorData = doctorResponse.data;
+        
+        // Crear un objeto ServiceDetail básico con la información disponible
+        const mockServiceDetail: ServiceDetail = {
+          id: firstService.id,
+          doctorId: Number(idProvider),
+          especialidadId: firstService.especialidad.id,
+          nombre: firstService.nombre,
+          descripcion: firstService.descripcion || "",
+          precio: firstService.precio,
+          duracionMinutos: firstService.duracionMinutos,
+          maxPacientesDia: firstService.maxPacientesDia,
+          calificacionPromedio: firstService.calificacionPromedio,
+          modalidad: firstService.modalidad,
+          estado: firstService.estado,
+          creadoEn: firstService.creadoEn,
+          actualizadoEn: firstService.actualizadoEn || "",
+          imagenes: firstService.imagenes || [],
+          doctor: {
+            usuarioId: doctorData.usuarioId,
+            nombre: doctorData.nombre,
+            apellido: doctorData.apellido,
+            tipoDocIdentificacion: doctorData.tipoDocIdentificacion,
+            numeroDocumentoIdentificacion: doctorData.numeroDocumentoIdentificacion,
+            fechaNacimiento: doctorData.fechaNacimiento,
+            genero: doctorData.genero,
+            nacionalidad: doctorData.nacionalidad,
+            exequatur: doctorData.exequatur || "",
+            biografia: doctorData.biografia || "",
+            anosExperiencia: doctorData.anosExperiencia || 0,
+            estadoVerificacion: doctorData.estadoVerificacion,
+            calificacionPromedio: typeof doctorData.calificacionPromedio === "string" 
+              ? parseFloat(doctorData.calificacionPromedio) || firstService.calificacionPromedio
+              : doctorData.calificacionPromedio || firstService.calificacionPromedio,
+            estado: doctorData.estado,
+            creadoEn: doctorData.creadoEn,
+            actualizadoEn: doctorData.actualizadoEn || "",
+            duracionCitaPromedio: doctorData.duracionCitaPromedio || firstService.duracionMinutos,
+            tarifas: doctorData.tarifas || firstService.precio,
+            usuario: {
+              id: doctorData.usuario?.id || Number(idProvider),
+              email: doctorData.usuario?.email || "",
+              fotoPerfil: doctorData.usuario?.fotoPerfil || "",
+            },
+          },
+          especialidad: firstService.especialidad,
+          horarios: firstService.horarios || [],
+          centros: [],
+          ubicacionId: null,
+          ubicacion: [],
+          resenas: [],
+        };
+        setServiceData(mockServiceDetail);
+      } else {
+        setDoctorDataError(t("errors.noDoctorServices", "No se encontraron servicios del doctor"));
+      }
+    } catch (error: any) {
+      console.error("Error cargando datos del doctor:", error);
+      setDoctorDataError(error.message || t("errors.loadDoctorData", "Error al cargar datos del doctor"));
+    } finally {
+      setIsLoadingDoctorData(false);
+    }
+  }, [idProvider, i18n.language, isLoadingDoctorData, t]);
+
+  // Función para cargar datos de la cita existente
+  const loadAppointmentData = useCallback(async () => {
+    if (!idAppointment) return;
+
+    try {
+      // Obtener datos de la cita del backend
+      const response = await getCitaById(idAppointment, {
+        target: i18n.language,
+        source: 'es',
+        translate_fields: 'motivoConsulta'
+      });
+
+      // Verificar si la respuesta tiene datos
+      if (!response.success || !response.data) {
+        console.error('No se pudieron cargar los datos de la cita');
+        return;
+      }
+
+      // Extraer la cita (puede ser un objeto o array)
+      const cita: CitaDetalle = Array.isArray(response.data) 
+        ? response.data[0] 
+        : response.data;
+
+      if (!cita) {
+        console.error('No se encontró la cita');
+        return;
+      }
+
+      // Formatear hora de inicio al formato 24 horas (HH:mm)
+      const formatTimeForForm = (hora: string): string => {
+        // El backend retorna "HH:mm:ss", solo necesitamos "HH:mm"
+        const [hours, minutes] = hora.split(':');
+        return `${hours}:${minutes}`;
+      };
+
+      // Mapear modalidad del backend al formato del formulario
+      const modalidadFormatted = cita.modalidad.toLowerCase() === 'teleconsulta' 
+        ? 'teleconsulta' 
+        : 'presencial';
+
+      // Mapear los datos de la cita al formato del formulario
+      const appointmentData: scheduleAppointment = {
+        date: cita.fechaInicio, // Ya está en formato YYYY-MM-DD
+        time: formatTimeForForm(cita.horaInicio), // Formato 24 horas "HH:mm"
+        selectedModality: modalidadFormatted as 'presencial' | 'teleconsulta',
+        numberOfSessions: cita.numPacientes,
+        reason: cita.motivoConsulta || '',
+        useInsurance: cita.seguro !== null,
+        insuranceProvider: cita.seguro?.id.toString() || '',
+        serviceId: cita.servicioId?.toString() || '',
+        doctorId: cita.doctorId?.toString() || idProvider,
+        appointmentId: idAppointment,
+        horarioId: cita.horario?.id || undefined, // Se establecerá cuando se carguen los slots
+      };
+
+      // Actualizar el store con los datos de la cita
+      setIsRescheduling(true);
+      addAppointment(appointmentData);
+
+      // Si no tenemos serviceData externa, cargar datos del doctor
+      if (!externalServiceData && !serviceData) {
+        await loadDoctorData();
+      }
+
+    } catch (error: any) {
+      console.error('Error al cargar datos de la cita:', error);
+    }
+  }, [idAppointment, i18n.language, idProvider, addAppointment, setIsRescheduling, externalServiceData, serviceData, loadDoctorData]);
 
   useEffect(() => {
     if (!shouldLoadData) return;
+    
+    // Si es rescheduling y tenemos idAppointment, cargar datos de la cita
     if (isRescheduling && idAppointment) {
-      const isSameAppointment = appointment.appointmentId === idAppointment;
-      const baseData = isSameAppointment ? appointment : (initialRescheduleData || {});
-
-      setIsRescheduling(true);
-      addAppointment({
-        date: baseData.date || formatDateForStorage(new Date()),
-        time: baseData.time || "",
-        selectedModality: baseData.selectedModality || "presencial",
-        numberOfSessions: baseData.numberOfSessions || 1,
-        reason: baseData.reason || "",
-        useInsurance: baseData.useInsurance ?? true,
-        insuranceProvider: baseData.insuranceProvider || "",
-        serviceId: baseData.serviceId || "",
-        doctorId: idProvider,
-        appointmentId: idAppointment,
-        horarioId: isSameAppointment ? appointment.horarioId : undefined,
-      });
+      // Primero intentar cargar desde el backend
+      loadAppointmentData();
       setShouldLoadData(false);
       return;
     }
+    
     if (!appointment.doctorId) {
       // NO propagar valores vacíos del store, solo establecer el doctorId
       setIsRescheduling(false);
@@ -822,6 +1063,9 @@ function ScheduleAppointmentDialog({
     resetAppointment,
     isRescheduling,
     idAppointment,
+    loadAppointmentData,
+    setIsRescheduling,
+    i18n.language,
   ]);
 
   const onSubmit = (data: scheduleAppointment) => {
@@ -861,10 +1105,15 @@ function ScheduleAppointmentDialog({
     // Cerrar el modal después de guardar
     closeRef.current?.close();
 
-    // Esperar un momento para que el store persista y luego navegar
-    setTimeout(() => {
-      navigate("/patient/schedule-appointment", { replace: true });
-    }, 100);
+    // Si hay callback de éxito, ejecutarlo, sino navegar por defecto
+    if (onSuccess) {
+      onSuccess();
+    } else {
+      // Esperar un momento para que el store persista y luego navegar
+      setTimeout(() => {
+        navigate("/patient/schedule-appointment", { replace: true });
+      }, 100);
+    }
 
     // setIsSubmitting(true);
     
@@ -927,23 +1176,45 @@ function ScheduleAppointmentDialog({
       size="xl"
       closeRef={closeRef}
     >
-      <MCFormWrapper
-        key={
-          isRescheduling
-            ? `reschedule-${idAppointment}-${appointment.date}`
-            : `new-appointment-${appointment.doctorId}`
-        }
-        schema={appointmentSchema(t)}
-        defaultValues={formDefaultValues}
-        onValidationChange={() => {}}
-        onSubmit={onSubmit}
-      >
-        <ScheduleAppointmentForm
-          isRescheduling={isRescheduling}
-          serviceData={serviceData}
-          isSubmitting={false}
-        />
-      </MCFormWrapper>
+      {isLoadingDoctorData ? (
+        <div className="flex flex-col items-center justify-center py-12 px-6 space-y-4">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-muted-foreground">{t("appointments.loadingDoctorData", "Cargando información del doctor...")}</p>
+        </div>
+      ) : doctorDataError ? (
+        <div className="flex flex-col items-center justify-center py-12 px-6 space-y-4">
+          <XCircle className="h-8 w-8 text-destructive" />
+          <p className="text-destructive text-center">{doctorDataError}</p>
+          <MCButton onClick={loadDoctorData} variant="outline">
+            {t("common.retry", "Reintentar")}
+          </MCButton>
+        </div>
+      ) : serviceData ? (
+        <MCFormWrapper
+          key={
+            isRescheduling
+              ? `reschedule-${idAppointment}-${appointment.date}-${i18n.language}`
+              : `new-appointment-${appointment.doctorId}-${i18n.language}`
+          }
+          schema={appointmentSchema(t)}
+          defaultValues={formDefaultValues}
+          onValidationChange={() => {}}
+          onSubmit={onSubmit}
+        >
+          <ScheduleAppointmentForm
+            isRescheduling={isRescheduling}
+            serviceData={serviceData}
+            isSubmitting={false}
+          />
+        </MCFormWrapper>
+      ) : (
+        <div className="flex flex-col items-center justify-center py-12 px-6 space-y-4">
+          <p className="text-muted-foreground">{t("appointments.noDoctorData", "No se pudo cargar la información del doctor")}</p>
+          <MCButton onClick={loadDoctorData} variant="outline">
+            {t("common.retry", "Reintentar")}
+          </MCButton>
+        </div>
+      )}
     </MCModalBase>
   );
 }

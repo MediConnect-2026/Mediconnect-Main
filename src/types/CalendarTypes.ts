@@ -26,7 +26,7 @@ export interface Appointment {
   patientEmail?: string;
   doctorEmail?: string;
   doctorPhone?: string;
-  modality?: "presencial" | "virtual";
+  modality?: any | "presencial" | "virtual";
   address?: string;
   location: {
     lat: number;

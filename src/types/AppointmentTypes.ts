@@ -40,6 +40,7 @@ export interface CitaPaciente {
     email: string;
     fotoPerfil: string | null;
   };
+  usuarioId?: number;
 }
 
 /**
@@ -52,6 +53,7 @@ export interface CitaDoctor {
   usuario: {
     email: string;
     fotoPerfil: string | null;
+    telefono?: string;
   };
 }
 
@@ -59,15 +61,43 @@ export interface CitaDoctor {
  * Información del servicio en una cita
  */
 export interface CitaServicio {
+  id: number;
+  doctorId: number;
+  especialidadId: number;
   nombre: string;
+  descripcion: string;
   precio: number;
   duracionMinutos: number;
+  maxPacientesDia: number | null;
+  calificacionPromedio: number;
+  estado: string;
+  creadoEn: string;
+  actualizadoEn: string;
+  id_ubicacion: number;
   modalidad: string;
+  sesiones: number | null;
+  latitude?: number;
+  longitude?: number;
   especialidad: {
+    id: number;
     nombre: string;
   };
-  tipoServicio: {
+  imagenes: {
+    id: number;
+    servicioId: number;
+    url: string;
+    orden: number;
+    estado: string;
+    creadoEn: string;
+  }[];
+  horarios: {
+    id: number;
     nombre: string;
+    horaInicio: string;
+    horaFin: string;
+    ubicacionId: number;
+    estado: string;
+    servicioId: number;
   };
 }
 
@@ -75,6 +105,7 @@ export interface CitaServicio {
  * Información del horario en una cita
  */
 export interface CitaHorario {
+  id: number;
   nombre: string;
   diasSemana: number[];
   horaInicio: string;
@@ -117,7 +148,7 @@ export interface CitaDetalle {
   motivoCancelacion: string | null;
   paciente: CitaPaciente;
   doctor: CitaDoctor;
-  servicio: GetServicesOfDoctor;
+  servicio: CitaServicio;
   horario: CitaHorario | null;
   seguro: CitaSeguro | null;
   tipoSeguro: CitaTipoSeguro | null;
@@ -156,4 +187,53 @@ export interface CitasFilters {
   target?: string;
   source?: string;
   translate_fields?: string;
+}
+
+// ========================================
+// TIPOS PARA EL CALENDARIO DE CITAS
+// ========================================
+
+/**
+ * Vista del calendario
+ */
+export type CalendarioVista = 'hoy' | 'dia' | 'semana' | 'mes';
+
+/**
+ * Parámetros para consultar el calendario
+ */
+export interface CalendarioParams {
+  vista?: CalendarioVista;
+  fecha?: string; // YYYY-MM-DD
+  target?: string;
+  source?: string;
+  translate_fields?: string;
+}
+
+/**
+ * Rango de fechas del calendario
+ */
+export interface CalendarioRango {
+  desde: string; // YYYY-MM-DD
+  hasta: string; // YYYY-MM-DD
+}
+
+/**
+ * Citas agrupadas por día
+ */
+export interface CalendarioDia {
+  fecha: string; // YYYY-MM-DD
+  total: number;
+  citas: CitaDetalle[];
+}
+
+/**
+ * Respuesta del endpoint /citas/calendario
+ */
+export interface CalendarioResponse {
+  success: boolean;
+  vista: CalendarioVista;
+  fechaReferencia: string; // YYYY-MM-DD
+  rango: CalendarioRango;
+  total: number;
+  dias: CalendarioDia[];
 }

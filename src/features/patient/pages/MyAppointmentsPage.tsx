@@ -19,6 +19,7 @@ import {
 } from "@/shared/ui/pagination";
 import MCGeneratePDF from "@/shared/components/MCGeneratePDF";
 import { useGlobalUIStore } from "@/stores/useGlobalUIStore";
+import { useAppStore } from "@/stores/useAppStore";
 import {
   Empty,
   EmptyHeader,
@@ -27,12 +28,19 @@ import {
   EmptyContent,
 } from "@/shared/ui/empty";
 import MCButton from "@/shared/components/forms/MCButton";
-import { Filter, CalendarX } from "lucide-react";
+import { Filter, CalendarX, Loader2 } from "lucide-react";
+import { useAppointments } from "@/lib/hooks/useAppointments";
+import { mapCitasToAppointments } from "@/utils/appointmentMapper";
+import type { Appointment as ApiAppointment } from "@/shared/components/calendar/AppointmentCard";
+import type { CitasFilters } from "@/types/AppointmentTypes";
+import { format } from "date-fns";
+import { getUserAppRole } from "@/services/auth/auth.types";
+import i18n from "@/i18n/config";
 
-// Interfaz de cita
+// Interfaz local para los componentes de esta página
 export interface Appointment {
   id: string;
-  doctorId: string; // <-- Agrega este campo
+  doctorId: string;
   doctorName: string;
   doctorAvatar: string;
   doctorSpecialty: string;
@@ -46,7 +54,7 @@ export interface Appointment {
 }
 
 // Tipo para los filtros locales
-interface AppointmentFilters {
+interface LocalAppointmentFilters {
   status: string[];
   specialties: string[];
   modalities: string[];
@@ -55,195 +63,33 @@ interface AppointmentFilters {
   doctorName?: string;
 }
 
-// Datos de ejemplo
-const mockAppointments: Appointment[] = [
-  {
-    id: "1",
-    doctorId: "d1", // <-- Agrega un id único para cada doctor
-    doctorName: "Daniel Ramírez",
-    doctorSpecialty: "Terapeuta",
-    doctorAvatar:
-      "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=150&h=150&fit=crop&crop=face",
-    evaluationType: "Evaluación Cardíaca Integral",
-    date: "28 Oct, 2025",
-    time: "10:30 AM",
-    appointmentType: "in_person",
-    location: "Av. Sarasota, Plaza Médica Sarasota",
-    status: "scheduled",
-  },
-  {
-    id: "2",
-    doctorId: "d2",
-    doctorName: "Mariana López",
-    doctorSpecialty: "Terapeuta",
-    doctorAvatar: "",
-    evaluationType: "Evaluación Cardíaca Integral",
-    date: "28 Oct, 2025",
-    time: "10:30 AM",
-    appointmentType: "in_person",
-    location: "Av. Sarasota, Plaza Médica Sarasota",
-    status: "pending",
-  },
-  {
-    id: "3",
-    doctorId: "d3",
-    doctorName: "Santiago Pérez",
-    doctorSpecialty: "Terapeuta",
-    doctorAvatar:
-      "https://images.unsplash.com/photo-1537368910025-700350fe46c7?w=150&h=150&fit=crop&crop=face",
-    evaluationType: "Evaluación Cardíaca Integral",
-    date: "28 Oct, 2025",
-    time: "10:30 AM",
-    appointmentType: "virtual",
-    status: "in_progress",
-  },
-  {
-    id: "4",
-    doctorId: "d4",
-    doctorName: "Dr. Cristoforo Criparni",
-    doctorSpecialty: "Ginecología",
-    doctorAvatar:
-      "https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=150&h=150&fit=crop&crop=face",
-    evaluationType: "Evaluación Cardíaca Integral",
-    description:
-      "Consulta virtual para diagnóstico de hipertensión y control de ritmo cardíaco.",
-    date: "28 Oct, 2025",
-    time: "10:30 AM",
-    appointmentType: "in_person",
-    location: "Av. Sarasota, Plaza Médica Sarasota",
-    status: "scheduled",
-  },
-  {
-    id: "5",
-    doctorId: "d5",
-    doctorName: "Sofía Torres",
-    doctorSpecialty: "Terapeuta",
-    doctorAvatar:
-      "https://images.unsplash.com/photo-1594824476967-48c8b964273f?w=150&h=150&fit=crop&crop=face",
-    evaluationType: "Evaluación Cardíaca Integral",
-    date: "28 Oct, 2025",
-    time: "10:30 AM",
-    appointmentType: "in_person",
-    location: "Av. Sarasota, Plaza Médica Sarasota",
-    status: "cancelled",
-  },
-  {
-    id: "6",
-    doctorId: "d6",
-    doctorName: "Alejandro Díaz",
-    doctorSpecialty: "Terapeuta",
-    doctorAvatar:
-      "https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=150&h=150&fit=crop&crop=face",
-    evaluationType: "Evaluación Cardíaca Integral",
-    date: "28 Oct, 2025",
-    time: "10:30 AM",
-    appointmentType: "in_person",
-    location: "Av. Sarasota, Plaza Médica Sarasota",
-    status: "completed",
-  },
-  {
-    id: "7",
-    doctorId: "d7",
-    doctorName: "Dra. Laura Méndez",
-    doctorSpecialty: "Cardiología",
-    doctorAvatar:
-      "https://images.unsplash.com/photo-1527613426441-4da17471b66d?w=150&h=150&fit=crop&crop=face",
-    evaluationType: "Chequeo Cardiovascular",
-    description: "Control rutinario de presión arterial y electrocardiograma.",
-    date: "25 Oct, 2025",
-    time: "09:00 AM",
-    appointmentType: "in_person",
-    location: "Centro Médico Nacional, Piso 3",
-    status: "completed",
-  },
-  {
-    id: "8",
-    doctorId: "d8",
-    doctorName: "Dr. Roberto García",
-    doctorSpecialty: "Medicina General",
-    doctorAvatar:
-      "https://images.unsplash.com/photo-1651008376811-b90baee60c1f?w=150&h=150&fit=crop&crop=face",
-    evaluationType: "Consulta General",
-    date: "20 Oct, 2025",
-    time: "14:00 PM",
-    appointmentType: "virtual",
-    status: "cancelled",
-  },
-  {
-    id: "9",
-    doctorId: "d9",
-    doctorName: "Dr. Pablo Herrera",
-    doctorSpecialty: "Dermatología",
-    doctorAvatar:
-      "https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=150&h=150&fit=crop&crop=face",
-    evaluationType: "Consulta Dermatológica",
-    date: "30 Oct, 2025",
-    time: "11:00 AM",
-    appointmentType: "in_person",
-    location: "Clínica Central, Piso 2",
-    status: "scheduled",
-  },
-  {
-    id: "10",
-    doctorId: "d10",
-    doctorName: "Dra. Carla Jiménez",
-    doctorSpecialty: "Pediatría",
-    doctorAvatar:
-      "https://images.unsplash.com/photo-1515378791036-0648a3ef77b2?w=150&h=150&fit=crop&crop=face",
-    evaluationType: "Chequeo Pediátrico",
-    date: "31 Oct, 2025",
-    time: "09:30 AM",
-    appointmentType: "virtual",
-    status: "pending",
-  },
-  {
-    id: "11",
-    doctorId: "d11",
-    doctorName: "Dr. Luis Martínez",
-    doctorSpecialty: "Oftalmología",
-    doctorAvatar:
-      "https://images.unsplash.com/photo-1465101046530-73398c7f28ca?w=150&h=150&fit=crop&crop=face",
-    evaluationType: "Evaluación Visual",
-    date: "01 Nov, 2025",
-    time: "13:00 PM",
-    appointmentType: "in_person",
-    location: "Centro Óptico, Sala 5",
-    status: "completed",
-  },
-  {
-    id: "12",
-    doctorId: "d12",
-    doctorName: "Dra. Patricia Gómez",
-    doctorSpecialty: "Endocrinología",
-    doctorAvatar:
-      "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&h=150&fit=crop&crop=face",
-    evaluationType: "Control de Diabetes",
-    date: "02 Nov, 2025",
-    time: "15:00 PM",
-    appointmentType: "virtual",
-    status: "cancelled",
-  },
-  {
-    id: "13",
-    doctorId: "d13",
-    doctorName: "Dr. Andrés Castro",
-    doctorSpecialty: "Neurología",
-    doctorAvatar:
-      "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=150&h=150&fit=crop&crop=face",
-    evaluationType: "Consulta Neurológica",
-    date: "03 Nov, 2025",
-    time: "16:30 PM",
-    appointmentType: "in_person",
-    location: "Hospital General, Consultorio 12",
-    status: "in_progress",
-  },
-];
+// Función adaptadora: convierte el formato de API al formato local de la página
+const adaptApiAppointmentToLocal = (apiAppointment: ApiAppointment): Appointment => {
+  return {
+    id: apiAppointment.id,
+    doctorId: apiAppointment.doctorId || "",
+    doctorName: apiAppointment.clientName,
+    doctorAvatar: apiAppointment.clientImage || "",
+    doctorSpecialty: apiAppointment.serviceData?.especialidad?.nombre || "",
+    evaluationType: apiAppointment.service,
+    date: format(apiAppointment.date, "dd MMM, yyyy"),
+    time: apiAppointment.startTime,
+    description: apiAppointment.reason,
+    appointmentType: apiAppointment.isVirtual ? "virtual" : "in_person",
+    location: undefined, // No disponible en el nuevo formato
+    status: apiAppointment.status,
+  };
+};
 
 const ITEMS_PER_PAGE = 6;
 
 function MyAppointmentsPage() {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  
+  // Obtener el usuario autenticado y su rol
+  const user = useAppStore((state) => state.user);
+  const userRole = getUserAppRole(user) || "PATIENT";
 
   // Lee la preferencia de vista del localStorage (por defecto "card")
   const [showCards, setShowCards] = useState(() => {
@@ -263,8 +109,9 @@ function MyAppointmentsPage() {
   const [searchTerm, setSearchTerm] = useState("");
 
   const setIsLoading = useGlobalUIStore((state) => state.setIsLoading);
+  
   // Estado de filtros local
-  const [filters, setFilters] = useState<AppointmentFilters>({
+  const [filters, setFilters] = useState<LocalAppointmentFilters>({
     status: [],
     specialties: [],
     modalities: [],
@@ -273,9 +120,44 @@ function MyAppointmentsPage() {
     doctorName: undefined,
   });
 
+  // Construir filtros para la API
+  const apiFilters: CitasFilters = useMemo(() => {
+    const filters: CitasFilters = {
+      limite: ITEMS_PER_PAGE * 10, // Cargar suficientes datos para filtrar localmente
+      target: i18n.language === "en" ? "en" : "es",
+      source: i18n.language === "en" ? "es" : "en",
+      translate_fields: "nombre"
+    };
+    return filters;
+  }, []);
+
+  // Fetch appointments usando React Query
+  const { data: appointmentsData, isLoading, isError, refetch } = useAppointments(
+    apiFilters,
+    userRole
+  );
+
+  // Mapear datos de la API al formato del componente
+  const allAppointments = useMemo(() => {
+    if (!appointmentsData?.data) return [];
+    
+    const citasArray = Array.isArray(appointmentsData.data) 
+      ? appointmentsData.data 
+      : [appointmentsData.data];
+    
+    // Mapear desde la API al formato de AppointmentCard
+    const apiAppointments = mapCitasToAppointments(citasArray, userRole);
+    
+    // Adaptar al formato local de esta página
+    return apiAppointments.map(adaptApiAppointmentToLocal);
+  }, [appointmentsData, userRole]);
+
   // Función para actualizar filtros
-  const updateFilters = (newFilters: Partial<AppointmentFilters>) => {
+  const updateFilters = (newFilters: Partial<LocalAppointmentFilters>) => {
     setFilters((prev) => ({ ...prev, ...newFilters }));
+    // Resetear paginación cuando cambian los filtros
+    setUpcomingPage(1);
+    setHistoricalPage(1);
   };
 
   // Función para resetear filtros
@@ -289,6 +171,8 @@ function MyAppointmentsPage() {
       doctorName: undefined,
     });
     setSearchTerm("");
+    setUpcomingPage(1);
+    setHistoricalPage(1);
   };
 
   // Función para contar filtros activos
@@ -303,10 +187,10 @@ function MyAppointmentsPage() {
     return count;
   };
 
-  // Función para filtrar las citas
+  // Función para filtrar las citas localmente
   const filterAppointments = (appointments: Appointment[]) => {
     return appointments.filter((appointment) => {
-      // Filtro por búsqueda de doctor
+      // Filtro por búsqueda de doctor/paciente
       if (
         searchTerm &&
         !appointment.doctorName.toLowerCase().includes(searchTerm.toLowerCase())
@@ -322,18 +206,11 @@ function MyAppointmentsPage() {
         return false;
       }
 
-      // Filtro por especialidad
+      // Filtro por especialidad (si está disponible)
       if (
         filters.specialties.length > 0 &&
+        appointment.doctorSpecialty &&
         !filters.specialties.includes(appointment.doctorSpecialty)
-      ) {
-        return false;
-      }
-
-      // Filtro por modalidad
-      if (
-        filters.modalities.length > 0 &&
-        !filters.modalities.includes(appointment.appointmentType)
       ) {
         return false;
       }
@@ -346,8 +223,23 @@ function MyAppointmentsPage() {
         return false;
       }
 
+      // Filtro por modalidad (virtual/presencial)
+      if (filters.modalities.length > 0) {
+        const modalityMatch = filters.modalities.some((modality) => {
+          if (modality === "virtual" || modality === "teleconsulta") {
+            return appointment.appointmentType === "virtual";
+          }
+          if (modality === "in_person" || modality === "presencial") {
+            return appointment.appointmentType === "in_person";
+          }
+          return false;
+        });
+        if (!modalityMatch) return false;
+      }
+
       // Filtro por rango de fechas
       if (filters.dateRange) {
+        // Parsear la fecha del formato "dd MMM, yyyy"
         const appointmentDate = new Date(appointment.date);
         const [startDate, endDate] = filters.dateRange;
         if (appointmentDate < startDate || appointmentDate > endDate) {
@@ -361,7 +253,7 @@ function MyAppointmentsPage() {
 
   // Separar citas próximas e historial con filtros aplicados
   const { upcomingAppointments, historicalAppointments } = useMemo(() => {
-    const filteredAppointments = filterAppointments(mockAppointments);
+    const filteredAppointments = filterAppointments(allAppointments);
 
     const upcoming = filteredAppointments.filter((apt) =>
       ["scheduled", "pending", "in_progress"].includes(apt.status),
@@ -373,7 +265,7 @@ function MyAppointmentsPage() {
       upcomingAppointments: upcoming,
       historicalAppointments: historical,
     };
-  }, [filters, searchTerm]);
+  }, [allAppointments, filters, searchTerm]);
 
   const upcomingPagination = useMemo(() => {
     const totalPages = Math.ceil(upcomingAppointments.length / ITEMS_PER_PAGE);
@@ -462,10 +354,10 @@ function MyAppointmentsPage() {
     // Verificar si hay filtros activos
     const hasActiveFilters = getActiveFiltersCount() > 0;
     const originalAppointments = isUpcoming
-      ? mockAppointments.filter((apt) =>
+      ? allAppointments.filter((apt) =>
           ["scheduled", "pending", "in_progress"].includes(apt.status),
         )
-      : mockAppointments.filter((apt) =>
+      : allAppointments.filter((apt) =>
           ["completed", "cancelled"].includes(apt.status),
         );
 
@@ -570,41 +462,50 @@ function MyAppointmentsPage() {
     <MCPDFButton
       onClick={async () => {
         setIsLoading(true);
-        await MCGeneratePDF({
-          columns: [
-            {
-              title: t("patient:myAppointments.pdfColumns.doctor"),
-              key: "doctorName",
-            },
-            {
-              title: t("patient:myAppointments.pdfColumns.specialty"),
-              key: "doctorSpecialty",
-            },
-            {
-              title: t("patient:myAppointments.pdfColumns.evaluationType"),
-              key: "evaluationType",
-            },
-            { title: t("patient:myAppointments.pdfColumns.date"), key: "date" },
-            { title: t("patient:myAppointments.pdfColumns.time"), key: "time" },
-            {
-              title: t("patient:myAppointments.pdfColumns.appointmentType"),
-              key: "appointmentType",
-            },
-            {
-              title: t("patient:myAppointments.pdfColumns.location"),
-              key: "location",
-            },
-            {
-              title: t("patient:myAppointments.pdfColumns.status"),
-              key: "status",
-            },
-          ],
-          data: mockAppointments,
-          fileName: "mis-citas",
-          title: t("patient:myAppointments.pdfTitle"),
-          subtitle: t("patient:myAppointments.pdfSubtitle"),
-        });
-        setIsLoading(false);
+        try {
+          await MCGeneratePDF({
+            columns: [
+              {
+                title: userRole === "DOCTOR" 
+                  ? t("patient:myAppointments.pdfColumns.patient") 
+                  : t("patient:myAppointments.pdfColumns.doctor"),
+                key: "doctorName",
+              },
+              {
+                title: t("patient:myAppointments.pdfColumns.specialty"),
+                key: "doctorSpecialty",
+              },
+              {
+                title: t("patient:myAppointments.pdfColumns.service"),
+                key: "evaluationType",
+              },
+              { 
+                title: t("patient:myAppointments.pdfColumns.date"), 
+                key: "date" 
+              },
+              { 
+                title: t("patient:myAppointments.pdfColumns.time"), 
+                key: "time" 
+              },
+              {
+                title: t("patient:myAppointments.pdfColumns.modality"),
+                key: "appointmentType",
+              },
+              {
+                title: t("patient:myAppointments.pdfColumns.status"),
+                key: "status",
+              },
+            ],
+            data: allAppointments,
+            fileName: "mis-citas",
+            title: t("patient:myAppointments.pdfTitle"),
+            subtitle: t("patient:myAppointments.pdfSubtitle"),
+          });
+        } catch (error) {
+          console.error("Error generating PDF:", error);
+        } finally {
+          setIsLoading(false);
+        }
       }}
     />
   );
@@ -623,7 +524,11 @@ function MyAppointmentsPage() {
       <MCFilterInput
         placeholder={t("patient:myAppointments.searchPlaceholder")}
         value={searchTerm}
-        onChange={(value: string) => setSearchTerm(value)}
+        onChange={(value: string) => {
+          setSearchTerm(value);
+          setUpcomingPage(1);
+          setHistoricalPage(1);
+        }}
       />
     </div>
   );
@@ -631,21 +536,51 @@ function MyAppointmentsPage() {
   // Componente principal con ambas secciones
   const tableComponent = (
     <div className="space-y-8 bg-background">
-      {/* Sección: Próximas Citas */}
-      <section>
-        <h2 className="text-2xl font-semibold mb-6 text-foreground">
-          {t("patient:myAppointments.upcomingTitle")}
-        </h2>
-        {renderAppointments(upcomingAppointments, "upcoming")}
-      </section>
+      {isLoading ? (
+        <div className="flex flex-col items-center justify-center py-12 space-y-4">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          <p className="text-muted-foreground">
+            {t("patient:myAppointments.loadingAppointments")}
+          </p>
+        </div>
+      ) : isError ? (
+        <Empty>
+          <EmptyHeader>
+            <EmptyTitle>{t("patient:myAppointments.errorTitle")}</EmptyTitle>
+            <EmptyDescription>
+              {t("patient:myAppointments.errorDescription")}
+            </EmptyDescription>
+          </EmptyHeader>
+          <EmptyContent>
+            <MCButton
+              variant="primary"
+              onClick={() => refetch()}
+              className="px-6 py-2"
+              size="sm"
+            >
+              {t("patient:myAppointments.retry")}
+            </MCButton>
+          </EmptyContent>
+        </Empty>
+      ) : (
+        <>
+          {/* Sección: Próximas Citas */}
+          <section>
+            <h2 className="text-2xl font-semibold mb-6 text-foreground">
+              {t("patient:myAppointments.upcomingTitle")}
+            </h2>
+            {renderAppointments(upcomingAppointments, "upcoming")}
+          </section>
 
-      {/* Sección: Historial de Citas */}
-      <section>
-        <h2 className="text-2xl font-semibold mb-6 text-foreground">
-          {t("patient:myAppointments.historyTitle")}
-        </h2>
-        {renderAppointments(historicalAppointments, "historical")}
-      </section>
+          {/* Sección: Historial de Citas */}
+          <section>
+            <h2 className="text-2xl font-semibold mb-6 text-foreground">
+              {t("patient:myAppointments.historyTitle")}
+            </h2>
+            {renderAppointments(historicalAppointments, "historical")}
+          </section>
+        </>
+      )}
     </div>
   );
 

@@ -221,7 +221,7 @@ function ScheduleAppointment() {
         // Invalidar el cache de citas para recargar el calendario
         queryClient.invalidateQueries({ queryKey: QUERY_KEYS.CITAS() });
         
-        // navigate("/patient/schedule-appointment", { replace: true });
+        navigate("/dashboard", { replace: true });
       } else {
         throw new Error(response?.message || "Error al crear la cita");
       }

@@ -37,6 +37,8 @@ export const useAppointments = (
     // Re-fetch más agresivo para citas (datos que cambian con frecuencia)
     refetchOnWindowFocus: true,
     refetchOnMount: true,
+    refetchInterval: 30000, // Refetch cada 30 segundos
+    refetchIntervalInBackground: true, // Refetch incluso si la pestaña no está activa
     ...options,
   });
 };

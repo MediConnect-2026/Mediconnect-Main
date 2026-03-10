@@ -15,6 +15,7 @@ import { QUERY_KEYS } from '@/lib/react-query/config';
 import { MCDialogBase } from '@/shared/components/MCDialogBase';
 import { mapCitasToAppointments } from "@/utils/appointmentMapper";
 import { useAppStore } from "@/stores/useAppStore";
+import i18n from "@/i18n/config";
 
 type Orientation = "vertical" | "horizontal";
 
@@ -39,6 +40,9 @@ export function AppointmentsCalendar({
   const { data: citasResponse, isLoading, error } = useAppointments({
     fechaDesde: monthStart.toISOString(),
     fechaHasta: monthEnd.toISOString(),
+    target: i18n.language === "es" ? "es" : "en",
+    source: i18n.language === "es" ? "en" : "es",
+    translate_fields: "nombre",
     limite: 100, // Obtener todas las citas del mes
   }, userRole);
 

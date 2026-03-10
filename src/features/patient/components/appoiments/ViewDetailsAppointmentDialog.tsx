@@ -6,9 +6,10 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/shared/ui/tabs";
 import { mockAppointments } from "@/data/appointments";
 import { type Appointment } from "@/data/appointments";
 import { MCFilterPopover } from "@/shared/components/filters/MCFilterPopover";
-import { FolderClock, Loader2 } from "lucide-react";
+import { FolderClock, Loader2, Ban } from "lucide-react";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
 import FilterHistoryAppointments from "../filters/FilterHistoryAppointments";
+import { Badge } from "@/shared/ui/badge";
 import MedicalPrescriptionDialog from "./MedicalPrescriptionDialog";
 import {
   Empty,
@@ -21,6 +22,11 @@ import {
 import { useAppStore } from "@/stores/useAppStore";
 import { getCitaById } from "@/services/api/appointments.service";
 import type { CitaDetalle } from "@/types/AppointmentTypes";
+import { formatTimeTo12h, mapCitaEstadoToAppointmentStatus } from "@/utils/appointmentMapper";
+import ubicacionesService from "@/features/onboarding/services/ubicaciones.services";
+import i18n from "@/i18n/config";
+
+
 // Add the HistoryFilters interface
 interface HistoryFilters {
   services: string[];
@@ -170,7 +176,7 @@ function DetailsTabContent({ appointment }: { appointment: CitaDetalle}) {
             {t("appointment.schedule")}
           </h3>
           <p className="text-lg text-primary font-medium break-words max-w-xs">
-            {appointment.horaInicio} - {appointment.horaFin}
+            {formatTimeTo12h(appointment.horaInicio)} - {formatTimeTo12h(appointment.horaFin)}
           </p>
         </div>
         <div className="flex flex-col items-start gap-1">
@@ -178,7 +184,7 @@ function DetailsTabContent({ appointment }: { appointment: CitaDetalle}) {
             {t("appointment.price")}
           </h3>
           <p className="text-lg text-primary font-medium break-words max-w-xs">
-            ${appointment.totalAPagar}
+            RD$ {appointment.totalAPagar}
           </p>
         </div>
         <div className="flex flex-col items-start gap-1">
@@ -202,7 +208,7 @@ function DetailsTabContent({ appointment }: { appointment: CitaDetalle}) {
             {t("appointment.insure")}
           </h3>
           <p className="text-lg text-primary font-medium break-words max-w-xs">
-            {appointment.seguro ? appointment.seguro.nombre : t("appointment.noInsurance")}
+            {appointment.seguro ? appointment.seguro.nombre : t("appointments.noInsurance")}
           </p>
         </div>
         <div className="flex flex-col items-start gap-1">
@@ -216,40 +222,40 @@ function DetailsTabContent({ appointment }: { appointment: CitaDetalle}) {
       </div>
       <div className="flex flex-col items-start gap-1">
         <h3 className="text-md text-primary/75 font-medium">
-          {t("appointment.description")}
+          {t("appointment.consultationReason", "Motivo de Consulta")}
         </h3>
         <p className="text-lg text-primary font-medium break-words max-w-xs">
-          {appointment.servicio.descripcion || t("appointment.noDescription")}
+          {appointment.motivoConsulta || t("appointment.noConsultationReason", "Sin motivo especificado")}
         </p>
       </div>
-      {!isMobile && (
+      {!isMobile && appointment.servicio.latitude && appointment.servicio.longitude && (
         <div className="flex flex-col items-start gap-1 pb-4">
           <h3 className="text-md text-primary/75 font-medium">
             {t("appointment.location")}
           </h3>
-          {/* <div className="w-full rounded-lg overflow-hidden">
+          <div className="w-full rounded-lg overflow-hidden">
             <MapScheduleLocation
               initialLocation={{
                 lat: appointment.servicio.latitude,
                 lng: appointment.servicio.longitude,
               }}
             />
-          </div> */}
+          </div>
         </div>
       )}
-      {isMobile && (
+      {isMobile && appointment.servicio.latitude && appointment.servicio.longitude && (
         <div className="flex flex-col items-start gap-1 pt-2">
           <h3 className="text-md text-primary/75 font-medium">
             {t("appointment.location")}
           </h3>
-          {/* <div className="w-full rounded-lg overflow-hidden">
+          <div className="w-full rounded-lg overflow-hidden">
             <MapScheduleLocation
               initialLocation={{
                 lat: appointment.servicio.latitude,
                 lng: appointment.servicio.longitude,
               }}
             />
-          </div> */}
+          </div>
         </div>
       )}
     </div>
@@ -270,7 +276,6 @@ function HistoryCard({
   appointmentId: string;
 }) {
   const isMobile = useIsMobile();
-  const { t } = useTranslation("patient");
 
   return (
     <MedicalPrescriptionDialog
@@ -480,6 +485,7 @@ function ViewDetailsAppointmentDialog({
   const userRole = useAppStore((state) => state.user?.rol);
   const [loading, setLoading] = useState(false);
   const [appointment, setAppointment] = useState<CitaDetalle | null>(null);
+  const [appointmentStatusKey, setAppointmentStatusKey] = useState<StatusKey | null>(null);
 
   const appointmentStatus = mockAppointments.find(
     (appt) => appt.id === appointmentId,
@@ -515,16 +521,50 @@ function ViewDetailsAppointmentDialog({
 
       setLoading(true);
       try{
-        const response = await getCitaById(appointmentId);
-        console.log("Appointment details response: ", response);
+        const params = {
+          translate_fields: "modalidad,nombre,descripcion",
+          target: i18n.language === "es" ? "es" : "en",
+          source: i18n.language === "es" ? "en" : "es",
+        };
+        const response = await getCitaById(appointmentId, params);
 
         const payload = response?.data;
         if (!payload) {
           setAppointment(null);
-        } else if (Array.isArray(payload)) {
-          setAppointment(payload[0] ?? null);
+          setAppointmentStatusKey(null);
         } else {
-          setAppointment(payload);
+          // Normalize to a single CitaDetalle
+          const appointmentData: CitaDetalle | null = Array.isArray(payload) ? (payload[0] ?? null) : payload;
+
+          if (appointmentData) {
+            // If the servicio includes an ubicacionId, try to fetch the full location
+            const ubicacionId = appointmentData.servicio?.id_ubicacion ?? null;
+            if (ubicacionId) {
+              try {
+                const location = await ubicacionesService.getLocationById(Number(ubicacionId));
+                // location expected to have puntoGeografico.coordinates = [lng, lat]
+                const coords = location?.puntoGeografico?.coordinates;
+
+                if (Array.isArray(coords) && coords.length >= 2) {
+                  // attach latitude/longitude to servicio for UI consumption
+                  (appointmentData.servicio as any).latitude = coords[1];
+                  (appointmentData.servicio as any).longitude = coords[0];
+                  // keep full location data as well
+                  (appointmentData.servicio as any).ubicacionData = location;
+                }
+              } catch (err) {
+                console.warn("No se pudo obtener la ubicación para ubicacionId", ubicacionId, err);
+              }
+            }
+
+            setAppointment(appointmentData);
+            setAppointmentStatusKey(mapCitaEstadoToAppointmentStatus(appointmentData.estado) as StatusKey);
+
+            console.log("Appointment details response: ", appointmentData, appointmentStatusKey);
+          } else {
+            setAppointment(null);
+            setAppointmentStatusKey(null);
+          }
         }
       } catch(error){
         console.error("Error fetching appointment details: ", error);
@@ -537,7 +577,7 @@ function ViewDetailsAppointmentDialog({
   }, [appointmentId]);
 
 
-  const statusKey: StatusKey = (appointmentStatus || status) as StatusKey;
+  const statusKey: StatusKey = (appointmentStatusKey || appointmentStatus || status) as StatusKey;
   const statusInfo = getStatusMap()[statusKey] || {
     label: appointmentStatus || status,
     color: "bg-gray-200 text-gray-600",
@@ -567,10 +607,28 @@ function ViewDetailsAppointmentDialog({
           </TabsTrigger>
         </TabsList>
         {/* Estado visual */}
-        <div
-          className={`flex w-full text-lg rounded-xl py-2 px-4 mb-4 ${statusInfo.color}`}
-        >
-          <p>{statusInfo.label}</p>
+        <div className="flex flex-col gap-3 mb-4">
+          <div
+            className={`flex w-full text-lg rounded-xl py-2 px-4 ${statusInfo.color}`}
+          >
+            <p>{statusInfo.label}</p>
+          </div>
+          
+          {/* Mostrar motivo de cancelación si está cancelado */}
+          {statusKey === "cancelled" && appointment?.motivoCancelacion && (
+            <div className="flex items-start gap-2 p-4 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/40 rounded-xl">
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <Badge variant="destructive">
+                    {t("appointment.cancellationReason", "Motivo de Cancelación")}
+                  </Badge>
+                </div>
+                <p className="text-sm text-red-800 dark:text-red-200">
+                  {appointment.motivoCancelacion}
+                </p>
+              </div>
+            </div>
+          )}
         </div>
         <TabsContent value="details">
           {appointmentDetails ? (

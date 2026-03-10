@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import MCTextArea from "@/shared/components/forms/MCTextArea";
 import { useAppointmentStore } from "@/stores/useAppointmentStore";
 import { MCModalBase } from "@/shared/components/MCModalBase";
@@ -8,6 +8,8 @@ import MCFormWrapper from "@/shared/components/forms/MCFormWrapper";
 import { TriangleAlert } from "lucide-react";
 import { useGlobalUIStore } from "@/stores/useGlobalUIStore";
 import { useAppStore } from "@/stores/useAppStore";
+import { useCancelAppointment } from "@/lib/hooks/useAppointmentMutations";
+
 interface CancelAppointmentDialogProps {
   children?: React.ReactNode;
   appointmentId: string;
@@ -18,15 +20,19 @@ function CancelAppointmentDialog({
   appointmentId,
 }: CancelAppointmentDialogProps) {
   const { t } = useTranslation("patient");
+  const [isOpen, setIsOpen] = useState(false);
+  const [cancellationReason, setCancellationReason] = useState("");
+  
   const setCancelAppointment = useAppointmentStore(
     (state) => state.setCancelAppointment,
   );
 
   const userRole = useAppStore((state) => state.user?.role);
-
-  const setToast = useGlobalUIStore((state) => state.setToast);
+  const { mutate: cancelAppointment, isPending } = useCancelAppointment();
 
   const onSubmit = (data: { cancellationReason: string }) => {
+    setCancellationReason(data.cancellationReason);
+    
     if (setCancelAppointment) {
       setCancelAppointment({
         cancellationReason: data.cancellationReason,
@@ -36,20 +42,27 @@ function CancelAppointmentDialog({
 
   // Funciones para los botones del modal
   const handleConfirm = () => {
-    setToast({
-      message: t("appointment.cancellationSuccess"),
-      type: "success",
-      open: true,
-    });
-    console.log("Confirmar cancelación de cita:", appointmentId);
+    if (!cancellationReason || cancellationReason.length < 10) {
+      return;
+    }
+
+    cancelAppointment(
+      {
+        appointmentId,
+        reason: cancellationReason,
+      },
+      {
+        onSuccess: () => {
+          setIsOpen(false);
+          setCancellationReason("");
+        },
+      }
+    );
   };
 
   const handleSecondary = () => {
-    setToast({
-      message: t("appointment.cancellationAborted"),
-      type: "info",
-      open: true,
-    });
+    setIsOpen(false);
+    setCancellationReason("");
     console.log("Cancelar acción de cancelación de cita:", appointmentId);
   };
 
@@ -61,10 +74,14 @@ function CancelAppointmentDialog({
       triggerClassName="w-full flex-1"
       variant="warning"
       size="smWide"
+      open={isOpen}
+      onOpenChange={setIsOpen}
       onConfirm={handleConfirm}
       onSecondary={handleSecondary}
       confirmText={t("appointment.confirmCancellation")}
       secondaryText={t("appointment.cancelAction")}
+      confirmDisabled={isPending || !cancellationReason || cancellationReason.length < 10}
+      confirmLoading={isPending}
     >
       <MCFormWrapper
         defaultValues={{
@@ -93,6 +110,7 @@ function CancelAppointmentDialog({
           showCharCount
           rows={4}
           maxRows={12}
+          disabled={isPending}
         />
       </MCFormWrapper>
     </MCModalBase>

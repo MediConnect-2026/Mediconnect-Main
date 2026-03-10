@@ -44,6 +44,7 @@ export const API_ENDPOINTS = {
     BY_ID: (id: string | number) => `/citas/${id}`,
     CANCEL: (id: string | number) => `/citas/${id}/cancelar`,
     TO_DOCTORS: '/citas/doctor',
+    CALENDARIO: '/citas/calendario',
   },
   
   // --- PERFILES ---
@@ -148,12 +149,13 @@ export const API_ENDPOINTS = {
     BARRIO_BY_GEOPOINT: '/barrios/geo/punto',
     LOCATIONS_BY_DOCTOR: '/ubicaciones/mis-ubicaciones',
     CREATE_LOCATION: '/ubicaciones/mis-ubicaciones',
+    LOCATION_BY_ID: (id: string | number) => `/ubicaciones/${id}`,
   },
 
   // --- Tipos de centro ---
   TIPOS_CENTRO: {
     BASE: '/tipos-centros-salud',
-    BY_ID: (id: string | number) => `/tipos-centros-salud/${id}`,
+    BY_ID: (id: string | number) => `/ubicaciones/${id}`,
   },
 
   // --- SEGUROS ---

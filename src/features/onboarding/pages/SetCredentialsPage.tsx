@@ -192,7 +192,6 @@ function SetCredentialsPage() {
                 nivel: selectedProficiency.label,
               });
               
-              console.log('Idioma agregado exitosamente al perfil del doctor');
             }
           } catch (languageError) {
             // No fallar el registro si hay error al agregar el idioma

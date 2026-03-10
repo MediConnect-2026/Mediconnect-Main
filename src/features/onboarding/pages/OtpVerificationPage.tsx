@@ -122,7 +122,7 @@ function OtpVerificationPage() {
       });
 
       if (response.success) {
-        toast.success(t("registerEmailVerifyPage.successTitleEmailSent") || response.message || "Código reenviado correctamente");
+        toast.success(t("registerEmailVerifyPage.successTitleEmailSent") || "Código reenviado correctamente");
       }
     } catch (error: any) {
       console.error("Error al reenviar código OTP:", error);

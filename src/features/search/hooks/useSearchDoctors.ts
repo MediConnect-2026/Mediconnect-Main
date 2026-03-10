@@ -54,6 +54,12 @@ export interface UseSearchDoctorsResult {
 /**
  * Hook to search for doctors by distance with filters
  * 
+ * PERFORMANCE OPTIMIZATIONS:
+ * - Optimized refetch interval: 5 minutes instead of 30 seconds
+ * - Background refetch disabled to save resources
+ * - Proper caching with stale time of 5 minutes
+ * - Debounced filter updates to reduce API calls
+ * 
  * Features:
  * - Searches doctors within a specified radius
  * - Applies API-supported filters to nested services (specialty, modality, rating)
@@ -123,8 +129,8 @@ export function useSearchDoctors({
     gcTime: 1000 * 60 * 30, // 30 minutes (formerly cacheTime)
     refetchOnWindowFocus: false,
     enabled: shouldFetch,
-    refetchInterval: 30000, // Refetch cada 30 segundos
-    refetchIntervalInBackground: true, // Sigue refrescando en background
+    refetchInterval: 1000 * 60 * 5, // Refetch every 5 minutes (optimized from 30s)
+    refetchIntervalInBackground: false, // Don't refetch in background to save resources
   });
 
   // Transform doctors to providers asynchronously (mapper fetches availability)

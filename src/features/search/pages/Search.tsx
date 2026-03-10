@@ -42,13 +42,6 @@ interface SearchProviderFilters {
 }
 
 
-const IDIOMAS_OPTIONS = [
-  { value: "all", label: "Todos" },
-  { value: "Español", label: "Español" },
-  { value: "Inglés", label: "Inglés" },
-  { value: "Francés", label: "Francés" },
-];
-
 const EmptyState = memo(() => {
   const { t } = useTranslation("common");
   return (
@@ -175,6 +168,13 @@ const DesktopFilters = memo(
     especialidadesOptions: { value: string; label: string }[];
   }) => {
 
+    const IDIOMAS_OPTIONS = [
+      { value: "all", label: t("search.options.all", "Todos") },
+      { value: "Español", label: t("search.options.languages.spanish") },
+      { value: "Inglés", label: t("search.options.languages.english") },
+      { value: "Francés", label: t("search.options.languages.french") },
+    ];
+
     const MODALIDAD_OPTIONS = [
       { value: "all", label: t("search.options.all", "Todos") },
       { value: "presencial", label: t("search.options.modality.Presencial") },
@@ -217,7 +217,7 @@ const DesktopFilters = memo(
         <MCFilterSelect
           name="providerType"
           placeholder={isLoadingCentro ? t("search.loadingProviderTypes") : t("search.providerType", "Tipo")}
-          options={tiposCentroOptions}
+          options={[{value: "all", label: t("search.options.all", "Todos")}, ...tiposCentroOptions]}
           multiple
           noBadges
           disabled={isLoadingCentro}
@@ -232,7 +232,7 @@ const DesktopFilters = memo(
         <MCFilterSelect
           name="specialty"
           placeholder={ isLoadingEspecialidades ? t("search.loadingSpecialties") : t("search.specialty", "Especialidad")}
-          options={especialidadesOptions}
+          options={[{value: "all", label: t("search.options.all", "Todos")}, ...especialidadesOptions]}
           multiple
           noBadges
           disabled={isLoadingEspecialidades}
@@ -469,6 +469,24 @@ function Search() {
     [updateSearchFilters],
   );
 
+  const handleSearchChange = useCallback(
+    (searchTerm: string) => {
+      updateSearchFilters({ name: searchTerm });
+    },
+    [updateSearchFilters],
+  );
+
+  const handleInsuranceChange = useCallback(
+    (insurance: string) => {
+      if (insurance.trim()) {
+        updateSearchFilters({ insuranceAccepted: [insurance] });
+      } else {
+        updateSearchFilters({ insuranceAccepted: ["all"] });
+      }
+    },
+    [updateSearchFilters],
+  );
+
   const toggleMapView = useCallback(() => {
     setShowMap((prev) => !prev);
   }, []);
@@ -489,7 +507,10 @@ function Search() {
       >
         <div className="px-3 py-4 sm:px-4 sm:py-6 md:px-6 md:py-8 lg:px-12">
           <div className="flex flex-col gap-4 justify-center items-center">
-            <DoctorSearchBar />
+            <DoctorSearchBar 
+              onSearchChange={handleSearchChange}
+              onInsuranceChange={handleInsuranceChange}
+            />
             {isMobile ? (
               <div className="flex gap-2 w-full">
                 <MCFilterPopover

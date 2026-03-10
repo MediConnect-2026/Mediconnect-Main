@@ -11,7 +11,7 @@ import { type Doctor } from "@/data/providers";
 import { cn } from "@/lib/utils";
 import { useAppStore } from "@/stores/useAppStore";
 import MCButton from "@/shared/components/forms/MCButton";
-import React, { useState } from "react";
+import React, { useState, memo } from "react";
 import { MCDialogBase } from "@/shared/components/MCDialogBase";
 import { useGlobalUIStore } from "@/stores/useGlobalUIStore";
 import { doctorService } from "@/shared/navigation/userMenu/editProfile/doctor/services";
@@ -32,7 +32,7 @@ interface DoctorCardsProps {
   onConnect?: (id: string) => void;
 }
 
-export const DoctorCards = ({
+const DoctorCardsComponent = ({
   doctor,
   isSelected,
   onSelect,
@@ -96,7 +96,6 @@ export const DoctorCards = ({
     connectBtnDisabled = true;
   }
 
-  console.log("Rendering DoctorCards for:", doctor);
   return (
     <>  
       <MCDialogBase
@@ -627,3 +626,5 @@ export const DoctorCards = ({
     </>
   );
 };
+
+export const DoctorCards = memo(DoctorCardsComponent);

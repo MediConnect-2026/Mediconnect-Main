@@ -959,6 +959,21 @@ export const doctorService = {
     }
   },
 
+  removeDoctorFromFavorites: async (doctorId: number): Promise<{ success: boolean; message: string }> => {
+    try {
+      const response = await apiClient.delete(`/favoritos/${doctorId}`);
+      return response.data;
+    } catch (error: any) {
+      console.error('❌ [Doctor Service] Error al remover doctor de favoritos:', error);
+      const errorData = error.response?.data as DoctorServiceError;
+      throw new Error(
+        errorData?.message ||
+        error.message ||
+        'Error al remover doctor de favoritos. Intenta nuevamente.'
+      );
+    }
+  },
+
   
   createService: async (data: CreateDoctorServiceRequest): Promise<CreateDoctorServiceResponse> => {
     try {

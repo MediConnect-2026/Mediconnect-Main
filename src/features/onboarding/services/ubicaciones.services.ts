@@ -131,6 +131,16 @@ const ubicacionesService = {
             console.error(`Error creando ubicación:`, error);
             throw error;
         }
+    },
+
+    async getLocationById(id: number): Promise<any> {
+        try {
+            const response = await apiClient.get(`${API_ENDPOINTS.UBICACIONES.LOCATION_BY_ID(id)}`);
+            return response.data || {};
+        } catch (error) {
+            console.error(`Error obteniendo ubicación por id ${id}:`, error);
+            return {};
+        }
     }
 };
 

@@ -24,7 +24,7 @@ export interface APISearchParams {
   especialidadId?: number;
   especialidadIds?: number[];
   modalidad?: string;
-  calificacionMinima?: number;
+  calificacionMin?: number;
   anosExperienciaMinima?: number;
   genero?: string;
   idioma?: string;
@@ -59,6 +59,8 @@ export const mapFiltersToAPIParams = (
   params.target = language || "es";
   params.source = language === "es" ? "en" : "es";
   params.translate_fields = "nombre,descripcion,modalidad";
+
+  console.log("Mapping filters to API params:", filters);
 
   // Map specialty filter
   if (
@@ -117,10 +119,11 @@ export const mapFiltersToAPIParams = (
       : parseFloat(String(filters.rating));
     
     if (!isNaN(ratingValue) && ratingValue > 0) {
-      params.calificacionMinima = ratingValue;
+      params.calificacionMin = ratingValue;
     }
   }
 
+  
   // Map years of experience filter
   if (
     filters.yearsOfExperience !== null &&
@@ -146,6 +149,7 @@ export const mapFiltersToAPIParams = (
   // - languages
   // - scheduledAppointments
   // - name (text search)
+  console.warn("filters mapped:", params);
 
   return params;
 };

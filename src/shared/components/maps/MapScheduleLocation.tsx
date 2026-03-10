@@ -65,7 +65,7 @@ function MapScheduleLocation({
     return [location.lng, location.lat];
   };
 
-  // Inicializar el mapa (solo cuando cambia el contenedor, tema o modo 3D)
+  // Inicializar el mapa (solo cuando cambia el contenedor o tema)
   useEffect(() => {
     const container = isFullscreen
       ? fullscreenContainerRef.current
@@ -91,13 +91,13 @@ function MapScheduleLocation({
           : isMobile
             ? 14
             : 15,
-      pitch: is3D ? 60 : 0,
-      bearing: is3D ? -17.6 : 0,
+      pitch: 0,
+      bearing: 0,
       antialias: true,
-      dragRotate: is3D,
-      touchPitch: is3D,
-      pitchWithRotate: is3D,
-      maxPitch: is3D ? 85 : 60,
+      dragRotate: true,
+      touchPitch: true,
+      pitchWithRotate: true,
+      maxPitch: 85,
       minPitch: 0,
       scrollZoom: true,
       boxZoom: false,
@@ -109,52 +109,6 @@ function MapScheduleLocation({
 
     mapRef.current.on("load", () => {
       setisLoading(false);
-
-      if (is3D) {
-        // Terreno 3D
-        mapRef.current!.addSource("mapbox-dem", {
-          type: "raster-dem",
-          url: "mapbox://mapbox.mapbox-terrain-dem-v1",
-          tileSize: 512,
-          maxzoom: 14,
-        });
-        mapRef.current!.setTerrain({ source: "mapbox-dem", exaggeration: 1.5 });
-
-        // Edificios 3D
-        mapRef.current!.addLayer(
-          {
-            id: "3d-buildings",
-            source: "composite",
-            "source-layer": "building",
-            filter: ["==", "extrude", "true"],
-            type: "fill-extrusion",
-            minzoom: 15,
-            paint: {
-              "fill-extrusion-color": "#aaa",
-              "fill-extrusion-height": [
-                "interpolate",
-                ["linear"],
-                ["get", "height"],
-                0,
-                0,
-                100,
-                100,
-              ],
-              "fill-extrusion-base": [
-                "interpolate",
-                ["linear"],
-                ["get", "min_height"],
-                0,
-                0,
-                100,
-                100,
-              ],
-              "fill-extrusion-opacity": 0.6,
-            },
-          },
-          "waterway-label",
-        );
-      }
 
       // Si hay múltiples ubicaciones, ajustar el mapa para mostrar todas
       if (multipleLocations && multipleLocations.length > 1) {
@@ -174,7 +128,91 @@ function MapScheduleLocation({
       mapRef.current?.remove();
       setisLoading(false);
     };
-  }, [isFullscreen, isdarkMode, is3D]);
+  }, [isFullscreen, isdarkMode]);
+
+  // Manejar el cambio de vista 3D sin reinicializar el mapa
+  useEffect(() => {
+    if (!mapRef.current) return;
+
+    const map = mapRef.current;
+    
+    const toggle3D = () => {
+      if (is3D) {
+        // Activar vista 3D
+        map.easeTo({ pitch: 60, bearing: -17.6, duration: 1000 });
+
+        // Agregar terreno 3D si no existe
+        if (!map.getSource("mapbox-dem")) {
+          map.addSource("mapbox-dem", {
+            type: "raster-dem",
+            url: "mapbox://mapbox.mapbox-terrain-dem-v1",
+            tileSize: 512,
+            maxzoom: 14,
+          });
+        }
+        
+        if (!map.getTerrain()) {
+          map.setTerrain({ source: "mapbox-dem", exaggeration: 1.5 });
+        }
+
+        // Agregar edificios 3D si no existen
+        if (!map.getLayer("3d-buildings")) {
+          map.addLayer(
+            {
+              id: "3d-buildings",
+              source: "composite",
+              "source-layer": "building",
+              filter: ["==", "extrude", "true"],
+              type: "fill-extrusion",
+              minzoom: 15,
+              paint: {
+                "fill-extrusion-color": "#aaa",
+                "fill-extrusion-height": [
+                  "interpolate",
+                  ["linear"],
+                  ["get", "height"],
+                  0,
+                  0,
+                  100,
+                  100,
+                ],
+                "fill-extrusion-base": [
+                  "interpolate",
+                  ["linear"],
+                  ["get", "min_height"],
+                  0,
+                  0,
+                  100,
+                  100,
+                ],
+                "fill-extrusion-opacity": 0.6,
+              },
+            },
+            "waterway-label",
+          );
+        }
+      } else {
+        // Desactivar vista 3D
+        map.easeTo({ pitch: 0, bearing: 0, duration: 1000 });
+
+        // Remover terreno
+        if (map.getTerrain()) {
+          map.setTerrain(null);
+        }
+
+        // Remover edificios 3D
+        if (map.getLayer("3d-buildings")) {
+          map.removeLayer("3d-buildings");
+        }
+      }
+    };
+
+    if (map.loaded()) {
+      toggle3D();
+    } else {
+      map.on("load", toggle3D);
+    }
+  }, [is3D]);
 
   // Actualizar marcadores cuando cambien las ubicaciones (sin recargar el mapa)
   useEffect(() => {
