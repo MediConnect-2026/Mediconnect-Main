@@ -3,7 +3,6 @@ import { MCModalBase } from "@/shared/components/MCModalBase";
 import { useTranslation } from "react-i18next";
 import { mockAppointments } from "@/data/appointments";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
-
 import {
   Empty,
   EmptyHeader,
@@ -22,6 +21,9 @@ import {
   TooltipContent,
   TooltipProvider,
 } from "@/shared/ui/tooltip";
+import MCPDFButton from "@/shared/components/forms/MCPDFButton";
+import { MCGeneratePrescriptionPDF } from "@/shared/components/Mcgenerateprescriptionpdf";
+import { useAppStore } from "@/stores/useAppStore";
 
 interface MedicalPrescriptionDialogProps {
   children?: React.ReactNode;
@@ -39,11 +41,50 @@ function MedicalPrescriptionDialog({
   const [carouselOpen, setCarouselOpen] = useState(false);
   const [carouselStartIndex, setCarouselStartIndex] = useState(0);
 
-  // Encontrar la appointment y el historial específico
+  const user = useAppStore((state) => state.user);
+  const userRole = user?.role || "PATIENT";
+
   const appointment = mockAppointments.find((apt) => apt.id === appointmentId);
   const historyItem = appointment?.history?.find(
     (hist) => hist.id === historyId,
   );
+
+  const handleGeneratePDF = async () => {
+    if (!appointment || !historyItem || !historyItem.medicalPrescription) {
+      return;
+    }
+
+    const pdfData = {
+      service: historyItem.service,
+      specialty: appointment.doctorSpecialty,
+      date: appointment.date,
+      time: appointment.time,
+      price: appointment.price ?? 0,
+      numberOfPatients: appointment.numberOfPatients,
+      modality: appointment.appointmentType,
+      location: historyItem.address,
+
+      // Medical info
+      diagnosis: historyItem.medicalPrescription.diagnosis,
+      observations: historyItem.medicalPrescription.observations,
+      documents: historyItem.medicalPrescription.documents || [],
+
+      // Seguros — usa (appointment as any).insurance si el campo aún no está tipado
+      insurance: (appointment as any).insurance ?? undefined,
+
+      // People
+      doctorName: appointment.doctorName,
+      doctorSpecialty: appointment.doctorSpecialty,
+      patientName: userRole === "DOCTOR" ? user?.name : undefined,
+
+      // Meta
+      viewerRole: userRole,
+      fileName: `receta-medica-${appointment.id}-${historyItem.id}`,
+      language: "es" as const,
+    };
+
+    await MCGeneratePrescriptionPDF(pdfData);
+  };
 
   if (!appointment || !historyItem || !historyItem.medicalPrescription) {
     return (
@@ -71,7 +112,6 @@ function MedicalPrescriptionDialog({
     );
   }
 
-  // Filtrar documentos de imágenes para el carrusel
   const imageDocuments =
     historyItem.medicalPrescription.documents?.filter((doc) =>
       doc.url.match(/\.(jpg|jpeg|png|gif|webp)$/i),
@@ -88,69 +128,84 @@ function MedicalPrescriptionDialog({
       variant="info"
     >
       <div className="flex flex-col gap-4 w-full">
-        {/* Grid responsivo para la información de la cita */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 w-full">
+        <div className="w-full">
+          <MCPDFButton onClick={handleGeneratePDF} />
+        </div>
+
+        <Separator className="my-1" />
+
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full">
           <div className="flex flex-col items-start gap-1">
-            <h3 className="text-sm sm:text-md text-primary/75 font-medium">
+            <h3 className="text-md text-primary/75 font-medium">
+              {t("appointment.service")}
+            </h3>
+            <p className="text-lg text-primary font-medium break-words max-w-xs">
+              {historyItem.service}
+            </p>
+          </div>
+          <div className="flex flex-col items-start gap-1">
+            <h3 className="text-md text-primary/75 font-medium">
               {t("appointment.specialty")}
             </h3>
-            <p className="text-base sm:text-lg text-primary font-medium break-words w-full">
+            <p className="text-lg text-primary font-medium break-words max-w-xs">
               {appointment.doctorSpecialty}
             </p>
           </div>
           <div className="flex flex-col items-start gap-1">
-            <h3 className="text-sm sm:text-md text-primary/75 font-medium">
+            <h3 className="text-md text-primary/75 font-medium">
               {t("appointment.date")}
             </h3>
-            <p className="text-base sm:text-lg text-primary font-medium break-words w-full">
+            <p className="text-lg text-primary font-medium break-words max-w-xs">
               {appointment.date}
             </p>
           </div>
           <div className="flex flex-col items-start gap-1">
-            <h3 className="text-sm sm:text-md text-primary/75 font-medium">
+            <h3 className="text-md text-primary/75 font-medium">
               {t("appointment.schedule")}
             </h3>
-            <p className="text-base sm:text-lg text-primary font-medium break-words w-full">
+            <p className="text-lg text-primary font-medium break-words max-w-xs">
               {appointment.time}
             </p>
           </div>
           <div className="flex flex-col items-start gap-1">
-            <h3 className="text-sm sm:text-md text-primary/75 font-medium">
+            <h3 className="text-md text-primary/75 font-medium">
               {t("appointment.price")}
             </h3>
-            <p className="text-base sm:text-lg text-primary font-medium break-words w-full">
+            <p className="text-lg text-primary font-medium break-words max-w-xs">
               ${appointment.price}
             </p>
           </div>
           <div className="flex flex-col items-start gap-1">
-            <h3 className="text-sm sm:text-md text-primary/75 font-medium">
+            <h3 className="text-md text-primary/75 font-medium">
               {t("appointment.numberOfPatients")}
             </h3>
-            <p className="text-base sm:text-lg text-primary font-medium break-words w-full">
+            <p className="text-lg text-primary font-medium break-words max-w-xs">
               {appointment.numberOfPatients}
             </p>
           </div>
           <div className="flex flex-col items-start gap-1">
-            <h3 className="text-sm sm:text-md text-primary/75 font-medium">
+            <h3 className="text-md text-primary/75 font-medium">
               {t("appointment.modality")}
             </h3>
-            <p className="text-base sm:text-lg text-primary font-medium break-words w-full">
+            <p className="text-lg text-primary font-medium break-words max-w-xs">
               {appointment.appointmentType}
             </p>
           </div>
-          <div className="flex flex-col items-start gap-1 col-span-2">
-            <h3 className="text-sm sm:text-md text-primary/75 font-medium">
-              {t("appointment.location")}
+          {/* Seguros */}
+          <div className="flex flex-col items-start gap-1">
+            <h3 className="text-md text-primary/75 font-medium">
+              {t("appointment.insure")}
             </h3>
-            <p className="text-base sm:text-lg text-primary font-medium break-words w-full">
-              {historyItem.address}
+            <p className="text-lg text-primary font-medium break-words max-w-xs">
+              {(appointment as any).insurance ??
+                t("appointment.noInsurance") ??
+                "—"}
             </p>
           </div>
         </div>
 
         <Separator className="my-2" />
 
-        {/* Secciones de diagnóstico y observaciones */}
         <div className="flex flex-col gap-3 sm:gap-4">
           <div className="flex flex-col gap-2">
             <h3 className="text-base sm:text-lg text-primary font-medium">
@@ -176,7 +231,6 @@ function MedicalPrescriptionDialog({
 
         <Separator className="my-2" />
 
-        {/* Documentos adjuntos */}
         <div className="flex flex-col gap-3 sm:gap-4">
           <h3 className="text-base sm:text-lg text-primary font-medium">
             {t("appointment.attachedDocuments")}
@@ -198,7 +252,6 @@ function MedicalPrescriptionDialog({
                     key={idx}
                     className="flex flex-col items-center border border-primary/10 rounded-2xl sm:rounded-3xl p-2 sm:p-3 bg-transparent w-full"
                   >
-                    {/* Usar ImageCarouselModal para imágenes */}
                     {isImage ? (
                       <div
                         onClick={() => {
@@ -220,7 +273,6 @@ function MedicalPrescriptionDialog({
                         </div>
                       </div>
                     ) : (
-                      /* Usar PreviewDocumentsDialog para PDFs y otros documentos */
                       <PreviewDocumentsDialog
                         documentUrl={doc.url}
                         documentType={doc.url.split(".").pop()?.toLowerCase()}
@@ -251,7 +303,6 @@ function MedicalPrescriptionDialog({
                       </PreviewDocumentsDialog>
                     )}
 
-                    {/* File name con truncate y tooltip condicional */}
                     {isTruncated ? (
                       <TooltipProvider>
                         <Tooltip>
@@ -273,7 +324,6 @@ function MedicalPrescriptionDialog({
                       </span>
                     )}
 
-                    {/* File type, size and download */}
                     <div className="flex items-center gap-2 flex-wrap justify-center">
                       <span className="text-xs text-muted-foreground items-center flex">
                         {doc.url.split(".").pop()?.toUpperCase() || "FILE"}
@@ -316,7 +366,6 @@ function MedicalPrescriptionDialog({
         </div>
       </div>
 
-      {/* Modal de carrusel para imágenes */}
       <ImageCarouselModal
         images={imageUrls}
         open={carouselOpen}
@@ -327,7 +376,6 @@ function MedicalPrescriptionDialog({
   );
 }
 
-// Función para truncar el nombre
 function truncateFileName(name: string, maxLength = 22) {
   if (name.length <= maxLength) return name;
   return name.slice(0, maxLength - 3) + "...";

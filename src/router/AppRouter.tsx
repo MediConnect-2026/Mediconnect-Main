@@ -1,14 +1,23 @@
 import { Route, Routes as Router, BrowserRouter } from "react-router-dom";
 import { ROUTES } from "./routes";
+import { useAppStore } from "@/stores/useAppStore";
+import ProtectedRoute from "@/router/ProtectedRoute";
+import { ScrollToTop } from "@/shared/navigation/ScrollToTop";
+
+// Layouts
 import AuthLayout from "@/layout/AuthLayout";
 import DashboardLayout from "@/layout/DashboardLayout";
+import DarkLayout from "@/layout/DarkLayout";
+
+// Auth Pages
 import Login from "@/features/auth/pages/LoginPage";
 import ForgotPasswordPage from "@/features/auth/pages/passwordFlow/ForgotPasswordPage";
 import VerifyEmailPage from "@/features/auth/pages/passwordFlow/VerifyEmailPage";
 import ResetPasswordPage from "@/features/auth/pages/passwordFlow/ResetPasswordPage";
 import PasswordSuccessPage from "@/features/auth/pages/PasswordSuccessPage";
+
+// Onboarding Pages
 import Register from "@/features/onboarding/pages/RegisterPage";
-import DarkLayout from "@/layout/DarkLayout";
 import RegEmailVerificationPage from "@/features/onboarding/pages/RegEmailVerificationPage";
 import OtpVerificationPage from "@/features/onboarding/pages/OtpVerificationPage";
 import PatientBasicInfoPage from "@/features/onboarding/pages/patientOnboarding/PatientBasicInfoPage";
@@ -17,53 +26,71 @@ import SetCredentialsPage from "@/features/onboarding/pages/SetCredentialsPage";
 import DoctorOnboardingPage from "@/features/onboarding/pages/DoctorOnboardingPage";
 import CenterOnboardingPage from "@/features/onboarding/pages/CenterOnboardingPage";
 import RegisterSuccessPage from "@/features/onboarding/pages/RegisterSuccessPage";
-import { ScrollToTop } from "@/shared/navigation/ScrollToTop";
+
+// Dashboard Pages
 import PatientDashboard from "@/features/patient/pages/DashboardPage";
 import DoctorDashboard from "@/features/doctor/pages/DashboardPage";
 import CenterDashboard from "@/features/center/pages/DashboardPage";
-import DoctorProfilePage from "@/features/doctor/pages/DoctorProfilePage";
+
+// Profile Pages
 import PatientProfilePage from "@/features/patient/pages/PatientProfilePage";
-import Search from "@/features/search/pages/Search";
+import DoctorProfilePage from "@/features/doctor/pages/DoctorProfilePage";
+import CenterProfilePage from "@/features/center/pages/CenterProfilePage";
+
+// Patient-specific Pages
+import MyAppointmentsPage from "@/features/patient/pages/MyAppointmentsPage";
+import MyDoctorsPage from "@/features/patient/pages/MyDoctorsPage";
 import ScheduleAppointment from "@/features/patient/pages/ScheduleAppointment";
-import TeleconsultConfirmPage from "@/features/teleconsultation/pages/TeleconsultConfirmPage";
-import TeleconsultRoomPage from "@/features/teleconsultation/pages/TeleconsultRoomPage";
+
+// Doctor-specific Pages
+import AppointmentsPage from "@/features/doctor/pages/AppointmentsPage";
+import MyServicesPage from "@/features/doctor/pages/MyServicesPage";
+import CreateServicesPage from "@/features/doctor/pages/CreateServicesPage";
+import MyPatientsPage from "@/features/doctor/pages/PatientsPage";
+import AppointmentConsultation from "@/features/doctor/pages/AppointmentConsultation";
+import PatientDetailsPage from "@/features/doctor/pages/PatientDetailsPage";
+
+// Center-specific Pages
+import StaffPage from "@/features/center/pages/StaffPage";
+
+// Common Shared Pages
+import Search from "@/features/search/pages/Search";
+import { CalendarPage } from "@/features/calendar/pages/CalendarPage";
 import ChatPage from "@/features/chat/pages/ChatPage";
 import ServicesPage from "@/features/doctor/pages/ServicesPage";
-//Settings and Privacy Pages Imports
+import RequestPage from "@/features/request/pages/RequestPage";
+import VerifyInfo from "@/features/verifyInfo/pages/VerifyInfo";
+
+// Teleconsultation Pages
+import TeleconsultConfirmPage from "@/features/teleconsultation/pages/TeleconsultConfirmPage";
+import TeleconsultRoomPage from "@/features/teleconsultation/pages/TeleconsultRoomPage";
+
+// Settings Pages
 import AccountOverviewPage from "@/features/account/settings/pages/AccountOverviewPage";
 import ChangeEmailPage from "@/features/account/settings/pages/ChangeEmailPage";
 import VerifyNewEmailPage from "@/features/account/settings/pages/VerifyNewEmailPage";
 import ChangePasswordPage from "@/features/account/settings/pages/ChangePasswordPage";
 import DeleteAccountPage from "@/features/account/settings/pages/DeleteAccountPage";
 import VerifyIdentityPage from "@/features/account/settings/pages/VerifyIdentityPage";
+
+// Privacy Pages
 import PrivacyOverviewPage from "@/features/account/privacy/pages/PrivacyOverviewPage";
 import ProfileVisibilityPage from "@/features/account/privacy/pages/ProfileVisibilityPage";
 import BlockedUsersPage from "@/features/account/privacy/pages/BlockedUsersPage";
 import MessagesPrivacyPage from "@/features/account/privacy/pages/MessagesPrivacyPage";
-import MyAppointmentsPage from "@/features/patient/pages/MyAppointmentsPage";
-import MyDoctorsPage from "@/features/patient/pages/MyDoctorsPage";
-import { CalendarPage } from "@/features/calendar/pages/CalendarPage";
-import MyServicesPage from "@/features/doctor/pages/MyServicesPage";
-import MyPatientsPage from "@/features/doctor/pages/PatientsPage";
-import AppointmentsPage from "@/features/doctor/pages/AppointmentsPage";
-import { useAppStore } from "@/stores/useAppStore";
-import VerifyInfo from "@/features/verifyInfo/pages/VerifyInfo";
-import ProtectedRoute from "@/router/ProtectedRoute";
-import CreateServicesPage from "@/features/doctor/pages/CreateServicesPage";
-import RequestPage from "@/features/request/pages/RequestPage";
-import AppointmentConsultation from "@/features/doctor/pages/AppointmentConsultation";
-import PatientDetailsPage from "@/features/doctor/pages/PatientDetailsPage";
-import StaffPage from "@/features/center/pages/StaffPage";
+
 function AppRouter() {
   const userRole = useAppStore((state) => state.user?.rol);
   return (
     <BrowserRouter>
-      {" "}
       <ScrollToTop />
       <Router>
+        {/* Public Routes */}
         <Route path={ROUTES.LOGIN} index element={<Login />} />
+
+        {/* Auth Layout Routes */}
         <Route element={<AuthLayout />}>
-          {/* Register Flow */}
+          {/* Registration Flow */}
           <Route path={ROUTES.REGISTER} element={<Register />} />
           <Route
             path={ROUTES.REG_EMAIL_VERIFICATION}
@@ -73,6 +100,8 @@ function AppRouter() {
             path={ROUTES.OTP_VERIFICATION}
             element={<OtpVerificationPage />}
           />
+
+          {/* Patient Onboarding */}
           <Route
             path={ROUTES.PATIENT_BASIC_INFO}
             element={<PatientBasicInfoPage />}
@@ -85,6 +114,8 @@ function AppRouter() {
             path={ROUTES.PATIENT_PASSWORD}
             element={<SetCredentialsPage />}
           />
+
+          {/* Doctor Onboarding */}
           <Route
             path={ROUTES.DOCTOR_ONBOARDING}
             element={<DoctorOnboardingPage />}
@@ -93,6 +124,8 @@ function AppRouter() {
             path={ROUTES.DOCTOR_PASSWORD}
             element={<SetCredentialsPage />}
           />
+
+          {/* Center Onboarding */}
           <Route
             path={ROUTES.CENTER_ONBOARDING}
             element={<CenterOnboardingPage />}
@@ -101,11 +134,13 @@ function AppRouter() {
             path={ROUTES.CENTER_PASSWORD}
             element={<SetCredentialsPage />}
           />
+
           <Route
             path={ROUTES.REGISTER_SUCCESS}
             element={<RegisterSuccessPage />}
           />
-          {/* Password flow */}
+
+          {/* Password Recovery Flow */}
           <Route
             path={ROUTES.FORGOT_PASSWORD}
             element={<ForgotPasswordPage />}
@@ -117,9 +152,11 @@ function AppRouter() {
             element={<PasswordSuccessPage />}
           />
         </Route>
+
+        {/* Protected Dashboard Routes */}
         <Route element={<DarkLayout />}>
           <Route element={<DashboardLayout />}>
-            {/* Conditional Dashboard Route */}
+            {/* Role-based Dashboards */}
             {userRole === "PATIENT" && (
               <Route
                 path={ROUTES.COMMON.DASHBOARD}
@@ -138,6 +175,25 @@ function AppRouter() {
                 element={<CenterDashboard />}
               />
             )}
+
+            {/* Common Routes (All Users) */}
+            <Route path={ROUTES.COMMON.GLOBAL_SEARCH} element={<Search />} />
+
+            <Route path={ROUTES.COMMON.CHAT} element={<ChatPage />} />
+            <Route path={ROUTES.COMMON.CHAT_WITH} element={<ChatPage />} />
+            <Route path={ROUTES.COMMON.SERVICE} element={<ServicesPage />} />
+
+            {/* Common Routes (Doctor & Patient Only) */}
+            <Route
+              path={ROUTES.COMMON.CALENDAR}
+              element={
+                <ProtectedRoute doctor patient>
+                  <CalendarPage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Profile Routes */}
             <Route
               path={ROUTES.PATIENT.PATIENT_PROFILE_PRIVATE}
               element={<PatientProfilePage />}
@@ -146,12 +202,146 @@ function AppRouter() {
               path={ROUTES.PATIENT.PATIENT_PROFILE_PUBLIC}
               element={<PatientProfilePage />}
             />
-            <Route path={ROUTES.COMMON.GLOBAL_SEARCH} element={<Search />} />
+            <Route
+              path={ROUTES.DOCTOR.DOCTOR_PROFILE_PUBLIC}
+              element={<DoctorProfilePage />}
+            />
+            <Route
+              path={ROUTES.DOCTOR.DOCTOR_PROFILE_PRIVATE}
+              element={<DoctorProfilePage />}
+            />
+            <Route
+              path={ROUTES.CENTER.CENTER_PROFILE_PUBLIC}
+              element={<CenterProfilePage />}
+            />
+            <Route
+              path={ROUTES.CENTER.CENTER_PROFILE_PRIVATE}
+              element={<CenterProfilePage />}
+            />
+
+            {/* Patient-Only Routes */}
+            <Route
+              path={ROUTES.PATIENT.APPOINTMENTS}
+              element={
+                <ProtectedRoute patient>
+                  <MyAppointmentsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path={ROUTES.PATIENT.MY_DOCTORS}
+              element={
+                <ProtectedRoute patient>
+                  <MyDoctorsPage />
+                </ProtectedRoute>
+              }
+            />
             <Route
               path={ROUTES.PATIENT.SCHEDULE_APPOINTMENT}
-              element={<ScheduleAppointment />}
+              element={
+                <ProtectedRoute patient>
+                  <ScheduleAppointment />
+                </ProtectedRoute>
+              }
             />
-            {/* SETTINGS */}
+
+            {/* Doctor-Only Routes */}
+            <Route
+              path={ROUTES.DOCTOR.APPOINTMENTS}
+              element={
+                <ProtectedRoute doctor>
+                  <AppointmentsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path={ROUTES.DOCTOR.SERVICES}
+              element={
+                <ProtectedRoute doctor>
+                  <MyServicesPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path={ROUTES.DOCTOR.CREATE_SERVICE}
+              element={
+                <ProtectedRoute doctor>
+                  <CreateServicesPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path={ROUTES.DOCTOR.EDIT_SERVICE}
+              element={
+                <ProtectedRoute doctor>
+                  <CreateServicesPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path={ROUTES.DOCTOR.PATIENTS}
+              element={
+                <ProtectedRoute doctor>
+                  <MyPatientsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path={ROUTES.DOCTOR.CONSULTATION}
+              element={
+                <ProtectedRoute doctor>
+                  <AppointmentConsultation />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path={ROUTES.DOCTOR.PATIENT_DETAILS}
+              element={
+                <ProtectedRoute doctor>
+                  <PatientDetailsPage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Center-Only Routes */}
+            <Route
+              path={ROUTES.CENTER.DOCTORS}
+              element={
+                <ProtectedRoute center>
+                  <StaffPage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Doctor & Center Routes */}
+            <Route
+              path={ROUTES.VERIFY_INFO.VERIFY_INFO}
+              element={
+                <ProtectedRoute doctor center>
+                  <VerifyInfo />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path={ROUTES.COMMON.REQUESTS}
+              element={
+                <ProtectedRoute doctor center>
+                  <RequestPage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Teleconsultation Routes */}
+            <Route
+              path={ROUTES.TELECONSULT.CONFIRM}
+              element={<TeleconsultConfirmPage />}
+            />
+            <Route
+              path={ROUTES.TELECONSULT.ROOM}
+              element={<TeleconsultRoomPage />}
+            />
+
+            {/* Settings Routes */}
             <Route
               path={ROUTES.SETTINGS.ROOT}
               element={<AccountOverviewPage />}
@@ -169,10 +359,6 @@ function AppRouter() {
               element={<VerifyNewEmailPage />}
             />
             <Route
-              path={ROUTES.SETTINGS.EMAIL.VERIFY}
-              element={<VerifyIdentityPage />}
-            />
-            <Route
               path={ROUTES.SETTINGS.PASSWORD.CHANGE}
               element={<ChangePasswordPage />}
             />
@@ -180,11 +366,8 @@ function AppRouter() {
               path={ROUTES.SETTINGS.DELETE_ACCOUNT}
               element={<DeleteAccountPage />}
             />
-            <Route
-              path={ROUTES.PATIENT.APPOINTMENTS}
-              element={<MyAppointmentsPage />}
-            />
-            {/* PRIVACY */}
+
+            {/* Privacy Routes */}
             <Route
               path={ROUTES.PRIVACY.ROOT}
               element={<PrivacyOverviewPage />}
@@ -200,83 +383,6 @@ function AppRouter() {
             <Route
               path={ROUTES.PRIVACY.BLOCKED_USERS}
               element={<BlockedUsersPage />}
-            />
-            <Route
-              path={ROUTES.TELECONSULT.CONFIRM}
-              element={<TeleconsultConfirmPage />}
-            />
-            <Route
-              path={ROUTES.TELECONSULT.ROOM}
-              element={<TeleconsultRoomPage />}
-            />
-            <Route
-              path={ROUTES.PATIENT.MY_DOCTORS}
-              element={<MyDoctorsPage />}
-            />
-            <Route path={ROUTES.COMMON.CALENDAR} element={<CalendarPage />} />
-            <Route
-              path={ROUTES.DOCTOR.DOCTOR_PROFILE_PUBLIC}
-              element={<DoctorProfilePage />}
-            />
-            <Route
-              path={ROUTES.DOCTOR.DOCTOR_PROFILE_PRIVATE}
-              element={<DoctorProfilePage />}
-            />
-            <Route
-              path={ROUTES.DOCTOR.APPOINTMENTS}
-              element={<AppointmentsPage />}
-            />
-            <Route
-              path={ROUTES.VERIFY_INFO.VERIFY_INFO}
-              element={
-                <ProtectedRoute doctor center>
-                  {" "}
-                  <VerifyInfo />{" "}
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path={ROUTES.CENTER.DOCTORS}
-              element={
-                <ProtectedRoute center>
-                  {" "}
-                  <StaffPage />{" "}
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path={ROUTES.COMMON.REQUESTS}
-              element={
-                <ProtectedRoute doctor center>
-                  <RequestPage />
-                </ProtectedRoute>
-              }
-            />{" "}
-            <Route
-              path={ROUTES.DOCTOR.PATIENT_DETAILS}
-              element={
-                <ProtectedRoute doctor>
-                  <PatientDetailsPage />
-                </ProtectedRoute>
-              }
-            />
-            PatientDetailsPage
-            <Route path={ROUTES.DOCTOR.SERVICES} element={<MyServicesPage />} />
-            <Route path={ROUTES.DOCTOR.PATIENTS} element={<MyPatientsPage />} />
-            <Route path={ROUTES.COMMON.CHAT} element={<ChatPage />} />
-            <Route path={ROUTES.COMMON.CHAT_WITH} element={<ChatPage />} />
-            <Route path={ROUTES.COMMON.SERVICE} element={<ServicesPage />} />
-            <Route
-              path={ROUTES.DOCTOR.CONSULTATION}
-              element={<AppointmentConsultation></AppointmentConsultation>}
-            ></Route>
-            <Route
-              path={ROUTES.DOCTOR.CREATE_SERVICE}
-              element={<CreateServicesPage />}
-            />
-            <Route
-              path={ROUTES.DOCTOR.EDIT_SERVICE}
-              element={<CreateServicesPage />}
             />
           </Route>
         </Route>

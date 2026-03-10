@@ -31,10 +31,7 @@ function FilterStaff({
   const { t } = useTranslation("center");
 
   const handleFilterChange = (name: string, value: any) => {
-    onFiltersChange({
-      ...filters,
-      [name]: value,
-    });
+    onFiltersChange({ ...filters, [name]: value });
   };
 
   const rankingOptions: OptionType[] = [
@@ -78,13 +75,12 @@ function FilterStaff({
       value: "0",
       label: (
         <span className="flex items-center gap-1">
-          {"Todas las calificaciones"}
+          {t("staff.filters.allRatings")}
         </span>
       ),
     },
   ];
 
-  // Convierte { from, to } → [Date, Date] | undefined para MCFilterDates
   const dateValue: [Date, Date] | undefined =
     filters.joinDate.from && filters.joinDate.to
       ? [filters.joinDate.from, filters.joinDate.to]
@@ -100,17 +96,26 @@ function FilterStaff({
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
         <MCFilterSelect
           name="specialty"
-          label="Especialidad"
-          placeholder="Todas las especialidades"
+          label={t("staff.filters.specialty")}
+          placeholder={t("staff.filters.specialtyPlaceholder")}
           options={[
-            { label: "Cardiología", value: "Cardiología" },
-            { label: "Dermatología", value: "Dermatología" },
-            { label: "Pediatría", value: "Pediatría" },
-            { label: "Neurología", value: "Neurología" },
-            { label: "Medicina Interna", value: "Medicina Interna" },
-            { label: "Ginecología", value: "Ginecología" },
-            { label: "Traumatología", value: "Traumatología" },
-            { label: "Psiquiatría", value: "Psiquiatría" },
+            { label: t("staff.specialties.cardiology"), value: "Cardiología" },
+            {
+              label: t("staff.specialties.dermatology"),
+              value: "Dermatología",
+            },
+            { label: t("staff.specialties.pediatrics"), value: "Pediatría" },
+            { label: t("staff.specialties.neurology"), value: "Neurología" },
+            {
+              label: t("staff.specialties.internalMedicine"),
+              value: "Medicina Interna",
+            },
+            { label: t("staff.specialties.gynecology"), value: "Ginecología" },
+            {
+              label: t("staff.specialties.traumatology"),
+              value: "Traumatología",
+            },
+            { label: t("staff.specialties.psychiatry"), value: "Psiquiatría" },
           ]}
           value={filters.specialty}
           onChange={(value) => handleFilterChange("specialty", value)}
@@ -118,8 +123,8 @@ function FilterStaff({
 
         <MCFilterSelect
           name="rating"
-          label="Calificación"
-          placeholder="Todas las calificaciones"
+          label={t("staff.filters.rating")}
+          placeholder={t("staff.filters.ratingPlaceholder")}
           options={rankingOptions}
           value={filters.rating}
           onChange={(value) => handleFilterChange("rating", value)}
@@ -127,7 +132,7 @@ function FilterStaff({
 
         <div className="sm:col-span-2">
           <MCFilterDates
-            label="Fecha de Conexión"
+            label={t("staff.filters.connectionDate")}
             value={dateValue}
             onChange={(value) =>
               handleFilterChange("joinDate", {

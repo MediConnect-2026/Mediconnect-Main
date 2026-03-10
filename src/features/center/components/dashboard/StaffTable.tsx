@@ -110,14 +110,6 @@ function parseSpanishDate(dateStr: string): Date | null {
   return new Date(Number(year), month, Number(day));
 }
 
-function getInitials(name: string) {
-  return name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase();
-}
-
 interface StaffTableProps {
   searchTerm?: string;
   filters?: {
@@ -186,9 +178,7 @@ function StaffTable({
   const paginatedData = filteredData.slice(startIndex, endIndex);
 
   React.useEffect(() => {
-    if (page > totalPages && totalPages > 0) {
-      setPage(1);
-    }
+    if (page > totalPages && totalPages > 0) setPage(1);
   }, [filteredData.length, page, totalPages]);
 
   const activeFiltersCount = filters
@@ -206,14 +196,14 @@ function StaffTable({
               <UserX className="w-7 h-7" />
               <EmptyTitle className="text-xl font-semibold">
                 {activeFiltersCount > 0 || searchTerm
-                  ? "No se encontraron médicos"
-                  : "No hay médicos registrados"}
+                  ? t("staff.empty.noDoctors")
+                  : t("staff.empty.noDoctorsRegistered")}
               </EmptyTitle>
             </span>
             <EmptyDescription className="text-muted-foreground text-center max-w-md mx-auto">
               {activeFiltersCount > 0 || searchTerm
-                ? "No hay médicos que coincidan con los criterios de búsqueda."
-                : "No tienes médicos conectados a tu centro médico aún."}
+                ? t("staff.empty.noDoctorsDescription")
+                : t("staff.empty.noDoctorsRegisteredDescription")}
             </EmptyDescription>
           </div>
         </EmptyHeader>
@@ -229,7 +219,7 @@ function StaffTable({
                 className="px-6 py-2"
                 size="sm"
               >
-                Limpiar filtros
+                {t("staff.clearFilters")}
               </MCButton>
             ) : (
               <Button
@@ -239,7 +229,7 @@ function StaffTable({
                 className="px-6 py-2"
                 size="sm"
               >
-                Invitar Médico
+                {t("staff.inviteDoctor")}
               </Button>
             )}
           </div>
@@ -253,15 +243,23 @@ function StaffTable({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-[250px]">Doctor</TableHead>
-            <TableHead className="w-[200px]">Especialidad</TableHead>
-            <TableHead className="w-[150px]">Fecha Conexión</TableHead>
+            <TableHead className="w-[250px]">
+              {t("staff.table.doctor")}
+            </TableHead>
+            <TableHead className="w-[200px]">
+              {t("staff.table.specialty")}
+            </TableHead>
+            <TableHead className="w-[150px]">
+              {t("staff.table.connectionDate")}
+            </TableHead>
             <TableHead className="w-[120px]">
               <div className="flex items-center justify-center gap-1">
-                <span>Calificación</span>
+                <span>{t("staff.table.rating")}</span>
               </div>
             </TableHead>
-            <TableHead className="w-[80px]">Acciones</TableHead>
+            <TableHead className="w-[80px]">
+              {t("staff.table.actions")}
+            </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>

@@ -23,7 +23,7 @@ interface WeekViewProps {
   selectedDate: Date | null;
 }
 
-const hours = Array.from({ length: 12 }, (_, i) => i + 7); // 7 AM to 6 PM
+const hours = Array.from({ length: 24 }, (_, i) => i); // 0 AM to 11 PM (full day)
 
 export const WeekView = ({
   currentDate,

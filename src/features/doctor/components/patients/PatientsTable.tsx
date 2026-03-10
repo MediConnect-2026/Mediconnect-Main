@@ -202,7 +202,7 @@ export default function MyPatientsTable({ patients }: MyPatientsTableProps) {
                       {t("patients.table.none")}
                     </span>
                   ) : (
-                    <div className="flex flex-col gap-0.5">
+                    <div className="flex flex-col gap-0.5 items-center justify-center">
                       {row.conditionsCount > 0 && (
                         <span className="flex items-center gap-1 text-xs text-orange-500 font-medium">
                           <ShieldAlert className="w-3 h-3 shrink-0" />

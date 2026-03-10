@@ -65,5 +65,192 @@
   },
   "common": {
     "close": "Cerrar"
+  },
+  "profilePage": {
+    "aboutTitle": "Acerca de",
+    "aboutDescription": "Atención integral para toda la familia, enfocada en prevenir, diagnosticar y tratar enfermedades comunes. Nuestro médico de familia acompaña a cada paciente en todas las etapas de la vida, considerando su bienestar físico, emocional y social.",
+    "insurancesTitle": "Seguros aceptados",
+    "morePlans": "Ver más planes...",
+    "locationTitle": "Ubicación",
+    "connectedDoctors": "Directorio médico",
+    "searchPlaceholder": "Buscar por nombre",
+    "emptyTitle": "No se encontraron doctores",
+    "emptyDescription": "Intenta ajustar tus filtros o criterios de búsqueda.",
+    "clearFilters": "Limpiar filtros"
+  },
+  "profileBanner": {
+    "rating": "{{rating}}",
+    "reviews": "reseñas",
+    "phone": "Teléfono",
+    "website": "Sitio web",
+    "editProfile": "Editar perfil",
+    "connect": "Conectar",
+    "connected": "Conectado",
+    "pending": "Esperando solicitud",
+    "viewProfile": "Ver perfil",
+    "menu": {
+      "history": "Historial",
+      "settings": "Configuración",
+      "privacy": "Privacidad",
+      "copyProfile": "Copiar perfil",
+      "logout": "Cerrar sesión"
+    }
+  },
+  "connection": {
+    "disconnectMedicalCenter": "Desconectar Centro Médico",
+    "connectMedicalCenter": "Conectar Centro Médico",
+    "disconnectMedicalCenterDesc": "¿Estás seguro de que deseas desconectar este centro médico? Esta acción no se puede deshacer.",
+    "connectMedicalCenterDesc": "¿Deseas conectar este centro médico?",
+    "disconnectDoctor": "Desconectar Doctor",
+    "connectDoctor": "Conectar Doctor",
+    "disconnectDoctorDesc": "¿Estás seguro de que deseas desconectar a este doctor? Esta acción no se puede deshacer.",
+    "connectDoctorDesc": "¿Deseas conectar a este doctor a tu centro médico?",
+    "disconnect": "Desconectar",
+    "connect": "Conectar",
+    "cancel": "Cancelar"
+  },
+  "dashboard": {
+    "metrics": {
+      "totalDoctors": "Total de Médicos",
+      "totalDoctorsSubtitle": "Cantidad total de médicos",
+      "specialtiesCovered": "Especialidades Cubiertas",
+      "specialtiesCoveredSubtitle": "Cantidad total de especialidades",
+      "appointmentsThisWeek": "Citas esta Semana",
+      "appointmentsThisWeekSubtitle": "Cantidad total de citas",
+      "averageRating": "Valoración Promedio",
+      "averageRatingSubtitle": "De todos los médicos"
+    },
+    "chart": {
+      "affiliatedDoctorsGrowth": "Crecimiento de Médicos Afiliados",
+      "affiliatedDoctorsLabel": "Médicos Afiliados",
+      "week": "Semana",
+      "month": "Mes",
+      "threeMonths": "3 Meses",
+      "year": "Año",
+      "all": "Todo"
+    },
+    "specialties": {
+      "distributionTitle": "Distribución por Especialidad",
+      "others": "Otros"
+    },
+    "staffTable": {
+      "title": "Tu equipo de atención"
+    }
+  },
+  "staff": {
+    "pageTitle": "Personal Médico",
+    "searchPlaceholder": "Buscar médico...",
+    "viewProfile": "Ver Perfil",
+    "disconnect": "Desconectar",
+    "inviteDoctor": "Invitar Médico",
+    "clearFilters": "Limpiar filtros",
+    "table": {
+      "doctor": "Doctor",
+      "specialty": "Especialidad",
+      "rating": "Calificación",
+      "experience": "Experiencia",
+      "languages": "Idiomas",
+      "connectionDate": "Fecha Conexión",
+      "appointments": "Citas",
+      "status": "Estado",
+      "actions": "Acciones",
+      "allLanguages": "Todos los idiomas:",
+      "years": "años",
+      "noStaff": "No hay personal médico disponible."
+    },
+    "empty": {
+      "noResults": "No se encontraron resultados",
+      "noResultsDescription": "Intenta ajustar los filtros para encontrar lo que buscas.",
+      "noStaff": "No hay personal médico",
+      "noStaffDescription": "Aún no tienes personal médico registrado en tu centro.",
+      "noDoctors": "No se encontraron médicos",
+      "noDoctorsDescription": "No hay médicos que coincidan con los criterios de búsqueda.",
+      "noDoctorsRegistered": "No hay médicos registrados",
+      "noDoctorsRegisteredDescription": "No tienes médicos conectados a tu centro médico aún."
+    },
+    "status": {
+      "active": "Activo",
+      "inactive": "Inactivo",
+      "pending": "Pendiente",
+      "suspended": "Suspendido"
+    },
+    "filters": {
+      "title": "Filtros",
+      "specialty": "Especialidad",
+      "specialties": "Especialidades Médicas",
+      "specialtyPlaceholder": "Todas las especialidades",
+      "specialtiesPlaceholder": "Seleccionar especialidades...",
+      "rating": "Calificación",
+      "ratingMinimum": "Calificación Mínima",
+      "ratingPlaceholder": "Todas las calificaciones",
+      "ratingSelectPlaceholder": "Seleccionar calificaciones...",
+      "allRatings": "Todas las calificaciones",
+      "languages": "Idiomas que Habla",
+      "languagesPlaceholder": "Seleccionar idiomas...",
+      "experience": "Años de Experiencia",
+      "experiencePlaceholder": "Seleccionar experiencia...",
+      "status": "Estado del Personal",
+      "statusPlaceholder": "Seleccionar estados...",
+      "connectionDate": "Fecha de Conexión",
+      "allSpecialties": "Todas las especialidades",
+      "allLanguages": "Todos los idiomas",
+      "allExperience": "Toda la experiencia",
+      "allStatuses": "Todos los estados"
+    },
+    "specialties": {
+      "cardiology": "Cardiología",
+      "dermatology": "Dermatología",
+      "pediatrics": "Pediatría",
+      "neurology": "Neurología",
+      "internalMedicine": "Medicina Interna",
+      "gynecology": "Ginecología",
+      "traumatology": "Traumatología",
+      "psychiatry": "Psiquiatría",
+      "ophthalmology": "Oftalmología",
+      "otolaryngology": "Otorrinolaringología",
+      "urology": "Urología",
+      "endocrinology": "Endocrinología",
+      "gastroenterology": "Gastroenterología",
+      "hematology": "Hematología",
+      "infectology": "Infectología",
+      "nephrology": "Nefrología",
+      "pulmonology": "Neumología",
+      "oncology": "Oncología",
+      "rheumatology": "Reumatología"
+    },
+    "languages": {
+      "es": "Español",
+      "en": "Inglés",
+      "fr": "Francés",
+      "it": "Italiano",
+      "pt": "Portugués",
+      "de": "Alemán",
+      "ja": "Japonés",
+      "ko": "Coreano",
+      "zh": "Chino",
+      "ru": "Ruso",
+      "ar": "Árabe"
+    },
+    "experience": {
+      "0-2": "0-2 años (Recién graduado)",
+      "3-5": "3-5 años (Junior)",
+      "6-10": "6-10 años (Intermedio)",
+      "11-15": "11-15 años (Senior)",
+      "16-20": "16-20 años (Experto)",
+      "21-25": "21-25 años (Veterano)",
+      "25+": "Más de 25 años (Eminencia)"
+    },
+    "pdf": {
+      "fileName": "equipo-medico",
+      "title": "Equipo de Atención Médica",
+      "subtitle": "Centro Médico - Staff",
+      "columnDoctor": "Doctor",
+      "columnSpecialty": "Especialidad",
+      "columnRating": "Calificación",
+      "columnExperience": "Experiencia (años)",
+      "columnAppointments": "Citas Totales",
+      "columnConnectionDate": "Fecha Conexión",
+      "columnStatus": "Estado"
+    }
   }
 }

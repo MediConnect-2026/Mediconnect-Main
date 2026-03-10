@@ -17,19 +17,10 @@ import { MCFilterPopover } from "@/shared/components/filters/MCFilterPopover";
 import MCFilterSelect from "@/shared/components/filters/MCFilterSelect";
 import PieServices from "../components/dashboard/PieServices";
 import StaffTable from "../components/dashboard/StaffTable";
-import FilterStaff from "../filters/FilterStaff";
+import FilterStaff from "../components/filters/FilterStaff";
 import MCFilterInput from "@/shared/components/filters/MCFilterInput";
 import MCPDFButton from "@/shared/components/forms/MCPDFButton";
 import MCGeneratePDF from "@/shared/components/MCGeneratePDF";
-
-const especialidadesData = [
-  { name: "Cardiología", value: 85, color: "hsl(var(--chart-1))" },
-  { name: "Pediatría", value: 72, color: "hsl(var(--chart-2))" },
-  { name: "Dermatología", value: 58, color: "hsl(var(--chart-3))" },
-  { name: "Neurología", value: 45, color: "hsl(var(--chart-4))" },
-  { name: "Medicina Interna", value: 68, color: "hsl(var(--chart-5))" },
-  { name: "Otros", value: 84, color: "hsl(var(--chart-6))" },
-];
 
 type DateRangeType = "week" | "month" | "3months" | "year" | "all";
 
@@ -49,12 +40,41 @@ function DashboardPage() {
     availability: "",
   });
 
+  const especialidadesData = [
+    {
+      name: t("staff.specialties.cardiology"),
+      value: 85,
+      color: "hsl(var(--chart-1))",
+    },
+    {
+      name: t("staff.specialties.pediatrics"),
+      value: 72,
+      color: "hsl(var(--chart-2))",
+    },
+    {
+      name: t("staff.specialties.dermatology"),
+      value: 58,
+      color: "hsl(var(--chart-3))",
+    },
+    {
+      name: t("staff.specialties.neurology"),
+      value: 45,
+      color: "hsl(var(--chart-4))",
+    },
+    {
+      name: t("staff.specialties.internalMedicine"),
+      value: 68,
+      color: "hsl(var(--chart-5))",
+    },
+    {
+      name: t("dashboard.specialties.others"),
+      value: 84,
+      color: "hsl(var(--chart-6))",
+    },
+  ];
+
   const resetFilters = () => {
-    setFilters({
-      specialty: "",
-      location: "",
-      availability: "",
-    });
+    setFilters({ specialty: "", location: "", availability: "" });
   };
 
   const resetStaffFilters = () => {
@@ -79,18 +99,16 @@ function DashboardPage() {
     return count;
   };
 
-  // Search component para la tabla
   const searchComponent = (
     <div className="w-full sm:w-auto sm:min-w-[200px] lg:min-w-[250px]">
       <MCFilterInput
-        placeholder="Buscar médico..."
+        placeholder={t("staff.searchPlaceholder")}
         value={searchTerm}
         onChange={setSearchTerm}
       />
     </div>
   );
 
-  // Filter component para la tabla
   const filterComponent = (
     <FilterStaff
       filters={staffFilters}
@@ -100,50 +118,52 @@ function DashboardPage() {
     />
   );
 
-  // PDF generator component
   const pdfGeneratorComponent = (
     <MCPDFButton
       onClick={async () => {
         const medicalStaff = [
           {
             doctor: "Dra. María González",
-            especialidad: "Dermatología",
+            especialidad: t("staff.specialties.dermatology"),
             fechaConexion: "23 de oct de 2025",
             citasTotales: 130,
             calificacion: 4.8,
-            estado: "Activo",
+            estado: t("staff.status.active"),
           },
           {
             doctor: "Dr. Carlos Rodríguez",
-            especialidad: "Cardiología",
+            especialidad: t("staff.specialties.cardiology"),
             fechaConexion: "15 de sep de 2025",
             citasTotales: 98,
             calificacion: 4.9,
-            estado: "Activo",
+            estado: t("staff.status.active"),
           },
           {
             doctor: "Dra. Ana Martínez",
-            especialidad: "Pediatría",
+            especialidad: t("staff.specialties.pediatrics"),
             fechaConexion: "10 de ago de 2025",
             citasTotales: 156,
             calificacion: 4.7,
-            estado: "Inactivo",
+            estado: t("staff.status.inactive"),
           },
         ];
 
         await MCGeneratePDF({
           columns: [
-            { title: "Doctor", key: "doctor" },
-            { title: "Especialidad", key: "especialidad" },
-            { title: "Fecha Conexión", key: "fechaConexion" },
-            { title: "Citas Totales", key: "citasTotales" },
-            { title: "Calificación", key: "calificacion" },
-            { title: "Estado", key: "estado" },
+            { title: t("staff.pdf.columnDoctor"), key: "doctor" },
+            { title: t("staff.pdf.columnSpecialty"), key: "especialidad" },
+            {
+              title: t("staff.pdf.columnConnectionDate"),
+              key: "fechaConexion",
+            },
+            { title: t("staff.pdf.columnAppointments"), key: "citasTotales" },
+            { title: t("staff.pdf.columnRating"), key: "calificacion" },
+            { title: t("staff.pdf.columnStatus"), key: "estado" },
           ],
           data: medicalStaff,
-          fileName: "equipo-medico",
-          title: "Equipo de Atención Médica",
-          subtitle: "Centro Médico - Staff",
+          fileName: t("staff.pdf.fileName"),
+          title: t("staff.pdf.title"),
+          subtitle: t("staff.pdf.subtitle"),
         });
       }}
     />
@@ -155,34 +175,34 @@ function DashboardPage() {
         {/* Metrics Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 flex-shrink-0">
           <MCMetricCard
-            title="Total de Médicos"
+            title={t("dashboard.metrics.totalDoctors")}
             icon={<StethoscopeIcon />}
             value={412}
-            subtitle="Cantidad total de médicos"
+            subtitle={t("dashboard.metrics.totalDoctorsSubtitle")}
             percentage="12%"
             bordered
           />
           <MCMetricCard
-            title="Especialidades Cubiertas"
+            title={t("dashboard.metrics.specialtiesCovered")}
             icon={<UsersIcon />}
             value={12}
-            subtitle="Cantidad total de especialidades"
+            subtitle={t("dashboard.metrics.specialtiesCoveredSubtitle")}
             percentage="8%"
             bordered
           />
           <MCMetricCard
-            title="Citas esta Semana"
+            title={t("dashboard.metrics.appointmentsThisWeek")}
             icon={<CalendarCheckIcon />}
             value={156}
-            subtitle="Cantidad total de citas"
+            subtitle={t("dashboard.metrics.appointmentsThisWeekSubtitle")}
             percentage="15%"
             bordered
           />
           <MCMetricCard
-            title="Valoración Promedio"
+            title={t("dashboard.metrics.averageRating")}
             icon={<StarIcon />}
             value="4.8"
-            subtitle="De todos los médicos"
+            subtitle={t("dashboard.metrics.averageRatingSubtitle")}
             percentage="5%"
             bordered
           />
@@ -194,7 +214,7 @@ function DashboardPage() {
           <Card className="rounded-2xl md:rounded-4xl min-h-0 overflow-hidden">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 py-4 px-4">
               <h2 className="text-xl sm:text-2xl font-semibold">
-                Crecimiento de Médicos Afiliados
+                {t("dashboard.chart.affiliatedDoctorsGrowth")}
               </h2>
               <div className="w-full sm:w-auto">
                 <MCFilterPopover
@@ -205,11 +225,14 @@ function DashboardPage() {
                   <MCFilterSelect
                     name="dateRange"
                     options={[
-                      { label: "Semana", value: "week" },
-                      { label: "Mes", value: "month" },
-                      { label: "3 Meses", value: "3months" },
-                      { label: "Año", value: "year" },
-                      { label: "Todo", value: "all" },
+                      { label: t("dashboard.chart.week"), value: "week" },
+                      { label: t("dashboard.chart.month"), value: "month" },
+                      {
+                        label: t("dashboard.chart.threeMonths"),
+                        value: "3months",
+                      },
+                      { label: t("dashboard.chart.year"), value: "year" },
+                      { label: t("dashboard.chart.all"), value: "all" },
                     ]}
                     value={dateRange}
                     onChange={(value) => setDateRange(value as DateRangeType)}
@@ -226,7 +249,7 @@ function DashboardPage() {
           <Card className="rounded-2xl md:rounded-4xl min-h-0 h-[400px] lg:h-full overflow-hidden flex">
             <PieServices
               data={especialidadesData}
-              title="Distribución por Especialidad"
+              title={t("dashboard.specialties.distributionTitle")}
             />
           </Card>
         </section>
@@ -236,7 +259,7 @@ function DashboardPage() {
           <MCTablesLayouts
             titleSize="text-2xl"
             isDashboard
-            title="Tu equipo de atención"
+            title={t("dashboard.staffTable.title")}
             searchComponent={searchComponent}
             filterComponent={filterComponent}
             pdfGeneratorComponent={pdfGeneratorComponent}
