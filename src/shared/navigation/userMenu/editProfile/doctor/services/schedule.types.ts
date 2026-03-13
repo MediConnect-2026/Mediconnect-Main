@@ -22,7 +22,20 @@ export interface CreateScheduleServiceRequest {
   horaFin: string;
 }
 
+export interface UpdateScheduleServiceRequest {
+  nombre: string;
+  diasSemana: Number[]; // Array de números representando los días de la semana (0-6)
+  horaInicio: string;
+  horaFin: string;
+  estado?: string; // Por defecto "Activo"
+}
+
 export interface CreateScheduleServiceResponse {
+  success: boolean;
+  data: ScheduleServices;
+}
+
+export interface UpdateScheduleServiceResponse {
   success: boolean;
   data: ScheduleServices;
 }

@@ -119,9 +119,40 @@ export interface createLocationRequest {
     };
 }
 
+export interface UpdateLocationRequest {
+    barrioId: number;
+    direccion: string;
+    codigoPostal?: string;
+    estado?: 'Activo' | 'Inactivo' | 'Eliminado';
+    puntoGeografico: {
+        type: 'Point';
+        coordinates: [number, number];
+    };
+}
+
+export interface LocationResponse {
+    id: number;
+    barrioId: number;
+    direccion: string;
+    nombre: string;
+    codigoPostal: string;
+    estado: 'Activo' | 'Inactivo' | 'Eliminado';
+    puntoGeografico: {
+        type: 'Point';
+        coordinates: [number, number];
+    };
+    creadoEn: string;
+}
+
 export interface CreateLocationResponse {
     success: boolean;
-    data: any; // Ajusta el tipo según la respuesta real de tu API
+    data: LocationResponse;
+    count: number;
+}
+
+export interface UpdateLocationResponse {
+    success: boolean;
+    data: LocationResponse;
     count: number;
 }
 

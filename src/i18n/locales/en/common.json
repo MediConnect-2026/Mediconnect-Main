@@ -11,6 +11,10 @@
     "noMenuRole": "No menu for role",
     "noRole": "Unknown"
   },
+  "common": {
+    "confirm": "Confirm",
+    "cancel": "Cancel"
+  },
   "userMenu": {
     "spanish": "Spanish",
     "english": "English",

@@ -1,5 +1,5 @@
 import apiClient from "@/services/api/client";
-import type { CreateScheduleServiceRequest, CreateScheduleServiceResponse, GetScheduleServicesResponse, ScheduleServiceResponse, ValidateScheduleRequest, ValidateScheduleResponse } from "./schedule.types";
+import type { CreateScheduleServiceRequest, CreateScheduleServiceResponse, GetScheduleServicesResponse, ScheduleServiceResponse, ValidateScheduleRequest, ValidateScheduleResponse, UpdateScheduleServiceRequest, UpdateScheduleServiceResponse } from "./schedule.types";
 import i18n from "@/i18n/config";
 
 export const scheduleService = {
@@ -34,6 +34,25 @@ export const scheduleService = {
     } catch (error: any) {
       const errorData = error.response?.data as ScheduleServiceResponse;
       console.error("Error en scheduleService.createScheduleService:", error);
+      throw errorData || error;
+    }
+  },
+
+  updateScheduleService: async (scheduleId: number, schedule: UpdateScheduleServiceRequest): Promise<UpdateScheduleServiceResponse> => {
+    try {
+      const payload = {
+        ...schedule,
+        estado: schedule.estado || "Activo"
+      };
+      
+      const response = await apiClient.put<UpdateScheduleServiceResponse>(
+        `/horarios/${scheduleId}`,
+        payload
+      );
+      return response.data;
+    } catch (error: any) {
+      const errorData = error.response?.data as ScheduleServiceResponse;
+      console.error("Error en scheduleService.updateScheduleService:", error);
       throw errorData || error;
     }
   },

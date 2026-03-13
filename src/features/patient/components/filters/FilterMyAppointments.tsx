@@ -15,11 +15,13 @@ interface AppointmentFilters {
 interface FilterMyAppointmentsProps {
   filters: AppointmentFilters;
   onFiltersChange: (filters: Partial<AppointmentFilters>) => void;
+  resetTrigger?: number;
 }
 
 function FilterMyAppointments({
   filters,
   onFiltersChange,
+  resetTrigger = 0,
 }: FilterMyAppointmentsProps) {
   const { t } = useTranslation("patient");
 

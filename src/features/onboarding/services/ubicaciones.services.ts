@@ -7,7 +7,9 @@ import type {
 	SubBarrioResponse,
 	SelectOption,
     CreateLocationResponse,
-    createLocationRequest
+    UpdateLocationResponse,
+    createLocationRequest,
+    UpdateLocationRequest
 } from './ubicaciones.types';
 import apiClient from '@/services/api/client';
 import API_ENDPOINTS from '@/services/api/endpoints';
@@ -140,6 +142,16 @@ const ubicacionesService = {
         } catch (error) {
             console.error(`Error obteniendo ubicación por id ${id}:`, error);
             return {};
+        }
+    },
+
+    async updateLocation(id: number, data: UpdateLocationRequest): Promise<UpdateLocationResponse> {
+        try {
+            const response = await apiClient.put(`${API_ENDPOINTS.UBICACIONES.LOCATION_BY_ID(id)}`, data);
+            return response.data;
+        } catch (error) {
+            console.error(`Error actualizando ubicación con id ${id}:`, error);
+            throw error;
         }
     }
 };

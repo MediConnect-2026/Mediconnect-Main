@@ -44,6 +44,7 @@ export interface Appointment {
   doctorName: string;
   doctorAvatar: string;
   doctorSpecialty: string;
+  doctorSpecialtyId: string;
   evaluationType: string;
   date: string;
   time: string;
@@ -71,6 +72,7 @@ const adaptApiAppointmentToLocal = (apiAppointment: ApiAppointment): Appointment
     doctorName: apiAppointment.clientName,
     doctorAvatar: apiAppointment.clientImage || "",
     doctorSpecialty: apiAppointment.serviceData?.especialidad?.nombre || "",
+    doctorSpecialtyId: apiAppointment.serviceData?.especialidad?.id ? String(apiAppointment.serviceData.especialidad.id) : "",
     evaluationType: apiAppointment.service,
     date: format(apiAppointment.date, "dd MMM, yyyy"),
     time: apiAppointment.startTime,
@@ -206,11 +208,11 @@ function MyAppointmentsPage() {
         return false;
       }
 
-      // Filtro por especialidad (si está disponible)
+      // Filtro por especialidad (usando ID)
       if (
         filters.specialties.length > 0 &&
-        appointment.doctorSpecialty &&
-        !filters.specialties.includes(appointment.doctorSpecialty)
+        appointment.doctorSpecialtyId &&
+        !filters.specialties.includes(appointment.doctorSpecialtyId)
       ) {
         return false;
       }

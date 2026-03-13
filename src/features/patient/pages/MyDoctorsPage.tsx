@@ -77,6 +77,7 @@ function MyDoctorsPage() {
       id: doctor.id.toString(),
       name: `${doctor.nombre} ${doctor.apellido}`,
       specialty: doctor.especialidadPrincipal?.nombre || t("myDoctors.noSpecialty", "Sin especialidad"),
+      specialtyId: doctor.especialidadPrincipal?.id || null,
       rating: doctor.calificacionPromedio || 0,
       yearsOfExperience: doctor.anosExperiencia || 0,
       languages: doctor.idiomas?.map(idioma => idioma.nombre.toLowerCase().substring(0, 2)) || [],
@@ -97,7 +98,7 @@ function MyDoctorsPage() {
           doctor.specialty.toLowerCase().includes(search.toLowerCase()),
       )
       .filter((doctor) => {
-        if (filters.specialty && !doctor.specialty.toLowerCase().includes(filters.specialty.toLowerCase()))
+        if (filters.specialty && doctor.specialtyId !== parseInt(filters.specialty))
           return false;
         if (filters.language && !doctor.languages?.includes(filters.language))
           return false;

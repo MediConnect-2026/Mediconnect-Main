@@ -41,6 +41,11 @@ interface DoctorLocation {
   estado?: string;
 }
 
+interface EditMode {
+  locationId: number | null;
+  isEditing: boolean;
+}
+
 function ServiceLocationStep() {
   const { t } = useTranslation("doctor");
   const isMobile = useIsMobile();
@@ -54,6 +59,13 @@ function ServiceLocationStep() {
   // ─── NUEVO: Estado y Ref para controlar el modal de visualización ─────────
   const [viewLocation, setViewLocation] = useState<DoctorLocation | null>(null);
   const hiddenViewTriggerRef = useRef<HTMLButtonElement>(null);
+
+  // ─── NUEVO: Estado para controlar el modo edición ─────────────────────────
+  const [editMode, setEditMode] = useState<EditMode>({
+    locationId: null,
+    isEditing: false,
+  });
+  const hiddenEditTriggerRef = useRef<HTMLButtonElement>(null);
 
   const { data: doctorLocations = [], isLoading: isLoadingLocations, isError, refetch } = useUbicaciones("doctor", {});
 
@@ -171,34 +183,44 @@ function ServiceLocationStep() {
                   className={`border w-full border-primary/15 p-3 rounded-2xl flex items-center justify-between cursor-pointer transition hover:shadow-md
                     ${locationSelected === loc.id ? "bg-accent/50 border-primary/50 ring-2 ring-primary/20" : "hover:border-primary/30"}`}
                   onClick={() => {
+                    // Seleccionar la ubicación
                     setLocationDataInStore({
                       name: loc.nombre,
                       address: loc.direccion,
                       coordinates: { latitude: loc.puntoGeografico.coordinates[1], longitude: loc.puntoGeografico.coordinates[0] },
                       neighborhood: loc.barrio ? String(loc.barrio.id) : undefined,
-                    }); // Guardamos toda la información de la ubicación en el store
+                    });
+                    setLocationData("location", locationSelected === loc.id ? null : loc.id);
                     
-                    setLocationData("location", locationSelected === loc.id ? null : loc.id)
+                    // Abrir modal en modo edición si la ubicación está siendo seleccionada
+                    if (locationSelected !== loc.id) {
+                      setEditMode({ locationId: loc.id, isEditing: true });
+                      setTimeout(() => hiddenEditTriggerRef.current?.click(), 0);
+                    }
                   }}
                 >
-                  <div className={`flex flex-col gap-1 ${isMobile ? "max-w-[220px]" : "max-w-[220px]"}`}>
+                  <div className={`flex flex-col gap-1 ${isMobile ? "max-w-[160px]" : "max-w-[180px]"}`}>
                     <TruncatableTooltip text={loc.nombre} className={`${isMobile ? "text-sm" : "text-base"} font-medium truncate cursor-help`} />
                     <TruncatableTooltip text={loc.direccion} className={`${isMobile ? "text-xs" : "text-sm"} font-normal text-muted-foreground truncate cursor-help`} />
                     {loc.barrio && <span className="text-xs text-muted-foreground/75">{loc.barrio.nombre}</span>}
                   </div>
-                  
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="rounded-full p-2 h-auto w-auto hover:bg-primary/10 hover:text-primary"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setViewLocation(loc); // 1. Guardamos la ubicación que queremos ver
-                      setTimeout(() => hiddenViewTriggerRef.current?.click(), 0); // 2. Disparamos el click en el modal oculto
-                    }}
-                  >
-                    <ChevronRight className={isMobile ? "w-4 h-4" : "w-5 h-5"} />
-                  </Button>
+
+                  <div className="flex gap-2">
+                    {/* Botón de ver detalles */}
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="rounded-full p-2 h-auto w-auto hover:bg-primary/10 hover:text-primary"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setViewLocation(loc);
+                        setTimeout(() => hiddenViewTriggerRef.current?.click(), 0);
+                      }}
+                      title={t("common.view", "Ver")}
+                    >
+                      <ChevronRight className={isMobile ? "w-4 h-4" : "w-5 h-5"} />
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -220,6 +242,17 @@ function ServiceLocationStep() {
           onCloseModal={() => setViewLocation(null)}
         >
           <button ref={hiddenViewTriggerRef} className="hidden" aria-hidden="true" />
+        </ManageLocation>
+
+        {/* ─── NUEVO: Modal oculto dedicado EXCLUSIVAMENTE a Modo Edición ─────── */}
+        <ManageLocation
+          locationId={editMode.locationId || undefined}
+          onLocationUpdated={() => {
+            setEditMode({ locationId: null, isEditing: false });
+            refetch();
+          }}
+        >
+          <button ref={hiddenEditTriggerRef} className="hidden" aria-hidden="true" />
         </ManageLocation>
 
         {/* Botón clásico para agregar nueva ubicación (Sigue funcionando igual que antes) */}

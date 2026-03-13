@@ -9,6 +9,14 @@ import { MCFilterPopover } from "@/shared/components/filters/MCFilterPopover";
 import MCFilterInput from "@/shared/components/filters/MCFilterInput";
 import MCGeneratePDF from "@/shared/components/MCGeneratePDF";
 import {
+  Pagination,
+  PaginationContent,
+  PaginationLink,
+  PaginationItem,
+  PaginationPrevious,
+  PaginationNext,
+} from "@/shared/ui/pagination";
+import {
   Empty,
   EmptyHeader,
   EmptyTitle,
@@ -145,6 +153,12 @@ function AppointmentsPage() {
     });
   }, [allAppointments, searchTerm]);
 
+  // Usar paginación del API
+  const totalPages = apiResponse?.paginacion?.totalPaginas || 1;
+  
+  // Datos paginados (ya vienen paginados del API)
+  const paginatedAppointments = filteredAppointments;
+
   // Contar filtros activos
   const activeFiltersCount = Object.entries(filters).filter(([key, value]) => {
     if (key === "dateRange") {
@@ -223,6 +237,53 @@ function AppointmentsPage() {
       />
     </MCFilterPopover>
   );
+
+  // Componente de paginación separado
+  const paginationComponent = totalPages > 1 ? (
+    <Pagination>
+      <PaginationContent className="flex-wrap gap-1">
+        <PaginationItem>
+          <PaginationPrevious
+            onClick={() => {
+              if (currentPage > 1) setCurrentPage((p) => Math.max(1, p - 1));
+            }}
+            aria-disabled={currentPage === 1}
+            tabIndex={currentPage === 1 ? -1 : 0}
+            className={
+              currentPage === 1
+                ? "pointer-events-none opacity-50"
+                : "cursor-pointer"
+            }
+          />
+        </PaginationItem>
+        {Array.from({ length: totalPages }).map((_, idx) => (
+          <PaginationItem key={idx}>
+            <PaginationLink
+              isActive={currentPage === idx + 1}
+              onClick={() => setCurrentPage(idx + 1)}
+            >
+              {idx + 1}
+            </PaginationLink>
+          </PaginationItem>
+        ))}
+        <PaginationItem>
+          <PaginationNext
+            onClick={() => {
+              if (currentPage < totalPages)
+                setCurrentPage((p) => Math.min(totalPages, p + 1));
+            }}
+            aria-disabled={currentPage === totalPages}
+            tabIndex={currentPage === totalPages ? -1 : 0}
+            className={
+              currentPage === totalPages
+                ? "pointer-events-none opacity-50"
+                : "cursor-pointer"
+            }
+          />
+        </PaginationItem>
+      </PaginationContent>
+    </Pagination>
+  ) : null;
 
   // Error state
   if (error) {
@@ -312,7 +373,9 @@ function AppointmentsPage() {
       </EmptyContent>
     </Empty>
   ) : (
-    <MyAppointmentTable appointments={filteredAppointments} />
+    <div className={`transition-opacity duration-300 ${isLoading ? "opacity-50 pointer-events-none" : "opacity-100"}`}>
+      <MyAppointmentTable appointments={paginatedAppointments} />
+    </div>
   );
 
   // Métricas: Calcular desde los datos cargados
@@ -352,6 +415,7 @@ function AppointmentsPage() {
       searchComponent={searchComponent}
       pdfGeneratorComponent={pdfGeneratorComponent}
       filterComponent={filterComponent}
+      paginationComponent={paginationComponent}
     />
   );
 }

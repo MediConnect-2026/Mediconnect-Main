@@ -14,6 +14,7 @@ interface ManageLocationProps {
   locationSelected?: number | undefined;
   children: React.ReactNode;
   scheduleData?: any;
+  scheduleId?: number; // ID del horario para edición
   onScheduleCreated?: () => void;
   readonly?: boolean;
 }
@@ -125,7 +126,7 @@ function DaysSelector({ name, onChange, readonly }: DaysSelectorProps) {
   );
 }
 
-function ManageSchedule({ locationSelected, scheduleData, children, onScheduleCreated, readonly }: ManageLocationProps) {
+function ManageSchedule({ locationSelected, scheduleData, scheduleId, children, onScheduleCreated, readonly }: ManageLocationProps) {
   const { t } = useTranslation("doctor");
   const submitRef = useRef<(() => void) | null>(null);
   const formRef = useRef<any>(null);
@@ -211,19 +212,37 @@ function ManageSchedule({ locationSelected, scheduleData, children, onScheduleCr
     setIsLoading(true);
 
     try {
-      const response = await scheduleService.createScheduleService({
+      const isEditMode = !!scheduleId;
+      const requestPayload = {
         nombre: normalizedData.name,
         diasSemana: normalizedData.day,
         horaInicio: normalizedData.startTime,
-        horaFin: normalizedData.endTime
-      });
-      console.log("Respuesta del servicio de horario:", response);
+        horaFin: normalizedData.endTime,
+        ...(isEditMode && { estado: "Activo" }) // Agregar estado solo en modo edición
+      };
 
+      let response;
+      if (isEditMode) {
+        // Modo edición
+      
+        response = await scheduleService.updateScheduleService(scheduleId, requestPayload);
+      } else {
+        // Modo creación
+        response = await scheduleService.createScheduleService({
+          nombre: normalizedData.name,
+          diasSemana: normalizedData.day,
+          horaInicio: normalizedData.startTime,
+          horaFin: normalizedData.endTime
+        });
+      }
+           
       setComercialScheduleData(normalizedData);
 
       setToast({
         type: "success",
-        message: t("createService.schedule.successCreating"),
+        message: isEditMode 
+          ? t("createService.schedule.successUpdating") 
+          : t("createService.schedule.successCreating"),
         open: true,
       });
       
@@ -234,7 +253,7 @@ function ManageSchedule({ locationSelected, scheduleData, children, onScheduleCr
       closeModalRef.current?.close();
 
     } catch (error: any) {
-      console.error("Error al crear el horario:", error);
+      console.error("Error al procesar el horario:", error);
       
       setToast({
         type: "error",
@@ -305,7 +324,9 @@ function ManageSchedule({ locationSelected, scheduleData, children, onScheduleCr
   return (
     <MCModalBase
       id="manage-location-modal"
-      title={scheduleData ? t("createService.schedule.manageSchedule") : t("createService.schedule.createSchedule")}
+      title={scheduleId 
+        ? t("createService.schedule.manageSchedule")
+        : t("createService.schedule.createSchedule")}
       size="mdAuto"
       variant="decide"
       trigger={triggerWithHandler}
@@ -326,7 +347,9 @@ function ManageSchedule({ locationSelected, scheduleData, children, onScheduleCr
         !!hasTimeConflict ||
         !!hasInsufficientDuration
       }
-      confirmText={isLoading ? t("createService.schedule.creating") : undefined}
+      confirmText={isLoading 
+        ? (scheduleId ? t("createService.schedule.updating") : t("createService.schedule.creating"))
+        : undefined}
     >
       <MCFormWrapper
         schema={comercialScheduleFormSchema}

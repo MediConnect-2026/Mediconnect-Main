@@ -20,10 +20,13 @@ import { toast } from "sonner";
 interface manageLocationProps {
   children: React.ReactNode;
   triggerClassName?: string;
-  // Nuevas props para el modo lectura
+  // Props para modo lectura (view-only)
   locationToView?: any; 
   isReadOnly?: boolean;
   onCloseModal?: () => void;
+  // Props para modo edición
+  locationId?: number;
+  onLocationUpdated?: () => void;
 }
 
 // FormBridge para exponer setValue del FormContext
@@ -46,6 +49,8 @@ function ManageLocation({
   locationToView,
   isReadOnly = false,
   onCloseModal,
+  locationId,
+  onLocationUpdated,
 }: manageLocationProps) {
   const { t } = useTranslation("doctor");
   const { i18n } = useTranslation();
@@ -86,10 +91,43 @@ function ManageLocation({
   // ─── Estado para controlar si el botón de confirmar está habilitado ───────
   const [isFormValid, setIsFormValid] = useState(false);
 
+  // ─── Mutación para actualizar ubicación ──────────────────────────────────
+  const updateLocationMutation = useMutation({
+    mutationFn: (data: any) => {
+      if (!locationId) throw new Error("Location ID is required for update");
+      const updatePayload: any = {
+        barrioId: Number(data.neighborhood || selectedNeighborhood),
+        direccion: data.address,
+        codigoPostal: data.codigoPostal || "",
+        estado: "Activo" as const,
+        puntoGeografico: {
+          type: "Point",
+          coordinates: [coordinates.lng, coordinates.lat],
+        },
+      };
+      return ubicacionesService.updateLocation(locationId, updatePayload);
+    },
+    onSuccess: () => {
+      toast.success(t("createService.location.locationUpdatedSuccess", "Ubicación actualizada correctamente"));
+      queryClient.invalidateQueries({ 
+        queryKey: QUERY_KEYS.UBICACIONES("doctor", {}) 
+      });
+      if (onLocationUpdated) onLocationUpdated();
+      handleClose();
+    },
+    onError: (error: any) => {
+      console.error("Error actualizando ubicación:", error);
+      toast.error(
+        error?.response?.data?.message || 
+        t("createService.location.locationUpdatedError", "Error al actualizar la ubicación")
+      );
+    },
+  });
+
   // ─── Mutación para crear ubicación ────────────────────────────────────────
   const createLocationMutation = useMutation({
-    mutationFn: (data: createLocationRequest) => ubicacionesService.createLocation(data),
-    onSuccess: (response) => {
+    mutationFn: (data: any) => ubicacionesService.createLocation(data),
+    onSuccess: () => {
       toast.success(t("createService.location.locationCreatedSuccess"));
       queryClient.invalidateQueries({ 
         queryKey: QUERY_KEYS.UBICACIONES("doctor", {}) 
@@ -246,6 +284,40 @@ function ManageLocation({
       handlePointSelected(lat, lng, false);
     }
   }, [locationToView, isReadOnly, setlocationField, handlePointSelected]);
+
+  // ─── EFECTO MODO EDICIÓN: Cargar datos si existe locationId ────────────
+  useEffect(() => {
+    if (locationId && !isReadOnly) {
+      const loadLocationForEdit = async () => {
+        try {
+          const locationData = await ubicacionesService.getLocationById(locationId);
+          if (locationData?.data || locationData?.id) {
+            const location = locationData.data || locationData;
+            const lng = location.puntoGeografico.coordinates[0];
+            const lat = location.puntoGeografico.coordinates[1];
+
+            setCoordinates({ lat, lng });
+            setlocationField("name", location.nombre);
+            setlocationField("address", location.direccion);
+            setlocationField("coordinates", { latitude: lat, longitude: lng });
+
+            if (formSetValueRef.current) {
+              formSetValueRef.current("name", location.nombre);
+              formSetValueRef.current("address", location.direccion);
+            }
+
+            // Cargar la jerarquía geográfica
+            await handlePointSelected(lat, lng, false);
+          }
+        } catch (error) {
+          console.error("Error cargando ubicación para editar:", error);
+          toast.error(t("createService.location.errorLoadingLocation", "Error al cargar la ubicación"));
+        }
+      };
+
+      loadLocationForEdit();
+    }
+  }, [locationId, isReadOnly, setlocationField, handlePointSelected]);
 
   // ─── Validar formulario para habilitar/deshabilitar botón de confirmar ────
   useEffect(() => {
@@ -412,18 +484,23 @@ function ManageLocation({
       return;
     }
 
-    const locationPayload: createLocationRequest = {
-      barrioId: Number(selectedNeighborhood),
-      direccion: data.address,
-      nombre: data.name,
-      codigoPostal: "", 
-      puntoGeografico: {
-        type: "Point",
-        coordinates: [coordinates.lng, coordinates.lat], 
-      },
-    };
-
-    createLocationMutation.mutate(locationPayload);
+    if (locationId) {
+      // Modo edición: actualizar ubicación existente
+      updateLocationMutation.mutate(data);
+    } else {
+      // Modo creación: crear nueva ubicación
+      const locationPayload: createLocationRequest = {
+        barrioId: Number(selectedNeighborhood),
+        direccion: data.address,
+        nombre: data.name,
+        codigoPostal: data.codigoPostal || "", 
+        puntoGeografico: {
+          type: "Point",
+          coordinates: [coordinates.lng, coordinates.lat], 
+        },
+      };
+      createLocationMutation.mutate(locationPayload);
+    }
   };
 
   const submitRef = useRef<any>(null);
@@ -477,15 +554,20 @@ function ManageLocation({
   return (
     <MCModalBase
       id="manage-location-modal"
-      title={isReadOnly ? t("createService.location.viewLocation", "Detalles de Ubicación") : t("createService.location.manageLocation")}
+      title={
+        isReadOnly 
+          ? t("createService.location.viewLocation", "Detalles de Ubicación") 
+          : locationId
+          ? t("createService.location.editLocation", "Editar Ubicación")
+          : t("createService.location.manageLocation")
+      }
       size="lgAuto"
       variant="decide"
       onConfirm={handleConfirm}
       onClose={handleClose}
       trigger={children}
       triggerClassName={triggerClassName}
-      disabledConfirm={!isFormValid || createLocationMutation.isPending || isReadOnly}
-      // Dependiendo de cómo funcione tu MCModalBase interno, estas props ocultan o cambian los botones
+      disabledConfirm={!isFormValid || createLocationMutation.isPending || updateLocationMutation.isPending || isReadOnly}
       hideConfirm={isReadOnly}
       showConfirm={!isReadOnly}
       secondaryText={isReadOnly ? t("common.close", "Cerrar") : undefined}

@@ -41,6 +41,8 @@ function DoctorServicesSection({ doctorId, isMyProfile = false }: Props) {
   const isMobile = useIsMobile();
   const user = useAppStore((state) => state.user);
 
+  console.log("DoctorServicesSection renderizado con doctorId:", doctorId, "isMyProfile:", isMyProfile);
+
   // Estados para servicios
   const [services, setServices] = useState<GetServicesOfDoctor[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -382,6 +384,7 @@ function DoctorServicesSection({ doctorId, isMyProfile = false }: Props) {
               return (
                 <MCServiceCards
                   key={service.id}
+                  idProvider={doctorId}
                   image={imageUrl}
                   status={status}
                   title={service.nombre}

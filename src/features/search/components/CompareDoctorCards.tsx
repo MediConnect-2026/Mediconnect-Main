@@ -17,6 +17,8 @@ import ScheduleAppointmentDialog from "@/features/patient/components/appoiments/
 import { MCUserAvatar } from "@/shared/navigation/userMenu/MCUserAvatar";
 import ToogleConfirmConnection from "@/features/request/components/ToogleConfirmConnection";
 import { useState } from "react";
+import { ROUTES } from "@/router/routes";
+import { useNavigate } from "react-router";
 
 interface CompareDoctorCardsProps {
   selectedProviders: Provider[];
@@ -29,8 +31,10 @@ function CompareDoctorCards({
 }: CompareDoctorCardsProps) {
   const { t } = useTranslation("patient");
   const isMobile = useIsMobile();
-  const userRole = useAppStore((state) => state.user?.role);
+  const userRole = useAppStore((state) => state.user?.rol);
   const [modalOpenId, setModalOpenId] = useState<string | null>(null);
+
+  const navigate = useNavigate();
 
   // Filter only doctors for comparison
   const doctors = selectedProviders.filter(
@@ -307,7 +311,7 @@ function CompareDoctorCards({
                 <MCButton
                   size={isMobile ? "m" : "ml"}
                   variant="secondary"
-                  onClick={() => console.log("Ver perfil de:", doctor.name)}
+                  onClick={() => navigate(ROUTES.DOCTOR.DOCTOR_PROFILE_PUBLIC.replace(":doctorId", doctor.id))}
                 >
                   {t("compare.viewProfile", "Ver perfil")}
                 </MCButton>

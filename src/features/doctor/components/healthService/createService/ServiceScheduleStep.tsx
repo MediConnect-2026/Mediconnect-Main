@@ -12,7 +12,7 @@ import { scheduleService } from "@/shared/navigation/userMenu/editProfile/doctor
 import { useAppStore } from "@/stores/useAppStore";
 import type { ValidateScheduleResponse } from "@/shared/navigation/userMenu/editProfile/doctor/services/schedule.types";
 
-function ServiceScheduleStep({ isEditMode = false }: { isEditMode?: boolean }) {
+function ServiceScheduleStep({isEditMode = false}: { isEditMode?: boolean }) {
   const isMobile = useIsMobile();
   const { t } = useTranslation("doctor");
 
@@ -174,7 +174,13 @@ function ServiceScheduleStep({ isEditMode = false }: { isEditMode?: boolean }) {
                   {getDaysAndHours(item)}
                 </p>
               </div>
-              <ManageSchedule locationSelected={item.id} scheduleData={item} onScheduleCreated={loadSchedules} readonly={true}>
+              <ManageSchedule 
+                locationSelected={item.id} 
+                scheduleData={item} 
+                scheduleId={item.id}
+                onScheduleCreated={loadSchedules} 
+                readonly={!isEditMode}
+              >
                 <Button
                   variant="outline"
                   className="rounded-4xl p-2 border-none bg-transparent shadow-none text-primary/75 hover:bg-primary/10 hover:text-primary focus:ring-0 focus:ring-offset-0 focus-visible:ring-0"
