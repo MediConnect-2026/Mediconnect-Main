@@ -1,15 +1,24 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback, memo } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
 import { QUERY_KEYS } from "@/lib/react-query/config";
 import { getDoctorPatientsStats } from "@/services/api/doctor-stats.service";
+import { useDoctorPatients } from "@/features/doctor/hooks/useDoctorPatients";
 import MyPatientsTable from "../components/patients/PatientsTable";
 import MCTablesLayouts from "@/shared/components/tables/MCTablesLayouts";
 import MCPDFButton from "@/shared/components/forms/MCPDFButton";
 import { MCFilterPopover } from "@/shared/components/filters/MCFilterPopover";
 import MCFilterInput from "@/shared/components/filters/MCFilterInput";
 import MCGeneratePDF from "@/shared/components/MCGeneratePDF";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationLink,
+  PaginationItem,
+  PaginationPrevious,
+  PaginationNext,
+} from "@/shared/ui/pagination";
 import {
   Empty,
   EmptyHeader,
@@ -24,289 +33,191 @@ import {
   ShieldAlert,
   AlertTriangle,
   BarChart2,
+  Loader2,
 } from "lucide-react";
 import FilterMyPatients from "../components/filters/FilterPatients";
+import {
+  mapPacientesAPIToUI,
+  normalizarGenero,
+  getUbicacionNombre,
+  getEspecialidadNombre,
+  construirFiltrosAPI,
+  type PacienteUI,
+} from "@/features/doctor/utilities/patientMapper";
 
-import type { Patient } from "../components/patients/PatientsTable";
+// ─── Constants ──────────────────────────────────────────────────────────────
+const DEFAULT_PAGE_SIZE = 10;
+const STALE_TIME = 1000 * 60 * 5; // 5 minutes
 
-// ─── Mock Data ────────────────────────────────────────────────────────────────
-const mockPatients: Patient[] = [
-  {
-    id: "p-1",
-    conversationId: "conv-1",
-    patientName: "Carlos Guerrero",
-    patientImage: "https://randomuser.me/api/portraits/men/11.jpg",
-    age: 34,
-    gender: "male",
-    phone: "809-432-9532",
-    email: "Carlitos02@gmail.com",
-    conditionsCount: 0,
-    allergiesCount: 0,
-    lastVisit: "15/03/2024",
-    serviceReceived: "Consulta General",
-    specialty: "Cardiología",
-    location: "Clínica Santo Domingo",
-  },
-  {
-    id: "p-2",
-    conversationId: "conv-2",
-    patientName: "Manuel Guzman",
-    patientImage: "https://randomuser.me/api/portraits/men/12.jpg",
-    age: 21,
-    gender: "male",
-    phone: "809-432-9532",
-    email: "ManuelG@gmail.com",
-    conditionsCount: 0,
-    allergiesCount: 1,
-    lastVisit: "18/03/2024",
-    serviceReceived: "Cirugía General",
-    specialty: "Cirugía General",
-    location: "Clínica Santo Domingo",
-  },
-  {
-    id: "p-3",
-    conversationId: "conv-3",
-    patientName: "Edwin Lopez",
-    patientImage: "https://randomuser.me/api/portraits/men/13.jpg",
-    age: 45,
-    gender: "male",
-    phone: "809-432-9532",
-    email: "edwin.lopez@email.com",
-    conditionsCount: 2,
-    allergiesCount: 1,
-    lastVisit: "15/03/2024",
-    serviceReceived: "Control Metabólico",
-    specialty: "Endocrinología",
-    location: "Clínica Santo Domingo",
-  },
-];
+// Plain object — NOT `as const` so string fields remain `string`, not `"all"` literal.
+// This keeps PatientFilters assignable to MyPatientFilters (which uses `string`).
+interface PatientFilters {
+  gender: string;
+  specialty: string;
+  location: string;
+  hasCondition: string;
+  hasAllergy: string;
+  lastVisitRange?: [Date, Date];
+}
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-const parseDate = (dateStr: string): Date => {
-  const [day, month, year] = dateStr.split("/");
-  return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+const DEFAULT_FILTERS: PatientFilters = {
+  gender: "all",
+  specialty: "all",
+  location: "all",
+  hasCondition: "all",
+  hasAllergy: "all",
+  lastVisitRange: undefined,
 };
 
-const matchesDateRange = (dateStr: string, range?: [Date, Date]): boolean => {
-  if (!range) return true;
-  const d = parseDate(dateStr);
-  d.setHours(0, 0, 0, 0);
-  const start = new Date(range[0]);
-  start.setHours(0, 0, 0, 0);
-  const end = new Date(range[1]);
-  end.setHours(23, 59, 59, 999);
-  return d >= start && d <= end;
-};
+// ─── Sub-component: Table Patient row shape ──────────────────────────────────
+// Note: `ultimaCita` is intentionally omitted — PatientsTable.Patient expects
+// an object shape for that field. We supply the data through the flattened
+// aliases (`lastVisit`, `serviceReceived`, `specialty`) that the table also
+// accepts via its union type.
+interface TablePatient {
+  pacienteId: number;
+  id: string;
+  nombre: string;
+  patientName: string;
+  apellido: string;
+  fotoPerfil: string;
+  patientImage: string;
+  edad: number;
+  age: number;
+  genero: "male" | "female" | "other";
+  gender: "male" | "female" | "other";
+  email: string;
+  telefono: string;
+  phone: string;
+  condiciones: { total: number; lista: never[] };
+  conditionsCount: number;
+  allergiesCount: number;
+  lastVisit: string;
+  serviceReceived: string;
+  specialty: string;
+  ubicacionUltimaCita: { nombre: string };
+  location: string;
+  totalCitas: number;
+  conversationId?: string;
+}
 
-// ─── Page ─────────────────────────────────────────────────────────────────────
-function PatientsPage() {
-  const { t } = useTranslation("doctor");
-  const isMobile = useIsMobile();
+// ─── Mappers (pure, defined outside component to avoid re-creation) ──────────
+const toTablePatient = (p: PacienteUI): TablePatient => ({
+  pacienteId: p.pacienteId,
+  id: p.id.toString(),
+  nombre: p.nombre,
+  patientName: p.nombreCompleto,
+  apellido: p.apellido,
+  fotoPerfil: p.fotoPerfil,
+  patientImage: p.fotoPerfil,
+  edad: p.edad,
+  age: p.edad,
+  genero: normalizarGenero(p.genero),
+  gender: normalizarGenero(p.genero),
+  email: p.email,
+  telefono: p.telefono,
+  phone: p.telefono,
+  condiciones: { total: p.condicionesTotal, lista: [] },
+  conditionsCount: p.condicionesTotal,
+  allergiesCount: p.alergias,
+  lastVisit: p.ultimaCitaFecha,
+  serviceReceived: p.servicioNombre,
+  specialty: getEspecialidadNombre(p),
+  ubicacionUltimaCita: { nombre: p.ubicacionNombre },
+  location: getUbicacionNombre(p),
+  totalCitas: p.totalCitas,
+  conversationId: p.conversationId,
+});
 
-  // Fetching statistics from backend
-  const {
-    data: patientsStats,
-    isLoading,
-    isError,
-    error,
-  } = useQuery({
-    queryKey: QUERY_KEYS.DOCTOR_STATS_PACIENTES,
-    queryFn: getDoctorPatientsStats,
-    staleTime: 1000 * 60 * 5, // 5 minutes
-  });
+// ─── PDF columns are static — defined once outside the component ─────────────
+const PDF_COLUMN_KEYS = [
+  "patientName",
+  "age",
+  "gender",
+  "phone",
+  "lastVisit",
+  "serviceReceived",
+  "location",
+] as const;
 
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filters, setFilters] = useState({
-    gender: "all",
-    specialty: "all",
-    location: "all",
-    hasCondition: "all",
-    hasAllergy: "all",
-    lastVisitRange: undefined as [Date, Date] | undefined,
-  });
+// ─── Memoized sub-components ─────────────────────────────────────────────────
+const LoadingState = memo(({ text }: { text: string }) => (
+  <div className="flex items-center justify-center w-full h-64">
+    <div className="flex items-center gap-2 text-muted-foreground">
+      <Loader2 className="w-5 h-5 animate-spin" />
+      <span>{text}</span>
+    </div>
+  </div>
+));
+LoadingState.displayName = "LoadingState";
 
-  // Contar filtros activos
-  const activeFiltersCount = Object.entries(filters).filter(([key, value]) =>
-    key === "lastVisitRange" ? value !== undefined : value !== "all",
-  ).length;
+const ErrorState = memo(
+  ({
+    isMobile,
+    title,
+    description,
+    retryLabel,
+  }: {
+    isMobile: boolean;
+    title: string;
+    description: string;
+    retryLabel: string;
+  }) => (
+    <Empty>
+      <EmptyHeader>
+        <div className="flex flex-col items-center gap-2">
+          <span className="flex items-center justify-center gap-2 text-destructive">
+            <AlertTriangle className={isMobile ? "w-5 h-5" : "w-7 h-7"} />
+            <EmptyTitle className={`font-semibold ${isMobile ? "text-lg" : "text-xl"}`}>
+              {title}
+            </EmptyTitle>
+          </span>
+          <EmptyDescription
+            className={`text-muted-foreground text-center max-w-md mx-auto ${
+              isMobile ? "text-sm" : "text-base"
+            }`}
+          >
+            {description}
+          </EmptyDescription>
+        </div>
+      </EmptyHeader>
+      <EmptyContent>
+        <MCButton
+          onClick={() => window.location.reload()}
+          className={isMobile ? "px-4 py-2" : "px-6 py-2"}
+          size="sm"
+        >
+          {retryLabel}
+        </MCButton>
+      </EmptyContent>
+    </Empty>
+  )
+);
+ErrorState.displayName = "ErrorState";
 
-  const clearFilters = () =>
-    setFilters({
-      gender: "all",
-      specialty: "all",
-      location: "all",
-      hasCondition: "all",
-      hasAllergy: "all",
-      lastVisitRange: undefined,
-    });
-
-  // Filtrar pacientes
-  const filteredPatients = useMemo(() => {
-    return mockPatients.filter((p) => {
-      const matchesSearch =
-        p.patientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        p.specialty.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        p.serviceReceived.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        p.email.toLowerCase().includes(searchTerm.toLowerCase());
-
-      const matchesGender =
-        filters.gender === "all" ||
-        (filters.gender === "male" && p.gender === "male") ||
-        (filters.gender === "female" && p.gender === "female") ||
-        (filters.gender === "other" && p.gender === "other");
-
-      const matchesSpecialty =
-        filters.specialty === "all" ||
-        p.specialty.toLowerCase().includes(filters.specialty.replace("-", " "));
-
-      const matchesLocation =
-        filters.location === "all" ||
-        p.location.toLowerCase().includes(filters.location.replace("-", " "));
-
-      const matchesCondition =
-        filters.hasCondition === "all" ||
-        (filters.hasCondition === "yes" && p.conditionsCount > 0) ||
-        (filters.hasCondition === "no" && p.conditionsCount === 0);
-
-      const matchesAllergy =
-        filters.hasAllergy === "all" ||
-        (filters.hasAllergy === "yes" && p.allergiesCount > 0) ||
-        (filters.hasAllergy === "no" && p.allergiesCount === 0);
-
-      const matchesDate = matchesDateRange(p.lastVisit, filters.lastVisitRange);
-
-      return (
-        matchesSearch &&
-        matchesGender &&
-        matchesSpecialty &&
-        matchesLocation &&
-        matchesCondition &&
-        matchesAllergy &&
-        matchesDate
-      );
-    });
-  }, [searchTerm, filters]);
-
-  // Métricas del backend
-  const metrics = useMemo(() => {
-    if (!patientsStats) {
-      return [
-        {
-          title: t("patients.metrics.total"),
-          value: 0,
-          subtitle: t("patients.metrics.totalSubtitle"),
-          icon: <Users />,
-        },
-        {
-          title: t("patients.metrics.withConditions"),
-          value: 0,
-          subtitle: t("patients.metrics.withConditionsSubtitle"),
-          icon: <ShieldAlert />,
-        },
-        {
-          title: t("patients.metrics.withAllergies"),
-          value: 0,
-          subtitle: t("patients.metrics.withAllergiesSubtitle"),
-          icon: <AlertTriangle />,
-        },
-        {
-          title: t("patients.metrics.avgAge"),
-          value: `0 ${t("patients.metrics.years")}`,
-          subtitle: t("patients.metrics.avgAgeSubtitle"),
-          icon: <BarChart2 />,
-        },
-      ];
-    }
-
-    return [
-      {
-        title: t("patients.metrics.total"),
-        value: patientsStats.totalPacientes,
-        subtitle: t("patients.metrics.totalSubtitle"),
-        icon: <Users />,
-      },
-      {
-        title: t("patients.metrics.withConditions"),
-        value: patientsStats.pacientesConCondicionesActivas,
-        subtitle: t("patients.metrics.withConditionsSubtitle"),
-        icon: <ShieldAlert />,
-      },
-      {
-        title: t("patients.metrics.withAllergies"),
-        value: patientsStats.pacientesConAlergias,
-        subtitle: t("patients.metrics.withAllergiesSubtitle"),
-        icon: <AlertTriangle />,
-      },
-      {
-        title: t("patients.metrics.avgAge"),
-        value: `${patientsStats.edadPromedio.toFixed(1)} ${t(
-          "patients.metrics.years"
-        )}`,
-        subtitle: t("patients.metrics.avgAgeSubtitle"),
-        icon: <BarChart2 />,
-      },
-    ];
-  }, [patientsStats, t]);
-
-  // PDF
-  const pdfGeneratorComponent = (
-    <MCPDFButton
-      onClick={async () => {
-        await MCGeneratePDF({
-          columns: [
-            { title: t("patients.table.patient"), key: "patientName" },
-            { title: t("patients.table.age"), key: "age" },
-            { title: t("patients.table.gender"), key: "gender" },
-            { title: t("patients.table.contact"), key: "phone" },
-            { title: t("patients.table.lastVisit"), key: "lastVisit" },
-            {
-              title: t("patients.table.serviceSpecialty"),
-              key: "serviceReceived",
-            },
-            { title: t("patients.table.location"), key: "location" },
-          ],
-          data: filteredPatients.map((p) => ({
-            ...p,
-            gender: t(`patients.table.${p.gender}`),
-          })),
-          fileName: "pacientes",
-          title: t("patients.title"),
-          subtitle: t("patients.subtitle"),
-        });
-      }}
-    />
-  );
-
-  // Filters
-  const filterComponent = (
-    <MCFilterPopover
-      activeFiltersCount={activeFiltersCount}
-      onClearFilters={clearFilters}
-    >
-      <FilterMyPatients
-        filters={filters}
-        onFiltersChange={(newFilters) =>
-          setFilters((prev) => ({ ...prev, ...newFilters }))
-        }
-      />
-    </MCFilterPopover>
-  );
-
-  // Empty state
-  const emptyState = (
+const EmptyState = memo(
+  ({
+    isMobile,
+    hasActiveFilters,
+    onClearFilters,
+    t,
+  }: {
+    isMobile: boolean;
+    hasActiveFilters: boolean;
+    onClearFilters: () => void;
+    t: (key: string) => string;
+  }) => (
     <Empty>
       <EmptyHeader>
         <div className="flex flex-col items-center gap-2">
           <span className="flex items-center justify-center gap-2 text-primary">
-            {activeFiltersCount > 0 ? (
+            {hasActiveFilters ? (
               <Filter className={isMobile ? "w-5 h-5" : "w-7 h-7"} />
             ) : (
               <Users className={isMobile ? "w-5 h-5" : "w-7 h-7"} />
             )}
-            <EmptyTitle
-              className={`font-semibold ${isMobile ? "text-lg" : "text-xl"}`}
-            >
-              {activeFiltersCount > 0
+            <EmptyTitle className={`font-semibold ${isMobile ? "text-lg" : "text-xl"}`}>
+              {hasActiveFilters
                 ? t("patients.empty.noResults")
                 : t("patients.empty.noPatients")}
             </EmptyTitle>
@@ -316,106 +227,319 @@ function PatientsPage() {
               isMobile ? "text-sm" : "text-base"
             }`}
           >
-            {activeFiltersCount > 0
+            {hasActiveFilters
               ? t("patients.empty.noResultsDescription")
               : t("patients.empty.noPatientsDescription")}
           </EmptyDescription>
         </div>
       </EmptyHeader>
-      <EmptyContent>
-        {activeFiltersCount > 0 && (
+      {hasActiveFilters && (
+        <EmptyContent>
           <MCButton
             variant="outline"
-            onClick={clearFilters}
+            onClick={onClearFilters}
             className={isMobile ? "px-4 py-2" : "px-6 py-2"}
             size="sm"
           >
             {t("patients.empty.clearFilters")}
           </MCButton>
-        )}
-      </EmptyContent>
+        </EmptyContent>
+      )}
     </Empty>
+  )
+);
+EmptyState.displayName = "EmptyState";
+
+// ─── Page Component ───────────────────────────────────────────────────────────
+function PatientsPage() {
+  const { t, i18n } = useTranslation("doctor");
+  const isMobile = useIsMobile();
+
+  // ─── State ─────────────────────────────────────────────────────────────
+  const [currentPage, setCurrentPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filters, setFilters] = useState<PatientFilters>({ ...DEFAULT_FILTERS });
+
+  // ─── Derived: active filter count ──────────────────────────────────────
+  const activeFiltersCount = useMemo(
+    () =>
+      Object.entries(filters).filter(([key, value]) =>
+        key === "lastVisitRange" ? value !== undefined : value !== "all"
+      ).length,
+    [filters]
   );
 
-  const tableComponent =
-    filteredPatients.length === 0 ? (
-      emptyState
-    ) : (
-      <MyPatientsTable patients={filteredPatients} />
-    );
+  // ─── Derived: API filters (stable reference when inputs are equal) ──────
+  const apiFilters = useMemo(
+    () =>
+      construirFiltrosAPI(
+        filters,
+        currentPage,
+        DEFAULT_PAGE_SIZE,
+        searchTerm,
+        i18n.language
+      ),
+    [filters, currentPage, searchTerm, i18n.language]
+  );
 
-  // Handle loading and error states
-  if (isLoading) {
+  // ─── Queries ────────────────────────────────────────────────────────────
+  const { data: patientsStats, isLoading: statsLoading } = useQuery({
+    queryKey: QUERY_KEYS.DOCTOR_STATS_PACIENTES,
+    queryFn: getDoctorPatientsStats,
+    staleTime: STALE_TIME,
+  });
+
+  const {
+    data: patientsResponse,
+    isLoading: patientsLoading,
+    isFetching: patientsFetching,
+    isError: patientsError,
+    error: patientsErrorDetail,
+  } = useDoctorPatients(apiFilters);
+
+  const totalPages = patientsResponse?.paginacion?.totalPaginas || 1;
+
+  // ─── Data transformations ───────────────────────────────────────────────
+  // Two-step transform: keep intermediate result lean
+  const patientsUI = useMemo(
+    () => (patientsResponse?.data ? mapPacientesAPIToUI(patientsResponse.data) : []),
+    [patientsResponse?.data]
+  );
+
+  const tablePatients = useMemo<TablePatient[]>(
+    () => patientsUI.map(toTablePatient),
+    [patientsUI]
+  );
+
+  // ─── Metrics ────────────────────────────────────────────────────────────
+  const metrics = useMemo(() => {
+    const base = [
+      {
+        title: t("patients.metrics.total"),
+        value: patientsStats?.totalPacientes ?? "—",
+        subtitle: t("patients.metrics.totalSubtitle"),
+        icon: <Users />,
+      },
+      {
+        title: t("patients.metrics.withConditions"),
+        value: patientsStats?.pacientesConCondicionesActivas ?? "—",
+        subtitle: t("patients.metrics.withConditionsSubtitle"),
+        icon: <ShieldAlert />,
+      },
+      {
+        title: t("patients.metrics.withAllergies"),
+        value: patientsStats?.pacientesConAlergias ?? "—",
+        subtitle: t("patients.metrics.withAllergiesSubtitle"),
+        icon: <AlertTriangle />,
+      },
+      {
+        title: t("patients.metrics.avgAge"),
+        value: patientsStats
+          ? `${patientsStats.edadPromedio.toFixed(1)} ${t("patients.metrics.years")}`
+          : "—",
+        subtitle: t("patients.metrics.avgAgeSubtitle"),
+        icon: <BarChart2 />,
+      },
+    ];
+    return base;
+  }, [patientsStats, t]);
+
+  // ─── Callbacks ──────────────────────────────────────────────────────────
+  const clearFilters = useCallback(() => {
+    setFilters({ ...DEFAULT_FILTERS });
+    setCurrentPage(1);
+  }, []);
+
+  const handleFilterChange = useCallback((newFilters: Partial<PatientFilters>) => {
+    setFilters((prev) => ({ ...prev, ...newFilters }));
+    setCurrentPage(1);
+  }, []);
+
+  const handleSearchChange = useCallback((value: string) => {
+    setSearchTerm(value);
+    setCurrentPage(1);
+  }, []);
+
+  // ─── Pagination Callbacks ────────────────────────────────────────────────
+  const handlePreviousPage = useCallback(() => {
+    if (currentPage > 1 && !patientsFetching) setCurrentPage((p) => Math.max(1, p - 1));
+  }, [currentPage, patientsFetching]);
+
+  const handlePageClick = useCallback(
+    (pageNum: number) => {
+      if (!patientsFetching) setCurrentPage(pageNum);
+    },
+    [patientsFetching]
+  );
+
+  const handleNextPage = useCallback(() => {
+    if (currentPage < totalPages && !patientsFetching)
+      setCurrentPage((p) => Math.min(totalPages, p + 1));
+  }, [currentPage, totalPages, patientsFetching]);
+
+  // ─── PDF export ──────────────────────────────────────────────────────────
+  // Columns built once — keys are static
+  const handleExportPDF = useCallback(async () => {
+    const columnTitleMap: Record<string, string> = {
+      patientName: t("patients.table.patient"),
+      age: t("patients.table.age"),
+      gender: t("patients.table.gender"),
+      phone: t("patients.table.contact"),
+      lastVisit: t("patients.table.lastVisit"),
+      serviceReceived: t("patients.table.serviceSpecialty"),
+      location: t("patients.table.location"),
+    };
+
+    await MCGeneratePDF({
+      columns: PDF_COLUMN_KEYS.map((key) => ({ title: columnTitleMap[key], key })),
+      data: tablePatients.map((p) => ({
+        ...p,
+        gender: t(`patients.table.${p.gender}`),
+      })),
+      fileName: "pacientes",
+      title: t("patients.title"),
+      subtitle: t("patients.subtitle"),
+    });
+  }, [t, tablePatients]);
+
+  // ─── Render helpers ──────────────────────────────────────────────────────
+  const pdfGeneratorComponent = useMemo(
+    () => <MCPDFButton onClick={handleExportPDF} />,
+    [handleExportPDF]
+  );
+
+  const filterComponent = useMemo(
+    () => (
+      <MCFilterPopover
+        activeFiltersCount={activeFiltersCount}
+        onClearFilters={clearFilters}
+      >
+        <FilterMyPatients filters={filters} onFiltersChange={handleFilterChange} />
+      </MCFilterPopover>
+    ),
+    [activeFiltersCount, clearFilters, filters, handleFilterChange]
+  );
+
+  const searchComponent = useMemo(
+    () => (
+      <MCFilterInput
+        placeholder={t("patients.search.placeholder")}
+        value={searchTerm}
+        onChange={handleSearchChange}
+      />
+    ),
+    [t, searchTerm, handleSearchChange]
+  );
+
+  const paginationComponent = useMemo(
+    () =>
+      totalPages > 1 ? (
+        <Pagination>
+          <PaginationContent className="flex-wrap gap-1">
+            <PaginationItem>
+              <PaginationPrevious
+                onClick={handlePreviousPage}
+                aria-disabled={currentPage === 1 || patientsFetching}
+                tabIndex={currentPage === 1 || patientsFetching ? -1 : 0}
+                className={
+                  currentPage === 1 || patientsFetching
+                    ? "pointer-events-none opacity-50"
+                    : "cursor-pointer"
+                }
+              />
+            </PaginationItem>
+            {Array.from({ length: totalPages }).map((_, idx) => (
+              <PaginationItem key={idx}>
+                <PaginationLink
+                  isActive={currentPage === idx + 1}
+                  onClick={() => handlePageClick(idx + 1)}
+                  className={
+                    patientsFetching ? "pointer-events-none opacity-50" : "cursor-pointer"
+                  }
+                >
+                  {idx + 1}
+                </PaginationLink>
+              </PaginationItem>
+            ))}
+            <PaginationItem>
+              <PaginationNext
+                onClick={handleNextPage}
+                aria-disabled={currentPage === totalPages || patientsFetching}
+                tabIndex={currentPage === totalPages || patientsFetching ? -1 : 0}
+                className={
+                  currentPage === totalPages || patientsFetching
+                    ? "pointer-events-none opacity-50"
+                    : "cursor-pointer"
+                }
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
+      ) : null,
+    [totalPages, currentPage, patientsFetching, handlePreviousPage, handlePageClick, handleNextPage]
+  );
+
+  // ─── Loading ─────────────────────────────────────────────────────────────
+  if (statsLoading || patientsLoading) {
     return (
       <MCTablesLayouts
         title={t("patients.title")}
-        metrics={[
-          {
-            title: t("patients.metrics.total"),
-            value: "—",
-            subtitle: t("patients.metrics.totalSubtitle"),
-            icon: <Users />,
-          },
-          {
-            title: t("patients.metrics.withConditions"),
-            value: "—",
-            subtitle: t("patients.metrics.withConditionsSubtitle"),
-            icon: <ShieldAlert />,
-          },
-          {
-            title: t("patients.metrics.withAllergies"),
-            value: "—",
-            subtitle: t("patients.metrics.withAllergiesSubtitle"),
-            icon: <AlertTriangle />,
-          },
-          {
-            title: t("patients.metrics.avgAge"),
-            value: "—",
-            subtitle: t("patients.metrics.avgAgeSubtitle"),
-            icon: <BarChart2 />,
-          },
-        ]}
+        metrics={metrics}
         filtersInlineWithTitle
         tableComponent={
-          <div className="flex items-center justify-center w-full h-64">
-            <div className="text-muted-foreground">
-              {t("common.loading") || "Cargando..."}
+          <LoadingState text={t("common.loading") || "Cargando..."} />
+        }
+      />
+    );
+  }
+
+  // ─── Error ───────────────────────────────────────────────────────────────
+  if (patientsError) {
+    return (
+      <MCTablesLayouts
+        title={t("patients.title")}
+        filtersInlineWithTitle
+        tableComponent={
+          <ErrorState
+            isMobile={isMobile}
+            title={t("patients.error.title")}
+            description={
+              (patientsErrorDetail as Error)?.message ||
+              t("patients.error.description")
+            }
+            retryLabel={t("patients.error.retry")}
+          />
+        }
+      />
+    );
+  }
+
+  // ─── Main render ─────────────────────────────────────────────────────────
+  const tableComponent =
+    tablePatients.length === 0 ? (
+      <EmptyState
+        isMobile={isMobile}
+        hasActiveFilters={activeFiltersCount > 0}
+        onClearFilters={clearFilters}
+        t={t}
+      />
+    ) : (
+      <div className="relative">
+        {patientsFetching && (
+          <div className="absolute inset-0 bg-background/50 backdrop-blur-sm z-10 flex items-center justify-center rounded-lg">
+            <div className="flex flex-col items-center gap-3">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+              <p className="text-sm text-muted-foreground font-medium">
+                {t("common.loading") || "Cargando..."}
+              </p>
             </div>
           </div>
-        }
-      />
+        )}
+        <div className={`transition-opacity duration-300 ${patientsFetching ? "opacity-40" : "opacity-100"}`}>
+          <MyPatientsTable patients={tablePatients} />
+        </div>
+      </div>
     );
-  }
-
-  if (isError) {
-    return (
-      <MCTablesLayouts
-        title={t("patients.title")}
-        filtersInlineWithTitle
-        tableComponent={
-          <Empty>
-            <EmptyHeader>
-              <div className="flex flex-col items-center gap-2">
-                <span className="flex items-center justify-center gap-2 text-destructive">
-                  <AlertTriangle className={isMobile ? "w-5 h-5" : "w-7 h-7"} />
-                  <EmptyTitle className="font-semibold">
-                    {t("common.errorOccurred") || "Ocurrió un error"}
-                  </EmptyTitle>
-                </span>
-                <EmptyDescription className={`text-muted-foreground text-center max-w-md mx-auto ${
-                  isMobile ? "text-sm" : "text-base"
-                }`}>
-                  {error instanceof Error
-                    ? error.message
-                    : t("common.tryAgainLater") || "Por favor, intenta más tarde"}
-                </EmptyDescription>
-              </div>
-            </EmptyHeader>
-          </Empty>
-        }
-      />
-    );
-  }
 
   return (
     <MCTablesLayouts
@@ -423,17 +547,10 @@ function PatientsPage() {
       metrics={metrics}
       filtersInlineWithTitle
       tableComponent={tableComponent}
-      searchComponent={
-        <div className="w-full sm:w-auto sm:min-w-[200px] lg:min-w-[250px]">
-          <MCFilterInput
-            placeholder={t("patients.searchPlaceholder")}
-            value={searchTerm}
-            onChange={setSearchTerm}
-          />
-        </div>
-      }
+      searchComponent={searchComponent}
       pdfGeneratorComponent={pdfGeneratorComponent}
       filterComponent={filterComponent}
+      paginationComponent={paginationComponent}
     />
   );
 }

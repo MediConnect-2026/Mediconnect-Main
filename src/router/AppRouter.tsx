@@ -196,11 +196,19 @@ function AppRouter() {
             {/* Profile Routes */}
             <Route
               path={ROUTES.PATIENT.PATIENT_PROFILE_PRIVATE}
-              element={<PatientProfilePage />}
+              element={
+                <ProtectedRoute patient>
+                  <PatientProfilePage />
+                </ProtectedRoute>
+              }
             />
             <Route
               path={ROUTES.PATIENT.PATIENT_PROFILE_PUBLIC}
-              element={<PatientProfilePage />}
+              element={
+                <ProtectedRoute patient>
+                  <PatientProfilePage />
+                </ProtectedRoute>
+              }
             />
             <Route
               path={ROUTES.DOCTOR.DOCTOR_PROFILE_PUBLIC}

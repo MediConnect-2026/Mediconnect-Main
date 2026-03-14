@@ -13,7 +13,8 @@
   },
   "common": {
     "confirm": "Confirmar",
-    "cancel": "Cancelar"
+    "cancel": "Cancelar",
+    "loading": "Cargando..."
   },
   "userMenu": {
     "spanish": "Español",

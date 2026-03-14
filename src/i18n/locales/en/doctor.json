@@ -148,7 +148,8 @@
       "noResultsDescription": "No appointments match the selected filters. Try adjusting or clearing them.",
       "noAppointments": "No appointments registered",
       "noAppointmentsDescription": "You don't have any appointments scheduled at this time.",
-      "clearFilters": "Clear filters"
+      "clearFilters": "Clear filters",
+      "loadError": "Error loading appointments. Please try again later."
     },
     "status": {
       "pending": "Pending",
@@ -317,6 +318,9 @@
       "viewProfile": "View profile",
       "viewDetails": "View details",
       "message": "Send message"
+    },
+    "search": {
+      "placeholder": "Search patient, specialty or service..."
     }
   },
 
@@ -555,8 +559,11 @@
     "connect": "Connect",
     "disconnect": "Disconnect",
     "viewDetails": "View details",
+    "loading": "Loading...",
     "reviews": "reviews",
-    "review": "review"
+    "review": "review",
+    "error": "An error occurred. Please try again.",
+    "retry": "Please try again"
   },
 
   "profile": {
@@ -933,6 +940,7 @@
       "continue": "Continue",
       "back": "Back",
       "step": "Step",
+      "loading": "Loading...",
       "of": "of"
     },
     "leave": {

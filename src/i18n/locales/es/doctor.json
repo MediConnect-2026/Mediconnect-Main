@@ -153,7 +153,8 @@
       "noResultsDescription": "Ninguna cita coincide con los filtros seleccionados. Intenta ajustarlos o limpiarlos.",
       "noAppointments": "No hay citas registradas",
       "noAppointmentsDescription": "No tienes ninguna cita agendada en este momento.",
-      "clearFilters": "Limpiar filtros"
+      "clearFilters": "Limpiar filtros",
+      "loadError": "Error al cargar citas. Por favor, intenta nuevamente más tarde."
     },
     "status": {
       "pending": "Pendiente",
@@ -322,6 +323,9 @@
       "viewProfile": "Ver perfil",
       "viewDetails": "Ver detalles",
       "message": "Enviar mensaje"
+    },
+    "search": {
+      "placeholder": "Buscar paciente, especialidad o servicio..."
     }
   },
 
@@ -563,7 +567,10 @@
     "disconnect": "Desconectar",
     "viewDetails": "Ver detalles",
     "reviews": "reseñas",
-    "review": "reseña"
+    "loading": "Cargando...",
+    "review": "reseña",
+    "error": "Ocurrió un error. Por favor, intenta nuevamente.",
+    "retry": "Reintentar"
   },
 
   "profile": {

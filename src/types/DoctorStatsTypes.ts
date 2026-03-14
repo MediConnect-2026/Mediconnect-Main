@@ -172,3 +172,122 @@ export interface DoctorPatientsStatsResponse {
   filtros: DoctorPatientsStatsFilters;
   data: DoctorPatientsStats;
 }
+
+/**
+ * Especialidad del servicio
+ */
+export interface MisEspecialidad {
+  id: number;
+  nombre: string;
+}
+
+/**
+ * Servicio medical
+ */
+export interface MisServicio {
+  id: number;
+  nombre: string;
+  especialidad: MisEspecialidad;
+}
+
+/**
+ * Última cita del paciente
+ */
+export interface MisUltimaCita {
+  citaId: number;
+  fecha: string; // Formato: YYYY-MM-DD
+  hora: string;
+  estado: string;
+  modalidad: string;
+  servicio: MisServicio;
+}
+
+/**
+ * Condición médica individual
+ */
+export interface MisCondicion {
+  id: number;
+  nombre: string;
+  tipo: string;
+}
+
+/**
+ * Condiciones médicas del paciente
+ */
+export interface MisCondiciones {
+  total: number;
+  lista: MisCondicion[];
+}
+
+/**
+ * Ubicación de la última cita
+ */
+export interface MisUbicacionUltimaCita {
+  id: number;
+  nombre: string;
+}
+
+/**
+ * Datos del paciente obtenidos del endpoint /citas/mis-pacientes
+ */
+export interface PacienteDelDoctor {
+  pacienteId: number;
+  nombre: string;
+  apellido: string;
+  email: string;
+  telefono: string;
+  fotoPerfil: string;
+  edad: number;
+  genero: string;
+  tipoDocIdentificacion: string;
+  numeroDocIdentificacion: string;
+  peso: number;
+  altura: number;
+  tipoSangre: string;
+  ubicacionUltimaCita: MisUbicacionUltimaCita;
+  condiciones: MisCondiciones;
+  ultimaCita: MisUltimaCita;
+  totalCitas: number;
+}
+
+/**
+ * Información de paginación
+ */
+export interface PaginacionInfo {
+  total: number;
+  pagina: number;
+  limite: number;
+  totalPaginas: number;
+}
+
+/**
+ * Respuesta del endpoint /citas/mis-pacientes
+ */
+export interface MisPacientesResponse {
+  success: boolean;
+  data: PacienteDelDoctor[];
+  paginacion: PaginacionInfo;
+}
+
+/**
+ * Parámetros de filtro para obtener pacientes
+ */
+// En DoctorStatsTypes.ts
+export interface FiltrosPacientes {
+  pagina?: number;
+  target?: string;
+  source?: string;
+  translate_fields?: string;
+  limite?: number;
+  buscar?: string;
+  genero?: 'M' | 'F';
+  condicionId?: number;
+  alergiaId?: number;
+  servicioId?: number;
+  especialidadId?: number;   
+  ubicacionId?: number;      
+  tieneCondiciones?: boolean; 
+  tieneAlergias?: boolean;    
+  ultimaCitaDesde?: string;
+  ultimaCitaHasta?: string;
+}

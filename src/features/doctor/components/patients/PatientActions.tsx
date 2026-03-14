@@ -1,5 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { useStartConversation } from "@/lib/hooks/useStartConversation";
+import { Loader2 } from "lucide-react";
 
 const ROUTES = {
   PATIENT_PROFILE_PUBLIC: "/patient/profile/:patientId",
@@ -18,27 +20,21 @@ export default function PatientActions({ patient }: PatientActionsProps) {
   const { t } = useTranslation("doctor");
   const navigate = useNavigate();
 
-  const handleViewProfile = () => {
-    navigate(ROUTES.PATIENT_PROFILE_PUBLIC.replace(":patientId", patient.id));
-  };
-
+  const { startConversation, isLoading: isStartingConversation } = useStartConversation();
+  
+    
   const handleViewDetails = () => {
     navigate(ROUTES.PATIENT_DETAILS.replace(":patientId", patient.id));
   };
 
   const handleMessage = () => {
-    const conversationId = patient.conversationId ?? patient.id;
-    navigate(ROUTES.CHAT_WITH.replace(":conversationId", conversationId));
+    if(patient.id){
+      startConversation(Number(patient.id));
+    }
   };
 
   return (
     <div className="flex flex-col gap-1 p-2">
-      <div
-        className="p-2 cursor-pointer rounded-lg hover:bg-accent/70 dark:hover:text-background transition text-sm text-center"
-        onClick={handleViewProfile}
-      >
-        {t("patients.actions.viewProfile")}
-      </div>
       <div
         className="p-2 cursor-pointer rounded-lg hover:bg-accent/70 dark:hover:text-background transition text-sm text-center"
         onClick={handleViewDetails}
@@ -46,10 +42,15 @@ export default function PatientActions({ patient }: PatientActionsProps) {
         {t("patients.actions.viewDetails")}
       </div>
       <div
-        className="p-2 cursor-pointer rounded-lg hover:bg-blue-500/10 text-blue-600 transition text-sm text-center"
+        className={`p-2 rounded-lg transition text-sm text-center flex items-center justify-center gap-2 ${
+          isStartingConversation
+            ? "bg-blue-500/10 text-blue-600 cursor-not-allowed opacity-75"
+            : "cursor-pointer hover:bg-blue-500/10 text-blue-600"
+        }`}
         onClick={handleMessage}
       >
-        {t("patients.actions.message")}
+        {isStartingConversation && <Loader2 className="w-4 h-4 animate-spin" />}
+        {isStartingConversation ? t("common.loading") : t("patients.actions.message")}
       </div>
     </div>
   );

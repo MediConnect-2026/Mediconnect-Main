@@ -29,23 +29,39 @@ import { MCUserAvatar } from "@/shared/navigation/userMenu/MCUserAvatar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/avatar";
 import PatientActions from "@/features/doctor/components/patients/PatientActions";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
+import type { PacienteDelDoctor } from "@/types/DoctorStatsTypes";
 
-export interface Patient {
-  id: string;
-  conversationId?: string;
-  patientName: string;
+/**
+ * Tipo Patient para el componente de tabla
+ * Es compatible con la respuesta de la API y con datos mock
+ */
+export type Patient = PacienteDelDoctor | {
+  pacienteId?: string | number;
+  id?: string;
+  nombre?: string;
+  patientName?: string;
+  apellido?: string;
+  fotoPerfil?: string;
   patientImage?: string;
-  age: number;
-  gender: "male" | "female" | "other";
-  phone: string;
-  email: string;
-  conditionsCount: number;
-  allergiesCount: number;
-  lastVisit: string;
-  serviceReceived: string;
-  specialty: string;
-  location: string;
-}
+  edad?: number;
+  age?: number;
+  genero?: string;
+  gender?: string;
+  telefono?: string;
+  phone?: string;
+  email?: string;
+  condiciones?: { total: number; lista: any[] };
+  conditionsCount?: number;
+  ultimaCita?: { servicio?: { especialidad?: { nombre: string } } } | { specialty?: string };
+  specialty?: string;
+  ubicacionUltimaCita?: { nombre: string };
+  location?: string;
+  totalCitas?: number;
+  lastVisit?: string;
+  serviceReceived?: string;
+  conversationId?: string;
+  allergiesCount?: number;
+};
 
 interface MyPatientsTableProps {
   patients: Patient[];
@@ -60,23 +76,26 @@ export default function MyPatientsTable({ patients }: MyPatientsTableProps) {
   const { t } = useTranslation("doctor");
   const isMobile = useIsMobile();
   const [page, setPage] = React.useState(1);
+  const patientsList = patients as any[];
 
-  const totalPages = Math.ceil(patients.length / PAGE_SIZE);
-  const paginatedData = patients.slice(
+  const totalPages = Math.ceil(patientsList.length / PAGE_SIZE);
+  const paginatedData = patientsList.slice(
     (page - 1) * PAGE_SIZE,
     page * PAGE_SIZE,
   );
 
   React.useEffect(() => {
     if (page > totalPages && totalPages > 0) setPage(1);
-  }, [patients.length, page, totalPages]);
+  }, [patientsList.length, page, totalPages]);
 
-  const genderLabel = (gender: Patient["gender"]) =>
-    ({
+  const genderLabel = (gender: string | undefined) => {
+    const labels: Record<string, string> = {
       male: t("patients.table.male"),
       female: t("patients.table.female"),
       other: t("patients.table.other"),
-    })[gender] ?? gender;
+    };
+    return labels[gender || "other"] ?? gender;
+  };
 
   return (
     <div className="w-full">
@@ -111,8 +130,8 @@ export default function MyPatientsTable({ patients }: MyPatientsTableProps) {
         </TableHeader>
         <TableBody>
           {paginatedData.length > 0 ? (
-            paginatedData.map((row) => (
-              <TableRow key={row.id}>
+            paginatedData.map((row: any) => (
+              <TableRow key={row.id || row.pacienteId}>
                 {/* Paciente */}
                 <TableCell>
                   <div className="flex items-center gap-2">
@@ -135,7 +154,7 @@ export default function MyPatientsTable({ patients }: MyPatientsTableProps) {
                           <AvatarFallback className="bg-muted text-muted-foreground">
                             {row.patientName
                               .split(" ")
-                              .map((n) => n[0])
+                              .map((n: string) => n[0])
                               .join("")}
                           </AvatarFallback>
                         </Avatar>

@@ -20,6 +20,7 @@ import {
 import { Popover, PopoverTrigger, PopoverContent } from "@/shared/ui/popover";
 import AppointmentActions from "@/features/patient/components/appoiments/AppointmentActions";
 import { MCUserAvatar } from "@/shared/navigation/userMenu/MCUserAvatar";
+import { formatTimeTo12h } from "@/utils/appointmentMapper";
 
 export interface Appointment {
   id: string;
@@ -142,7 +143,7 @@ export default function MyAppointmentTable({
                 <TableCell className="w-[150px]">
                   <div className="font-medium">{row.date}</div>
                   <div className="text-xs text-muted-foreground">
-                    {row.time}
+                    {formatTimeTo12h(row.time)}
                   </div>
                 </TableCell>
                 <TableCell className="w-[180px]">

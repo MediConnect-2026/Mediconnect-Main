@@ -38,6 +38,7 @@ import type { CitasFilters, CitaDetalle } from "@/types/AppointmentTypes";
 
 // Import the Appointment type
 import type { Appointment } from "../components/appointments/MyAppointmentTable";
+import { format, addDays } from 'date-fns';
 
 /**
  * Mapea una cita del API (CitaDetalle) al formato de UI (Appointment)
@@ -77,8 +78,8 @@ const mapCitaDetalleToAppointment = (cita: CitaDetalle): Appointment => {
     time: formattedTime,
     phone: cita.paciente.usuario.email || 'N/A',
     email: cita.paciente.usuario.email || 'N/A',
-    appointmentType: cita.modalidad === 'virtual' ? 'virtual' : 'in_person',
-    location: cita.modalidad === 'virtual' ? 'Virtual' : 'En sitio',
+    appointmentType: cita.modalidad === 'Teleconsulta' ? 'virtual' : 'in_person',
+    location: cita.modalidad === 'Teleconsulta' ? 'Virtual' : 'En sitio',
     status: statusMap[cita.estado] || 'scheduled',
   };
 };
@@ -86,6 +87,7 @@ const mapCitaDetalleToAppointment = (cita: CitaDetalle): Appointment => {
 
 function AppointmentsPage() {
   const { t } = useTranslation("doctor");
+  const {i18n} = useTranslation();
   const isMobile = useIsMobile();
 
   // Estados UI
@@ -106,6 +108,9 @@ function AppointmentsPage() {
     const converted: CitasFilters = {
       pagina: currentPage,
       limite: PAGE_SIZE,
+      source: i18n.language === "es" ? "en" : "es",
+      target: i18n.language === "es" ? "es" : "en",
+      translate_fields: "nombre",
     };
 
     // Mapear estado
@@ -122,15 +127,29 @@ function AppointmentsPage() {
     // Mapear rango de fechas
     if (filters.dateRange) {
       const [startDate, endDate] = filters.dateRange;
-      converted.fechaDesde = startDate.toISOString().split('T')[0];
-      converted.fechaHasta = endDate.toISOString().split('T')[0];
+
+      // Reconstruir la fecha en local noon para evitar desfase UTC
+      const toLocalNoon = (date: Date): Date => {
+        return new Date(
+          date.getUTCFullYear(),
+          date.getUTCMonth(),
+          date.getUTCDate(),
+          12, 0, 0, 0  // mediodía local — nunca cruza medianoche por timezone
+        );
+      };
+
+      const localStart = toLocalNoon(startDate);
+      const localEnd = toLocalNoon(endDate);
+
+      converted.fechaDesde = format(addDays(localStart, 1), 'MM/dd/yyyy');
+      converted.fechaHasta = format(addDays(localEnd, 1), 'MM/dd/yyyy');
     }
 
     return converted;
-  }, [filters.status, filters.dateRange, currentPage]);
+  }, [filters.status, filters.dateRange, currentPage, i18n.language]);
 
   // Petición al API
-  const { data: apiResponse, isLoading, error } = useDoctorAppointments(apiFilters);
+  const { data: apiResponse, isLoading, isFetching, error } = useDoctorAppointments(apiFilters);
 
   // Mapear respuesta del API
   const allAppointments = useMemo(() => {
@@ -139,19 +158,54 @@ function AppointmentsPage() {
     return data.map(mapCitaDetalleToAppointment);
   }, [apiResponse?.data]);
 
-  // Filtrar por búsqueda (cliente-side)
-  const filteredAppointments = useMemo(() => {
-    if (!searchTerm) return allAppointments;
-    
-    return allAppointments.filter((appointment) => {
-      const searchLower = searchTerm.toLowerCase();
-      return (
-        appointment.patientName.toLowerCase().includes(searchLower) ||
-        appointment.service.toLowerCase().includes(searchLower) ||
-        appointment.specialty.toLowerCase().includes(searchLower)
-      );
+  // Extraer opciones dinámicamente de los datos cargados (client-side)
+  const { specialtyOptions, serviceOptions } = useMemo(() => {
+    const specialties = new Map<string, boolean>();
+    const services = new Map<string, boolean>();
+
+    allAppointments.forEach((apt) => {
+      specialties.set(apt.specialty, true);
+      services.set(apt.service, true);
     });
-  }, [allAppointments, searchTerm]);
+
+    return {
+      specialtyOptions: Array.from(specialties.keys()).sort(),
+      serviceOptions: Array.from(services.keys()).sort(),
+    };
+  }, [allAppointments]);
+
+  // Filtrar por búsqueda y filtros client-side (cliente-side)
+  const filteredAppointments = useMemo(() => {
+    let result = allAppointments;
+
+    // Filtrar por rango de especialidades (client-side)
+    if (filters.specialty !== "all") {
+      result = result.filter((apt) => apt.specialty === filters.specialty);
+    }
+
+    // Filtrar por servicio (client-side)
+    if (filters.service !== "all") {
+      result = result.filter((apt) => apt.service === filters.service);
+    }
+
+    // Filtrar por tipo de cita (client-side)
+    if (filters.appointmentType !== "all") {
+      result = result.filter((apt) => apt.appointmentType === filters.appointmentType);
+    }
+
+    // Filtrar por búsqueda de texto (client-side)
+    if (searchTerm) {
+      const searchLower = searchTerm.toLowerCase();
+      result = result.filter(
+        (appointment) =>
+          appointment.patientName.toLowerCase().includes(searchLower) ||
+          appointment.service.toLowerCase().includes(searchLower) ||
+          appointment.specialty.toLowerCase().includes(searchLower)
+      );
+    }
+
+    return result;
+  }, [allAppointments, filters.specialty, filters.service, filters.appointmentType, searchTerm]);
 
   // Usar paginación del API
   const totalPages = apiResponse?.paginacion?.totalPaginas || 1;
@@ -185,45 +239,50 @@ function AppointmentsPage() {
     setCurrentPage(1); // Resetear a página 1 al cambiar filtros
   }, []);
 
-  // Search input
-  const searchComponent = (
-    <div className="w-full sm:w-auto sm:min-w-[200px] lg:min-w-[250px]">
-      <MCFilterInput
-        placeholder={t("appointments.searchPlaceholder")}
-        value={searchTerm}
-        onChange={setSearchTerm}
-      />
-    </div>
+  // Search input - Memoizar para evitar re-renders
+  const searchComponent = useMemo(
+    () => (
+      <div className="w-full sm:w-auto sm:min-w-[200px] lg:min-w-[250px]">
+        <MCFilterInput
+          placeholder={t("appointments.searchPlaceholder")}
+          value={searchTerm}
+          onChange={setSearchTerm}
+        />
+      </div>
+    ),
+    [searchTerm, t]
   );
 
-  // PDF generator
-  const pdfGeneratorComponent = (
-    <MCPDFButton
-      onClick={async () => {
-        await MCGeneratePDF({
-          columns: [
-            { title: t("appointments.table.patient"), key: "patientName" },
-            { title: t("appointments.table.status"), key: "status" },
-            { title: t("appointments.table.service"), key: "service" },
-            { title: t("appointments.table.specialty"), key: "specialty" },
-            { title: t("appointments.table.schedule"), key: "date" },
-            { title: t("appointments.table.type"), key: "appointmentType" },
-            { title: t("appointments.table.location"), key: "location" },
-          ],
-          data: filteredAppointments.map((apt) => ({
-            ...apt,
-            status: t(`appointments.status.${apt.status}`),
-            appointmentType:
-              apt.appointmentType === "virtual"
-                ? t("appointments.type.virtual")
-                : t("appointments.type.inPerson"),
-          })),
-          fileName: "citas",
-          title: t("appointments.title"),
-          subtitle: t("appointments.subtitle"),
-        });
-      }}
-    />
+  // Callback para generar PDF - Memoizado
+  const handleGeneratePDF = useCallback(async () => {
+    await MCGeneratePDF({
+      columns: [
+        { title: t("appointments.table.patient"), key: "patientName" },
+        { title: t("appointments.table.status"), key: "status" },
+        { title: t("appointments.table.service"), key: "service" },
+        { title: t("appointments.table.specialty"), key: "specialty" },
+        { title: t("appointments.table.schedule"), key: "date" },
+        { title: t("appointments.table.type"), key: "appointmentType" },
+        { title: t("appointments.table.location"), key: "location" },
+      ],
+      data: filteredAppointments.map((apt) => ({
+        ...apt,
+        status: t(`appointments.status.${apt.status}`),
+        appointmentType:
+          apt.appointmentType === "virtual"
+            ? t("appointments.type.virtual")
+            : t("appointments.type.inPerson"),
+      })),
+      fileName: "citas",
+      title: t("appointments.title"),
+      subtitle: t("appointments.subtitle"),
+    });
+  }, [filteredAppointments, t]);
+
+  // PDF generator - Memoizar para evitar re-renders
+  const pdfGeneratorComponent = useMemo(
+    () => <MCPDFButton onClick={handleGeneratePDF} />,
+    [handleGeneratePDF]
   );
 
   const filterComponent = (
@@ -234,56 +293,77 @@ function AppointmentsPage() {
       <FilterMyAppointments
         filters={filters}
         onFiltersChange={handleFiltersChange}
+        specialtyOptions={specialtyOptions}
+        serviceOptions={serviceOptions}
       />
     </MCFilterPopover>
   );
 
-  // Componente de paginación separado
-  const paginationComponent = totalPages > 1 ? (
-    <Pagination>
-      <PaginationContent className="flex-wrap gap-1">
-        <PaginationItem>
-          <PaginationPrevious
-            onClick={() => {
-              if (currentPage > 1) setCurrentPage((p) => Math.max(1, p - 1));
-            }}
-            aria-disabled={currentPage === 1}
-            tabIndex={currentPage === 1 ? -1 : 0}
-            className={
-              currentPage === 1
-                ? "pointer-events-none opacity-50"
-                : "cursor-pointer"
-            }
-          />
-        </PaginationItem>
-        {Array.from({ length: totalPages }).map((_, idx) => (
-          <PaginationItem key={idx}>
-            <PaginationLink
-              isActive={currentPage === idx + 1}
-              onClick={() => setCurrentPage(idx + 1)}
-            >
-              {idx + 1}
-            </PaginationLink>
-          </PaginationItem>
-        ))}
-        <PaginationItem>
-          <PaginationNext
-            onClick={() => {
-              if (currentPage < totalPages)
-                setCurrentPage((p) => Math.min(totalPages, p + 1));
-            }}
-            aria-disabled={currentPage === totalPages}
-            tabIndex={currentPage === totalPages ? -1 : 0}
-            className={
-              currentPage === totalPages
-                ? "pointer-events-none opacity-50"
-                : "cursor-pointer"
-            }
-          />
-        </PaginationItem>
-      </PaginationContent>
-    </Pagination>
-  ) : null;
+  // Callbacks para paginación - Memoizados
+  const handlePreviousPage = useCallback(() => {
+    if (currentPage > 1 && !isFetching) setCurrentPage((p) => Math.max(1, p - 1));
+  }, [currentPage, isFetching]);
+
+  const handlePageClick = useCallback(
+    (pageNum: number) => {
+      if (!isFetching) setCurrentPage(pageNum);
+    },
+    [isFetching]
+  );
+
+  const handleNextPage = useCallback(() => {
+    if (currentPage < totalPages && !isFetching)
+      setCurrentPage((p) => Math.min(totalPages, p + 1));
+  }, [currentPage, totalPages, isFetching]);
+
+  // Componente de paginación separado - Memoizar para evitar re-renders
+  const paginationComponent = useMemo(
+    () =>
+      totalPages > 1 ? (
+        <Pagination>
+          <PaginationContent className="flex-wrap gap-1">
+            <PaginationItem>
+              <PaginationPrevious
+                onClick={handlePreviousPage}
+                aria-disabled={currentPage === 1 || isFetching}
+                tabIndex={currentPage === 1 || isFetching ? -1 : 0}
+                className={
+                  currentPage === 1 || isFetching
+                    ? "pointer-events-none opacity-50"
+                    : "cursor-pointer"
+                }
+              />
+            </PaginationItem>
+            {Array.from({ length: totalPages }).map((_, idx) => (
+              <PaginationItem key={idx}>
+                <PaginationLink
+                  isActive={currentPage === idx + 1}
+                  onClick={() => handlePageClick(idx + 1)}
+                  className={
+                    isFetching ? "pointer-events-none opacity-50" : "cursor-pointer"
+                  }
+                >
+                  {idx + 1}
+                </PaginationLink>
+              </PaginationItem>
+            ))}
+            <PaginationItem>
+              <PaginationNext
+                onClick={handleNextPage}
+                aria-disabled={currentPage === totalPages || isFetching}
+                tabIndex={currentPage === totalPages || isFetching ? -1 : 0}
+                className={
+                  currentPage === totalPages || isFetching
+                    ? "pointer-events-none opacity-50"
+                    : "cursor-pointer"
+                }
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
+      ) : null,
+    [totalPages, currentPage, isFetching, handlePreviousPage, handlePageClick, handleNextPage]
+  );
 
   // Error state
   if (error) {
@@ -373,8 +453,21 @@ function AppointmentsPage() {
       </EmptyContent>
     </Empty>
   ) : (
-    <div className={`transition-opacity duration-300 ${isLoading ? "opacity-50 pointer-events-none" : "opacity-100"}`}>
-      <MyAppointmentTable appointments={paginatedAppointments} />
+    <div className="relative">
+      {/* Spinner overlay cuando está cargando */}
+      {isFetching && (
+        <div className="absolute inset-0 bg-background/50 backdrop-blur-sm z-10 flex items-center justify-center rounded-lg">
+          <div className="flex flex-col items-center gap-3">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+            <p className="text-sm text-muted-foreground font-medium">
+              {t("common.loading")}
+            </p>
+          </div>
+        </div>
+      )}
+      <div className={`transition-opacity duration-300 ${isFetching ? "opacity-40" : "opacity-100"}`}>
+        <MyAppointmentTable appointments={paginatedAppointments} />
+      </div>
     </div>
   );
 

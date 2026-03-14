@@ -12,6 +12,10 @@ import type {
   MyDoctorsResponse,
   MyDoctorsFilters 
 } from '@/types/AppointmentTypes';
+import type { 
+  MisPacientesResponse, 
+  FiltrosPacientes 
+} from '@/types/DoctorStatsTypes';
 
 /**
  * Obtiene todas las citas del paciente autenticado con soporte para filtros y paginación
@@ -174,4 +178,105 @@ export const getMisDoctores = async (filters?: MyDoctorsFilters): Promise<MyDoct
 
   const { data } = await apiClient.get<MyDoctorsResponse>(url);
   return data;
+};
+
+/**
+ * Obtiene la lista de pacientes del doctor autenticado con filtros avanzados y paginación
+ * @param filters - Filtros y paginación opcionales
+ * @returns Promise con la lista de pacientes y información de paginación
+ *
+ * @example
+ * ```tsx
+ * // Sin filtros
+ * const response = await getDoctorPatients();
+ *
+ * // Con paginación
+ * const response = await getDoctorPatients({ pagina: 1, limite: 10 });
+ *
+ * // Con búsqueda y filtros
+ * const response = await getDoctorPatients({
+ *   buscar: "Carlos",
+ *   genero: "M",
+ *   pagina: 1,
+ *   limite: 20
+ * });
+ * ```
+ */
+export const getDoctorPatients = async (filters?: FiltrosPacientes): Promise<MisPacientesResponse> => {
+  try {
+    const params = new URLSearchParams();
+
+    // Paginación
+    if (filters?.pagina) {
+      params.append('pagina', filters.pagina.toString());
+    }
+    if (filters?.limite) {
+      params.append('limite', filters.limite.toString());
+    }
+
+    // Búsqueda
+    if (filters?.buscar) {
+      params.append('buscar', filters.buscar);
+    }
+
+    // Filtros de demográficos
+    if (filters?.genero) {
+      params.append('genero', filters.genero);
+    }
+
+    // Filtros de condiciones y alergias
+    if (filters?.condicionId) {
+      params.append('condicionId', filters.condicionId.toString());
+    }
+    if (filters?.alergiaId) {
+      params.append('alergiaId', filters.alergiaId.toString());
+    }
+    if (filters?.tieneCondiciones !== undefined) {
+      params.append('tieneCondiciones', filters.tieneCondiciones.toString());
+    }
+    if (filters?.tieneAlergias !== undefined) {
+      params.append('tieneAlergias', filters.tieneAlergias.toString());
+    }
+
+    // Filtros de servicios
+    if (filters?.especialidadId) {
+      params.append('especialidadId', filters.especialidadId.toString());
+    }
+    if (filters?.servicioId) {
+      params.append('servicioId', filters.servicioId.toString());
+    }
+    if (filters?.ubicacionId) {
+      params.append('ubicacionId', filters.ubicacionId.toString());
+    }
+
+    // Filtros de fecha
+    if (filters?.ultimaCitaDesde) {
+      params.append('ultimaCitaDesde', filters.ultimaCitaDesde);
+    }
+    if (filters?.ultimaCitaHasta) {
+      params.append('ultimaCitaHasta', filters.ultimaCitaHasta);
+    }
+    
+    // Filtros de traducción
+    if (filters?.target) {
+      params.append('target', filters.target);
+    }
+    if (filters?.source) {
+      params.append('source', filters.source);
+    }
+    if (filters?.translate_fields) {
+      params.append('translate_fields', filters.translate_fields);
+    }
+
+    const queryString = params.toString();
+    const url = queryString 
+      ? `${API_ENDPOINTS.CITAS.MIS_PACIENTES}?${queryString}`
+      : API_ENDPOINTS.CITAS.MIS_PACIENTES;
+
+    const { data } = await apiClient.get<MisPacientesResponse>(url);
+    return data;
+  } catch (error) {
+    console.error('Error fetching doctor patients:', error);
+    throw error;
+  }
 };

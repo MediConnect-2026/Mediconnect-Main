@@ -1,4 +1,5 @@
-import { type JSX } from "react";
+import { type JSX, useMemo, useCallback } from "react";
+import { memo } from "react";
 // import { Calendar, User, Stethoscope } from "lucide-react";
 import MCFilterSelect from "@/shared/components/filters/MCFilterSelect";
 import MCFilterDates from "@/shared/components/filters/MCFilterDates";
@@ -16,86 +17,136 @@ interface MyAppointmentFilters {
 interface FilterMyAppointmentsProps {
   filters: MyAppointmentFilters;
   onFiltersChange: (filters: Partial<MyAppointmentFilters>) => void;
+  specialtyOptions?: string[];
+  serviceOptions?: string[];
 }
 
 type OptionType = { value: string; label: string | JSX.Element };
 
-function FilterMyAppointments({
+/**
+ * Componente para filtrar citas del doctor
+ * Memoizado para evitar re-renders innecesarios
+ * Las opciones se generan dinámicamente desde los datos de citas
+ */
+const FilterMyAppointments = memo(function FilterMyAppointments({
   filters,
   onFiltersChange,
+  specialtyOptions = [],
+  serviceOptions = [],
 }: FilterMyAppointmentsProps) {
   const { t } = useTranslation("doctor");
   const isMobile = useIsMobile();
 
-  const statusOptions: OptionType[] = [
-    { value: "all", label: t("appointments.filters.status.all") },
-    { value: "pending", label: t("appointments.filters.status.pending") },
-    { value: "scheduled", label: t("appointments.filters.status.scheduled") },
-    {
-      value: "in_progress",
-      label: t("appointments.filters.status.inProgress"),
-    },
-    { value: "completed", label: t("appointments.filters.status.completed") },
-    { value: "cancelled", label: t("appointments.filters.status.cancelled") },
-  ];
+  // Memoizar las opciones de estado para solo crearlas una vez
+  const statusOptions: OptionType[] = useMemo(
+    () => [
+      { value: "all", label: t("appointments.filters.status.all") },
+      { value: "scheduled", label: t("appointments.filters.status.scheduled") },
+      {
+        value: "in_progress",
+        label: t("appointments.filters.status.inProgress"),
+      },
+      { value: "completed", label: t("appointments.filters.status.completed") },
+      { value: "cancelled", label: t("appointments.filters.status.cancelled") },
+    ],
+    [t]
+  );
 
-  const typeOptions: OptionType[] = [
-    { value: "all", label: t("appointments.filters.type.all") },
-    {
-      value: "virtual",
-      label: (
-        <span
-          className={`flex items-center gap-1 ${isMobile ? "text-xs" : ""}`}
-        >
-          {t("appointments.filters.type.virtual")}
-        </span>
-      ),
-    },
-    {
-      value: "in_person",
-      label: (
-        <span
-          className={`flex items-center gap-1 ${isMobile ? "text-xs" : ""}`}
-        >
-          {t("appointments.filters.type.inPerson")}
-        </span>
-      ),
-    },
-  ];
+  // Memoizar las opciones de tipo (virtual/presencial)
+  const typeOptions: OptionType[] = useMemo(
+    () => [
+      { value: "all", label: t("appointments.filters.type.all") },
+      {
+        value: "virtual",
+        label: (
+          <span
+            className={`flex items-center gap-1 ${isMobile ? "text-xs" : ""}`}
+          >
+            {t("appointments.filters.type.virtual")}
+          </span>
+        ),
+      },
+      {
+        value: "in_person",
+        label: (
+          <span
+            className={`flex items-center gap-1 ${isMobile ? "text-xs" : ""}`}
+          >
+            {t("appointments.filters.type.inPerson")}
+          </span>
+        ),
+      },
+    ],
+    [t, isMobile]
+  );
 
-  const specialtyOptions: OptionType[] = [
-    { value: "all", label: t("appointments.filters.specialty.all") },
-    {
-      value: "medicina-familiar",
-      label: t("appointments.filters.specialty.familyMedicine"),
-    },
-    {
-      value: "cardiologia",
-      label: t("appointments.filters.specialty.cardiology"),
-    },
-    {
-      value: "medicina-interna",
-      label: t("appointments.filters.specialty.internalMedicine"),
-    },
-    {
-      value: "fisioterapia",
-      label: t("appointments.filters.specialty.physiotherapy"),
-    },
-    {
-      value: "nutricion",
-      label: t("appointments.filters.specialty.nutrition"),
-    },
-  ];
+  // Convertir opciones dinámicas de especialidades a formato OptionType
+  const specialtyOptionsFormatted: OptionType[] = useMemo(
+    () => [
+      { value: "all", label: t("appointments.filters.specialty.all") },
+      ...specialtyOptions.map((spec) => ({
+        value: spec,
+        label: spec,
+      })),
+    ],
+    [specialtyOptions, t]
+  );
 
-  const serviceOptions: OptionType[] = [
-    { value: "all", label: t("appointments.filters.service.all") },
-    { value: "consulta-general", label: "Consulta General" },
-    { value: "evaluacion-seguimiento", label: "Evaluación de Seguimiento" },
-    { value: "control-presion", label: "Control de Presión" },
-    { value: "rehabilitacion", label: "Rehabilitación Post-lesión" },
-    { value: "plan-nutricional", label: "Plan Nutricional" },
-    { value: "fisioterapia", label: "Sesión de Fisioterapia" },
-  ];
+  // Convertir opciones dinámicas de servicios a formato OptionType
+  const serviceOptionsFormatted: OptionType[] = useMemo(
+    () => [
+      { value: "all", label: t("appointments.filters.service.all") },
+      ...serviceOptions.map((svc) => ({
+        value: svc,
+        label: svc,
+      })),
+    ],
+    [serviceOptions, t]
+  );
+
+  // Memoizar los callbacks para evitar recrearlos en cada render
+  const handleStatusChange = useCallback(
+    (v: string | string[]) => {
+      onFiltersChange({
+        status: typeof v === "string" ? v : v[0] ?? "",
+      });
+    },
+    [onFiltersChange]
+  );
+
+  const handleTypeChange = useCallback(
+    (v: string | string[]) => {
+      onFiltersChange({
+        appointmentType: typeof v === "string" ? v : v[0] ?? "",
+      });
+    },
+    [onFiltersChange]
+  );
+
+  const handleSpecialtyChange = useCallback(
+    (v: string | string[]) => {
+      onFiltersChange({
+        specialty: typeof v === "string" ? v : v[0] ?? "",
+      });
+    },
+    [onFiltersChange]
+  );
+
+  const handleServiceChange = useCallback(
+    (v: string | string[]) => {
+      onFiltersChange({
+        service: typeof v === "string" ? v : v[0] ?? "",
+      });
+    },
+    [onFiltersChange]
+  );
+
+  const handleDateRangeChange = useCallback(
+    (dateRange: [Date, Date] | undefined) => {
+      onFiltersChange({ dateRange });
+    },
+    [onFiltersChange]
+  );
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 w-full">
@@ -106,11 +157,7 @@ function FilterMyAppointments({
         placeholder={t("appointments.filters.placeholders.status")}
         value={filters.status}
         noBadges
-        onChange={(v) =>
-          onFiltersChange({
-            status: typeof v === "string" ? v : (v[0] ?? ""),
-          })
-        }
+        onChange={handleStatusChange}
       />
 
       <MCFilterSelect
@@ -120,51 +167,41 @@ function FilterMyAppointments({
         placeholder={t("appointments.filters.placeholders.type")}
         value={filters.appointmentType}
         noBadges
-        onChange={(v) =>
-          onFiltersChange({
-            appointmentType: typeof v === "string" ? v : (v[0] ?? ""),
-          })
-        }
+        onChange={handleTypeChange}
       />
 
       <MCFilterSelect
         name="specialty"
         label={t("appointments.filters.labels.specialty")}
-        options={specialtyOptions}
+        options={specialtyOptionsFormatted}
         placeholder={t("appointments.filters.placeholders.specialty")}
         value={filters.specialty}
         noBadges
-        onChange={(v) =>
-          onFiltersChange({
-            specialty: typeof v === "string" ? v : (v[0] ?? ""),
-          })
-        }
+        onChange={handleSpecialtyChange}
       />
 
       <MCFilterSelect
         name="service"
         label={t("appointments.filters.labels.service")}
-        options={serviceOptions}
+        options={serviceOptionsFormatted}
         placeholder={t("appointments.filters.placeholders.service")}
         value={filters.service}
         noBadges
-        onChange={(v) =>
-          onFiltersChange({
-            service: typeof v === "string" ? v : (v[0] ?? ""),
-          })
-        }
+        onChange={handleServiceChange}
       />
 
-      {/* Nuevo filtro de rango de fechas */}
-      <div className="w-full ">
+      {/* Filtro de rango de fechas */}
+      <div className="w-full">
         <MCFilterDates
           label={t("appointments.filters.labels.dateRange")}
           value={filters.dateRange}
-          onChange={(dateRange) => onFiltersChange({ dateRange })}
+          onChange={handleDateRangeChange}
         />
       </div>
     </div>
   );
-}
+});
+
+FilterMyAppointments.displayName = "FilterMyAppointments";
 
 export default FilterMyAppointments;
