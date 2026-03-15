@@ -10,35 +10,39 @@ import type { Appointment, AppointmentStatus } from '@/types/CalendarTypes';
  */
 const formatPhoneNumber = (phone?: string | null): string | undefined => {
   if (!phone) return undefined;
-  
+
   // Remover todos los caracteres no numéricos
   const cleaned = phone.replace(/\D/g, '');
-  
+
   // Verificar que tenga al menos 10 dígitos
   if (cleaned.length < 10) return phone; // Retornar original si no es válido
-  
+
   // Formatear al estilo (xxx)-xxx-xxxx
   const match = cleaned.match(/^(\d{3})(\d{3})(\d{4})$/);
   if (match) {
     return `(${match[1]})-${match[2]}-${match[3]}`;
   }
-  
+
   return phone; // Retornar original si no coincide con el patrón
 };
 
 /**
  * Mapea el estado de la cita del backend al estado local
  */
-const mapCitaEstadoToAppointmentStatus = (estado: CitaEstado): AppointmentStatus => {
-  const statusMap: Record<CitaEstado, AppointmentStatus> = {
-    'Programada': 'scheduled',
-    'En Progreso': 'in_progress',
-    'Completada': 'completed',
-    'Cancelada': 'cancelled',
-    'Reprogramada': 'scheduled',
+const mapCitaEstadoToAppointmentStatus = (estado: CitaEstado | string): AppointmentStatus => {
+  const normalizedEstado = String(estado).trim().toLowerCase();
+
+  const statusMap: Record<string, AppointmentStatus> = {
+    'programada': 'scheduled',
+    'en progreso': 'in_progress',
+    'en curso': 'in_progress',
+    'completada': 'completed',
+    'cancelada': 'cancelled',
+    'reprogramada': 'scheduled',
+    'pendiente': 'pending',
   };
-  
-  return statusMap[estado] || 'pending';
+
+  return statusMap[normalizedEstado] || 'pending';
 };
 
 /**
@@ -65,14 +69,14 @@ export const transformCitaToAppointment = (cita: CitaDetalle): Appointment => {
   // horaInicio viene en formato HH:mm:ss o HH:mm
   const [year, month, day] = cita.fechaInicio.split('-').map(Number);
   const [hour, minute] = cita.horaInicio.split(':').map(Number);
-  
+
   // Crear Date en la zona horaria local (importante para comparaciones con isSameDay)
   const dateTime = new Date(year, month - 1, day, hour, minute);
-  
-  // Debug: Log para verificar la transformación
-    console.debug('[Transformer] Cita:', cita);
 
-  
+  // Debug: Log para verificar la transformación
+  console.debug('[Transformer] Cita:', cita);
+
+
   return {
     id: cita.id.toString(),
     doctorId: cita.doctor.usuarioId?.toString() || '',

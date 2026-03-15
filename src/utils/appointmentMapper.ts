@@ -1,8 +1,3 @@
-/**
- * appointmentMapper.ts
- * Utilidades para mapear datos de citas desde la API al formato del componente
- */
-
 import type { CitaDetalle, CitaEstado } from '@/types/AppointmentTypes';
 import type { Appointment, AppointmentStatus } from '@/shared/components/calendar/AppointmentCard';
 import type { ServiceDetail, ServiceDetailDoctor } from '@/shared/navigation/userMenu/editProfile/doctor/services/doctor.types';
@@ -11,16 +6,20 @@ import { format, parseISO } from 'date-fns';
 /**
  * Mapea el estado de la API al estado del componente
  */
-export const mapCitaEstadoToAppointmentStatus = (estado: CitaEstado): AppointmentStatus => {
-  const statusMap: Record<CitaEstado, AppointmentStatus> = {
-    'Programada': 'scheduled',
-    'En Progreso': 'in_progress',
-    'Completada': 'completed',
-    'Cancelada': 'cancelled',
-    'Reprogramada': 'pending',
+export const mapCitaEstadoToAppointmentStatus = (estado: CitaEstado | string): AppointmentStatus => {
+  const normalizedEstado = String(estado).trim().toLowerCase();
+
+  const statusMap: Record<string, AppointmentStatus> = {
+    'programada': 'scheduled',
+    'en progreso': 'in_progress',
+    'en curso': 'in_progress',
+    'completada': 'completed',
+    'cancelada': 'cancelled',
+    'reprogramada': 'scheduled',
+    'pendiente': 'pending',
   };
-  
-  return statusMap[estado] || 'pending';
+
+  return statusMap[normalizedEstado] || 'pending';
 };
 
 /**
@@ -30,60 +29,60 @@ export const isVirtualModality = (modalidad: string): boolean => {
   return modalidad.toLowerCase().includes('virtual') || modalidad.toLowerCase().includes('teleconsulta');
 };
 
-  // Formatear la hora en 12h aceptando varios formatos:
-  // - ISO datetime (2026-03-09T09:30:00.000Z)
-  // - Hora simple ("11:00" o "9:30")
-  // - Hora con segundos ("11:00:00")
-  // - Con sufijo am/pm ("9:30 a.m.", "9:30 pm")
-  export const formatTimeTo12h = (time?: string | null): string | undefined => {
-    if (!time) return undefined;
+// Formatear la hora en 12h aceptando varios formatos:
+// - ISO datetime (2026-03-09T09:30:00.000Z)
+// - Hora simple ("11:00" o "9:30")
+// - Hora con segundos ("11:00:00")
+// - Con sufijo am/pm ("9:30 a.m.", "9:30 pm")
+export const formatTimeTo12h = (time?: string | null): string | undefined => {
+  if (!time) return undefined;
 
-    // Caso: datetime ISO
-    if (time.includes('T')) {
-      const parts = time.split('T');
-      if (parts.length < 2) return undefined;
-      const timePart = parts[1]; // e.g. "09:30:00.000Z"
-      const [hoursStr, minutesStr] = timePart.split(":");
-      if (!hoursStr || !minutesStr) return undefined;
-      const hour24 = parseInt(hoursStr, 10);
-      const minutes = minutesStr.slice(0, 2);
-      const hour12 = hour24 % 12 === 0 ? 12 : hour24 % 12;
-      const period = hour24 >= 12 ? 'PM' : 'AM';
-      return `${hour12}:${minutes} ${period}`;
-    }
+  // Caso: datetime ISO
+  if (time.includes('T')) {
+    const parts = time.split('T');
+    if (parts.length < 2) return undefined;
+    const timePart = parts[1]; // e.g. "09:30:00.000Z"
+    const [hoursStr, minutesStr] = timePart.split(":");
+    if (!hoursStr || !minutesStr) return undefined;
+    const hour24 = parseInt(hoursStr, 10);
+    const minutes = minutesStr.slice(0, 2);
+    const hour12 = hour24 % 12 === 0 ? 12 : hour24 % 12;
+    const period = hour24 >= 12 ? 'PM' : 'AM';
+    return `${hour12}:${minutes} ${period}`;
+  }
 
-    // Caso: hora simple HH:mm or H:mm or HH:mm:ss
-    const simpleMatch = time.match(/^(\d{1,2}):(\d{2})(:?\d{2})?$/);
-    if (simpleMatch) {
-      const hour24 = parseInt(simpleMatch[1], 10);
-      const minutes = simpleMatch[2];
-      const hour12 = hour24 % 12 === 0 ? 12 : hour24 % 12;
-      const period = hour24 >= 12 ? 'PM' : 'AM';
-      return `${hour12}:${minutes} ${period}`;
-    }
+  // Caso: hora simple HH:mm or H:mm or HH:mm:ss
+  const simpleMatch = time.match(/^(\d{1,2}):(\d{2})(:?\d{2})?$/);
+  if (simpleMatch) {
+    const hour24 = parseInt(simpleMatch[1], 10);
+    const minutes = simpleMatch[2];
+    const hour12 = hour24 % 12 === 0 ? 12 : hour24 % 12;
+    const period = hour24 >= 12 ? 'PM' : 'AM';
+    return `${hour12}:${minutes} ${period}`;
+  }
 
-    // Caso: con sufijo a.m./p.m. (variantes: a.m., p.m., am, pm)
-    const ampmMatch = time.match(/^(\d{1,2}):(\d{2})\s*(a\.m\.|p\.m\.|am|pm)$/i);
-    if (ampmMatch) {
-      const hour = parseInt(ampmMatch[1], 10);
-      const minutes = ampmMatch[2];
-      const suffix = ampmMatch[3].toLowerCase();
-      const period = /p/i.test(suffix) ? 'PM' : 'AM';
-      const hour12 = hour % 12 === 0 ? 12 : hour % 12;
-      return `${hour12}:${minutes} ${period}`;
-    }
+  // Caso: con sufijo a.m./p.m. (variantes: a.m., p.m., am, pm)
+  const ampmMatch = time.match(/^(\d{1,2}):(\d{2})\s*(a\.m\.|p\.m\.|am|pm)$/i);
+  if (ampmMatch) {
+    const hour = parseInt(ampmMatch[1], 10);
+    const minutes = ampmMatch[2];
+    const suffix = ampmMatch[3].toLowerCase();
+    const period = /p/i.test(suffix) ? 'PM' : 'AM';
+    const hour12 = hour % 12 === 0 ? 12 : hour % 12;
+    return `${hour12}:${minutes} ${period}`;
+  }
 
-    // Fallback: intentar parse ISO y formatear
-    try {
-      const d = parseISO(time);
-      if (!isNaN(d.getTime())) return format(d, 'h:mm a');
-    } catch (e) {
-      // ignore
-    }
+  // Fallback: intentar parse ISO y formatear
+  try {
+    const d = parseISO(time);
+    if (!isNaN(d.getTime())) return format(d, 'h:mm a');
+  } catch (e) {
+    // ignore
+  }
 
-    return undefined;
-  };
-  
+  return undefined;
+};
+
 /**
  * Convierte una CitaDetalle del backend al formato Appointment del componente
  */
@@ -128,19 +127,19 @@ export const mapCitaDetalleToAppointment = (cita: CitaDetalle, userRole: string)
   };
 
   let clientName = "";
-  if(userRole === "DOCTOR"){
+  if (userRole === "DOCTOR") {
     clientName = `${cita.paciente.nombre} ${cita.paciente.apellido}`;
   } else if (userRole === "PATIENT") {
     clientName = `${cita.doctor.nombre} ${cita.doctor.apellido}`;
   }
 
   let clientImage = "";
-  if(userRole === "DOCTOR"){
+  if (userRole === "DOCTOR") {
     clientImage = cita.paciente.usuario.fotoPerfil || "";
   } else if (userRole === "PATIENT") {
     clientImage = cita.doctor.usuario.fotoPerfil || "";
   }
-  
+
   return {
     id: cita.id.toString(),
     doctorId,

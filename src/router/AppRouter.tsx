@@ -64,6 +64,7 @@ import VerifyInfo from "@/features/verifyInfo/pages/VerifyInfo";
 // Teleconsultation Pages
 import TeleconsultConfirmPage from "@/features/teleconsultation/pages/TeleconsultConfirmPage";
 import TeleconsultRoomPage from "@/features/teleconsultation/pages/TeleconsultRoomPage";
+import ErrorBoundary from "@/shared/components/ErrorBoundary";
 
 // Settings Pages
 import AccountOverviewPage from "@/features/account/settings/pages/AccountOverviewPage";
@@ -346,7 +347,11 @@ function AppRouter() {
             />
             <Route
               path={ROUTES.TELECONSULT.ROOM}
-              element={<TeleconsultRoomPage />}
+              element={
+                <ErrorBoundary>
+                  <TeleconsultRoomPage />
+                </ErrorBoundary>
+              }
             />
 
             {/* Settings Routes */}

@@ -39,33 +39,27 @@ import type { CitasFilters, CitaDetalle } from "@/types/AppointmentTypes";
 // Import the Appointment type
 import type { Appointment } from "../components/appointments/MyAppointmentTable";
 import { format, addDays } from 'date-fns';
+import { mapCitaEstadoToAppointmentStatus, isVirtualModality } from "@/utils/appointmentMapper";
 
 /**
  * Mapea una cita del API (CitaDetalle) al formato de UI (Appointment)
  */
 const mapCitaDetalleToAppointment = (cita: CitaDetalle): Appointment => {
   const fechaInicio = new Date(cita.fechaInicio);
-  
+
   // Formatear fecha como DD/MM/YYYY
   const formattedDate = fechaInicio.toLocaleDateString('es-DO', {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
   });
-  
+
   // Formatear hora como HH:MM
   const horaInicio = cita.horaInicio.substring(0, 5);
   const horaFin = cita.horaFin.substring(0, 5);
   const formattedTime = `${horaInicio} – ${horaFin}`;
-  
-  // Mapear estado del API a estado de UI
-  const statusMap: { [key: string]: Appointment['status'] } = {
-    'Programada': 'scheduled',
-    'En Progreso': 'in_progress',
-    'Completada': 'completed',
-    'Cancelada': 'cancelled',
-    'Reprogramada': 'scheduled',
-  };
+
+  const isVirtual = isVirtualModality(cita.modalidad);
 
   return {
     id: cita.id.toString(),
@@ -78,23 +72,23 @@ const mapCitaDetalleToAppointment = (cita: CitaDetalle): Appointment => {
     time: formattedTime,
     phone: cita.paciente.usuario.email || 'N/A',
     email: cita.paciente.usuario.email || 'N/A',
-    appointmentType: cita.modalidad === 'Teleconsulta' ? 'virtual' : 'in_person',
-    location: cita.modalidad === 'Teleconsulta' ? 'Virtual' : 'En sitio',
-    status: statusMap[cita.estado] || 'scheduled',
+    appointmentType: isVirtual ? 'virtual' : 'in_person',
+    location: isVirtual ? 'Virtual' : 'En sitio',
+    status: mapCitaEstadoToAppointmentStatus(cita.estado),
   };
 };
 
 
 function AppointmentsPage() {
   const { t } = useTranslation("doctor");
-  const {i18n} = useTranslation();
+  const { i18n } = useTranslation();
   const isMobile = useIsMobile();
 
   // Estados UI
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const PAGE_SIZE = 10;
-  
+
   const [filters, setFilters] = useState({
     status: "all",
     appointmentType: "all",
@@ -209,7 +203,7 @@ function AppointmentsPage() {
 
   // Usar paginación del API
   const totalPages = apiResponse?.paginacion?.totalPaginas || 1;
-  
+
   // Datos paginados (ya vienen paginados del API)
   const paginatedAppointments = filteredAppointments;
 

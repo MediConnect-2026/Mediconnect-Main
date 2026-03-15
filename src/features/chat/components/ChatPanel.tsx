@@ -443,9 +443,15 @@ export function ChatPanel({
   };
 
   const handleSendMessage = async () => {
-    if (!conversation?.id) return;
-    
-    // Nothing to send
+    if (!conversation?.id) {
+      setToast({
+        message: t("chatPanel.conversationRequired") || "No se puede enviar: conversación no disponible.",
+        type: "error",
+        open: true,
+      });
+      return;
+    }
+
     if (!inputValue.trim() && attachmentQueue.length === 0) return;
 
     try {

@@ -10,18 +10,19 @@ import { Progress } from "@/shared/ui/progress";
 import { useState } from "react";
 
 interface FilePreviewSectionProps {
-  attachmentQueue: AttachmentQueueItem[];
-  onRemoveAttachment: (id: string) => void;
+  attachmentQueue?: AttachmentQueueItem[];
+  onRemoveAttachment?: (id: string) => void;
   isUploading?: boolean;
 }
 
 export const FilePreviewSection = ({
-  attachmentQueue,
+  attachmentQueue = [],
   onRemoveAttachment,
   isUploading = false,
 }: FilePreviewSectionProps) => {
   const { t } = useTranslation("common");
   const [videoDurations, setVideoDurations] = useState<Record<string, number>>({});
+  const safeQueue = attachmentQueue ?? [];
 
   // Render badge based on status
   const renderStatusBadge = (item: AttachmentQueueItem) => {
@@ -116,7 +117,7 @@ export const FilePreviewSection = ({
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
-  if (attachmentQueue.length === 0) {
+  if (safeQueue.length === 0) {
     return null;
   }
 
@@ -124,13 +125,13 @@ export const FilePreviewSection = ({
     <div className="px-4 py-3 bg-muted/30 border-t border-primary/10">
       <div className="flex items-center justify-between mb-2">
         <h3 className="text-sm font-medium text-foreground">
-          {t("filePreview.attachments", "Archivos adjuntos")} ({attachmentQueue.length})
+          {t("filePreview.attachments", "Archivos adjuntos")} ({safeQueue.length})
         </h3>
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
         <AnimatePresence mode="popLayout">
-          {attachmentQueue.map((item) => (
+          {safeQueue.map((item) => (
             <motion.div
               key={item.id}
               layout
@@ -157,7 +158,7 @@ export const FilePreviewSection = ({
                 {/* Remove Button */}
                 {item.status !== AttachmentStatus.UPLOADING && item.status !== AttachmentStatus.SUCCESS && (
                   <button
-                    onClick={() => onRemoveAttachment(item.id)}
+                    onClick={() => onRemoveAttachment?.(item.id)}
                     className="absolute top-1 left-1 bg-destructive/90 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity shadow-lg hover:bg-destructive"
                   >
                     <X size={14} />

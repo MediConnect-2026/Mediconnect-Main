@@ -4,7 +4,6 @@ import {
   appointmentSchemaBase,
   cancelAppointmentSchemaBase,
 } from "../schema/appointment.schema";
-import type { GetServicesOfDoctor } from "@/shared/navigation/userMenu/editProfile/doctor/services/doctor.types";
 
 export type scheduleAppointment = z.infer<typeof appointmentSchemaBase>;
 
@@ -23,11 +22,11 @@ export type EditAppointment = Required<scheduleAppointment>;
 /**
  * Estado de una cita según el backend
  */
-export type CitaEstado = 
-  | "Programada" 
-  | "En Progreso" 
-  | "Completada" 
-  | "Cancelada" 
+export type CitaEstado =
+  | "Programada"
+  | "En Progreso"
+  | "Completada"
+  | "Cancelada"
   | "Reprogramada";
 
 /**
@@ -207,6 +206,7 @@ export interface MyDoctorsResponse {
 export interface CitaDetalle {
   id: number;
   doctorId?: number;
+  pacienteId?: number;
   servicioId?: number;
   estado: CitaEstado;
   fechaInicio: string;

@@ -11,6 +11,8 @@ import type { ServiceDetail } from "@/shared/navigation/userMenu/editProfile/doc
 import { format } from "date-fns";
 import ViewDetailsAppointmentDialog from "@/features/patient/components/appoiments/ViewDetailsAppointmentDialog";
 import MCAppointmentsStatus from "@/shared/components/tables/MCAppointmentsStatus";
+import { useNavigate } from "react-router-dom";
+import { ROUTES } from "@/router/routes";
 
 export type AppointmentStatus =
   | "scheduled"
@@ -49,7 +51,8 @@ interface AppointmentCardProps {
 export function AppointmentCard({ appointment, index, isVertical }: AppointmentCardProps) {
   const isMobile = useIsMobile();
   const { t } = useTranslation("patient");
-  
+  const navigate = useNavigate();
+
   const initials = appointment.clientName
     .split(" ")
     .map((n) => n[0])
@@ -104,25 +107,33 @@ export function AppointmentCard({ appointment, index, isVertical }: AppointmentC
       if (isVirtual) {
         return (
           <div className="flex flex-col gap-2 w-full">
-            <MCButton size="s" className="rounded-full w-full">
-              {t("appointments.join")}
-            </MCButton>
             <MCButton
-              variant="outline"
               size="s"
               className="rounded-full w-full"
+              onClick={() => navigate(ROUTES.TELECONSULT.CONFIRM.replace(":appointmentId", appointment.id))}
             >
-              {t("appointments.details")}
+              {t("appointments.join")}
             </MCButton>
+            <ViewDetailsAppointmentDialog appointmentId={appointment.id}>
+              <MCButton
+                variant="outline"
+                size="s"
+                className="rounded-full w-full"
+              >
+                {t("appointments.details")}
+              </MCButton>
+            </ViewDetailsAppointmentDialog>
           </div>
         );
       }
       // presencial
       return (
         <div className="w-full">
-          <MCButton variant="outline" size="s" className="rounded-full w-full">
-            {t("appointments.viewDetails")}
-          </MCButton>
+          <ViewDetailsAppointmentDialog appointmentId={appointment.id}>
+            <MCButton variant="outline" size="s" className="rounded-full w-full">
+              {t("appointments.viewDetails")}
+            </MCButton>
+          </ViewDetailsAppointmentDialog>
         </div>
       );
     }
@@ -133,11 +144,11 @@ export function AppointmentCard({ appointment, index, isVertical }: AppointmentC
         <ViewDetailsAppointmentDialog
           appointmentId={appointment.id}
         >
-         <MCButton variant="outline" size="s" className="rounded-full w-full">
+          <MCButton variant="outline" size="s" className="rounded-full w-full">
             {t("appointments.viewDetails")}
           </MCButton>
         </ViewDetailsAppointmentDialog>
-        
+
       </div>
     );
   };
@@ -148,7 +159,7 @@ export function AppointmentCard({ appointment, index, isVertical }: AppointmentC
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.1, duration: 0.3 }}
       className={`w-full flex gap-3 p-3 bg-none border-b border-primary/15 last:border-b-0 hide-scrollbar ${isVertical ? "flex-col" : "flex-row justify-between items-center"}`}
-      // Elimina sm:flex-row y sm:items-center para forzar vertical
+    // Elimina sm:flex-row y sm:items-center para forzar vertical
     >
       {/* Contenido principal */}
       <div className="flex items-start sm:items-center gap-3 sm:gap-4">

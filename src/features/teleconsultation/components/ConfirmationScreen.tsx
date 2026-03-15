@@ -1,12 +1,14 @@
-import { Calendar, Clock, Stethoscope, Video } from "lucide-react";
+import { Calendar, Clock, Loader2, Stethoscope, Video } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/avatar";
 import MCButton from "@/shared/components/forms/MCButton";
 import { MCUserAvatar } from "@/shared/navigation/userMenu/MCUserAvatar";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
 import { useTranslation } from "react-i18next";
 import { useAppStore } from "@/stores/useAppStore";
+import { getUserAppRole } from "@/services/auth/auth.types";
 interface ConfirmationScreenProps {
   onJoinCall: () => void;
+  isLoading?: boolean;
   appointment?: {
     doctorAvatar?: string;
     doctorName: string;
@@ -19,6 +21,7 @@ interface ConfirmationScreenProps {
 
 export const ConfirmationScreen = ({
   onJoinCall,
+  isLoading = false,
   appointment,
 }: ConfirmationScreenProps) => {
   const { t } = useTranslation("common");
@@ -27,7 +30,8 @@ export const ConfirmationScreen = ({
   const doctorSpecialty =
     appointment?.doctorSpecialty || "Especialista en Medicina Interna";
 
-  const userRole = useAppStore((state) => state.user?.role);
+  const user = useAppStore((state) => state.user);
+  const appRole = user ? getUserAppRole(user) : null;
 
   const date = appointment?.date || "15 de octubre, 2025";
   const time = appointment?.time || "10:00 AM - 10:45 AM";
@@ -63,7 +67,7 @@ export const ConfirmationScreen = ({
                         className="w-full h-full object-cover"
                       />
                       <AvatarFallback className="bg-muted text-muted-foreground">
-                        {doctorName
+                        {(doctorName ?? "")
                           .split(" ")
                           .map((n) => n[0])
                           .join("")}
@@ -82,7 +86,7 @@ export const ConfirmationScreen = ({
                   <p className="font-semibold text-base truncate">
                     {doctorName}
                   </p>
-                  {userRole === "PATIENT" && (
+                  {appRole === "PATIENT" && (
                     <p className="text-sm text-muted-foreground line-clamp-2">
                       {doctorSpecialty}
                     </p>
@@ -118,7 +122,7 @@ export const ConfirmationScreen = ({
                       className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
                     />
                     <AvatarFallback className="bg-muted text-muted-foreground">
-                      {doctorName
+                      {(doctorName ?? "")
                         .split(" ")
                         .map((n) => n[0])
                         .join("")}
@@ -135,7 +139,7 @@ export const ConfirmationScreen = ({
               </div>
               <div className="text-left">
                 <p className="font-semibold">{doctorName}</p>
-                {userRole === "PATIENT" && (
+                {appRole === "PATIENT" && (
                   <p className="text-sm text-muted-foreground">
                     {doctorSpecialty}
                   </p>
@@ -160,10 +164,21 @@ export const ConfirmationScreen = ({
         </div>
 
         {/* Join button */}
-        <MCButton onClick={onJoinCall} className="w-full gap-2" size="l">
-          <Video className="w-4 h-4 md:w-5 md:h-5" />
+        <MCButton
+          onClick={onJoinCall}
+          className="w-full gap-2"
+          size="l"
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <Loader2 className="w-4 h-4 md:w-5 md:h-5 animate-spin" />
+          ) : (
+            <Video className="w-4 h-4 md:w-5 md:h-5" />
+          )}
           <span className="text-sm md:text-base">
-            {t("confirmationScreen.joinButton")}
+            {isLoading
+              ? "Conectando..."
+              : t("confirmationScreen.joinButton")}
           </span>
         </MCButton>
       </div>

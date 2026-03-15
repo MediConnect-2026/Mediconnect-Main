@@ -70,10 +70,16 @@ export const chatService = {
     conversacionId: number
   ): Promise<ConversationWithDetails> => {
     try {
-      const { data } = await apiClient.get<ConversationWithDetails>(
-        API_ENDPOINTS.CONVERSATIONS.BY_ID(conversacionId)
-      );
-      return data;
+      const { data } = await apiClient.get<
+        ConversationWithDetails | { data: ConversationWithDetails }
+      >(API_ENDPOINTS.CONVERSATIONS.BY_ID(conversacionId));
+      const raw = data && typeof data === "object" && "data" in data
+        ? (data as { data: ConversationWithDetails }).data
+        : (data as ConversationWithDetails);
+      if (!raw || typeof raw !== "object") throw new Error("Conversation response invalid");
+      const conv = raw as ConversationWithDetails & { conversacionId?: number };
+      const id = conv.id ?? conv.conversacionId ?? conversacionId;
+      return { ...conv, id } as ConversationWithDetails;
     } catch (error) {
       console.error("[chatService.getConversationById] Error:", error);
       throw error;

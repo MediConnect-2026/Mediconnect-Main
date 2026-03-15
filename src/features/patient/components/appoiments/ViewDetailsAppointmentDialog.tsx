@@ -95,8 +95,8 @@ function PacientDetailsTabContent({ patientData }: { patientData?: any }) {
         <h3 className="font-medium mb-1 text-red-700">{t("appointment.patient.allergies", "Alergias")}</h3>
         <div className="max-h-32 overflow-y-auto">
           <ul className="list-disc ml-5">
-            {patientData?.caracteristicas?.map((al: any, i: number) =>
-              al?.condicion.tipo === "Alergia" ? (
+            {(patientData?.caracteristicas || []).map((al: any, i: number) =>
+              al?.condicion?.tipo === "Alergia" ? (
                 <li key={i} className="font-medium text-primary">
                   {al.condicion.nombre} - {al.condicion.descripcion}
                 </li>
@@ -109,7 +109,7 @@ function PacientDetailsTabContent({ patientData }: { patientData?: any }) {
         <h3 className="font-medium mb-1 text-orange-500">{t("appointment.patient.conditions", "Condiciones")}</h3>
         <div className="max-h-32 overflow-y-auto">
           <ul className="list-disc ml-5">
-            {patientData?.caracteristicas?.map((cond: any, i: number) => 
+            {(patientData?.caracteristicas || []).map((cond: any, i: number) =>
               cond?.condicion.tipo === "Condicion" ? (
                 <li key={i} className="font-medium text-primary">
                   {cond.condicion.nombre} - {cond.condicion.descripcion}
@@ -123,7 +123,7 @@ function PacientDetailsTabContent({ patientData }: { patientData?: any }) {
   );
 }
 
-function DetailsTabContent({ appointment }: { appointment: CitaDetalle}) {
+function DetailsTabContent({ appointment }: { appointment: CitaDetalle }) {
   const { t } = useTranslation("patient");
   const isMobile = useIsMobile();
 
@@ -213,48 +213,48 @@ function DetailsTabContent({ appointment }: { appointment: CitaDetalle}) {
           {appointment.motivoConsulta || t("appointment.noConsultationReason", "Sin motivo especificado")}
         </p>
       </div>
-      {!isMobile && 
-       appointment.servicio.latitude !== undefined && 
-       appointment.servicio.longitude !== undefined && 
-       !isNaN(appointment.servicio.latitude) && 
-       !isNaN(appointment.servicio.longitude) &&
-       isFinite(appointment.servicio.latitude) &&
-       isFinite(appointment.servicio.longitude) && (
-        <div className="flex flex-col items-start gap-1 pb-4">
-          <h3 className="text-md text-primary/75 font-medium">
-            {t("appointment.location")}
-          </h3>
-          <div className="w-full rounded-lg overflow-hidden">
-            <MapScheduleLocation
-              initialLocation={{
-                lat: appointment.servicio.latitude,
-                lng: appointment.servicio.longitude,
-              }}
-            />
+      {!isMobile &&
+        appointment.servicio.latitude !== undefined &&
+        appointment.servicio.longitude !== undefined &&
+        !isNaN(appointment.servicio.latitude) &&
+        !isNaN(appointment.servicio.longitude) &&
+        isFinite(appointment.servicio.latitude) &&
+        isFinite(appointment.servicio.longitude) && (
+          <div className="flex flex-col items-start gap-1 pb-4">
+            <h3 className="text-md text-primary/75 font-medium">
+              {t("appointment.location")}
+            </h3>
+            <div className="w-full rounded-lg overflow-hidden">
+              <MapScheduleLocation
+                initialLocation={{
+                  lat: appointment.servicio.latitude,
+                  lng: appointment.servicio.longitude,
+                }}
+              />
+            </div>
           </div>
-        </div>
-      )}
-      {isMobile && 
-       appointment.servicio.latitude !== undefined && 
-       appointment.servicio.longitude !== undefined && 
-       !isNaN(appointment.servicio.latitude) && 
-       !isNaN(appointment.servicio.longitude) &&
-       isFinite(appointment.servicio.latitude) &&
-       isFinite(appointment.servicio.longitude) && (
-        <div className="flex flex-col items-start gap-1 pt-2">
-          <h3 className="text-md text-primary/75 font-medium">
-            {t("appointment.location")}
-          </h3>
-          <div className="w-full rounded-lg overflow-hidden">
-            <MapScheduleLocation
-              initialLocation={{
-                lat: appointment.servicio.latitude,
-                lng: appointment.servicio.longitude,
-              }}
-            />
+        )}
+      {isMobile &&
+        appointment.servicio.latitude !== undefined &&
+        appointment.servicio.longitude !== undefined &&
+        !isNaN(appointment.servicio.latitude) &&
+        !isNaN(appointment.servicio.longitude) &&
+        isFinite(appointment.servicio.latitude) &&
+        isFinite(appointment.servicio.longitude) && (
+          <div className="flex flex-col items-start gap-1 pt-2">
+            <h3 className="text-md text-primary/75 font-medium">
+              {t("appointment.location")}
+            </h3>
+            <div className="w-full rounded-lg overflow-hidden">
+              <MapScheduleLocation
+                initialLocation={{
+                  lat: appointment.servicio.latitude,
+                  lng: appointment.servicio.longitude,
+                }}
+              />
+            </div>
           </div>
-        </div>
-      )}
+        )}
     </div>
   );
 }
@@ -514,10 +514,10 @@ function ViewDetailsAppointmentDialog({
 
   useEffect(() => {
     const getAppointmentData = async () => {
-      if(!appointmentId || appointmentId === "") return;
+      if (!appointmentId || appointmentId === "") return;
 
       setLoading(true);
-      try{
+      try {
         const params = {
           translate_fields: "modalidad,nombre,descripcion,motivoCancelacion,motivoConsulta,comentario",
           target: i18n.language === "es" ? "es" : "en",
@@ -563,7 +563,7 @@ function ViewDetailsAppointmentDialog({
             setAppointmentStatusKey(null);
           }
         }
-      } catch(error){
+      } catch (error) {
         console.error("Error fetching appointment details: ", error);
       } finally {
         setLoading(false);
@@ -610,7 +610,7 @@ function ViewDetailsAppointmentDialog({
           >
             <p>{statusInfo.label}</p>
           </div>
-          
+
           {/* Mostrar motivo de cancelación si está cancelado */}
           {statusKey === "cancelled" && appointment?.motivoCancelacion && (
             <div className="flex items-start gap-2 p-4 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/40 rounded-xl">
@@ -641,7 +641,7 @@ function ViewDetailsAppointmentDialog({
             ) : (
               <div className="mt-4 text-muted-foreground flex flex-col items-start">
                 <DetailsTabContent
-                  appointment={ appointment as CitaDetalle}
+                  appointment={appointment as CitaDetalle}
                 />
               </div>
             )

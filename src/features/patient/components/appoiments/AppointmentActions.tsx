@@ -75,9 +75,17 @@ export default function AppointmentActions({
     }
 
     if (isScheduled) {
-      // SCHEDULED: Ver Cita, Reprogramar, Cancelar
+      // SCHEDULED: Ver Cita, Reprogramar, Cancelar, Unirse (si es virtual)
       return (
         <div className="flex flex-col gap-1 p-2">
+          {isVirtual && (
+            <div
+              className="p-2 cursor-pointer rounded-lg hover:bg-blue-500/10 text-blue-600 transition text-sm flex items-center justify-center font-medium"
+              onClick={() => handleJoin(appointment.id)}
+            >
+              {t("appointments.joinTeleconsult")}
+            </div>
+          )}
           <ViewDetailsAppointmentDialog appointmentId={appointment.id}>
             <div className="p-2 cursor-pointer rounded-lg hover:bg-accent/70 dark:hover:text-background transition text-sm text-center">
               {t("appointments.viewAppointment")}
@@ -193,6 +201,14 @@ export default function AppointmentActions({
     // Otros estados: todos los botones
     return (
       <div className="flex flex-col gap-1 p-2">
+        {isScheduled && isVirtual && (
+          <div
+            className="p-2 cursor-pointer rounded-lg hover:bg-blue-500/10 text-blue-600 transition text-sm flex items-center justify-center font-medium"
+            onClick={() => handleJoin(appointment.id)}
+          >
+            {t("appointments.join")}
+          </div>
+        )}
         <ViewDetailsAppointmentDialog appointmentId={appointment.id}>
           <div className="p-2 cursor-pointer rounded-lg hover:bg-accent/70 dark:hover:text-background transition text-sm">
             {t("appointments.viewDetails")}

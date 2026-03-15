@@ -5,13 +5,13 @@ export const API_ENDPOINTS = {
     GOOGLE_LOGIN: '/auth/google',
     LOGOUT: '/auth/logout',
     REFRESH_TOKEN: '/auth/refresh-access-token',
-    
+
     // Registro
     REGISTRO_SOLICITAR_CODIGO: '/auth/registro/solicitar-codigo',
     REGISTRO_VALIDAR_CODIGO: '/auth/registro/validar-codigo',
     REGISTRO_COMPLETAR_PACIENTE: '/auth/registro/paciente',
     REGISTRO_COMPLETAR_DOCTOR: '/auth/registro/doctor',
-    
+
     // Recuperación de contraseña
     FORGOT_PASSWORD: '/auth/forgot-password',
     PASSWORD_SOLICITAR_CODIGO: '/auth/password/solicitar-codigo',
@@ -20,16 +20,16 @@ export const API_ENDPOINTS = {
     RESET_PASSWORD: '/auth/reset-password',
     VERIFY_EMAIL: '/auth/verify-email',
     VERIFICAR_DOCUMENTO: '/auth/verificar-documento',
-    
+
     // Cambio de email
     EMAIL_SOLICITAR_CODIGO: '/auth/registro/solicitar-codigo',
     EMAIL_VALIDAR_CODIGO: '/auth/registro/validar-codigo',
     EMAIL_CAMBIAR: '/auth/cambiar-email',
-    
+
     // Eliminar cuenta
     DELETE_ACCOUNT: '/auth/cuenta',
   },
-  
+
   // --- CITAS (APPOINTMENTS) ---
   APPOINTMENTS: {
     BASE: '/appointments',
@@ -37,7 +37,7 @@ export const API_ENDPOINTS = {
     CANCEL: (id: string | number) => `/appointments/${id}/cancel`,
     RESCHEDULE: (id: string | number) => `/appointments/${id}/reschedule`,
   },
-  
+
   // --- CITAS DEL PACIENTE ---
   CITAS: {
     LIST: '/citas',
@@ -48,7 +48,7 @@ export const API_ENDPOINTS = {
     MIS_DOCTORES: '/citas/mis-doctores',
     MIS_PACIENTES: '/citas/mis-pacientes',
   },
-  
+
   // --- PERFILES ---
   PROFILES: {
     ME: '/profiles/me',
@@ -60,7 +60,7 @@ export const API_ENDPOINTS = {
     CENTERS: '/centers',
     CENTER_BY_ID: (id: string | number) => `/centers/${id}`,
   },
-  
+
   // --- CONVERSACIONES Y MENSAJES ---
   CONVERSATIONS: {
     BASE: '/conversaciones',
@@ -72,21 +72,21 @@ export const API_ENDPOINTS = {
     UNREAD_COUNT: (conversacionId: string | number) => `/conversaciones/${conversacionId}/no-leidos`,
     SEARCH_MESSAGES: (conversacionId: string | number) => `/conversaciones/${conversacionId}/buscar`,
   },
-  
+
   MESSAGES: {
     BASE: '/mensajes',
     BY_ID: (id: string | number) => `/mensajes/${id}`,
     EDIT: (id: string | number) => `/mensajes/${id}`,
     DELETE: (id: string | number) => `/mensajes/${id}`,
   },
-  
+
   // --- MEDIA / ARCHIVOS ---
   MEDIA: {
     UPLOAD: '/media',
     DOWNLOAD: (mediaId: string | number) => `/media/${mediaId}`,
     DELETE: (mediaId: string | number) => `/media/${mediaId}`,
   },
-  
+
   // --- NOTIFICACIONES ---
   NOTIFICATIONS: {
     BASE: '/notifications',
@@ -94,7 +94,7 @@ export const API_ENDPOINTS = {
     MARK_AS_READ: (id: string | number) => `/notifications/${id}/read`,
     MARK_ALL_AS_READ: '/notifications/read-all',
   },
-  
+
   // --- UBICACIONES ---
   LOCATIONS: {
     PROVINCIAS: '/provincias',
@@ -105,7 +105,7 @@ export const API_ENDPOINTS = {
     BARRIOS: '/barrios',
     SUBBARRIOS: '/subbarrios',
   },
-  
+
   // --- SERVICIOS Y HORARIOS ---
   SERVICES: {
     BASE: '/servicios',
@@ -113,31 +113,31 @@ export const API_ENDPOINTS = {
     HORARIOS: '/horarios',
     SERVICIOS_HORARIOS: '/servicios-horarios',
   },
-  
+
   // --- CENTROS DE SALUD ---
   HEALTH_CENTERS: {
     BASE: '/centros-salud',
     TIPOS: '/tipos-centros-salud',
   },
-  
+
   // --- PROFESIONES Y EXPERIENCIA ---
   PROFESSIONS: {
     BASE: '/profesiones',
     EXPERIENCIAS: '/experiencias-laborales',
   },
-  
+
   // --- ESPECIALIDADES MÉDICAS ---
   ESPECIALIDADES: {
     BASE: '/especialidades',
     BY_ID: (id: string | number) => `/especialidades/${id}`,
   },
-  
+
   // --- TRADUCTOR ---
   TRANSLATOR: {
     TRANSLATE: '/traductor',
     UTILITIES: '/traductor/utilidades',
   },
-  
+
   // --- Ubicaciones ---
   UBICACIONES: {
     PROVINCIAS: '/provincias',
@@ -173,6 +173,16 @@ export const API_ENDPOINTS = {
     CITAS: '/doctores/estadisticas/citas',
     PACIENTES: '/doctores/estadisticas/pacientes',
     SERVICIOS: '/doctores/estadisticas/servicios',
+  },
+
+  // --- TELECONSULTAS ---
+  TELECONSULTAS: {
+    /** GET  – Paciente obtiene su URL de acceso */
+    URL_ACCESO: (citaId: string | number) => `/teleconsultas/${citaId}/url-acceso`,
+    /** POST – Doctor inicia la sala y obtiene su URL */
+    INICIAR: (citaId: string | number) => `/teleconsultas/${citaId}/iniciar`,
+    /** POST – Cualquiera finaliza la llamada */
+    FINALIZAR: (citaId: string | number) => `/teleconsultas/${citaId}/finalizar`,
   },
 } as const;
 

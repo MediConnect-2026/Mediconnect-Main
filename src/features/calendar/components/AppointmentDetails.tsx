@@ -75,7 +75,10 @@ export const AppointmentDetails = ({
   const isUpcoming = ["scheduled", "pending", "in_progress"].includes(
     appointment?.status ?? "",
   );
-  const isVirtual = appointment?.modality === "virtual";
+
+  const modLower = appointment?.modality?.toLowerCase() || "";
+  const isVirtual = modLower.includes("virtual") || modLower.includes("teleconsulta");
+
   const isInProgress = appointment?.status === "in_progress";
   const isPending = appointment?.status === "pending";
   const isScheduled = appointment?.status === "scheduled";
@@ -83,7 +86,7 @@ export const AppointmentDetails = ({
   const isCancelled = appointment?.status === "cancelled";
 
   console.log("Renderizando AppointmentDetails para cita:", appointment);
-  
+
   const handleJoin = (appointmentId: string) => {
     navigate(
       ROUTES.TELECONSULT.CONFIRM.replace(":appointmentId", appointmentId),
@@ -142,6 +145,15 @@ export const AppointmentDetails = ({
       if (isScheduled) {
         return (
           <div className="flex flex-col gap-2">
+            {isVirtual && (
+              <MCButton
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                size="sm"
+                onClick={() => handleJoin(appointment.id)}
+              >
+                {t("appointments.joinTeleconsult")}
+              </MCButton>
+            )}
             <ViewDetailsAppointmentDialog appointmentId={appointment.id}>
               <MCButton className="w-full" size="sm">
                 {t("appointments.viewAppointment")}
@@ -152,7 +164,7 @@ export const AppointmentDetails = ({
                 {t("appointments.reschedule")}
               </MCButton>
             </RescheduleAppointment>
-            <CancelAppointmentDialog 
+            <CancelAppointmentDialog
               appointmentId={appointment.id}
               onCancelSuccess={onClose}
             >
@@ -260,6 +272,15 @@ export const AppointmentDetails = ({
 
       return (
         <div className="flex flex-col gap-2">
+          {isScheduled && isVirtual && (
+            <MCButton
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+              size="sm"
+              onClick={() => handleJoin(appointment.id)}
+            >
+              {t("appointments.join")}
+            </MCButton>
+          )}
           <ViewDetailsAppointmentDialog appointmentId={appointment.id}>
             <MCButton className="w-full" size="sm">
               {t("appointments.viewDetails")}
@@ -273,7 +294,7 @@ export const AppointmentDetails = ({
               {t("appointments.reschedule")}
             </MCButton>
           </ScheduleAppointmentDialog>
-          <CancelAppointmentDialog 
+          <CancelAppointmentDialog
             appointmentId={appointment.id}
             onCancelSuccess={onClose}
           >
