@@ -174,6 +174,11 @@ export const API_ENDPOINTS = {
     PACIENTES: '/doctores/estadisticas/pacientes',
     SERVICIOS: '/doctores/estadisticas/servicios',
   },
+
+  // --- DOCTORES ---
+  DOCTORES: {
+    PACIENTE_INFO: (pacienteId: string | number) => `/doctores/pacientes-info/${pacienteId}`,
+  },
 } as const;
 
 export default API_ENDPOINTS;

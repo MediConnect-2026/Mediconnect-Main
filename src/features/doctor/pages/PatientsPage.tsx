@@ -2,6 +2,7 @@ import { useState, useMemo, useCallback, memo } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
+import { useDebounce } from "@/lib/hooks/useDebounce";
 import { QUERY_KEYS } from "@/lib/react-query/config";
 import { getDoctorPatientsStats } from "@/services/api/doctor-stats.service";
 import { useDoctorPatients } from "@/features/doctor/hooks/useDoctorPatients";
@@ -48,6 +49,7 @@ import {
 // ─── Constants ──────────────────────────────────────────────────────────────
 const DEFAULT_PAGE_SIZE = 10;
 const STALE_TIME = 1000 * 60 * 5; // 5 minutes
+const SEARCH_DEBOUNCE_MS = 500;
 
 // Plain object — NOT `as const` so string fields remain `string`, not `"all"` literal.
 // This keeps PatientFilters assignable to MyPatientFilters (which uses `string`).
@@ -259,6 +261,7 @@ function PatientsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState<PatientFilters>({ ...DEFAULT_FILTERS });
+  const debouncedSearchTerm = useDebounce(searchTerm, SEARCH_DEBOUNCE_MS);
 
   // ─── Derived: active filter count ──────────────────────────────────────
   const activeFiltersCount = useMemo(
@@ -276,10 +279,10 @@ function PatientsPage() {
         filters,
         currentPage,
         DEFAULT_PAGE_SIZE,
-        searchTerm,
+        debouncedSearchTerm,
         i18n.language
       ),
-    [filters, currentPage, searchTerm, i18n.language]
+    [filters, currentPage, debouncedSearchTerm, i18n.language]
   );
 
   // ─── Queries ────────────────────────────────────────────────────────────

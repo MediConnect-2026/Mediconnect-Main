@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/shared/ui/tabs";
@@ -11,6 +11,8 @@ import {
   MapPin,
   User,
   Ellipsis,
+  Loader2,
+  AlertTriangle,
 } from "lucide-react";
 import MCDashboardContent from "@/shared/layout/MCDashboardContent";
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/avatar";
@@ -29,6 +31,65 @@ import { MCFilterPopover } from "@/shared/components/filters/MCFilterPopover";
 import FilterHistoryAppointments from "@/features/patient/components/filters/FilterHistoryAppointments";
 import AppointmentActions from "@/features/patient/components/appoiments/AppointmentActions";
 import FilterMyAppointments from "@/features/doctor/components/filters/FilterMyAppoinments";
+import { useDoctorPatientInfo } from "@/features/doctor/hooks/useDoctorPatientInfo";
+
+const DEFAULT_PATIENT_COVER_IMAGE =
+  "https://images.unsplash.com/photo-1504701954957-2010ec3bcec1?w=900&auto=format&fit=crop";
+const FALLBACK_TEXT = "—";
+
+interface PatientViewModel {
+  id: string;
+  fullName: string;
+  initials: string;
+  since: string;
+  age: string;
+  blood: string;
+  height: string;
+  weight: string;
+  email: string;
+  phone: string;
+  coverImage: string;
+  avatar: string;
+  allergies: string[];
+  conditions: string[];
+}
+
+const calculateAge = (birthDateString: string | null | undefined): number | null => {
+  if (!birthDateString) return null;
+  const birthDate = new Date(birthDateString);
+  if (Number.isNaN(birthDate.getTime())) return null;
+
+  const now = new Date();
+  let age = now.getFullYear() - birthDate.getFullYear();
+  const monthDiff = now.getMonth() - birthDate.getMonth();
+
+  if (monthDiff < 0 || (monthDiff === 0 && now.getDate() < birthDate.getDate())) {
+    age -= 1;
+  }
+
+  return Math.max(age, 0);
+};
+
+const formatPatientSince = (dateString: string | null | undefined, language: string): string => {
+  if (!dateString) return FALLBACK_TEXT;
+  const date = new Date(dateString);
+  if (Number.isNaN(date.getTime())) return FALLBACK_TEXT;
+
+  return date.toLocaleDateString(language === "es" ? "es-DO" : "en-US", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  });
+};
+
+const getPatientInitials = (fullName: string): string =>
+  fullName
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((name) => name[0])
+    .join("")
+    .toUpperCase() || "P";
 
 interface UpcomingFilters {
   status: string;
@@ -44,27 +105,6 @@ interface HistoryFilters {
   timeRange: string[];
   locations: string[];
 }
-
-// ─── Mock Data ────────────────────────────────────────────────────────────────
-const mockPatient = {
-  id: "p-3",
-  name: "Edwin Lopez",
-  since: "15 de Enero, 2025",
-  age: "45 años",
-  blood: "O+",
-  height: "175 cm",
-  weight: "80 kg",
-  email: "edwin.lopez@email.com",
-  phone: "809-432-9532",
-  coverImage:
-    "https://images.unsplash.com/photo-1504701954957-2010ec3bcec1?w=900&auto=format&fit=crop",
-  avatar: "https://randomuser.me/api/portraits/men/13.jpg",
-  allergies: ["Penicilina (produce erupción cutánea)"],
-  conditions: [
-    "Apendicectomía en 2010.",
-    "Antecedentes familiares de diabetes tipo 2.",
-  ],
-};
 
 const mockHistory = [
   {
@@ -141,7 +181,7 @@ function InfoField({ label, value }: { label: string; value: string }) {
   );
 }
 
-function PersonalTab() {
+function PersonalTab({ patient }: { patient: PatientViewModel }) {
   const { t } = useTranslation("doctor");
   const isMobile = useIsMobile();
 
@@ -159,23 +199,23 @@ function PersonalTab() {
         >
           <InfoField
             label={t("patientDetails.personal.fullName")}
-            value={mockPatient.name}
+            value={patient.fullName}
           />
           <InfoField
             label={t("patientDetails.personal.age")}
-            value={mockPatient.age}
+            value={patient.age}
           />
           <InfoField
             label={t("patientDetails.personal.blood")}
-            value={mockPatient.blood}
+            value={patient.blood}
           />
           <InfoField
             label={t("patientDetails.personal.height")}
-            value={mockPatient.height}
+            value={patient.height}
           />
           <InfoField
             label={t("patientDetails.personal.weight")}
-            value={mockPatient.weight}
+            value={patient.weight}
           />
         </div>
       </section>
@@ -190,11 +230,11 @@ function PersonalTab() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
           <InfoField
             label={t("patientDetails.personal.email")}
-            value={mockPatient.email}
+            value={patient.email}
           />
           <InfoField
             label={t("patientDetails.personal.phone")}
-            value={mockPatient.phone}
+            value={patient.phone}
           />
         </div>
       </section>
@@ -214,16 +254,22 @@ function PersonalTab() {
               {t("patientDetails.personal.allergies")}
             </h3>
             <div className="max-h-32 overflow-y-auto">
-              <ul className="list-disc ml-5">
-                {mockPatient.allergies.map((al, i) => (
-                  <li
-                    key={i}
-                    className={`font-medium text-primary ${isMobile ? "text-xs" : "text-sm"}`}
-                  >
-                    {al}
-                  </li>
-                ))}
-              </ul>
+              {patient.allergies.length > 0 ? (
+                <ul className="list-disc ml-5">
+                  {patient.allergies.map((allergy, index) => (
+                    <li
+                      key={`${allergy}-${index}`}
+                      className={`font-medium text-primary ${isMobile ? "text-xs" : "text-sm"}`}
+                    >
+                      {allergy}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className={`font-medium text-primary ${isMobile ? "text-xs" : "text-sm"}`}>
+                  {FALLBACK_TEXT}
+                </p>
+              )}
             </div>
           </div>
           <div>
@@ -233,16 +279,22 @@ function PersonalTab() {
               {t("patientDetails.personal.conditions")}
             </h3>
             <div className="max-h-32 overflow-y-auto">
-              <ul className="list-disc ml-5">
-                {mockPatient.conditions.map((cond, i) => (
-                  <li
-                    key={i}
-                    className={`font-medium text-primary ${isMobile ? "text-xs" : "text-sm"}`}
-                  >
-                    {cond}
-                  </li>
-                ))}
-              </ul>
+              {patient.conditions.length > 0 ? (
+                <ul className="list-disc ml-5">
+                  {patient.conditions.map((condition, index) => (
+                    <li
+                      key={`${condition}-${index}`}
+                      className={`font-medium text-primary ${isMobile ? "text-xs" : "text-sm"}`}
+                    >
+                      {condition}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className={`font-medium text-primary ${isMobile ? "text-xs" : "text-sm"}`}>
+                  {FALLBACK_TEXT}
+                </p>
+              )}
             </div>
           </div>
         </div>
@@ -253,12 +305,10 @@ function PersonalTab() {
 
 function HistoryCard({
   historyItem,
-  index,
   active,
   onClick,
 }: {
   historyItem: (typeof mockHistory)[0];
-  index: number;
   active: boolean;
   onClick: () => void;
 }) {
@@ -416,7 +466,6 @@ function HistoryTab() {
             <HistoryCard
               key={h.id}
               historyItem={h}
-              index={index}
               active={activeIndex === index}
               onClick={() => setActiveIndex(index)}
             />
@@ -693,9 +742,155 @@ function UpcomingTab() {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 function PatientDetailsPage() {
   const { patientId } = useParams();
-  const { t } = useTranslation("doctor");
+  const { t, i18n } = useTranslation("doctor");
   const isMobile = useIsMobile();
-  const patient = mockPatient;
+
+  const translationFilters = useMemo(
+    () => ({
+      target: i18n.language === "es" ? "es" : "en",
+      source: i18n.language === "es" ? "en" : "es",
+      translate_fields:
+        "nombre,tipoDocIdentificacion,condicionesMedicas.condicion.nombre,condicionesMedicas.condicion.descripcion,seguros.seguro.nombre,seguros.tipoSeguro.nombre",
+    }),
+    [i18n.language]
+  );
+
+  const {
+    data: patientInfoResponse,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useDoctorPatientInfo(patientId, translationFilters);
+
+  const patient = useMemo<PatientViewModel>(() => {
+    const patientData = patientInfoResponse?.data;
+
+    if (!patientData) {
+      return {
+        id: patientId ?? "",
+        fullName: FALLBACK_TEXT,
+        initials: "P",
+        since: FALLBACK_TEXT,
+        age: FALLBACK_TEXT,
+        blood: FALLBACK_TEXT,
+        height: FALLBACK_TEXT,
+        weight: FALLBACK_TEXT,
+        email: FALLBACK_TEXT,
+        phone: FALLBACK_TEXT,
+        coverImage: DEFAULT_PATIENT_COVER_IMAGE,
+        avatar: "",
+        allergies: [],
+        conditions: [],
+      };
+    }
+
+    const fullName = `${patientData.nombre ?? ""} ${patientData.apellido ?? ""}`.trim();
+    const yearsLabel = t("patients.metrics.years");
+    const ageValue = calculateAge(patientData.fechaNacimiento);
+    const ageLabel = ageValue !== null ? `${ageValue} ${yearsLabel}` : FALLBACK_TEXT;
+
+    const allergies = patientData.condicionesMedicas
+      .filter((item) => item.condicion.tipo.toLowerCase().includes("alerg"))
+      .map((item) => item.condicion.nombre);
+
+    const conditions = patientData.condicionesMedicas
+      .filter((item) => !item.condicion.tipo.toLowerCase().includes("alerg"))
+      .map((item) => item.condicion.nombre);
+
+    return {
+      id: patientData.id.toString(),
+      fullName: fullName || FALLBACK_TEXT,
+      initials: getPatientInitials(fullName),
+      since: formatPatientSince(patientData.creadoEn, i18n.language),
+      age: ageLabel,
+      blood: patientData.tipoSangre ?? FALLBACK_TEXT,
+      height:
+        patientData.altura !== null && patientData.altura !== undefined
+          ? `${patientData.altura} cm`
+          : FALLBACK_TEXT,
+      weight:
+        patientData.peso !== null && patientData.peso !== undefined
+          ? `${patientData.peso} kg`
+          : FALLBACK_TEXT,
+      email: patientData.email || FALLBACK_TEXT,
+      phone: patientData.telefono || FALLBACK_TEXT,
+      coverImage: DEFAULT_PATIENT_COVER_IMAGE,
+      avatar: patientData.fotoPerfil ?? "",
+      allergies,
+      conditions,
+    };
+  }, [patientInfoResponse?.data, patientId, i18n.language, t]);
+
+  if (!patientId) {
+    return (
+      <MCDashboardContent mainWidth="w-[100%]">
+        <Empty className="py-12">
+          <EmptyHeader>
+            <div className="flex flex-col items-center gap-2">
+              <span className="flex items-center justify-center gap-2 text-destructive">
+                <AlertTriangle className={isMobile ? "w-5 h-5" : "w-7 h-7"} />
+                <EmptyTitle className={`font-semibold ${isMobile ? "text-lg" : "text-xl"}`}>
+                  {t("patients.error.title")}
+                </EmptyTitle>
+              </span>
+              <EmptyDescription
+                className={`text-muted-foreground text-center max-w-md mx-auto ${
+                  isMobile ? "text-sm" : "text-base"
+                }`}
+              >
+                {t("patients.error.description")}
+              </EmptyDescription>
+            </div>
+          </EmptyHeader>
+        </Empty>
+      </MCDashboardContent>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <MCDashboardContent mainWidth="w-[100%]">
+        <div className="flex items-center justify-center w-full min-h-[420px]">
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <Loader2 className="w-5 h-5 animate-spin" />
+            <span>{t("common.loading") || "Cargando..."}</span>
+          </div>
+        </div>
+      </MCDashboardContent>
+    );
+  }
+
+  if (isError) {
+    return (
+      <MCDashboardContent mainWidth="w-[100%]">
+        <Empty className="py-12">
+          <EmptyHeader>
+            <div className="flex flex-col items-center gap-2">
+              <span className="flex items-center justify-center gap-2 text-destructive">
+                <AlertTriangle className={isMobile ? "w-5 h-5" : "w-7 h-7"} />
+                <EmptyTitle className={`font-semibold ${isMobile ? "text-lg" : "text-xl"}`}>
+                  {t("patients.error.title")}
+                </EmptyTitle>
+              </span>
+              <EmptyDescription
+                className={`text-muted-foreground text-center max-w-md mx-auto ${
+                  isMobile ? "text-sm" : "text-base"
+                }`}
+              >
+                {(error as Error)?.message || t("patients.error.description")}
+              </EmptyDescription>
+            </div>
+          </EmptyHeader>
+          <EmptyContent>
+            <Button onClick={() => refetch()} size="sm">
+              {t("patients.error.retry")}
+            </Button>
+          </EmptyContent>
+        </Empty>
+      </MCDashboardContent>
+    );
+  }
 
   return (
     <MCDashboardContent mainWidth="w-[100%]">
@@ -704,7 +899,7 @@ function PatientDetailsPage() {
         <div className="relative h-28 sm:h-36 md:h-44 w-full">
           <img
             src={patient.coverImage}
-            alt=""
+            alt={patient.fullName}
             className="w-full h-full object-cover"
           />
           {/* Avatar */}
@@ -715,15 +910,12 @@ function PatientDetailsPage() {
               }`}
             >
               <AvatarImage
-                src={patient.avatar}
-                alt={patient.name}
+                src={patient.avatar || undefined}
+                alt={patient.fullName}
                 className="object-cover"
               />
               <AvatarFallback className="text-xl font-bold bg-primary text-primary-foreground">
-                {patient.name
-                  .split(" ")
-                  .map((n) => n[0])
-                  .join("")}
+                {patient.initials}
               </AvatarFallback>
             </Avatar>
           </div>
@@ -736,7 +928,7 @@ function PatientDetailsPage() {
           <h1
             className={`font-bold text-foreground ${isMobile ? "text-lg" : "text-xl"}`}
           >
-            {patient.name}
+            {patient.fullName}
           </h1>
           <p
             className={`text-muted-foreground mt-1 ${isMobile ? "text-xs" : "text-sm"}`}
@@ -776,7 +968,7 @@ function PatientDetailsPage() {
             </TabsList>
 
             <TabsContent value="personal">
-              <PersonalTab />
+              <PersonalTab patient={patient} />
             </TabsContent>
             <TabsContent value="history">
               <HistoryTab />

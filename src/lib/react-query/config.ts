@@ -124,6 +124,7 @@ export const QUERY_KEYS = {
   DOCTOR_STATS_CITAS: ['doctor', 'stats', 'citas'],
   DOCTOR_STATS_PACIENTES: ['doctor', 'stats', 'pacientes'],
   DOCTOR_STATS_SERVICIOS: ['doctor', 'stats', 'servicios'],
+  DOCTOR_PATIENT_INFO: (patientId: string | number) => ['doctor', 'patients', 'info', patientId],
 } as const;
 
 export default queryClient;

@@ -14,7 +14,9 @@ import type {
 } from '@/types/AppointmentTypes';
 import type { 
   MisPacientesResponse, 
-  FiltrosPacientes 
+  FiltrosPacientes,
+  DoctorPatientInfoFilters,
+  DoctorPatientInfoResponse,
 } from '@/types/DoctorStatsTypes';
 
 /**
@@ -277,6 +279,41 @@ export const getDoctorPatients = async (filters?: FiltrosPacientes): Promise<Mis
     return data;
   } catch (error) {
     console.error('Error fetching doctor patients:', error);
+    throw error;
+  }
+};
+
+/**
+ * Obtiene la información detallada de un paciente del doctor
+ * @param pacienteId - ID del paciente
+ * @param filters - Parámetros opcionales para traducción
+ * @returns Promise con la información detallada del paciente
+ */
+export const getDoctorPatientInfo = async (
+  pacienteId: string | number,
+  filters?: DoctorPatientInfoFilters
+): Promise<DoctorPatientInfoResponse> => {
+  try {
+    const params = new URLSearchParams();
+
+    if (filters?.target) {
+      params.append('target', filters.target);
+    }
+    if (filters?.source) {
+      params.append('source', filters.source);
+    }
+    if (filters?.translate_fields) {
+      params.append('translate_fields', filters.translate_fields);
+    }
+
+    const queryString = params.toString();
+    const baseUrl = API_ENDPOINTS.DOCTORES.PACIENTE_INFO(pacienteId);
+    const url = queryString ? `${baseUrl}?${queryString}` : baseUrl;
+
+    const { data } = await apiClient.get<DoctorPatientInfoResponse>(url);
+    return data;
+  } catch (error) {
+    console.error('Error fetching doctor patient info:', error);
     throw error;
   }
 };

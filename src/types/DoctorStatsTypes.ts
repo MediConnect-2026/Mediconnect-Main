@@ -291,3 +291,118 @@ export interface FiltrosPacientes {
   ultimaCitaDesde?: string;
   ultimaCitaHasta?: string;
 }
+
+/**
+ * Seguro del paciente
+ */
+export interface PacienteInfoSeguro {
+  id: number;
+  nombre: string;
+  urlImage: string | null;
+  estado: string;
+  creadoEn: string;
+}
+
+/**
+ * Tipo de seguro del paciente
+ */
+export interface PacienteInfoTipoSeguro {
+  id: number;
+  nombre: string;
+  descripcion: string | null;
+  estado: string;
+  creadoEn: string;
+}
+
+/**
+ * Relación de seguro asociado al paciente
+ */
+export interface PacienteInfoSeguroAsignado {
+  pacienteId: number;
+  seguroId: number;
+  tipoSeguroId: number;
+  estado: string;
+  creadoEn: string;
+  actualizadoEn: string | null;
+  id: number;
+  seguro: PacienteInfoSeguro;
+  tipoSeguro: PacienteInfoTipoSeguro;
+}
+
+/**
+ * Condición médica base
+ */
+export interface PacienteInfoCondicion {
+  id: number;
+  nombre: string;
+  descripcion: string | null;
+  tipo: string;
+  estado: string;
+  creadoEn: string;
+}
+
+/**
+ * Relación condición médica del paciente
+ */
+export interface PacienteInfoCondicionMedica {
+  pacienteId: number;
+  condicionId: number;
+  notas: string | null;
+  estado: string;
+  registradoEn: string;
+  actualizadoEn: string | null;
+  creado_por: string | null;
+  id_doctor: number | null;
+  id: number;
+  condicion: PacienteInfoCondicion;
+}
+
+/**
+ * Información detallada del paciente para el doctor
+ */
+export interface DoctorPatientInfo {
+  id: number;
+  usuarioId: number;
+  nombre: string;
+  apellido: string;
+  tipoDocIdentificacion: string;
+  numeroDocumentoIdentificacion: string;
+  fotoDocumento: string | null;
+  fechaNacimiento: string;
+  genero: string;
+  altura: number | null;
+  peso: number | null;
+  tipoSangre: string | null;
+  ubicacionId: number | null;
+  estado: string;
+  creadoEn: string;
+  actualizadoEn: string;
+  email: string;
+  telefono: string | null;
+  fotoPerfil: string | null;
+  rol: string;
+  ubicacion: {
+    id: number;
+    nombre: string;
+  } | null;
+  seguros: PacienteInfoSeguroAsignado[];
+  condicionesMedicas: PacienteInfoCondicionMedica[];
+}
+
+/**
+ * Filtros de traducción para endpoint de info de paciente
+ */
+export interface DoctorPatientInfoFilters {
+  target?: string;
+  source?: string;
+  translate_fields?: string;
+}
+
+/**
+ * Respuesta del endpoint /doctores/pacientes-info/{pacienteId}
+ */
+export interface DoctorPatientInfoResponse {
+  success: boolean;
+  data: DoctorPatientInfo;
+  message?: string;
+}
