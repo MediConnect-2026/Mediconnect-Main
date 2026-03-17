@@ -9,6 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/avatar";
 import { MCUserAvatar } from "@/shared/navigation/userMenu/MCUserAvatar";
 import { useTranslation } from "react-i18next";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
+import { formatTimeTo12h } from "@/utils/appointmentMapper";
 
 // Rango de horas completo de 24 horas (00:00 - 23:00)
 const hours = Array.from({ length: 24 }, (_, i) => i); // 12 AM (00:00) to 11 PM (23:00)
@@ -46,7 +47,7 @@ export const DayView = ({
     address: apt.address,
     modality: apt.modality,
   })));
-  
+
   const getAppointmentsForHour = (hour: number) => {
     return dayAppointments.filter((apt) => {
       const aptHour = parseInt(apt.time.split(":")[0]);
@@ -183,7 +184,7 @@ export const DayView = ({
                             <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground w-full overflow-hidden">
                               <span className="flex items-center gap-1 truncate">
                                 <Clock className="w-3 h-3" />
-                                {apt.time} - {apt.duration} min
+                                {formatTimeTo12h(apt.time)} - {apt.duration} min
                               </span>
                               {!isMobile && <span className="mx-1">·</span>}
                               {apt.modality === "presencial" ? (

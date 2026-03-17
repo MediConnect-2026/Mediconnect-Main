@@ -3,7 +3,7 @@
  * Hook personalizado para obtener las citas del doctor autenticado usando React Query
  */
 
-import { useQuery, type UseQueryOptions } from '@tanstack/react-query';
+import { useQuery, keepPreviousData, type UseQueryOptions } from '@tanstack/react-query';
 import { QUERY_KEYS } from '@/lib/react-query/config';
 import { getCitasToDoctors } from '@/services/api/appointments.service';
 import type { CitasListResponse, CitasFilters } from '@/types/AppointmentTypes';
@@ -33,6 +33,8 @@ export const useDoctorAppointments = (
     queryFn: () => getCitasToDoctors(filters),
     // Tiempo de cache específico para citas: 2 minutos
     staleTime: 1000 * 60 * 2,
+    // Mantiene los datos de la página anterior visibles mientras carga la siguiente
+    placeholderData: keepPreviousData,
     // Re-fetch más agresivo para citas (datos que cambian con frecuencia)
     refetchOnWindowFocus: true,
     refetchOnMount: true,

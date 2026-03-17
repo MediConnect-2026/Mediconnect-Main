@@ -21,7 +21,7 @@ import {
 } from "@/shared/ui/empty";
 import { useAppStore } from "@/stores/useAppStore";
 import { getCitaById } from "@/services/api/appointments.service";
-import type { CitaDetalle } from "@/types/AppointmentTypes";
+import type { CitaDetalle, CitaDetallePaciente } from "@/types/AppointmentTypes";
 import { formatTimeTo12h, mapCitaEstadoToAppointmentStatus } from "@/utils/appointmentMapper";
 import ubicacionesService from "@/features/onboarding/services/ubicaciones.services";
 import i18n from "@/i18n/config";
@@ -531,11 +531,11 @@ function ViewDetailsAppointmentDialog({
           setAppointmentStatusKey(null);
         } else {
           // Normalize to a single CitaDetalle
-          const appointmentData: CitaDetalle | null = Array.isArray(payload) ? (payload[0] ?? null) : payload;
+          const appointmentData: CitaDetallePaciente | null = Array.isArray(payload) ? (payload[0] ?? null) : payload;
 
           if (appointmentData) {
             // If the servicio includes an ubicacionId, try to fetch the full location
-            const ubicacionId = appointmentData.servicio?.id_ubicacion ?? null;
+            const ubicacionId = appointmentData.cita.servicio?.id_ubicacion ?? null;
             if (ubicacionId) {
               try {
                 const location = await ubicacionesService.getLocationById(Number(ubicacionId));
@@ -544,18 +544,18 @@ function ViewDetailsAppointmentDialog({
 
                 if (Array.isArray(coords) && coords.length >= 2) {
                   // attach latitude/longitude to servicio for UI consumption
-                  (appointmentData.servicio as any).latitude = coords[1];
-                  (appointmentData.servicio as any).longitude = coords[0];
+                  (appointmentData.cita.servicio as any).latitude = coords[1];
+                  (appointmentData.cita.servicio as any).longitude = coords[0];
                   // keep full location data as well
-                  (appointmentData.servicio as any).ubicacionData = location;
+                  (appointmentData.cita.servicio as any).ubicacionData = location;
                 }
               } catch (err) {
                 console.warn("No se pudo obtener la ubicación para ubicacionId", ubicacionId, err);
               }
             }
 
-            setAppointment(appointmentData);
-            setAppointmentStatusKey(mapCitaEstadoToAppointmentStatus(appointmentData.estado) as StatusKey);
+            setAppointment(appointmentData.cita);
+            setAppointmentStatusKey(mapCitaEstadoToAppointmentStatus(appointmentData.cita.estado) as StatusKey);
 
             console.log("Appointment details response: ", appointmentData, appointmentStatusKey);
           } else {

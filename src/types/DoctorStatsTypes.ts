@@ -387,6 +387,21 @@ export interface DoctorPatientInfo {
   } | null;
   seguros: PacienteInfoSeguroAsignado[];
   condicionesMedicas: PacienteInfoCondicionMedica[];
+  futurasCitas?: {
+    citaId: string;
+    estado: string;
+    fecha: string;
+    hora: string;
+    modalidad: string;
+    servicio: {
+      id: string;
+      nombre: string;
+      especialidad: {
+        id: string;
+        nombre: string;
+      }
+    }
+  }[];
 }
 
 /**

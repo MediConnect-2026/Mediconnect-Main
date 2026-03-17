@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/avatar";
 import { MCUserAvatar } from "@/shared/navigation/userMenu/MCUserAvatar";
 import { useTranslation } from "react-i18next";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
+import { formatTimeTo12h } from "@/utils/appointmentMapper";
 
 interface ListViewProps {
   appointments: Appointment[];
@@ -204,7 +205,7 @@ export const ListView = ({
                         <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
                           <span className="flex items-center gap-1">
                             <Clock className="w-3 h-3 flex-shrink-0" />
-                            {apt.time} - {apt.duration} min
+                            {formatTimeTo12h(apt.time)} - {apt.duration} min
                           </span>
                           {!isMobile && <span className="mx-1">·</span>}
                           {apt.modality === "presencial" ? (

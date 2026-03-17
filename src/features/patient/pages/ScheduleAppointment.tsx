@@ -30,13 +30,14 @@ import i18n from "@/i18n/config";
 import { useMyInsurances } from "../hooks";
 import { useQueryClient } from "@tanstack/react-query";
 import { QUERY_KEYS } from "@/lib/react-query/config";
+import { formatCurrency } from "@/utils/formatCurrency";
 
 // Skeleton para la página de resumen de cita
 const ScheduleAppointmentSkeleton = ({ isMobile }: { isMobile: boolean }) => {
   return (
     <div className={`${isMobile ? "w-full" : "max-w-2xl"} flex flex-col gap-4`}>
       <Skeleton className={`${isMobile ? "h-8" : "h-10"} w-3/4`} />
-      
+
       <div className={`grid ${isMobile ? "grid-cols-1" : "grid-cols-1 md:grid-cols-[4.5fr_5.5fr]"} gap-4`}>
         <Skeleton className={`w-full ${isMobile ? "h-48" : "h-60"} rounded-xl`} />
         <div className="space-y-3">
@@ -45,16 +46,16 @@ const ScheduleAppointmentSkeleton = ({ isMobile }: { isMobile: boolean }) => {
           <Skeleton className="h-4 w-3/4" />
         </div>
       </div>
-      
+
       <Skeleton className="h-20 w-full" />
       <Skeleton className="h-px w-full" />
-      
+
       <div className="flex justify-between">
         <Skeleton className="h-16 w-24" />
         <Skeleton className="h-16 w-24" />
         <Skeleton className="h-16 w-24" />
       </div>
-      
+
       <Skeleton className="h-20 w-full" />
       <Skeleton className="h-px w-full" />
       <Skeleton className="h-64 w-full rounded-xl" />
@@ -78,11 +79,11 @@ function ScheduleAppointment() {
   const queryClient = useQueryClient();
 
   const isPatient = user?.rol === "PATIENT";
-  
+
   const [loading, setLoading] = useState(false);
   const [serviceData, setServiceData] = useState<ServiceDetail | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   // Obtener seguros del paciente para mostrar el nombre del seguro
   const { data: availableInsurances = [] } = useMyInsurances();
 
@@ -102,7 +103,7 @@ function ScheduleAppointment() {
       }
 
       setLoading(true);
-      
+
       try {
         const response = await doctorService.getServiceById(
           Number(appointmentDetails.serviceId),
@@ -146,17 +147,17 @@ function ScheduleAppointment() {
 
   // Datos del doctor (del servicio si existe, sino del usuario actual por defecto)
   const doctorData = serviceData?.doctor || null;
-  const doctorFullName = doctorData 
-    ? `Dr. ${doctorData.nombre} ${doctorData.apellido}` 
+  const doctorFullName = doctorData
+    ? `Dr. ${doctorData.nombre} ${doctorData.apellido}`
     : getUserFullName(user) || t("doctors.profile", "Doctor");
   const doctorAvatar = doctorData?.usuario?.fotoPerfil || user.fotoPerfil;
   const doctorSpecialty = serviceData?.especialidad?.nombre || t("doctors.specialty", "Internal Medicine Specialist");
-  
+
   // Ubicación del servicio
-  const primaryLocation = serviceData?.ubicacion && serviceData.ubicacion.length > 0 
-    ? serviceData.ubicacion[0] 
+  const primaryLocation = serviceData?.ubicacion && serviceData.ubicacion.length > 0
+    ? serviceData.ubicacion[0]
     : null;
-  
+
   // Obtener nombre del seguro
   const selectedInsurance = availableInsurances.find(
     (insurance) => insurance.id.toString() === appointmentDetails.insuranceProvider
@@ -217,10 +218,10 @@ function ScheduleAppointment() {
             ? t("appointments.rescheduleSuccess", "Cita reagendada exitosamente")
             : t("appointments.success", "Cita programada exitosamente")
         );
-        
+
         // Invalidar el cache de citas para recargar el calendario
         queryClient.invalidateQueries({ queryKey: QUERY_KEYS.CITAS() });
-        
+
         navigate("/dashboard", { replace: true });
       } else {
         throw new Error(response?.message || "Error al crear la cita");
@@ -229,8 +230,8 @@ function ScheduleAppointment() {
       console.error("Error al programar cita desde página de resumen:", error);
       toast.error(
         error?.response?.data?.message ||
-          error?.message ||
-          t("appointments.error", "Error al programar la cita. Por favor intenta nuevamente.")
+        error?.message ||
+        t("appointments.error", "Error al programar la cita. Por favor intenta nuevamente.")
       );
     } finally {
       setIsSubmitting(false);
@@ -250,7 +251,7 @@ function ScheduleAppointment() {
         <aside className={isMobile ? "w-full mb-4" : ""}>
           <MCBackButton onClick={() => navigate(-1)} />
         </aside>
-        
+
         {loading ? (
           <ScheduleAppointmentSkeleton isMobile={isMobile} />
         ) : (
@@ -413,11 +414,11 @@ function ScheduleAppointment() {
                         )}
                       </p>
                       {primaryLocation.latitud !== undefined &&
-                       primaryLocation.longitud !== undefined &&
-                       !isNaN(primaryLocation.latitud) &&
-                       !isNaN(primaryLocation.longitud) &&
-                       isFinite(primaryLocation.latitud) &&
-                       isFinite(primaryLocation.longitud) ? (
+                        primaryLocation.longitud !== undefined &&
+                        !isNaN(primaryLocation.latitud) &&
+                        !isNaN(primaryLocation.longitud) &&
+                        isFinite(primaryLocation.latitud) &&
+                        isFinite(primaryLocation.longitud) ? (
                         <MapScheduleLocation
                           initialLocation={{
                             lat: primaryLocation.latitud,
@@ -526,7 +527,7 @@ function ScheduleAppointment() {
               <span
                 className={`${isMobile ? "text-xl" : "text-2xl"} font-semibold text-primary`}
               >
-                RD$ {serviceData?.precio ? (serviceData.precio * appointmentDetails.numberOfSessions).toLocaleString() : "2,500.00"}
+                {formatCurrency(serviceData?.precio ? serviceData.precio * appointmentDetails.numberOfSessions : undefined)}
               </span>
             </div>
             <MCButton

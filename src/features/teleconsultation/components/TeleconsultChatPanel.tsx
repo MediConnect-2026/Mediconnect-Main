@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCitaDetails } from "@/lib/hooks/useCitaDetails";
 import { useAppStore } from "@/stores/useAppStore";
@@ -7,8 +7,11 @@ import { chatService } from "@/services/chat";
 import type { ConversationWithDetails, ChatUser } from "@/types/ChatTypes";
 import { ChatPanel as RealChatPanel } from "@/features/chat/components/ChatPanel";
 import { QUERY_KEYS } from "@/lib/react-query/config";
-import { Loader2 } from "lucide-react";
+import { Loader2, MessageCircle, ClipboardList, X } from "lucide-react";
 import type { CitaDetalle } from "@/types/AppointmentTypes";
+import Prescription from "./chatPanel/Prescription";
+
+type PanelView = "chat" | "notas";
 
 interface TeleconsultChatPanelProps {
   appointmentId: string;
@@ -56,6 +59,7 @@ export function TeleconsultChatPanel({ appointmentId }: TeleconsultChatPanelProp
   const { appointment, loading: loadingCita } = useCitaDetails(
     appointmentId || undefined
   );
+  const [panelView, setPanelView] = useState<PanelView>("chat");
 
   const otherUserId =
     role === "DOCTOR"
@@ -160,7 +164,54 @@ export function TeleconsultChatPanel({ appointmentId }: TeleconsultChatPanelProp
 
   return (
     <div className="h-full flex flex-col rounded-2xl overflow-hidden border border-primary/15 bg-background">
-      <RealChatPanel conversation={safeConversation} />
+      {/* Toggle bar */}
+      <div className="flex items-center gap-2 px-3 pt-3 pb-2 border-b border-primary/10 bg-background flex-shrink-0">
+        {/* Chat button */}
+        <button
+          onClick={() => setPanelView("chat")}
+          className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200 ${
+            panelView === "chat"
+              ? "bg-primary text-primary-foreground shadow-sm"
+              : "border border-border text-foreground hover:bg-accent/60"
+          }`}
+        >
+          <MessageCircle size={15} />
+          Chat
+        </button>
+
+        {/* Notas button */}
+        <button
+          onClick={() => setPanelView("notas")}
+          className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200 ${
+            panelView === "notas"
+              ? "bg-primary text-primary-foreground shadow-sm"
+              : "border border-border text-foreground hover:bg-accent/60"
+          }`}
+        >
+          <ClipboardList size={15} />
+          Notas
+        </button>
+
+        {/* Spacer + X */}
+        <div className="ml-auto">
+          <button
+            onClick={() => setPanelView("chat")}
+            className="p-1.5 rounded-full text-muted-foreground hover:bg-accent/60 hover:text-foreground transition-colors"
+            aria-label="Cerrar"
+          >
+            <X size={16} />
+          </button>
+        </div>
+      </div>
+
+      {/* Panel content */}
+      <div className="flex-1 min-h-0 overflow-hidden">
+        {panelView === "chat" ? (
+          <RealChatPanel conversation={safeConversation} />
+        ) : (
+          <Prescription />
+        )}
+      </div>
     </div>
   );
 }

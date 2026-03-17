@@ -227,6 +227,11 @@ export interface CitaDetalle {
   creadoEn: string;
 }
 
+export interface CitaDetallePaciente {
+  cita: CitaDetalle;
+  historial: any[];
+}
+
 /**
  * Paginación de las citas
  */
@@ -240,12 +245,18 @@ export interface CitaPaginacion {
 /**
  * Respuesta de la API al listar citas
  */
-export interface CitasListResponse {
+export interface CitasListResponseforView{
   success: boolean;
-  data: CitaDetalle[] | CitaDetalle;
+  data: CitaDetallePaciente | null;
   paginacion: CitaPaginacion;
 }
 
+
+export interface CitasListResponse {
+  success: boolean;
+  data: CitaDetalle | CitaDetalle[] | null;
+  paginacion: CitaPaginacion;
+}
 
 /**
  * Filtros para la consulta de citas

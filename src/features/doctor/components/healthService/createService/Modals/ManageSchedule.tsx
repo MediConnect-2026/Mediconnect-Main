@@ -8,6 +8,8 @@ import { useCreateServicesStore } from "@/stores/useCreateServicesStore";
 import { comercialScheduleSchema } from "@/schema/createService.schema";
 import { scheduleService } from "@/shared/navigation/userMenu/editProfile/doctor/services/schedule.services";
 import { useGlobalUIStore } from "@/stores/useGlobalUIStore";
+import { TimePickerInput } from "@/shared/components/forms/TimePickerInput";
+import { Clock, AlertCircle } from "lucide-react";
 const DAY_ORDER = [1, 2, 3, 4, 5, 6, 0];
 
 interface ManageLocationProps {
@@ -133,8 +135,6 @@ function ManageSchedule({ locationSelected, scheduleData, scheduleId, children, 
   const setToast = useGlobalUIStore((state) => state.setToast);
   const closeModalRef = useRef<{ close: () => void }>(null);
 
-  const [startTimeTouched, setStartTimeTouched] = useState(false);
-  const [endTimeTouched, setEndTimeTouched] = useState(false);
   const [shouldLoadData, setShouldLoadData] = useState(false);
   const [modalKey, setModalKey] = useState(0);
 
@@ -173,19 +173,12 @@ function ManageSchedule({ locationSelected, scheduleData, scheduleId, children, 
       setComercialScheduleField("day", scheduleData.dias);
       setComercialScheduleField("startTime", scheduleData.horaInicio);
       setComercialScheduleField("endTime", scheduleData.horaFin);
-      
-      setStartTimeTouched(true);
-      setEndTimeTouched(true);
-
     } else {
       // ✅ Si no hay datos, limpiar el formulario
       setComercialScheduleField("name", "");
       setComercialScheduleField("day", []);
       setComercialScheduleField("startTime", "");
       setComercialScheduleField("endTime", "");
-      
-      setStartTimeTouched(false);
-      setEndTimeTouched(false);
     }
     
     setShouldLoadData(true);
@@ -221,14 +214,12 @@ function ManageSchedule({ locationSelected, scheduleData, scheduleId, children, 
         ...(isEditMode && { estado: "Activo" }) // Agregar estado solo en modo edición
       };
 
-      let response;
       if (isEditMode) {
         // Modo edición
-      
-        response = await scheduleService.updateScheduleService(scheduleId, requestPayload);
+        await scheduleService.updateScheduleService(scheduleId, requestPayload);
       } else {
         // Modo creación
-        response = await scheduleService.createScheduleService({
+        await scheduleService.createScheduleService({
           nombre: normalizedData.name,
           diasSemana: normalizedData.day,
           horaInicio: normalizedData.startTime,
@@ -273,8 +264,6 @@ function ManageSchedule({ locationSelected, scheduleData, scheduleId, children, 
 
   const handleClose = () => {
     clearComercialScheduleData();
-    setStartTimeTouched(false);
-    setEndTimeTouched(false);
   };
 
   useEffect(() => {
@@ -301,19 +290,21 @@ function ManageSchedule({ locationSelected, scheduleData, scheduleId, children, 
   const hasTimeConflict =
     comercialScheduleData.startTime &&
     comercialScheduleData.endTime &&
-    startTimeTouched &&
-    endTimeTouched &&
     timeToMinutes(comercialScheduleData.startTime) >=
     timeToMinutes(comercialScheduleData.endTime);
 
+  const durationMinutes =
+    comercialScheduleData.startTime && comercialScheduleData.endTime
+      ? timeToMinutes(comercialScheduleData.endTime) -
+        timeToMinutes(comercialScheduleData.startTime)
+      : 0;
 
   const hasInsufficientDuration =
     comercialScheduleData.startTime &&
     comercialScheduleData.endTime &&
-    startTimeTouched &&
-    endTimeTouched &&
-    timeToMinutes(comercialScheduleData.endTime) -
-    timeToMinutes(comercialScheduleData.startTime) < minDurationMinutes;
+    !hasTimeConflict &&
+    minDurationMinutes > 0 &&
+    durationMinutes < minDurationMinutes;
 
   const triggerWithHandler = React.isValidElement(children)
     ? React.cloneElement(children as React.ReactElement<any>, {
@@ -341,8 +332,6 @@ function ManageSchedule({ locationSelected, scheduleData, scheduleId, children, 
         !comercialScheduleData.name ||
         !comercialScheduleData.startTime ||
         !comercialScheduleData.endTime ||
-        !startTimeTouched ||
-        !endTimeTouched ||
         comercialScheduleData.day.length === 0 ||
         !!hasTimeConflict ||
         !!hasInsufficientDuration
@@ -380,44 +369,61 @@ function ManageSchedule({ locationSelected, scheduleData, scheduleId, children, 
           readonly={readonly}
         />
 
-        <MCInput
-          key={`startTime-${modalKey}`}
-          name="startTime"
-          label={t("createService.schedule.startTime")}
-          placeholder={t("createService.schedule.startTimePlaceholder")}
-          variant="decideHour"
-          value={comercialScheduleData.startTime || ""}
-          onChange={(e) => {
-            setComercialScheduleField("startTime", e.target.value);
-            setStartTimeTouched(true);
-          }}
-          disabled={isLoading || readonly}
-        />
+        {/* Start Time */}
+        <div className="mb-4">
+          <Controller
+            key={`startTime-${modalKey}`}
+            name="startTime"
+            render={({ field }) => (
+              <TimePickerInput
+                label={t("createService.schedule.startTime")}
+                value={field.value || comercialScheduleData.startTime || ""}
+                onChange={(val) => {
+                  field.onChange(val);
+                  setComercialScheduleField("startTime", val);
+                }}
+                disabled={isLoading || readonly}
+              />
+            )}
+          />
+        </div>
 
-        <MCInput
-          key={`endTime-${modalKey}`}
-          name="endTime"
-          label={t("createService.schedule.endTime")}
-          placeholder={t("createService.schedule.endTimePlaceholder")}
-          variant="decideHour"
-          value={comercialScheduleData.endTime || ""}
-          onChange={(e) => {
-            setComercialScheduleField("endTime", e.target.value);
-            setEndTimeTouched(true);
-          }}
-          disabled={isLoading || readonly}
-        />
+        {/* End Time */}
+        <div className="mb-4">
+          <Controller
+            key={`endTime-${modalKey}`}
+            name="endTime"
+            render={({ field }) => (
+              <TimePickerInput
+                label={t("createService.schedule.endTime")}
+                value={field.value || comercialScheduleData.endTime || ""}
+                onChange={(val) => {
+                  field.onChange(val);
+                  setComercialScheduleField("endTime", val);
+                }}
+                disabled={isLoading || readonly}
+              />
+            )}
+          />
+        </div>
 
+        {/* Validation messages */}
         {hasTimeConflict && (
-          <div className="text-red-500 text-sm mt-2 p-3 bg-red-50 rounded-4xl border border-red-200">
-            {t("createService.schedule.errorEndTime")}
+          <div className="flex items-start gap-2 text-red-600 text-sm p-3 bg-red-50 dark:bg-red-900/20 rounded-2xl border border-red-200 dark:border-red-800 mb-2">
+            <AlertCircle size={16} className="flex-shrink-0 mt-0.5" />
+            <span>{t("createService.schedule.errorEndTime")}</span>
           </div>
         )}
 
         {hasInsufficientDuration && (
-          <div className="text-red-500 text-sm mt-2 p-3 bg-red-50 rounded-4xl border border-red-200">
-            {t("createService.schedule.errorMinDuration")} {minDurationMinutes}{" "}
-            minutos.
+          <div className="flex items-start gap-2 text-amber-700 dark:text-amber-400 text-sm p-3 bg-amber-50 dark:bg-amber-900/20 rounded-2xl border border-amber-200 dark:border-amber-800 mb-2">
+            <Clock size={16} className="flex-shrink-0 mt-0.5" />
+            <span>
+              {t("createService.schedule.errorMinDuration")}{" "}
+              <strong>{minDurationMinutes} min</strong>
+              {" "}(seleccionado:{" "}
+              <strong>{Math.max(0, durationMinutes)} min</strong>).
+            </span>
           </div>
         )}
       </MCFormWrapper>

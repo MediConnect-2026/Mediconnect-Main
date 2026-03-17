@@ -38,6 +38,7 @@ import AcceptAppointment from "@/features/doctor/components/appointments/modals/
 import RejectAppointment from "@/features/doctor/components/appointments/modals/RejectAppointment";
 import RescheduleAppointment from "@/features/doctor/components/appointments/modals/RescheduleAppointment";
 import { useStartConversation } from "@/lib/hooks/useStartConversation";
+import { formatTimeTo12h } from "@/utils/appointmentMapper";
 
 interface AppointmentDetailsProps {
   appointment: Appointment | null;
@@ -84,8 +85,6 @@ export const AppointmentDetails = ({
   const isScheduled = appointment?.status === "scheduled";
   const isCompleted = appointment?.status === "completed";
   const isCancelled = appointment?.status === "cancelled";
-
-  console.log("Renderizando AppointmentDetails para cita:", appointment);
 
   const handleJoin = (appointmentId: string) => {
     navigate(
@@ -445,7 +444,7 @@ export const AppointmentDetails = ({
                 {format(appointment.date, "EEEE, d 'de' MMMM", { locale: es })}
               </p>
               <p className="text-xs text-muted-foreground">
-                {appointment.time} • {appointment.duration} min
+                {formatTimeTo12h(appointment.time)} • {appointment.duration} min
               </p>
             </div>
           </div>

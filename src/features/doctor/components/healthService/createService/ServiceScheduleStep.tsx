@@ -11,8 +11,9 @@ import { useEffect, useState } from "react";
 import { scheduleService } from "@/shared/navigation/userMenu/editProfile/doctor/services/schedule.services";
 import { useAppStore } from "@/stores/useAppStore";
 import type { ValidateScheduleResponse } from "@/shared/navigation/userMenu/editProfile/doctor/services/schedule.types";
+import { formatTimeTo12h } from "@/utils/appointmentMapper";
 
-function ServiceScheduleStep({isEditMode = false}: { isEditMode?: boolean }) {
+function ServiceScheduleStep({ isEditMode = false }: { isEditMode?: boolean }) {
   const isMobile = useIsMobile();
   const { t } = useTranslation("doctor");
 
@@ -21,8 +22,8 @@ function ServiceScheduleStep({isEditMode = false}: { isEditMode?: boolean }) {
   const [isValidating, setIsValidating] = useState(false);
   const [conflictData, setConflictData] = useState<ValidateScheduleResponse["data"] | null>(null);
 
-  const user = useAppStore((state) => state.user); 
-  
+  const user = useAppStore((state) => state.user);
+
   const comercialScheduleSelected = useCreateServicesStore(
     (s) => s.createServiceData.comercial_schedule,
   );
@@ -48,7 +49,7 @@ function ServiceScheduleStep({isEditMode = false}: { isEditMode?: boolean }) {
     const firstDay = dayMap[schedule.dias[0]] || "";
     const lastDay = dayMap[schedule.dias[schedule.dias.length - 1]] || "";
 
-    return `${firstDay} ${schedule.horaInicio} - ${lastDay} ${schedule.horaFin}`;
+    return `${firstDay} ${formatTimeTo12h(schedule.horaInicio)} - ${lastDay} ${formatTimeTo12h(schedule.horaFin)}`;
   };
 
   const loadSchedules = async () => {
@@ -174,11 +175,11 @@ function ServiceScheduleStep({isEditMode = false}: { isEditMode?: boolean }) {
                   {getDaysAndHours(item)}
                 </p>
               </div>
-              <ManageSchedule 
-                locationSelected={item.id} 
-                scheduleData={item} 
+              <ManageSchedule
+                locationSelected={item.id}
+                scheduleData={item}
                 scheduleId={item.id}
-                onScheduleCreated={loadSchedules} 
+                onScheduleCreated={loadSchedules}
                 readonly={!isEditMode}
               >
                 <Button
@@ -218,7 +219,7 @@ function ServiceScheduleStep({isEditMode = false}: { isEditMode?: boolean }) {
               <p className="text-sm text-red-600 dark:text-red-400 mb-3">
                 {conflictData.mensaje}
               </p>
-              
+
               {/* ✅ Detalles de conflictos */}
               {conflictData.detalles && conflictData.detalles.length > 0 && (
                 <div className="space-y-2">

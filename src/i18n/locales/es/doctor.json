@@ -38,9 +38,15 @@
       "minLength": "La descripción debe tener al menos 50 caracteres",
       "maxLength": "La descripción no puede exceder 250 caracteres"
     },
-    "specialty": { "required": "La especialidad es requerida" },
-    "selectedModality": { "required": "La modalidad es requerida" },
-    "pricePerSession": { "positive": "El precio por sesión debe ser positivo" },
+    "specialty": {
+      "required": "La especialidad es requerida"
+    },
+    "selectedModality": {
+      "required": "La modalidad es requerida"
+    },
+    "pricePerSession": {
+      "positive": "El precio por sesión debe ser positivo"
+    },
     "duration": {
       "minutes": {
         "min": "Los minutos deben ser al menos 1",
@@ -51,12 +57,24 @@
       "maxLength": "Máximo 8 imágenes",
       "required": "Se requiere al menos 1 imagen"
     },
-    "section": { "required": "La sección es requerida" },
-    "neighborhood": { "required": "El barrio es requerido" },
-    "address": { "required": "La dirección es requerida" },
-    "province": { "required": "La provincia es requerida" },
-    "municipality": { "required": "El municipio es requerido" },
-    "day": { "selectAtLeastOne": "Debe seleccionar al menos un día" },
+    "section": {
+      "required": "La sección es requerida"
+    },
+    "neighborhood": {
+      "required": "El barrio es requerido"
+    },
+    "address": {
+      "required": "La dirección es requerida"
+    },
+    "province": {
+      "required": "La provincia es requerida"
+    },
+    "municipality": {
+      "required": "El municipio es requerido"
+    },
+    "day": {
+      "selectAtLeastOne": "Debe seleccionar al menos un día"
+    },
     "startTime": {
       "invalidFormat": "La hora de inicio debe estar en formato HH:mm:ss"
     },
@@ -68,7 +86,6 @@
       "required": "La hora de inicio y fin son requeridas"
     }
   },
-
   "navbar": {
     "home": "Inicio",
     "patients": "Pacientes",
@@ -76,7 +93,6 @@
     "services": "Servicios",
     "schedule": "Calendario"
   },
-
   "dashboard": {
     "metrics": {
       "totalPatients": "Total de Pacientes",
@@ -98,7 +114,6 @@
       "all": "Todo"
     }
   },
-
   "appointment": {
     "acceptTitle": "Aceptar cita",
     "acceptDescription": "¿Estás seguro de que deseas aceptar esta cita? El paciente será notificado automáticamente.",
@@ -124,7 +139,6 @@
       "medicalNotes": "Registro de Notas Médicas"
     }
   },
-
   "appointments": {
     "title": "Citas",
     "subtitle": "Gestiona todas tus citas agendadas",
@@ -234,7 +248,6 @@
       }
     }
   },
-
   "patients": {
     "title": "Pacientes",
     "subtitle": "Gestiona tus pacientes registrados",
@@ -328,7 +341,6 @@
       "placeholder": "Buscar paciente, especialidad o servicio..."
     }
   },
-
   "patientDetails": {
     "patientSince": "Paciente desde:",
     "tabs": {
@@ -348,7 +360,8 @@
       "phone": "Teléfono",
       "medicalTitle": "Información Médica",
       "allergies": "Alergias",
-      "conditions": "Condiciones"
+      "conditions": "Condiciones",
+      "gender": "Género"
     },
     "history": {
       "title": "Historial de consultas",
@@ -369,7 +382,6 @@
       "noResultsDescription": "Ajusta los filtros para ver más citas."
     }
   },
-
   "profileForm": {
     "cropBanner": "Recortar Banner",
     "cropProfilePhoto": "Recortar Foto de Perfil",
@@ -433,7 +445,6 @@
       "logoutSuccess": "¡Sesión cerrada exitosamente!"
     }
   },
-
   "specialties": {
     "cardiology": "Cardiología",
     "dermatology": "Dermatología",
@@ -447,7 +458,6 @@
     "ophthalmology": "Oftalmología",
     "internalMedicine": "Medicina interna"
   },
-
   "languages": {
     "title": "Idiomas",
     "description": "Selecciona los idiomas en los que puedes atender a tus pacientes",
@@ -467,7 +477,6 @@
     "updated": "Nivel de dominio actualizado exitosamente",
     "errorUpdating": "Error al actualizar nivel de dominio"
   },
-
   "insurance": {
     "title": "Seguros Médicos",
     "description": "Selecciona las aseguradoras con las que trabajas",
@@ -476,7 +485,6 @@
     "select": "Selecciona un seguro",
     "remove": "Eliminar seguro"
   },
-
   "educationForm": {
     "educationTitle": "Formación",
     "degree": "Título o Certificación",
@@ -498,7 +506,6 @@
     "confirmDeleteDescription": "Esta acción no se puede deshacer. ¿Estás seguro que deseas eliminar esta formación académica?",
     "dragHandle": "Arrastrar para reordenar"
   },
-
   "experienceForm": {
     "experienceTitle": "Experiencia",
     "position": "Cargo",
@@ -527,7 +534,6 @@
     "save": "Guardar experiencias",
     "saveExperience": "Guardar experiencia"
   },
-
   "months": {
     "january": "Enero",
     "february": "Febrero",
@@ -542,7 +548,6 @@
     "november": "Noviembre",
     "december": "Diciembre"
   },
-
   "tabs": {
     "general": "Información General",
     "education": "Formación",
@@ -550,12 +555,10 @@
     "languages": "Idiomas",
     "insurance": "Seguros"
   },
-
   "editProfile": {
     "title": "Editar Perfil",
     "subtitle": "Actualiza tu información profesional y preferencias"
   },
-
   "common": {
     "close": "Cerrar",
     "cancel": "Cancelar",
@@ -572,7 +575,6 @@
     "error": "Ocurrió un error. Por favor, intenta nuevamente.",
     "retry": "Reintentar"
   },
-
   "profile": {
     "about": {
       "title": "Acerca del doctor",
@@ -650,7 +652,6 @@
       "reviews": "reseñas"
     }
   },
-
   "services": {
     "management": {
       "title": "Gestión de Servicios",
@@ -730,7 +731,6 @@
       "inactive": "Inactivo"
     }
   },
-
   "service": {
     "title": "Consulta de Medicina Familiar",
     "share": "Compartir",
@@ -755,9 +755,11 @@
       "rating": "Calificación",
       "experience": "Años de experiencia"
     },
-    "reviews": { "title": "Reseñas", "titleForOne": "Reseña" }
+    "reviews": {
+      "title": "Reseñas",
+      "titleForOne": "Reseña"
+    }
   },
-
   "filters": {
     "labels": {
       "serviceType": "Modalidad de servicio",
@@ -815,7 +817,6 @@
       "pharmacy": "Farmacia"
     }
   },
-
   "cards": {
     "service": {
       "details": "Ver detalles",
@@ -833,7 +834,6 @@
       "review": "reseña"
     }
   },
-
   "Abandonar": "Abandonar",
   "createService": {
     "steps": {
@@ -937,9 +937,15 @@
         "title": "Descripción del servicio",
         "placeholder": "Ingresa tu descripción aquí..."
       },
-      "sessions": { "title": "Número de sesiones" },
-      "duration": { "title": "Duración de la sesión" },
-      "price": { "title": "Precio" }
+      "sessions": {
+        "title": "Número de sesiones"
+      },
+      "duration": {
+        "title": "Duración de la sesión"
+      },
+      "price": {
+        "title": "Precio"
+      }
     },
     "common": {
       "save": "Guardar",
@@ -957,7 +963,6 @@
       "button": "Abandonar"
     }
   },
-
   "form": {
     "specialty": "Especialidad",
     "selectSpecialty": "Seleccionar especialidad",
@@ -1000,18 +1005,15 @@
     "loadingNeighborhoods": "Cargando barrios...",
     "selectSectionFirst": "Primero seleccione una sección"
   },
-
   "modality": {
     "presencial": "Presencial",
     "teleconsulta": "Teleconsulta",
     "mixed": "Mixta"
   },
-
   "specialty": {
     "cardiology": "Cardiología",
     "pediatrics": "Pediatría"
   },
-
   "days": {
     "sunday": "Domingo",
     "monday": "Lunes",

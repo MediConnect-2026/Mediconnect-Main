@@ -7,7 +7,7 @@ import { QUERY_KEYS } from "@/lib/react-query/config";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ChatInput } from "./ChatInput";
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useLayoutEffect, useCallback } from "react";
 import { FilePreviewSection } from "@/features/teleconsultation/components/chatPanel/FilePreviewSection";
 import { FileViewerModal } from "@/features/teleconsultation/components/chatPanel/FileViewerModal";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
@@ -81,6 +81,9 @@ export function ChatPanel({
   const readDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastSentReadRef = useRef<number | null>(null);
   const previousScrollHeightRef = useRef<number>(0);
+  const lastMessageIdRef = useRef<number | string | null>(null);
+  /** Timestamp (ms) until which any messages update should snap to bottom */
+  const lockBottomUntilRef = useRef<number>(0);
 
   // Hooks for data fetching and mutations
   const { messages, fetchNextPage, hasNextPage, isLoading, isFetchingNextPage } = useMessages(conversation?.id ?? null);
@@ -103,18 +106,44 @@ export function ChatPanel({
     }
   }, [conversation?.id, joinConversation, leaveConversation]);
 
-  // Scroll to bottom on initial load or when a new message arrives.
-  // Skip when loading older pages to preserve the user's scroll position.
-  useEffect(() => {
+  // Auto-scroll logic (useLayoutEffect runs before paint = no visible jump):
+  // - For 2s after sending own message, snap to bottom on every render (covers
+  //   both the optimistic update AND the server-confirmed ID replacement ~1s later).
+  // - If a NEW message arrived and user is already near bottom, also snap.
+  // - Never auto-scroll when loading older history (isFetchingNextPage).
+  useLayoutEffect(() => {
     if (isFetchingNextPage) return;
-    if (scrollRef.current) {
-      const scrollElement = scrollRef.current;
-      scrollElement.scrollTop = scrollElement.scrollHeight;
+    if (!scrollRef.current || messages.length === 0) return;
+
+    const scrollEl = scrollRef.current;
+
+    // Case 1: we are within the "send lock" window — always snap to bottom
+    if (Date.now() < lockBottomUntilRef.current) {
+      scrollEl.scrollTop = scrollEl.scrollHeight;
+      setIsAtBottom(true);
+      return;
     }
+
+    // Case 2: a genuinely new message arrived from someone else
+    const lastMessage = messages[messages.length - 1];
+    const isNewMessage = lastMessage?.id !== lastMessageIdRef.current;
+    if (!isNewMessage) return;
+    lastMessageIdRef.current = lastMessage?.id ?? null;
+
+    const threshold = 150;
+    const alreadyAtBottom =
+      scrollEl.scrollHeight - scrollEl.scrollTop - scrollEl.clientHeight <= threshold;
+
+    if (alreadyAtBottom) {
+      scrollEl.scrollTop = scrollEl.scrollHeight;
+      setIsAtBottom(true);
+    }
+    // else: user is reading history — do nothing
   }, [messages, isFetchingNextPage]);
 
   // Track whether the viewport is at (or near) the bottom
-  useEffect(() => {
+  // useLayoutEffect ensures isAtBottom is updated synchronously to avoid stale reads.
+  useLayoutEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
 
@@ -139,8 +168,10 @@ export function ChatPanel({
     }
   }, [isTyping]);
 
-  // Always jump to the bottom when the active conversation changes.
-  useEffect(() => {
+  // Reset tracking refs when conversation changes
+  useLayoutEffect(() => {
+    lastMessageIdRef.current = null;
+    lockBottomUntilRef.current = 0;
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
@@ -235,8 +266,8 @@ export function ChatPanel({
     };
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
-  // Maintain scroll position after loading older messages
-  useEffect(() => {
+  // Maintain scroll position after loading older messages (useLayoutEffect = no jump)
+  useLayoutEffect(() => {
     if (!isFetchingNextPage && previousScrollHeightRef.current > 0) {
       const scrollElement = scrollRef.current;
       if (scrollElement) {
@@ -272,12 +303,17 @@ export function ChatPanel({
     }
   };
 
-  const scrollToBottom = (behavior: ScrollBehavior = "smooth") => {
+  const scrollToBottom = useCallback((behavior: ScrollBehavior = "smooth") => {
     if (scrollRef.current) {
       scrollRef.current.scrollTo({ top: scrollRef.current.scrollHeight, behavior });
       setIsAtBottom(true);
     }
-  };
+  }, []);
+
+  // Lock scroll to bottom for 2 seconds after sending — covers optimistic + server reconcile updates
+  const flagOwnMessage = useCallback(() => {
+    lockBottomUntilRef.current = Date.now() + 2000;
+  }, []);
 
   // Add file to attachment queue with validation and compression
   const addToQueue = async (file: File, detectedType: AllowedMediaTypes) => {
@@ -467,6 +503,7 @@ export function ChatPanel({
     try {
       // If we have attachments, upload and send them (one message per uploaded file)
       if (attachmentQueue.length > 0) {
+        flagOwnMessage();
         await processUploadQueue();
 
         // Clear queue after processing
@@ -475,6 +512,7 @@ export function ChatPanel({
 
       // If there's text but no attachments, send text message
       if (inputValue.trim() && attachmentQueue.length === 0) {
+        flagOwnMessage();
         await sendMessage({
           conversacionId: conversation.id,
           tipo: "texto",
@@ -639,7 +677,7 @@ export function ChatPanel({
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-background h-full max-h-full overflow-hidden">
+    <div className="flex-1 flex flex-col bg-background h-full max-h-full overflow-hidden relative">
       {/* Header */}
       <div className="flex items-center gap-2 md:gap-3 p-3 md:p-4 border-b border-primary/15 bg-accent/50 rounded-tr-2xl md:rounded-tr-4xl flex-shrink-0">
         {/* Botón de volver (solo mobile) */}
@@ -681,16 +719,12 @@ export function ChatPanel({
         </button>
       </div>
 
-      {/* Messages - Con overflow correcto y altura mínima */}
+      {/* Messages area — relative so the scroll button stays scoped inside */}
       <div
-        className="flex-1 overflow-y-auto overflow-x-hidden px-3 md:px-4 py-3 md:py-4 scrollbar-hide min-h-0"
+        className="flex-1 overflow-y-auto overflow-x-hidden px-3 md:px-4 py-3 md:py-4 scrollbar-hide min-h-0 relative"
         ref={scrollRef}
-        style={{
-          maxHeight: isMobile
-            ? "calc(100vh - 200px)" // Reserva espacio para header e input en mobile
-            : "calc(100vh - 250px)",
-        }}
       >
+
         {isLoading ? (
           <div className="flex items-center justify-center h-full">
             <p className="text-muted-foreground">{t("chatPanel.loading") || "Cargando mensajes..."}</p>
@@ -772,6 +806,19 @@ export function ChatPanel({
             )}
           </div>
         )}
+
+        {/* Scroll-to-bottom button — sticky at the bottom of the scroll container */}
+        {!isAtBottom && !isDeleteModalOpen && !isImageModalOpen && !viewerModal.open && (
+          <div className="sticky bottom-3 z-20 flex justify-center pointer-events-none">
+            <button
+              onClick={() => scrollToBottom()}
+              className="pointer-events-auto flex items-center gap-2 bg-accent/90 text-primary px-3 py-2 rounded-full shadow-lg hover:opacity-90 transition-colors backdrop-blur-sm"
+              aria-label="Ir al último mensaje"
+            >
+              <ChevronDown className="w-4 h-4" />
+            </button>
+          </div>
+        )}
       </div>
 
       {/* File/Image Preview Section - ARRIBA del input */}
@@ -781,20 +828,7 @@ export function ChatPanel({
         isUploading={isUploading}
       />
 
-      {/* Indicador flotante para volver al final cuando el usuario no está en el bottom */}
-      {!isAtBottom && !isDeleteModalOpen && !isImageModalOpen && !viewerModal.open && (
-        <div className="absolute left-1/2 -translate-x-1/2 bottom-28 z-50">
-          <button
-            onClick={() => scrollToBottom()}
-            className="flex items-center gap-2 bg-accent/80 text-primary px-3 py-2 rounded-full shadow-lg hover:opacity-90 transition-colors backdrop-blur-sm"
-            aria-label={t("chatPanel.scrollToBottom") || "Ir al último"}
-          >
-            <ChevronDown className="w-4 h-4" />
-          </button>
-        </div>
-      )}
 
-      {/* Input - Con flex-shrink-0 para que no se comprima */}
       <div className="flex-shrink-0 border-t border-primary/10">
         <ChatInput
           inputValue={inputValue}

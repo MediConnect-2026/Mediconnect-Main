@@ -32,6 +32,9 @@ import FilterHistoryAppointments from "@/features/patient/components/filters/Fil
 import AppointmentActions from "@/features/patient/components/appoiments/AppointmentActions";
 import FilterMyAppointments from "@/features/doctor/components/filters/FilterMyAppoinments";
 import { useDoctorPatientInfo } from "@/features/doctor/hooks/useDoctorPatientInfo";
+import type { DoctorPatientInfo } from "@/types/DoctorStatsTypes";
+import { formatTimeTo12h, mapCitaEstadoToAppointmentStatus } from "@/utils/appointmentMapper";
+import { useAppStore } from "@/stores/useAppStore";
 
 const DEFAULT_PATIENT_COVER_IMAGE =
   "https://images.unsplash.com/photo-1504701954957-2010ec3bcec1?w=900&auto=format&fit=crop";
@@ -47,11 +50,27 @@ interface PatientViewModel {
   height: string;
   weight: string;
   email: string;
+  gender: string;
   phone: string;
   coverImage: string;
   avatar: string;
   allergies: string[];
   conditions: string[];
+  futurasCitas: {
+    citaId: string;
+    estado: string;
+    fecha: string;
+    hora: string;
+    modalidad: string;
+    servicio: {
+      id: string;
+      nombre: string;
+      especialidad: {
+        id: string;
+        nombre: string;
+      }
+    }
+  }[];
 }
 
 const calculateAge = (birthDateString: string | null | undefined): number | null => {
@@ -137,31 +156,6 @@ const mockHistory = [
   },
 ];
 
-const mockUpcoming = [
-  {
-    id: "1",
-    service: "Control de rutina",
-    specialty: "Endocrinología",
-    date: "15 Mar, 2025",
-    time: "10:00 AM – 10:45 AM",
-    location: "Clínica Santo Domingo",
-    appointmentType: "in_person" as const,
-    status: "scheduled" as const,
-    doctorId: "doctor-1",
-  },
-  {
-    id: "2",
-    service: "Análisis de seguimiento",
-    specialty: "Endocrinología",
-    date: "20 Abr, 2025",
-    time: "2:30 PM – 3:15 PM",
-    location: "Virtual",
-    appointmentType: "virtual" as const,
-    status: "pending" as const,
-    doctorId: "doctor-1",
-  },
-];
-
 // ─── Sub-components ───────────────────────────────────────────────────────────
 function InfoField({ label, value }: { label: string; value: string }) {
   const isMobile = useIsMobile();
@@ -216,6 +210,10 @@ function PersonalTab({ patient }: { patient: PatientViewModel }) {
           <InfoField
             label={t("patientDetails.personal.weight")}
             value={patient.weight}
+          />
+          <InfoField
+            label={t("patientDetails.personal.gender")}
+            value={patient.gender}
           />
         </div>
       </section>
@@ -455,11 +453,10 @@ function HistoryTab() {
 
       {/* List */}
       <div
-        className={`flex flex-col gap-3 md:gap-5 ${
-          filteredHistory.length > 5
-            ? "max-h-[420px] md:max-h-[480px] overflow-y-auto pr-1 md:pr-2"
-            : ""
-        } transition-all`}
+        className={`flex flex-col gap-3 md:gap-5 ${filteredHistory.length > 5
+          ? "max-h-[420px] md:max-h-[480px] overflow-y-auto pr-1 md:pr-2"
+          : ""
+          } transition-all`}
       >
         {filteredHistory.length > 0 ? (
           filteredHistory.map((h, index) => (
@@ -514,7 +511,7 @@ function HistoryTab() {
   );
 }
 
-function UpcomingTab() {
+function UpcomingTab({ incommingCitas }: { incommingCitas: DoctorPatientInfo["futurasCitas"][] }) {
   const { t } = useTranslation("doctor");
   const isMobile = useIsMobile();
   const [filters, setFilters] = useState<UpcomingFilters>({
@@ -524,6 +521,8 @@ function UpcomingTab() {
     service: "all",
     dateRange: undefined,
   });
+
+  const sessionUser = useAppStore((state) => state.user);
 
   const handleFiltersChange = (newFilters: Partial<UpcomingFilters>) => {
     setFilters((prev) => ({ ...prev, ...newFilters }));
@@ -546,26 +545,27 @@ function UpcomingTab() {
     });
   };
 
-  const filteredUpcoming = mockUpcoming.filter((apt) => {
-    if (filters.status !== "all" && apt.status !== filters.status) return false;
+  const filteredUpcoming = incommingCitas.flat().filter((apt) => {
+    if (!apt) return false;
+    if (filters.status !== "all" && apt?.estado !== filters.status) return false;
     if (
       filters.appointmentType !== "all" &&
-      apt.appointmentType !== filters.appointmentType
+      apt.modalidad !== filters.appointmentType
     )
       return false;
     if (
       filters.specialty !== "all" &&
-      apt.specialty.toLowerCase().replace(/\s+/g, "-") !== filters.specialty
+      apt.servicio.especialidad?.nombre.toLowerCase().replace(/\s+/g, "-") !== filters.specialty
     )
       return false;
     if (
       filters.service !== "all" &&
-      apt.service.toLowerCase().replace(/\s+/g, "-") !== filters.service
+      apt.servicio.nombre.toLowerCase().replace(/\s+/g, "-") !== filters.service
     )
       return false;
     if (filters.dateRange) {
       const aptDate = new Date(
-        apt.date.replace(/(\d{1,2})\s(\w{3}),?\s(\d{4})/, "$2 $1, $3"),
+        apt.fecha ? apt.fecha.replace(/(\d{1,2})\s(\w{3}),?\s(\d{4})/, "$2 $1, $3") : ""
       );
       const [startDate, endDate] = filters.dateRange;
       if (aptDate < startDate || aptDate > endDate) return false;
@@ -573,7 +573,7 @@ function UpcomingTab() {
     return true;
   });
 
-  if (mockUpcoming.length === 0) {
+  if (incommingCitas.length === 0) {
     return (
       <Empty className="py-8 md:py-12">
         <EmptyContent>
@@ -603,11 +603,11 @@ function UpcomingTab() {
           >
             {t("patientDetails.upcoming.title")}
           </h2>
-          {mockUpcoming.length > 0 && (
+          {incommingCitas.length > 0 && (
             <span className="text-xs text-muted-foreground">
               {t("patientDetails.upcoming.count", {
                 filtered: filteredUpcoming.length,
-                total: mockUpcoming.length,
+                total: incommingCitas.length,
               })}
             </span>
           )}
@@ -625,16 +625,15 @@ function UpcomingTab() {
 
       {/* List */}
       <div
-        className={`flex flex-col gap-3 md:gap-4 ${
-          filteredUpcoming.length > 4
-            ? "max-h-[420px] md:max-h-[480px] overflow-y-auto pr-1 md:pr-2"
-            : ""
-        } transition-all`}
+        className={`flex flex-col gap-3 md:gap-4 ${filteredUpcoming.length > 4
+          ? "max-h-[420px] md:max-h-[480px] overflow-y-auto pr-1 md:pr-2"
+          : ""
+          } transition-all`}
       >
         {filteredUpcoming.length > 0 ? (
           filteredUpcoming.map((apt) => (
             <div
-              key={apt.id}
+              key={apt?.citaId}
               className="flex flex-row bg-accent/30 dark:bg-primary/5 border border-primary/15 rounded-2xl w-full gap-3 p-3 md:p-4 items-center cursor-pointer transition hover:bg-accent/50 dark:hover:bg-primary/8"
             >
               {/* Icono */}
@@ -651,10 +650,10 @@ function UpcomingTab() {
                 <p
                   className={`font-semibold text-foreground truncate ${isMobile ? "text-xs" : "text-sm"}`}
                 >
-                  {apt.service}
+                  {apt?.servicio.nombre || FALLBACK_TEXT}
                 </p>
                 <p className="text-xs text-muted-foreground mt-0.5 truncate">
-                  {apt.specialty}
+                  {apt?.servicio.especialidad?.nombre || FALLBACK_TEXT}
                 </p>
                 <div
                   className={`flex flex-wrap mt-1.5 ${isMobile ? "gap-1.5" : "gap-3"}`}
@@ -662,18 +661,18 @@ function UpcomingTab() {
                   <span className="flex items-center gap-1 text-xs text-muted-foreground">
                     <Clock className="w-3 h-3 shrink-0" />
                     <span className="truncate">
-                      {apt.date} · {apt.time}
+                      {apt?.fecha} · {formatTimeTo12h(apt?.hora ?? "")}
                     </span>
                   </span>
                   {!isMobile && (
                     <span className="flex items-center gap-1 text-xs text-muted-foreground">
                       <MapPin className="w-3 h-3 shrink-0" />
-                      {apt.location}
+                      {/* {apt?.location || FALLBACK_TEXT} */}
                     </span>
                   )}
                   <span className="flex items-center gap-1 text-xs text-muted-foreground">
                     <User className="w-3 h-3 shrink-0" />
-                    {apt.appointmentType === "virtual"
+                    {apt?.modalidad === "Teleconsulta"
                       ? t("patientDetails.upcoming.virtual")
                       : t("patientDetails.upcoming.inPerson")}
                   </span>
@@ -682,14 +681,14 @@ function UpcomingTab() {
                 {isMobile && (
                   <span className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
                     <MapPin className="w-3 h-3 shrink-0" />
-                    <span className="truncate">{apt.location}</span>
+                    {/* <span className="truncate">{apt?.location || FALLBACK_TEXT}</span> */}
                   </span>
                 )}
               </div>
 
               {/* Status + Actions */}
               <div className="flex flex-col items-end gap-2 shrink-0">
-                <MCAppointmentsStatus status={apt.status} />
+                {apt?.estado && <MCAppointmentsStatus status={mapCitaEstadoToAppointmentStatus(apt.estado)} />}
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
@@ -703,10 +702,10 @@ function UpcomingTab() {
                   <PopoverContent isTablet placement="left">
                     <AppointmentActions
                       appointment={{
-                        id: apt.id,
-                        doctorId: apt.doctorId,
-                        appointmentType: apt.appointmentType,
-                        status: apt.status,
+                        id: apt?.citaId ? apt.citaId.toString() : "",
+                        doctorId: sessionUser?.id.toString() || "",
+                        appointmentType: apt?.modalidad === "Teleconsulta" ? "virtual" : "in_person",
+                        status: apt?.estado || "",
                       }}
                     />
                   </PopoverContent>
@@ -777,11 +776,13 @@ function PatientDetailsPage() {
         height: FALLBACK_TEXT,
         weight: FALLBACK_TEXT,
         email: FALLBACK_TEXT,
+        gender: FALLBACK_TEXT,
         phone: FALLBACK_TEXT,
         coverImage: DEFAULT_PATIENT_COVER_IMAGE,
         avatar: "",
         allergies: [],
         conditions: [],
+        futurasCitas: [],
       };
     }
 
@@ -805,6 +806,7 @@ function PatientDetailsPage() {
       since: formatPatientSince(patientData.creadoEn, i18n.language),
       age: ageLabel,
       blood: patientData.tipoSangre ?? FALLBACK_TEXT,
+      gender: patientData.genero === "M" ? "Masculino" : patientData.genero === "F" ? "Femenino" : "Otro",
       height:
         patientData.altura !== null && patientData.altura !== undefined
           ? `${patientData.altura} cm`
@@ -819,6 +821,21 @@ function PatientDetailsPage() {
       avatar: patientData.fotoPerfil ?? "",
       allergies,
       conditions,
+      futurasCitas: patientData.futurasCitas ? patientData.futurasCitas.map((cita) => ({
+        citaId: cita.citaId.toString(),
+        estado: cita.estado,
+        fecha: cita.fecha,
+        hora: cita.hora,
+        modalidad: cita.modalidad,
+        servicio: {
+          id: cita.servicio.id.toString(),
+          nombre: cita.servicio.nombre,
+          especialidad: {
+            id: cita.servicio.especialidad.id.toString(),
+            nombre: cita.servicio.especialidad.nombre,
+          },
+        },
+      })) : [],
     };
   }, [patientInfoResponse?.data, patientId, i18n.language, t]);
 
@@ -835,9 +852,8 @@ function PatientDetailsPage() {
                 </EmptyTitle>
               </span>
               <EmptyDescription
-                className={`text-muted-foreground text-center max-w-md mx-auto ${
-                  isMobile ? "text-sm" : "text-base"
-                }`}
+                className={`text-muted-foreground text-center max-w-md mx-auto ${isMobile ? "text-sm" : "text-base"
+                  }`}
               >
                 {t("patients.error.description")}
               </EmptyDescription>
@@ -874,9 +890,8 @@ function PatientDetailsPage() {
                 </EmptyTitle>
               </span>
               <EmptyDescription
-                className={`text-muted-foreground text-center max-w-md mx-auto ${
-                  isMobile ? "text-sm" : "text-base"
-                }`}
+                className={`text-muted-foreground text-center max-w-md mx-auto ${isMobile ? "text-sm" : "text-base"
+                  }`}
               >
                 {(error as Error)?.message || t("patients.error.description")}
               </EmptyDescription>
@@ -905,9 +920,8 @@ function PatientDetailsPage() {
           {/* Avatar */}
           <div className="absolute -bottom-10 md:-bottom-14 left-1/2 -translate-x-1/2">
             <Avatar
-              className={`border-4 border-card shadow-lg ${
-                isMobile ? "w-20 h-20" : "w-32 h-32"
-              }`}
+              className={`border-4 border-card shadow-lg ${isMobile ? "w-20 h-20" : "w-32 h-32"
+                }`}
             >
               <AvatarImage
                 src={patient.avatar || undefined}
@@ -974,7 +988,7 @@ function PatientDetailsPage() {
               <HistoryTab />
             </TabsContent>
             <TabsContent value="appointments">
-              <UpcomingTab />
+              <UpcomingTab incommingCitas={[patient.futurasCitas]} />
             </TabsContent>
           </Tabs>
         </div>

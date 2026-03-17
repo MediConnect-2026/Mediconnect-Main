@@ -22,8 +22,9 @@ import {
   TooltipProvider,
 } from "@/shared/ui/tooltip";
 import MCPDFButton from "@/shared/components/forms/MCPDFButton";
-import { MCGeneratePrescriptionPDF } from "@/shared/components/Mcgenerateprescriptionpdf";
 import { useAppStore } from "@/stores/useAppStore";
+import { getUserFullName } from "@/services/auth/auth.types";
+import { MCGeneratePrescriptionPDF } from "@/shared/components/MCGeneratePrescriptionPDF";
 
 interface MedicalPrescriptionDialogProps {
   children?: React.ReactNode;
@@ -42,7 +43,7 @@ function MedicalPrescriptionDialog({
   const [carouselStartIndex, setCarouselStartIndex] = useState(0);
 
   const user = useAppStore((state) => state.user);
-  const userRole = user?.role || "PATIENT";
+  const userRole = user?.rol || "PATIENT";
 
   const appointment = mockAppointments.find((apt) => apt.id === appointmentId);
   const historyItem = appointment?.history?.find(
@@ -75,7 +76,7 @@ function MedicalPrescriptionDialog({
       // People
       doctorName: appointment.doctorName,
       doctorSpecialty: appointment.doctorSpecialty,
-      patientName: userRole === "DOCTOR" ? user?.name : undefined,
+      patientName: userRole === "DOCTOR" ? getUserFullName(user) : "",
 
       // Meta
       viewerRole: userRole,
@@ -237,7 +238,7 @@ function MedicalPrescriptionDialog({
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
             {historyItem.medicalPrescription.documents &&
-            historyItem.medicalPrescription.documents.length > 0 ? (
+              historyItem.medicalPrescription.documents.length > 0 ? (
               historyItem.medicalPrescription.documents.map((doc, idx) => {
                 const truncatedName = truncateFileName(
                   doc.name,

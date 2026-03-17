@@ -10,7 +10,8 @@ import type {
   CalendarioResponse, 
   CalendarioParams,
   MyDoctorsResponse,
-  MyDoctorsFilters 
+  MyDoctorsFilters, 
+  CitasListResponseforView
 } from '@/types/AppointmentTypes';
 import type { 
   MisPacientesResponse, 
@@ -105,8 +106,8 @@ export const getCitasToDoctors = async (filters?: CitasFilters) => {
  * @param id - ID de la cita
  * @returns Promise con los detalles de la cita
  */
-export const getCitaById = async (id: string | number, params?: any) : Promise<CitasListResponse> => {
-  const { data } = await apiClient.get<CitasListResponse>(API_ENDPOINTS.CITAS.BY_ID(id), { params });
+export const getCitaById = async (id: string | number, params?: any) : Promise<CitasListResponseforView> => {
+  const { data } = await apiClient.get<CitasListResponseforView>(API_ENDPOINTS.CITAS.BY_ID(id), { params });
   return data;
 };
 
