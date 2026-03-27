@@ -69,6 +69,18 @@ const CenterPopup: React.FC<CenterPopupProps> = ({
   const imgHeight = isMobile ? "h-28" : "h-36";
   const textXs = isMobile ? "text-[11px]" : "text-xs";
 
+  const formatPhone = (phone: string | undefined): string => {
+    if (!phone) return "";
+    const cleaned = phone.replace(/\D/g, "");
+    if (cleaned.length === 10) {
+      return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6)}`;
+    }
+    if (cleaned.length === 11 && cleaned[0] === "1") {
+      return `+1 (${cleaned.slice(1, 4)}) ${cleaned.slice(4, 7)}-${cleaned.slice(7)}`;
+    }
+    return phone;
+  };
+
   return (
     <motion.div {...fadeInUp}>
       <Card
@@ -137,7 +149,7 @@ const CenterPopup: React.FC<CenterPopupProps> = ({
             className={`flex gap-1 ${textXs} text-secondary hover:opacity-80`}
           >
             <Phone className="w-3 h-3" />
-            <span className="text-primary">{provider.phone}</span>
+            <span className="text-primary">{formatPhone(provider.phone)}</span>
           </a>
 
           {/* Seguros */}

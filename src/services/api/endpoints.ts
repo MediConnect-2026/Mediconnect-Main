@@ -122,6 +122,11 @@ export const API_ENDPOINTS = {
   HEALTH_CENTERS: {
     BASE: '/centros-salud',
     TIPOS: '/tipos-centros-salud',
+    STATS: {
+      GENERAL: '/centros-salud/estadisticas/general',
+      CRECIMIENTO_MEDICOS: '/centros-salud/estadisticas/crecimiento-medicos',
+      DISTRIBUCION_ESPECIALIDADES: '/centros-salud/estadisticas/distribucion-especialidades',
+    },
   },
 
   // --- PROFESIONES Y EXPERIENCIA ---

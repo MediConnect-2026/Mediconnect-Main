@@ -338,7 +338,12 @@
       "resubmitPersonal": "Resubmit Personal Data",
       "resubmitCenter": "Resubmit Center Information",
       "cancel": "Cancel",
-      "submit": "Submit"
+      "submit": "Submit",
+      "submitting": "Submitting...",
+      "noChanges": "No changes to save",
+      "updateSuccess": "Information updated successfully",
+      "updateError": "Could not update the information",
+      "locationRequiredError": "To update location, select a valid point on the map"
     },
     "documents": {
       "title": "Documents",
@@ -369,7 +374,11 @@
       "actionsAvailable": "Available actions",
       "actionsDescription": "You can submit all current certifications for review, or cancel everything and start over.",
       "submitAllForReview": "Submit All for Review",
-      "cancelAll": "Cancel All"
+      "cancelAll": "Cancel All",
+      "uploadError": "Error uploading document: {{message}}",
+      "errorFileTooLarge": "The file exceeds the maximum size of 5MB",
+      "errorInvalidType": "File type not allowed. Only images (JPEG, PNG, WEBP) or PDF",
+      "errorGeneric": "Error uploading document"
     },
     "forms": {
       "centerName": "Center Name",
@@ -382,6 +391,7 @@
       "rncPlaceholder": "000000000",
       "centerType": "Center Type",
       "centerTypePlaceholder": "Select type",
+      "loadingCenterTypes": "Loading center types...",
       "phone": "Phone",
       "phonePlaceholder": "(809) 000-0000",
       "email": "Email",
@@ -393,6 +403,7 @@
       "provincePlaceholder": "Will be auto-filled",
       "municipality": "Municipality",
       "municipalityPlaceholder": "Will be auto-filled",
+      "zipCode": "Zip code",
       "latitude": "Latitude",
       "longitude": "Longitude",
       "firstName": "First Name(s)",

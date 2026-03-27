@@ -536,7 +536,8 @@ export const patientService = {
   // --- MÉTODOS PARA SEGUROS MÉDICOS ---
 
   /**
-   * Obtiene todos los tipos de seguros disponibles
+   * Obtiene los tipos de seguros disponibles para un seguro específico
+   * @param insuranceId - ID del seguro seleccionado
    * @param language - Idioma para traducción automática (opcional, por defecto 'es')
    * @returns Lista de tipos de seguros activos
    * 
@@ -545,7 +546,10 @@ export const patientService = {
    * - source: idioma origen (español)
    * - translate_fields: campos a traducir (nombre)
    */
-  getAvailableInsuranceTypes: async (language?: string): Promise<GetAvailableInsuranceTypesResponse> => {
+  getAvailableInsuranceTypes: async (
+    insuranceId: number,
+    language?: string
+  ): Promise<GetAvailableInsuranceTypesResponse> => {
     try {
       // Construir query params
       const params: Record<string, string> = {};
@@ -558,7 +562,7 @@ export const patientService = {
       }
 
       const response = await apiClient.get<GetAvailableInsuranceTypesResponse>(
-        '/tipos-seguros/disponibles',
+        `/seguros/${insuranceId}/tipos`,
         { params }
       );
 
@@ -599,7 +603,7 @@ export const patientService = {
       }
 
       const response = await apiClient.get<GetAvailableInsurancesResponse>(
-        '/seguros/disponibles',
+        '/seguros',
         { params }
       );
       return response.data;

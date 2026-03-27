@@ -509,6 +509,16 @@ function Location({ onOpenChange, locationId }: LocationProps) {
         open: true,
       });
 
+      // Invalidate location cache and center profile so pages reflect the update
+      try {
+        queryClient.invalidateQueries({
+          queryKey: QUERY_KEYS.UBICACIONES("location", { id: locationId, lang: currentLanguage }),
+        });
+        queryClient.invalidateQueries({ queryKey: ["center-profile", currentLanguage] });
+      } catch (err) {
+        console.error("Error invalidating queries after location update:", err);
+      }
+
       if (onOpenChange) onOpenChange(false);
     } catch (error) {
       setToast({

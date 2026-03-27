@@ -64,10 +64,10 @@ export const useInsurancesCache = () => {
   /**
    * Invalida el cache de tipos de seguros y fuerza un refetch
    */
-  const invalidateInsuranceTypes = async (language?: string) => {
+  const invalidateInsuranceTypes = async (language?: string, insuranceId?: number) => {
     await queryClient.invalidateQueries({
-      queryKey: language 
-        ? QUERY_KEYS.INSURANCE_TYPES(language)
+      queryKey: insuranceId
+        ? QUERY_KEYS.INSURANCE_TYPES_BY_INSURANCE(insuranceId, language)
         : ['insurances', 'types'],
     });
   };

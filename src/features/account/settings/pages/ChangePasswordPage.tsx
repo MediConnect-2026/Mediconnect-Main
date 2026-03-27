@@ -8,7 +8,7 @@ import { useAppStore } from "@/stores/useAppStore";
 import MCButton from "@/shared/components/forms/MCButton";
 import { ArrowRight } from "lucide-react";
 import { useGlobalUIStore } from "@/stores/useGlobalUIStore";
-import { changePasswordSchema } from "@/schema/account.schema";
+import { z } from "zod";
 import { useTranslation } from "react-i18next";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
 import { authService } from "@/services/auth/auth.service";
@@ -60,11 +60,36 @@ function ChangePasswordPage() {
     }
   }, [VerificationContext, VerificationContextStatus, changePasswordData, navigate]);
 
-  // Usa t para el schema (solo necesitamos los campos de contraseña)
-  const passwordSchema = changePasswordSchema(t).pick({ 
-    newPassword: true, 
-    confirmNewPassword: true 
-  });
+  // Schema Zod replicando las validaciones de CreatePasswordSchema
+  const PASSWORD_SECURITY_REGEX = /^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{6,}$/;
+
+  const passwordWithSecurity = (t: (key: string) => string) =>
+    z
+      .string()
+      .min(
+        8,
+        t("validation.passwordMin") || "Password must be at least 8 characters",
+      )
+      .refine((val) => PASSWORD_SECURITY_REGEX.test(val), {
+        message:
+          t("validation.passwordSecurity") ||
+          "Password must include at least one uppercase letter, one number, and one special character.",
+      });
+
+  const passwordSchema = z
+    .object({
+      newPassword: passwordWithSecurity(t),
+      confirmNewPassword: passwordWithSecurity(t),
+    })
+    .superRefine((data, ctx) => {
+      if (data.newPassword !== data.confirmNewPassword) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: t("validation.passwordsMustMatch") || "Passwords must match",
+          path: ["confirmNewPassword"],
+        });
+      }
+    });
 
   const handleSubmit = async (data: {
     confirmNewPassword: string;

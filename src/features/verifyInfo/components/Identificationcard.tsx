@@ -19,15 +19,17 @@ import DoctorForm from "./Doctorform";
 import CenterForm from "./Centerform";
 import DoctorReadOnlyView from "./Doctorreadonlyview";
 import CenterReadOnlyView from "./Centerreadonlyview";
+import { Loader2 } from "lucide-react";
 
 interface IdentificationCardProps {
   isDoctor: boolean;
   isEditing: boolean;
   currentStatus: VerificationStatus;
   currentInfo: DoctorPersonalInfo | CenterPersonalInfo;
+  isSubmitting?: boolean;
   onStartEdit: () => void;
   onCancelEdit: () => void;
-  onSubmit: (data: DoctorPersonalInfo | CenterPersonalInfo) => void;
+  onSubmit: (data: DoctorPersonalInfo | CenterPersonalInfo) => Promise<void> | void;
 }
 
 function IdentificationCard({
@@ -35,6 +37,7 @@ function IdentificationCard({
   isEditing,
   currentStatus,
   currentInfo,
+  isSubmitting = false,
   onStartEdit,
   onCancelEdit,
   onSubmit,
@@ -63,14 +66,21 @@ function IdentificationCard({
         </div>
 
         <div
-          className={`p-3 w-full rounded-lg mt-2 flex items-center gap-2 ${STATUS_DETAILS[currentStatus].bg}`}
+          className={`p-3 w-full rounded-lg mt-2 flex items-start gap-4 ${STATUS_DETAILS[currentStatus].bg}`}
         >
           <span className="flex-shrink-0">{STATUS[currentStatus].icon}</span>
-          <h3
-            className={`text-sm sm:text-base font-normal ${STATUS_DETAILS[currentStatus].text}`}
-          >
-            {t(`verification.messages.${currentStatus.toLowerCase()}`)}
-          </h3>
+          <div className="flex-1">
+            <h3
+              className={`text-sm sm:text-base font-normal ${STATUS_DETAILS[currentStatus].text}`}
+            >
+              {t(`verification.messages.${currentStatus.toLowerCase()}`)}
+            </h3>
+            {currentInfo.comentarioVerificacion && (
+              <p className={`text-sm mt-2 ${STATUS_DETAILS[currentStatus].text}`}>
+                {currentInfo.comentarioVerificacion}
+              </p>
+            )}
+          </div>
         </div>
 
         <Separator className="my-4" />
@@ -94,11 +104,20 @@ function IdentificationCard({
                 size="sm"
                 onClick={onCancelEdit}
                 className="w-full sm:w-auto"
+                disabled={isSubmitting}
               >
                 {t("verification.identification.cancel")}
               </MCButton>
-              <MCButton type="submit" size="sm" className="w-full sm:w-auto">
-                {t("verification.identification.submit")}
+              <MCButton
+                type="submit"
+                size="sm"
+                className="w-full sm:w-auto"
+                disabled={isSubmitting}
+                icon={isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : undefined}
+              >
+                {isSubmitting
+                  ? t("verification.identification.submitting")
+                  : t("verification.identification.submit")}
               </MCButton>
             </div>
           </MCFormWrapper>

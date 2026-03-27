@@ -11,19 +11,28 @@ import { patientService } from '@/shared/navigation/userMenu/editProfile/patient
  * @returns Query con los tipos de seguros disponibles
  * 
  * @example
- * const { data: insuranceTypes = [], isLoading } = useAvailableInsuranceTypes();
+ * const { data: insuranceTypes = [], isLoading } = useAvailableInsuranceTypes({ insuranceId: 1 });
  */
 export const useAvailableInsuranceTypes = (options?: {
+  insuranceId?: number;
   enabled?: boolean;
   staleTime?: number;
 }) => {
   const { i18n } = useTranslation();
   const language = i18n.language || 'es';
+  const selectedInsuranceId = options?.insuranceId;
+  const isEnabled = (options?.enabled ?? true) && !!selectedInsuranceId;
 
   return useQuery({
-    queryKey: QUERY_KEYS.INSURANCE_TYPES(language),
+    queryKey: selectedInsuranceId
+      ? QUERY_KEYS.INSURANCE_TYPES_BY_INSURANCE(selectedInsuranceId, language)
+      : QUERY_KEYS.INSURANCE_TYPES(language),
     queryFn: async () => {
-      const response = await patientService.getAvailableInsuranceTypes(language);
+      if (!selectedInsuranceId) {
+        return [];
+      }
+
+      const response = await patientService.getAvailableInsuranceTypes(selectedInsuranceId, language);
       if (!response.success) {
         throw new Error('Error al cargar tipos de seguros');
       }
@@ -37,7 +46,7 @@ export const useAvailableInsuranceTypes = (options?: {
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     refetchOnReconnect: false,
-    enabled: options?.enabled ?? true,
+    enabled: isEnabled,
   });
 };
 

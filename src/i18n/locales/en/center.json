@@ -69,6 +69,8 @@
   "profilePage": {
     "aboutTitle": "About",
     "aboutDescription": "Comprehensive care for the whole family, focused on preventing, diagnosing and treating common diseases. Our family doctor accompanies each patient at all stages of life, considering their physical, emotional and social well-being.",
+    "profileLoadError": "Unable to load the center's basic information. Please try again.",
+    "retry": "Retry",
     "insurancesTitle": "Accepted insurances",
     "morePlans": "See more plans...",
     "locationTitle": "Location",

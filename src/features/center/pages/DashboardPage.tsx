@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Card } from "@/shared/ui/card";
 import MCMetricCard from "@/shared/components/MCMetricCard";
@@ -21,6 +21,8 @@ import FilterStaff from "../components/filters/FilterStaff";
 import MCFilterInput from "@/shared/components/filters/MCFilterInput";
 import MCPDFButton from "@/shared/components/forms/MCPDFButton";
 import MCGeneratePDF from "@/shared/components/MCGeneratePDF";
+import { useCenterStatsResumen } from '@/lib/hooks/useCenterStats';
+import { Skeleton } from '@/shared/ui/skeleton';
 
 type DateRangeType = "week" | "month" | "3months" | "year" | "all";
 
@@ -174,38 +176,119 @@ function DashboardPage() {
       <div className="flex flex-col gap-4">
         {/* Metrics Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 flex-shrink-0">
-          <MCMetricCard
-            title={t("dashboard.metrics.totalDoctors")}
-            icon={<StethoscopeIcon />}
-            value={412}
-            subtitle={t("dashboard.metrics.totalDoctorsSubtitle")}
-            percentage="12%"
-            bordered
-          />
-          <MCMetricCard
-            title={t("dashboard.metrics.specialtiesCovered")}
-            icon={<UsersIcon />}
-            value={12}
-            subtitle={t("dashboard.metrics.specialtiesCoveredSubtitle")}
-            percentage="8%"
-            bordered
-          />
-          <MCMetricCard
-            title={t("dashboard.metrics.appointmentsThisWeek")}
-            icon={<CalendarCheckIcon />}
-            value={156}
-            subtitle={t("dashboard.metrics.appointmentsThisWeekSubtitle")}
-            percentage="15%"
-            bordered
-          />
-          <MCMetricCard
-            title={t("dashboard.metrics.averageRating")}
-            icon={<StarIcon />}
-            value="4.8"
-            subtitle={t("dashboard.metrics.averageRatingSubtitle")}
-            percentage="5%"
-            bordered
-          />
+          {(() => {
+            // Hook to fetch center stats
+            const { data: centerStats, isLoading, isError } = useCenterStatsResumen();
+
+            const metrics = useMemo(() => ({
+              totalDoctors: centerStats?.totalMedicos ?? 0,
+              specialties: centerStats?.totalEspecialidades ?? 0,
+              appointmentsWeek: centerStats?.citasSemanaActual ?? 0,
+              avgRating: centerStats?.valoracionPromedio ?? null,
+            }), [centerStats]);
+
+            // Loading skeletons
+            if (isLoading) {
+              return (
+                <>
+                  {[0, 1, 2, 3].map((i) => (
+                    <div
+                      key={i}
+                      className={`relative flex flex-col justify-start w-full rounded-4xl bg-background shadow-sm p-6 border border-primary/10`}
+                    >
+                      <div className="flex items-start gap-4 mb-6">
+                        <Skeleton className="w-16 h-16 rounded-full" />
+                        <div className="flex-1">
+                          <Skeleton className="h-5 w-1/2 mb-2" />
+                          <Skeleton className="h-4 w-3/4" />
+                        </div>
+                      </div>
+
+                      <Skeleton className="h-12 w-1/3" />
+                    </div>
+                  ))}
+                </>
+              );
+            }
+
+            // Error state: render cards with placeholders and small error hint
+            if (isError) {
+              return (
+                <>
+                  <MCMetricCard
+                    title={t("dashboard.metrics.totalDoctors")}
+                    icon={<StethoscopeIcon />}
+                    value={'-'}
+                    subtitle={t("dashboard.metrics.totalDoctorsSubtitle")}
+                    percentage=""
+                    bordered
+                  />
+                  <MCMetricCard
+                    title={t("dashboard.metrics.specialtiesCovered")}
+                    icon={<UsersIcon />}
+                    value={'-'}
+                    subtitle={t("dashboard.metrics.specialtiesCoveredSubtitle")}
+                    percentage=""
+                    bordered
+                  />
+                  <MCMetricCard
+                    title={t("dashboard.metrics.appointmentsThisWeek")}
+                    icon={<CalendarCheckIcon />}
+                    value={'-'}
+                    subtitle={t("dashboard.metrics.appointmentsThisWeekSubtitle")}
+                    percentage=""
+                    bordered
+                  />
+                  <MCMetricCard
+                    title={t("dashboard.metrics.averageRating")}
+                    icon={<StarIcon />}
+                    value={'-'}
+                    subtitle={t("dashboard.metrics.averageRatingSubtitle")}
+                    percentage=""
+                    bordered
+                  />
+                </>
+              );
+            }
+
+            // Success state
+            return (
+              <>
+                <MCMetricCard
+                  title={t("dashboard.metrics.totalDoctors")}
+                  icon={<StethoscopeIcon />}
+                  value={metrics.totalDoctors}
+                  subtitle={t("dashboard.metrics.totalDoctorsSubtitle")}
+                  percentage=""
+                  bordered
+                />
+                <MCMetricCard
+                  title={t("dashboard.metrics.specialtiesCovered")}
+                  icon={<UsersIcon />}
+                  value={metrics.specialties}
+                  subtitle={t("dashboard.metrics.specialtiesCoveredSubtitle")}
+                  percentage=""
+                  bordered
+                />
+                <MCMetricCard
+                  title={t("dashboard.metrics.appointmentsThisWeek")}
+                  icon={<CalendarCheckIcon />}
+                  value={metrics.appointmentsWeek}
+                  subtitle={t("dashboard.metrics.appointmentsThisWeekSubtitle")}
+                  percentage=""
+                  bordered
+                />
+                <MCMetricCard
+                  title={t("dashboard.metrics.averageRating")}
+                  icon={<StarIcon />}
+                  value={metrics.avgRating !== null ? metrics.avgRating.toFixed(1) : '-'}
+                  subtitle={t("dashboard.metrics.averageRatingSubtitle")}
+                  percentage=""
+                  bordered
+                />
+              </>
+            );
+          })()}
         </div>
 
         {/* Analytics Section */}

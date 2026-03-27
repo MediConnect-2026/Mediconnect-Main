@@ -9,6 +9,16 @@ interface CenterReadOnlyViewProps {
 function CenterReadOnlyView({ data }: CenterReadOnlyViewProps) {
   const { t } = useTranslation("common");
 
+  const formatPhone = (phone: string): string => {
+    if (!phone) return "-";
+    const cleaned = phone.replace(/\D/g, "");
+    if (cleaned.length === 10) {
+      return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6)}`;
+    }
+    return phone;
+  };
+
+  console.log("CenterReadOnlyView data:", data);
   return (
     <main className="space-y-4">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -23,7 +33,7 @@ function CenterReadOnlyView({ data }: CenterReadOnlyViewProps) {
             {t("verification.identification.centerType")}
           </p>
           <p className="font-medium text-foreground break-words">
-            {data.centerType}
+            {data.centerTypeLabel || data.centerType}
           </p>
         </div>
         <div className="col-span-1 sm:col-span-2">
@@ -46,21 +56,28 @@ function CenterReadOnlyView({ data }: CenterReadOnlyViewProps) {
           <p className="text-sm text-muted-foreground mb-1">
             {t("verification.identification.phone")}
           </p>
-          <p className="font-medium text-foreground">{data.phone}</p>
+          <p className="font-medium text-foreground">{formatPhone(data.phone)}</p>
         </div>
         <div>
           <p className="text-sm text-muted-foreground mb-1">
             {t("verification.identification.website")}
           </p>
-          <p className="font-medium text-foreground break-words">
-            {data.website || "-"}
-          </p>
+            <a
+              href={data.website}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium text-foreground break-words text-blue-600 hover:underline"
+            >
+              {data.website || "-"}
+            </a>
         </div>
         <div>
           <p className="text-sm text-muted-foreground mb-1">
             {t("verification.identification.rnc")}
           </p>
-          <p className="font-medium text-foreground">{data.rnc}</p>
+            <p className="font-medium text-foreground">
+            {data.rnc ? `${data.rnc.slice(0, 3)}-${data.rnc.slice(3, 10)}-${data.rnc.slice(10)}` : "-"}
+            </p>
         </div>
       </div>
 

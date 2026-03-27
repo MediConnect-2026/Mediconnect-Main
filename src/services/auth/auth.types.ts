@@ -78,6 +78,7 @@ export interface Doctor {
   biografia: string;
   anosExperiencia: number;
   estadoVerificacion: string;
+  comentarioVerificacion?: string | null;
   calificacionPromedio: string;
   estado: string;
   creadoEn: string; // ISO Date string

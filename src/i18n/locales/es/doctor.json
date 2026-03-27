@@ -483,6 +483,9 @@
     "list": "Seguros Aceptados",
     "add": "Agregar Seguro",
     "select": "Selecciona un seguro",
+    "selectType": "Selecciona el tipo de seguro",
+    "typePlaceholder": "Tipo de seguro",
+    "selectInsuranceFirst": "Por favor selecciona un seguro primero",
     "remove": "Eliminar seguro"
   },
   "educationForm": {

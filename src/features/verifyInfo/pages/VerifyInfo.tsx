@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import MCDashboardContent from "@/shared/layout/MCDashboardContent";
 import { useVerifyInfoStore } from "@/stores/useVerifyInfoStore";
 import { useAppStore } from "@/stores/useAppStore";
@@ -16,22 +16,40 @@ import type { VerificationStatus } from "../components/Verificationconstants";
 import { mockDoctorData, mockCenterData } from "@/data/verifyInfoMock";
 import type { AppUserRole } from "@/services/auth/auth.types";
 import { useDoctorProfile } from "@/lib/hooks/useDoctorProfile";
+import { useCenterProfile } from "@/lib/hooks/useCenterProfile";
+import { useCenterDocuments } from "@/lib/hooks/useCenterDocuments";
 import type { Doctor } from "@/shared/navigation/userMenu/editProfile/doctor/services/doctor.types";
+import { useTranslation } from "react-i18next";
+import VerifyInfoSkeleton from "../components/VerifyInfoSkeleton";
+import MCButton from "@/shared/components/forms/MCButton";
+import centerService from "@/shared/navigation/userMenu/editProfile/center/services/center.services";
+import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
+import { QUERY_KEYS } from "@/lib/react-query/config";
+import type {
+  UpdateCenterLocationRequest,
+  UpdateCenterLocationResponse,
+} from "@/shared/navigation/userMenu/editProfile/center/services/center.types";
 
 function VerifyInfo() {
   const [activeTab, setActiveTab] = useState("identificacion");
   const [isEditing, setIsEditing] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const user = useAppStore((state) => state.user);
   const userRole = useAppStore((state) => state.user?.rol) as AppUserRole;
   const isDoctor = userRole === "DOCTOR";
-
+  const {i18n} = useTranslation();
+  const { t } = useTranslation("common");
+  const queryClient = useQueryClient();
   // Obtener datos del doctor desde el API usando React Query
   const { 
     data: doctorProfile, 
     isLoading: isDoctorLoading,
-    error: doctorError 
+    error: doctorError,
+    refetch: refetchDoctor,
   } = useDoctorProfile({
     enabled: isDoctor, // Solo ejecutar si el usuario es doctor
+    staleTime: 1000 * 60 * 15,
   });
 
   const {
@@ -42,7 +60,28 @@ function VerifyInfo() {
     setDoctorInfo,
     setCenterInfo,
     setDoctorDocuments,
+    setCenterDocuments,
   } = useVerifyInfoStore();
+  
+  // Obtener datos del centro desde el API usando React Query
+  const {
+    data: centerProfile,
+    isLoading: isCenterLoading,
+    error: centerError,
+    refetch: refetchCenter,
+  } = useCenterProfile({
+    enabled: !isDoctor, // Solo ejecutar si NO es doctor
+    language: i18n.language,
+    staleTime: 1000 * 60 * 15,
+  });
+
+  const {
+    data: centerDocsResponse,
+  } = useCenterDocuments({
+    enabled: !isDoctor && activeTab === "documentos",
+    language: i18n.language,
+    staleTime: 1000 * 60 * 15,
+  });
 
   // Transformar datos del doctor del API al formato esperado por el componente
   const transformDoctorData = (
@@ -84,6 +123,8 @@ function VerifyInfo() {
       primarySpecialty,
       secondarySpecialty,
       medicalLicense: doctor.exequatur || "",
+      comentarioVerificacion:
+        doctor.comentarioVerificacion || undefined,
       verificationStatus:
         verificationStatusMap[doctor.estadoVerificacion] || "PENDING",
     };
@@ -159,35 +200,167 @@ function VerifyInfo() {
     };
   };
 
-  // Sincronizar datos del doctor desde React Query al store
-  useEffect(() => {
-    if (isDoctor && doctorProfile) {
-      const transformedData = transformDoctorData(doctorProfile);
-      // Actualizar con los datos transformados del API
-      if (transformedData) {
-        setDoctorInfo(transformedData);
-      }
-    }
-  }, [doctorProfile, isDoctor, setDoctorInfo, user?.email]);
+  // Transformar datos del centro del API al formato esperado por el componente
+  const transformCenterData = (center: any): import("@/schema/verifyInfo.schema").CenterPersonalInfo | null => {
+    if (!center) return null;
 
-  // Sincronizar documentos del doctor desde React Query al store
+    // Puede venir dentro de { data: { ... } } dependiendo del servicio
+    const payload = center.data || center;
+
+    const verificationStatusMap: Record<string, "PENDING" | "APPROVED" | "REJECTED"> = {
+      "En revisión": "PENDING",
+      "En Revisión": "PENDING",
+      "Under review": "PENDING",
+      Aprobado: "APPROVED",
+      Rechazado: "REJECTED",
+      Approved: "APPROVED",
+      Rejected: "REJECTED",
+    };
+
+    const ubicacion = payload.ubicacion || payload.ubicacion || {};
+
+    return {
+      name: payload.nombreComercial || payload.nombre || "",
+      description: payload.descripcion || "",
+      website: payload.sitio_web || payload.sitioWeb || undefined,
+      address: ubicacion.direccionCompleta || ubicacion.direccion || "",
+      province: ubicacion.provinciaNombre || ubicacion.provincia || "",
+      municipality: ubicacion.municipioNombre || ubicacion.municipio || "",
+      codigoPostal: ubicacion.codigoPostal || "",
+      barrioId: ubicacion.barrioId ? String(ubicacion.barrioId) : "",
+      rnc: payload.rnc || "",
+      centerType: String(payload.tipoCentro?.id || payload.tipoCentroId || ""),
+      centerTypeLabel: payload.tipoCentro?.nombre || payload.tipoCentro || "",
+      phone: payload.usuario?.telefono || payload.telefono || "",
+      email: payload.usuario?.email || payload.email || "",
+      coordinates: {
+        latitude: ubicacion.latitud ?? 0,
+        longitude: ubicacion.longitud ?? 0,
+      },
+      comentarioVerificacion:
+        payload.comentarioVerificacion || payload.comentario_verificacion || payload.comentario || payload.feedback || undefined,
+      verificationStatus: verificationStatusMap[payload.estadoVerificacion] || "PENDING",
+    };
+  };
+
+  const transformCenterDocuments = (resp: any): import("@/schema/verifyInfo.schema").CenterDocuments | null => {
+    if (!resp) return null;
+    const payload = resp.data || resp;
+    const docs = payload.documentos || payload.data?.documentos || [];
+
+
+    // Buscar certificado sanitario
+    const cert = docs.find((d: any) => /certific/i.test(String(d.tipoDocumento).toLowerCase()) || String(d.tipoDocumento).toLowerCase().includes('sanitaria'));
+
+    if (!cert) return null;
+
+    const verificationStatus = cert.estadoRevision === 'Pendiente' ? 'PENDING' : cert.estadoRevision === 'Aprobado' ? 'APPROVED' : 'REJECTED';
+
+    return {
+      healthCertificateFile: {
+        id: cert.id,
+        url: cert.urlArchivo,
+        name: cert.nombreOriginal || cert.urlArchivo?.split('/').pop() || 'certificado.pdf',
+        type: cert.tipoMime || 'application/pdf',
+        size: cert.tamanio_bytes || 0,
+        uploadedAt: cert.creadoEn,
+        verificationStatus: verificationStatus as any,
+        feedback: cert.feedback || undefined,
+      },
+    };
+  };
+
+  const transformedDoctorInfo = useMemo(
+    () => (isDoctor && doctorProfile ? transformDoctorData(doctorProfile) : null),
+    [doctorProfile, isDoctor, user?.email, i18n.language],
+  );
+
+  const transformedCenterInfo = useMemo(
+    () => (!isDoctor && centerProfile ? transformCenterData(centerProfile) : null),
+    [centerProfile, isDoctor, i18n.language],
+  );
+
+  const transformedDoctorDocuments = useMemo(
+    () => (isDoctor && doctorProfile ? transformDoctorDocuments(doctorProfile) : null),
+    [doctorProfile, isDoctor, i18n.language],
+  );
+
+  const transformedCenterDocuments = useMemo(
+    () =>
+      !isDoctor && centerDocsResponse
+        ? transformCenterDocuments(centerDocsResponse)
+        : null,
+    [centerDocsResponse, isDoctor, i18n.language],
+  );
+
+  // Sincronizar datos del API al store evitando escrituras redundantes
   useEffect(() => {
-    if (isDoctor && doctorProfile) {
-      const transformedDocs = transformDoctorDocuments(doctorProfile);
-      
-      // Actualizar con los documentos transformados del API
-      if (transformedDocs) {
-        setDoctorDocuments(transformedDocs);
+    if (isDoctor && transformedDoctorInfo) {
+      if (JSON.stringify(doctorInfo) !== JSON.stringify(transformedDoctorInfo)) {
+        setDoctorInfo(transformedDoctorInfo);
       }
     }
-  }, [doctorProfile, isDoctor, setDoctorDocuments]);
+
+    if (!isDoctor && transformedCenterInfo) {
+      if (JSON.stringify(centerInfo) !== JSON.stringify(transformedCenterInfo)) {
+        setCenterInfo(transformedCenterInfo);
+      }
+    }
+  }, [
+    doctorInfo,
+    centerInfo,
+    transformedDoctorInfo,
+    transformedCenterInfo,
+    isDoctor,
+    setDoctorInfo,
+    setCenterInfo,
+    i18n.language
+  ]);
+
+  // Sincronizar documentos desde API al store evitando escrituras redundantes
+  useEffect(() => {
+    if (isDoctor && transformedDoctorDocuments) {
+      if (
+        JSON.stringify(doctorDocuments) !==
+        JSON.stringify(transformedDoctorDocuments)
+      ) {
+        setDoctorDocuments(transformedDoctorDocuments);
+      }
+    }
+
+    if (!isDoctor && transformedCenterDocuments) {
+      if (
+        JSON.stringify(centerDocuments) !==
+        JSON.stringify(transformedCenterDocuments)
+      ) {
+        // setCenterDocuments viene del store
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        setCenterDocuments(transformedCenterDocuments);
+      }
+    }
+  }, [
+    doctorDocuments,
+    centerDocuments,
+    transformedDoctorDocuments,
+    transformedCenterDocuments,
+    isDoctor,
+    setDoctorDocuments,
+    setCenterDocuments,
+    i18n.language
+  ]);
 
   // Usar datos del store o datos mock según el rol
   const currentInfo = isDoctor
-    ? doctorInfo || mockDoctorData
+    ? isDoctorLoading
+      ? null
+      : doctorInfo || mockDoctorData
+    : isCenterLoading
+    ? null
     : centerInfo || mockCenterData;
 
-  const currentStatus: VerificationStatus = currentInfo.verificationStatus;
+  const currentStatus: VerificationStatus = currentInfo
+    ? currentInfo.verificationStatus
+    : "PENDING";
 
   // Calcular el estado general de documentos basado en documentos individuales
   const getDocumentsStatus = (): VerificationStatus => {
@@ -235,61 +408,200 @@ function VerifyInfo() {
     setIsEditing(false);
   };
 
-  const handleSubmit = (data: DoctorPersonalInfo | CenterPersonalInfo) => {
-    const updatedData = {
-      ...data,
-      verificationStatus: "PENDING" as const,
+  const handleSubmit = async (data: DoctorPersonalInfo | CenterPersonalInfo) => {
+    const normalize = (value?: string | null) => (value || "").trim();
+    const sameCoords = (
+      a?: { latitude: number; longitude: number },
+      b?: { latitude: number; longitude: number }
+    ) => {
+      if (!a && !b) return true;
+      if (!a || !b) return false;
+      return a.latitude === b.latitude && a.longitude === b.longitude;
     };
 
     if (isDoctor) {
+      const updatedData = {
+        ...data,
+        verificationStatus: "PENDING" as const,
+      };
       setDoctorInfo(updatedData as DoctorPersonalInfo);
-    } else {
-      setCenterInfo(updatedData as CenterPersonalInfo);
+      setIsEditing(false);
+      return;
     }
-    setIsEditing(false);
+
+    const next = data as CenterPersonalInfo;
+    const prev = currentInfo as CenterPersonalInfo;
+
+    const hasGeneralChanges =
+      normalize(next.name) !== normalize(prev.name) ||
+      normalize(next.description) !== normalize(prev.description) ||
+      normalize(next.website) !== normalize(prev.website) ||
+      normalize(next.rnc) !== normalize(prev.rnc) ||
+      normalize(next.phone) !== normalize(prev.phone) ||
+      normalize(next.centerType) !== normalize(prev.centerType);
+
+    const hasCoordinatesChanges = !sameCoords(next.coordinates, prev.coordinates);
+
+    const hasLocationChanges =
+      normalize(next.address) !== normalize(prev.address) ||
+      normalize(next.codigoPostal) !== normalize(prev.codigoPostal) ||
+      normalize(next.barrioId) !== normalize(prev.barrioId) ||
+      hasCoordinatesChanges;
+
+    if (!hasGeneralChanges && !hasLocationChanges) {
+      toast.info(t("verification.identification.noChanges"));
+      setIsEditing(false);
+      return;
+    }
+
+    const requests: Promise<unknown>[] = [];
+    let locationRequestIndex = -1;
+
+    if (hasGeneralChanges) {
+      requests.push(
+        centerService.updateProfile({
+          nombreComercial: normalize(next.name),
+          rnc: normalize(next.rnc),
+          tipoCentroId: Number(next.centerType),
+          sitio_web: normalize(next.website),
+          descripcion: normalize(next.description),
+          telefono: normalize(next.phone),
+        })
+      );
+    }
+
+    if (hasLocationChanges) {
+      const barrioId = Number(next.barrioId || prev.barrioId || 0);
+
+      if (!barrioId || !normalize(next.address)) {
+        toast.error(t("verification.identification.locationRequiredError"));
+        return;
+      }
+
+      const locationPayload: UpdateCenterLocationRequest = {
+        barrioId,
+        direccion: normalize(next.address),
+        codigoPostal: normalize(next.codigoPostal) || undefined,
+      };
+
+      if (
+        hasCoordinatesChanges &&
+        typeof next.coordinates?.latitude === "number" &&
+        typeof next.coordinates?.longitude === "number"
+      ) {
+        locationPayload.latitud = next.coordinates.latitude;
+        locationPayload.longitud = next.coordinates.longitude;
+      }
+
+      requests.push(centerService.updateMyLocation(locationPayload));
+      locationRequestIndex = requests.length - 1;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const responses = await Promise.all(requests);
+
+      if (hasLocationChanges && locationRequestIndex >= 0) {
+        const locationResponse = responses[locationRequestIndex] as UpdateCenterLocationResponse;
+
+        queryClient.setQueryData(
+          [...QUERY_KEYS.CENTERS, "me", i18n.language],
+          (oldData: any) => {
+            if (!oldData) return oldData;
+
+            const wrapper = oldData?.data ? oldData : { data: oldData };
+            const payload = wrapper.data || {};
+            const currentUbicacion = payload.ubicacion || {};
+
+            return {
+              ...wrapper,
+              data: {
+                ...payload,
+                ubicacion: {
+                  ...currentUbicacion,
+                  barrioId: locationResponse?.data?.barrioId ?? currentUbicacion.barrioId,
+                  direccion: locationResponse?.data?.direccion ?? currentUbicacion.direccion,
+                  direccionCompleta:
+                    locationResponse?.data?.direccion ?? currentUbicacion.direccionCompleta,
+                  codigoPostal:
+                    locationResponse?.data?.codigoPostal ?? currentUbicacion.codigoPostal,
+                  latitud: next.coordinates?.latitude ?? currentUbicacion.latitud,
+                  longitud: next.coordinates?.longitude ?? currentUbicacion.longitud,
+                },
+              },
+            };
+          }
+        );
+      }
+
+      await queryClient.invalidateQueries({
+        queryKey: [...QUERY_KEYS.CENTERS, "me"],
+      });
+      await refetchCenter();
+
+      const updatedData = {
+        ...next,
+        verificationStatus: "PENDING" as const,
+      };
+
+      setCenterInfo(updatedData);
+      setIsEditing(false);
+
+      if (!hasGeneralChanges && hasLocationChanges && locationRequestIndex >= 0) {
+        const locationResponse = responses[locationRequestIndex] as UpdateCenterLocationResponse;
+        toast.success(locationResponse?.message || t("verification.identification.updateSuccess"));
+      } else {
+        toast.success(t("verification.identification.updateSuccess"));
+      }
+    } catch (error: any) {
+      const serverMessage =
+        error?.response?.data?.message ||
+        error?.message ||
+        t("verification.identification.updateError");
+
+      toast.error(serverMessage);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
     <MCDashboardContent mainWidth="w-[100%]" noBg>
       <div className="min-h-screen w-full">
         <div className="max-w-6xl mx-auto px-2 sm:px-6 lg:px-8">
-          {/* Mostrar estado de carga solo para doctores */}
-          {isDoctor && isDoctorLoading && (
-            <div className="flex items-center justify-center min-h-[400px]">
-              <div className="text-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-                <p className="text-muted-foreground">Cargando información del perfil...</p>
-              </div>
-            </div>
-          )}
-
-          {/* Mostrar error solo para doctores */}
-          {isDoctor && doctorError && (
+          {/* Error / Loading / Content flow for both roles */}
+          {(isDoctor && doctorError) || (!isDoctor && centerError) ? (
             <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 mb-4">
               <h3 className="font-semibold text-destructive mb-2">Error al cargar el perfil</h3>
               <p className="text-sm text-destructive/80">
-                {doctorError.message || 'No se pudo cargar la información del perfil. Por favor, intenta nuevamente.'}
+                {(isDoctor ? doctorError?.message : centerError?.message) || 'No se pudo cargar la información del perfil. Por favor, intenta nuevamente.'}
               </p>
+              <div className="mt-3 flex gap-2">
+                <MCButton size="sm" onClick={() => { if (isDoctor) refetchDoctor?.(); else refetchCenter?.(); }}>
+                  Reintentar
+                </MCButton>
+              </div>
             </div>
-          )}
-
-          {/* Contenido principal - mostrar solo si no está cargando y no hay error */}
-          {(!isDoctor || (!isDoctorLoading && !doctorError)) && (
+          ) : (isDoctor && isDoctorLoading) || (!isDoctor && isCenterLoading) ? (
+            <VerifyInfoSkeleton />
+          ) : (
             <section className="flex flex-col gap-4 sm:grid sm:grid-cols-[3fr_7fr]">
               <VerificationProgressSidebar
                 activeTab={activeTab}
                 currentStatus={currentStatus}
+                documentsStatus={documentsStatus}
                 isDoctor={isDoctor}
                 onTabChange={setActiveTab}
               />
 
               <main className="mt-4 sm:mt-0">
-                {activeTab === "identificacion" && (
+                {activeTab === "identificacion" && currentInfo && (
                   <IdentificationCard
                     isDoctor={isDoctor}
                     isEditing={isEditing}
+                    isSubmitting={isSubmitting}
                     currentStatus={currentStatus}
-                    currentInfo={currentInfo}
+                    currentInfo={currentInfo as any}
                     onStartEdit={handleStartEdit}
                     onCancelEdit={handleCancelEdit}
                     onSubmit={handleSubmit}

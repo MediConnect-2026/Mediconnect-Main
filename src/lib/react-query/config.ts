@@ -65,6 +65,7 @@ export const QUERY_KEYS = {
   // Centers
   CENTERS: ['centers'],
   CENTER_BY_ID: (id: string | number) => ['centers', id],
+  CENTERS_STATS_RESUMEN: ['centers', 'stats', 'resumen'],
   
   // Conversations & Messages
   CONVERSATIONS: ['conversations'],
@@ -116,6 +117,8 @@ export const QUERY_KEYS = {
     ['insurances', 'accepted', language].filter(Boolean),
   INSURANCE_TYPES: (language?: string) => 
     ['insurances', 'types', language].filter(Boolean),
+  INSURANCE_TYPES_BY_INSURANCE: (insuranceId: number, language?: string) =>
+    ['insurances', 'types', insuranceId, language].filter(Boolean),
 
   // Doctor Stats
   DOCTOR_STATS_RESUMEN: ['doctor', 'stats', 'resumen'],

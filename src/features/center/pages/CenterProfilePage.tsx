@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import MCSheetProfile from "@/shared/navigation/userMenu/editProfile/MCSheetProfile";
 import { useAppStore } from "@/stores/useAppStore";
@@ -20,6 +21,11 @@ import CenterProfileBanner from "../components/profile/CenterProfileBanner";
 import CenterProfileBannerMobile from "../components/profile/CenterProfileBannerMobile";
 import FilterStaff from "../components/filters/FilterStaff";
 import MapScheduleLocation from "@/shared/components/maps/MapScheduleLocation";
+import ubicacionesService from "@/features/onboarding/services/ubicaciones.services";
+import { QUERY_KEYS } from "@/lib/react-query/config";
+import { getUserAvatar, getUserFullName } from "@/services/auth/auth.types";
+import centerService from "@/shared/navigation/userMenu/editProfile/center/services/center.services";
+import { Skeleton } from "@/shared/ui/skeleton";
 
 // Mock data for connected doctors
 const doctorsList = [
@@ -85,7 +91,7 @@ interface StaffFilters {
 function CenterProfilePage() {
   const [openSheet, setOpenSheet] = useState(false);
   const [searchName, setSearchName] = useState("");
-  const { t } = useTranslation("center");
+  const { t, i18n } = useTranslation("center");
 
   const [staffFilters, setStaffFilters] = useState<StaffFilters>({
     specialty: "",
@@ -96,21 +102,107 @@ function CenterProfilePage() {
   const user = useAppStore((state) => state.user);
   const isMobile = useIsMobile();
 
+  const language = i18n.language || "es";
+
+  const profileTranslationParams =
+    language !== "es"
+      ? {
+          target: language,
+          source: language === "en" ? "es" : "en",
+          translate_fields: "descripcion,nombreComercial",
+        }
+      : undefined;
+
+  const {
+    data: centerProfileResponse,
+    isLoading: isLoadingCenterProfile,
+    isError: isCenterProfileError,
+    refetch: refetchCenterProfile,
+  } = useQuery({
+    queryKey: ["center-profile", language],
+    queryFn: () => centerService.getMyProfile(profileTranslationParams),
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const centerProfile = centerProfileResponse?.data;
+
   // Mock center data
+  const formatPhone = (raw?: string | null) => {
+    if (!raw) return "";
+    const digits = raw.replace(/\D/g, "");
+    if (digits.length === 10) {
+      return `(${digits.slice(0, 3)})-${digits.slice(3, 6)}-${digits.slice(6)}`;
+    }
+    return raw;
+  };
+
   const center = {
-    id: "1",
-    name: user?.name || "Hospital Dario Contreras",
-    avatar: user?.avatar,
+    id: String(centerProfile?.usuarioId ?? user?.id ?? ""),
+    name: centerProfile?.nombreComercial || getUserFullName(user),
+    avatar:
+      centerProfile?.foto_perfil ||
+      centerProfile?.usuario?.fotoPerfil ||
+      getUserAvatar(user),
     banner: user?.banner,
     rating: 4.8,
     reviewCount: 12,
-    phone: "809-093-2342",
-    website: "https://www.dariocontreras.gob.do",
-    description: "",
+    phone: formatPhone(centerProfile?.usuario?.telefono || ""),
+    website: centerProfile?.sitio_web || "",
+    description: centerProfile?.descripcion || "",
   };
 
-  // Center location (Santo Domingo, RD - Hospital Dario Contreras)
-  const centerLocation = { lat: 18.4861, lng: -69.8887 };
+  // Mapear la ubicación del centro mediante ubicacionId
+  const ubicacionId = centerProfile?.ubicacionId ?? centerProfile?.ubicacion?.id;
+
+  const {
+    data: locationResponse,
+    isLoading: isLocationLoading,
+    isError: isLocationError,
+    refetch: refetchLocation,
+  } = useQuery({
+    queryKey: QUERY_KEYS.UBICACIONES("location", { id: ubicacionId, lang: language }),
+    queryFn: () => ubicacionesService.getLocationById(Number(ubicacionId)),
+    enabled: Boolean(ubicacionId),
+    staleTime: 1000 * 60 * 30,
+  });
+
+  const mapUbicacionToCoords = (locResp: any) => {
+    if (!locResp) return null;
+    const loc = locResp.data || locResp;
+
+    // GeoJSON puntoGeografico: { coordinates: [lng, lat] }
+    try {
+      const coords = loc?.puntoGeografico?.coordinates;
+      if (Array.isArray(coords) && coords.length >= 2) {
+        const lng = Number(coords[0]);
+        const lat = Number(coords[1]);
+        if (Number.isFinite(lat) && Number.isFinite(lng)) return { lat, lng };
+      }
+
+      // Direct fields
+      if (loc?.lat && loc?.lng) {
+        const lat = Number(loc.lat);
+        const lng = Number(loc.lng);
+        if (Number.isFinite(lat) && Number.isFinite(lng)) return { lat, lng };
+      }
+
+      // Nested coordinates object
+      if (loc?.coordinates?.latitude && loc?.coordinates?.longitude) {
+        const lat = Number(loc.coordinates.latitude);
+        const lng = Number(loc.coordinates.longitude);
+        if (Number.isFinite(lat) && Number.isFinite(lng)) return { lat, lng };
+      }
+    } catch (e) {
+      console.error("Error parsing location coords:", e);
+    }
+
+    return null;
+  };
+
+  const parsedLocation = mapUbicacionToCoords(locationResponse);
+
+  // Center location fallback (Santo Domingo, RD - Hospital Dario Contreras)
+  const centerLocation = parsedLocation ?? { lat: 18.4861, lng: -69.8887 };
 
   const updateStaffFilters = (newFilters: Partial<StaffFilters>) => {
     setStaffFilters((prev) => ({ ...prev, ...newFilters }));
@@ -174,9 +266,37 @@ function CenterProfilePage() {
     return true;
   });
 
+  if (isLoadingCenterProfile) {
+    return (
+      <MCDashboardContent mainWidth="w-[100%]" noBg>
+        <div className="min-h-screen w-full flex flex-col gap-4">
+          <Skeleton className="w-full h-60 rounded-4xl" />
+          <Skeleton className="w-full h-36 rounded-4xl" />
+          <div className={`grid ${isMobile ? "grid-cols-1" : "grid-cols-2"} gap-4`}>
+            <Skeleton className="w-full h-72 rounded-4xl" />
+            <Skeleton className="w-full h-72 rounded-4xl" />
+          </div>
+        </div>
+      </MCDashboardContent>
+    );
+  }
+
   return (
     <MCDashboardContent mainWidth="w-[100%]" noBg>
       <div className="min-h-screen w-full flex flex-col gap-4">
+        {isCenterProfileError && (
+          <Card className="rounded-3xl border border-destructive/30 bg-destructive/5">
+            <CardContent className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <p className="text-sm text-foreground">
+                {t("profilePage.profileLoadError")}
+              </p>
+              <MCButton size="sm" variant="outline" onClick={() => refetchCenterProfile()}>
+                {t("profilePage.retry")}
+              </MCButton>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Banner del centro */}
         <div className="w-full">
           {isMobile ? (
@@ -247,11 +367,26 @@ function CenterProfilePage() {
                 >
                   {t("profilePage.locationTitle")}
                 </h2>
-                <MapScheduleLocation
-                  initialLocation={centerLocation}
-                  fontSizeVariant={isMobile ? "xs" : "s"}
-                  showAddressInfo={true}
-                />
+                {isLocationLoading ? (
+                  <Skeleton className="w-full h-60 rounded-4xl" />
+                ) : isLocationError ? (
+                  <Card className="rounded-3xl border border-destructive/30 bg-destructive/5">
+                    <CardContent className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                      <p className="text-sm text-foreground">{t("profilePage.locationLoadError", "Error loading location")}</p>
+                      <MCButton size="sm" variant="outline" onClick={() => refetchLocation()}>
+                        {t("profilePage.retry")}
+                      </MCButton>
+                    </CardContent>
+                  </Card>
+                ) : parsedLocation ? (
+                  <MapScheduleLocation
+                    initialLocation={centerLocation}
+                    fontSizeVariant={isMobile ? "xs" : "s"}
+                    showAddressInfo={true}
+                  />
+                ) : (
+                  <p className="text-muted-foreground">{t("profilePage.locationUnavailable", "Location not available")}</p>
+                )}
               </CardContent>
             </Card>
           </div>

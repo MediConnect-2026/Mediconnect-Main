@@ -32,15 +32,15 @@ function Insurance({ onInsurancesChanged }: InsuranceProps = {}) {
 
   // React Query hooks para datos con caché
   const { data: availableInsurances = [], isLoading: isLoadingInsurances } = useAvailableInsurances();
-  const { data: availableInsuranceTypes = [] } = useAvailableInsuranceTypes();
+  const [selectedInsuranceId, setSelectedInsuranceId] = useState<number | null>(null);
+  const { data: availableInsuranceTypes = [], isLoading: isLoadingInsuranceTypes } = useAvailableInsuranceTypes({
+    insuranceId: selectedInsuranceId ?? undefined,
+  });
   const { data: myInsurances = [] } = useMyInsurances();
 
   // Mutation hooks
   const addInsurance = useAddInsurance();
   const removeInsurance = useRemoveInsurance();
-
-  // Estado local para UI
-  const [selectedInsuranceType, setSelectedInsuranceType] = useState<number | null>(null);
 
   // Estado de carga global (cualquier mutación en progreso)
   const isSubmitting = addInsurance.isPending || removeInsurance.isPending;
@@ -59,12 +59,9 @@ function Insurance({ onInsurancesChanged }: InsuranceProps = {}) {
     console.log("Insurance data submitted:");
   };
 
-  async function handleAddInsurance(value: string) {
-    const idSeguro = parseInt(value);
-    
-    // Validar que se haya seleccionado un tipo de seguro
-    if (!selectedInsuranceType) {
-      toast.error(t("insurance.selectTypeFirst", "Por favor selecciona el tipo de seguro primero"));
+  async function handleAddInsurance(selectedTypeId: number) {
+    if (!selectedInsuranceId) {
+      toast.error(t("insurance.selectInsuranceFirst", "Por favor selecciona un seguro primero"));
       return;
     }
     
@@ -75,12 +72,12 @@ function Insurance({ onInsurancesChanged }: InsuranceProps = {}) {
     }
     
     await addInsurance.mutateAsync({ 
-      idSeguro, 
-      idTipoSeguro: selectedInsuranceType 
+      idSeguro: selectedInsuranceId,
+      idTipoSeguro: selectedTypeId,
     });
     
-    // Resetear selección de tipo de seguro
-    setSelectedInsuranceType(null);
+    // Resetear selección después de agregar
+    setSelectedInsuranceId(null);
     
     // Notificar al componente padre que los seguros cambiaron
     onInsurancesChanged?.();
@@ -178,31 +175,6 @@ function Insurance({ onInsurancesChanged }: InsuranceProps = {}) {
           )}
         </div>
         
-        {/* Tipo de seguro */}
-        <div
-          className={`mb-1 ${
-            isMobile ? "text-base" : "text-lg"
-          } font-medium text-primary`}
-        >
-          {t("insurance.selectType", "Selecciona el tipo de seguro")}
-        </div>
-        <MCSelect
-          key={`type-${myInsurances.length}`}
-          name="insuranceType"
-          className="mb-4"
-          placeholder={t("insurance.typePlaceholder", "Tipo de seguro")}
-          options={availableInsuranceTypes.map(type => ({
-            value: type.id.toString(),
-            label: type.nombre,
-          }))}
-          onChange={(value) => {
-            if (typeof value === "string") {
-              setSelectedInsuranceType(parseInt(value));
-            }
-          }}
-          disabled={isLoadingInsurances || isSubmitting || myInsurances.length >= 3}
-        />
-        
         {/* Seguro */}
         <div
           className={`mb-1 ${
@@ -212,7 +184,7 @@ function Insurance({ onInsurancesChanged }: InsuranceProps = {}) {
           {t("insurance.add")}
         </div>
         <MCSelect
-          key={myInsurances.length}
+          key={`insurance-${myInsurances.length}`}
           name="insurance"
           className="mb-4"
           searchable={true}
@@ -223,10 +195,43 @@ function Insurance({ onInsurancesChanged }: InsuranceProps = {}) {
               value: insurance.id.toString(),
               label: insurance.nombre,
             }))}
-          disabled={isLoadingInsurances || isSubmitting || myInsurances.length >= 3 || !selectedInsuranceType}
+          disabled={isLoadingInsurances || isSubmitting || myInsurances.length >= 3}
           onChange={(value) => {
-            if (typeof value === "string") handleAddInsurance(value);
+            if (typeof value === "string") {
+              setSelectedInsuranceId(parseInt(value));
+            }
           }}
+        />
+
+        {/* Tipo de seguro */}
+        <div
+          className={`mb-1 ${
+            isMobile ? "text-base" : "text-lg"
+          } font-medium text-primary`}
+        >
+          {t("insurance.selectType", "Selecciona el tipo de seguro")}
+        </div>
+        <MCSelect
+          key={`type-${selectedInsuranceId ?? "none"}-${myInsurances.length}`}
+          name="insuranceType"
+          className="mb-4"
+          placeholder={t("insurance.typePlaceholder", "Tipo de seguro")}
+          options={availableInsuranceTypes.map((type) => ({
+            value: type.id.toString(),
+            label: type.nombre,
+          }))}
+          onChange={(value) => {
+            if (typeof value === "string") {
+              void handleAddInsurance(parseInt(value));
+            }
+          }}
+          disabled={
+            isLoadingInsurances ||
+            isLoadingInsuranceTypes ||
+            isSubmitting ||
+            myInsurances.length >= 3 ||
+            !selectedInsuranceId
+          }
         />
         
         {myInsurances.length >= 3 && (

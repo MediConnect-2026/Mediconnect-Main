@@ -105,6 +105,8 @@
     "mapfre": "Mapfre Health",
     "particular": "Private",
     "selectType": "Select insurance type",
+    "typePlaceholder": "Insurance type",
+    "selectInsuranceFirst": "Please select an insurance first",
     "loading": "Loading insurances...",
     "verifying": "Verifying compatibility...",
     "compatible": "This insurance is accepted by the doctor",

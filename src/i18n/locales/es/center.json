@@ -69,6 +69,8 @@
   "profilePage": {
     "aboutTitle": "Acerca de",
     "aboutDescription": "Atención integral para toda la familia, enfocada en prevenir, diagnosticar y tratar enfermedades comunes. Nuestro médico de familia acompaña a cada paciente en todas las etapas de la vida, considerando su bienestar físico, emocional y social.",
+    "profileLoadError": "No se pudo cargar la información básica del centro. Intenta nuevamente.",
+    "retry": "Reintentar",
     "insurancesTitle": "Seguros aceptados",
     "morePlans": "Ver más planes...",
     "locationTitle": "Ubicación",

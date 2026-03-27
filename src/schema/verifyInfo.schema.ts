@@ -22,6 +22,7 @@ export const doctorPersonalInfoBaseSchema = z.object({
   primarySpecialty: z.string(),
   secondarySpecialty: z.string().optional(),
   medicalLicense: z.string(),
+  comentarioVerificacion: z.string().optional(),
   verificationStatus: verificationStatusEnum,
 });
 
@@ -65,14 +66,18 @@ export const centerPersonalInfoBaseSchema = z.object({
   address: z.string(),
   province: z.string(),
   municipality: z.string(),
+  codigoPostal: z.string().optional(),
+  barrioId: z.string().optional(),
   rnc: z.string(),
   centerType: z.string(),
+  centerTypeLabel: z.string().optional(),
   phone: z.string(),
   email: z.string(),
   coordinates: z.object({
     latitude: z.number(),
     longitude: z.number(),
   }),
+  comentarioVerificacion: z.string().optional(),
   verificationStatus: verificationStatusEnum,
 });
 
@@ -94,6 +99,8 @@ export function centerPersonalInfoSchema(t: (key: string) => string) {
     municipality: z
       .string()
       .min(1, { message: t("validation.municipalityRequired") }),
+    codigoPostal: z.string().optional(),
+    barrioId: z.string().optional(),
     rnc: z
       .string()
       .min(1, { message: t("validation.rncRequired") })
@@ -103,6 +110,7 @@ export function centerPersonalInfoSchema(t: (key: string) => string) {
     centerType: z
       .string()
       .min(1, { message: t("validation.centerTypeRequired") }),
+    centerTypeLabel: z.string().optional(),
     phone: z.string().min(1, { message: t("validation.phoneRequired") }),
     email: z.string().email({ message: t("validation.emailInvalid") }),
     coordinates: z.object({

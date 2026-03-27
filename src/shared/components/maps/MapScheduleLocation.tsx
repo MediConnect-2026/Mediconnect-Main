@@ -346,20 +346,7 @@ function MapScheduleLocation({
           });
           mapRef.current!.fitBounds(bounds, { padding: 50, duration: 1000 });
         }
-      } else if (
-        !isNaN(location.lat) &&
-        !isNaN(location.lng) &&
-        isFinite(location.lat) &&
-        isFinite(location.lng)
-      ) {
-        // Marcador único (solo si las coordenadas son válidas)
-        markerRef.current = new mapboxgl.Marker({
-          color: "#e11d48",
-          scale: isMobile ? 1.2 : 1.5,
-        })
-          .setLngLat([location.lng, location.lat])
-          .addTo(mapRef.current!);
-      }
+      } 
     };
 
     if (mapRef.current.loaded()) {
@@ -368,6 +355,45 @@ function MapScheduleLocation({
       mapRef.current.on("load", updateMarkers);
     }
   }, [location, multipleLocations, isMobile]);
+
+
+  // Actualizar centro y marcador cuando cambia initialLocation (sin reinicializar)
+  useEffect(() => {
+    if (!mapRef.current || !initialLocation || multipleLocations) return;
+    if (
+      !isNaN(initialLocation.lat) &&
+      !isNaN(initialLocation.lng) &&
+      isFinite(initialLocation.lat) &&
+      isFinite(initialLocation.lng)
+    ) {
+      const update = () => {
+        // Limpiar marcador anterior antes de crear el nuevo
+        if (markerRef.current) {
+          markerRef.current.remove();
+          markerRef.current = null;
+        }
+
+        markerRef.current = new mapboxgl.Marker({
+          color: "#e11d48",
+          scale: isMobile ? 1.2 : 1.5,
+        })
+          .setLngLat([initialLocation.lng, initialLocation.lat])
+          .addTo(mapRef.current!);
+
+        mapRef.current!.easeTo({
+          center: [initialLocation.lng, initialLocation.lat],
+          zoom: isMobile ? 14 : 15,
+          duration: 800,
+        });
+      };
+
+      if (mapRef.current.loaded()) {
+        update();
+      } else {
+        mapRef.current.once("load", update);
+      }
+    }
+  }, [initialLocation?.lat, initialLocation?.lng, multipleLocations, isMobile]);
 
   // Parsear dirección cuando cambia la ubicación (solo para ubicación única)
   useEffect(() => {

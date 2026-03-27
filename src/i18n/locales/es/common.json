@@ -337,7 +337,12 @@
       "resubmitPersonal": "Reenviar Datos Personales",
       "resubmitCenter": "Reenviar Información del Centro",
       "cancel": "Cancelar",
-      "submit": "Enviar"
+      "submit": "Enviar",
+      "submitting": "Enviando...",
+      "noChanges": "No hay cambios para guardar",
+      "updateSuccess": "Información actualizada correctamente",
+      "updateError": "No se pudo actualizar la información",
+      "locationRequiredError": "Para actualizar la ubicación, selecciona un punto válido en el mapa"
     },
     "documents": {
       "title": "Documentos",
@@ -368,7 +373,11 @@
       "actionsAvailable": "Acciones disponibles",
       "actionsDescription": "Puedes enviar todas las certificaciones actuales para revisión, o cancelar todo y empezar de nuevo.",
       "submitAllForReview": "Enviar Todo a Revisión",
-      "cancelAll": "Cancelar Todo"
+      "cancelAll": "Cancelar Todo",
+      "uploadError": "Error al subir el documento: {{message}}",
+      "errorFileTooLarge": "El archivo supera el tamaño máximo de 5MB",
+      "errorInvalidType": "Tipo de archivo no permitido. Solo imágenes (JPEG, PNG, WEBP) o PDF",
+      "errorGeneric": "Error al subir el documento"
     },
     "forms": {
       "centerName": "Nombre del Centro",
@@ -381,6 +390,7 @@
       "rncPlaceholder": "000000000",
       "centerType": "Tipo de Centro",
       "centerTypePlaceholder": "Seleccione tipo",
+      "loadingCenterTypes": "Cargando tipos de centro...",
       "phone": "Teléfono",
       "phonePlaceholder": "(809) 000-0000",
       "email": "Email",
@@ -392,6 +402,7 @@
       "provincePlaceholder": "Se completará automáticamente",
       "municipality": "Municipio",
       "municipalityPlaceholder": "Se completará automáticamente",
+      "zipCode": "Código postal",
       "latitude": "Latitud",
       "longitude": "Longitud",
       "firstName": "Nombre(s)",

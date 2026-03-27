@@ -49,6 +49,17 @@ const CenterCardsComponent = ({
     connectBtnDisabled = true;
   }
 
+  const formatPhone = (phone: string): string => {
+    const cleaned = phone.replace(/\D/g, "");
+    if (cleaned.length === 10) {
+      return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6)}`;
+    }
+    if (cleaned.length === 11) {
+      return `+${cleaned.slice(0, 1)} (${cleaned.slice(1, 4)}) ${cleaned.slice(4, 7)}-${cleaned.slice(7)}`;
+    }
+    return phone;
+  };
+
   return (
     <div
       className={cn(
@@ -170,7 +181,7 @@ const CenterCardsComponent = ({
                     isMobile ? "w-3 h-3" : "w-4 h-4",
                   )}
                 />
-                <span>{clinic.phone}</span>
+                <span>{formatPhone(clinic.phone)}</span>
               </div>
             )}
           </div>

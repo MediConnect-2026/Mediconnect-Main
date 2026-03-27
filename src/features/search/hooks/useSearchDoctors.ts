@@ -1,9 +1,10 @@
 import { useQuery, type UseQueryResult } from "@tanstack/react-query";
 import { useMemo, useState, useEffect } from "react";
 import { doctorService } from "@/shared/navigation/userMenu/editProfile/doctor/services/doctor.service";
-import type { DoctorNearby } from "@/shared/navigation/userMenu/editProfile/doctor/services/doctor.types";
+import type { DoctorNearby, GetDoctoresByDistanceResponse, CenterNearby } from "@/shared/navigation/userMenu/editProfile/doctor/services/doctor.types";
 import type { Provider } from "@/data/providers";
-import { mapDoctorsToProviders } from "../mappers/serviceToProvider.mapper";
+import { mapDoctorsToProviders, mapCentersToProviders } from "../mappers/serviceToProvider.mapper";
+import { useUserRole } from '@/lib/hooks/useAuthUser';
 import {
   mapFiltersToAPIParams,
   createFilterCacheKey,
@@ -31,6 +32,10 @@ export interface UseSearchDoctorsResult {
    * Raw doctor data from API
    */
   rawDoctors: DoctorNearby[];
+  /**
+   * Raw centers (centros) from API
+   */
+  rawCenters: CenterNearby[];
   /**
    * All providers before client-side filtering
    */
@@ -114,10 +119,10 @@ export function useSearchDoctors({
   }, [lat, lng, radiusKm, filters, language]);
 
   // Fetch doctors from API
-  const query = useQuery<DoctorNearby[], Error>({
+  const query = useQuery<GetDoctoresByDistanceResponse, Error>({
     queryKey,
     queryFn: async () => {
-      console.log("Fetching doctors with params:", { lat, lng, radiusKm, apiParams });
+
       const response = await doctorService.getDoctorAndCenterByFilters(
         lat,
         lng,
@@ -125,7 +130,8 @@ export function useSearchDoctors({
         apiParams
       );
 
-      return response.doctores || [];
+      // Return the full response so we can map both doctores and centros
+      return response;
     },
     staleTime: 1000 * 60 * 5, // 5 minutes
     gcTime: 1000 * 60 * 30, // 30 minutes (formerly cacheTime)
@@ -138,12 +144,14 @@ export function useSearchDoctors({
   // Transform doctors to providers asynchronously (mapper fetches availability)
   const [providers, setProviders] = useState<Provider[]>([]);
   const [isTransforming, setIsTransforming] = useState(false);
+  const userRole = useUserRole();
+  const skipAvailability = userRole === 'CENTER';
 
   useEffect(() => {
     let mounted = true;
 
     const buildProviders = async () => {
-      if (!query.data || query.data.length === 0) {
+      if (!query.data || ((query.data.doctores || []).length === 0 && (query.data.centros || []).length === 0)) {
         if (mounted) {
           setProviders([]);
           setIsTransforming(false);
@@ -154,9 +162,11 @@ export function useSearchDoctors({
       if (mounted) setIsTransforming(true);
 
       try {
-        const mapped = await mapDoctorsToProviders(query.data);
+        const mappedDoctors = await mapDoctorsToProviders(query.data.doctores || [], language, skipAvailability);
+        const mappedCenters = mapCentersToProviders(query.data.centros || [], language);
+        const combined = [...mappedDoctors, ...mappedCenters];
         if (mounted) {
-          setProviders(mapped);
+          setProviders(combined);
           setIsTransforming(false);
         }
       } catch (e) {
@@ -172,7 +182,7 @@ export function useSearchDoctors({
     return () => {
       mounted = false;
     };
-  }, [query.data]);
+  }, [query.data, language, skipAvailability]);
 
   // Apply client-side filters
   const filteredProviders = useMemo<Provider[]>(() => {
@@ -244,7 +254,8 @@ export function useSearchDoctors({
   return {
     data: providers,
     filteredProviders,
-    rawDoctors: query.data || [],
+    rawDoctors: query.data?.doctores || [],
+    rawCenters: query.data?.centros || [],
     isLoading: query.isLoading || isTransforming,
     error: query.error,
     isSuccess: query.isSuccess,

@@ -105,6 +105,8 @@
     "logoutSuccess": "¡Sesión cerrada exitosamente!",
     "particular": "Particular",
     "selectType": "Seleccionar tipo de seguro",
+    "typePlaceholder": "Tipo de seguro",
+    "selectInsuranceFirst": "Por favor selecciona un seguro primero",
     "loading": "Cargando seguros...",
     "verifying": "Verificando compatibilidad...",
     "compatible": "Este seguro es aceptado por el doctor",

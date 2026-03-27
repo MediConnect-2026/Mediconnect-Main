@@ -1,4 +1,4 @@
-import type { DoctorNearby } from "@/shared/navigation/userMenu/editProfile/doctor/services/doctor.types";
+import type { DoctorNearby, CenterNearby } from "@/shared/navigation/userMenu/editProfile/doctor/services/doctor.types";
 import type { Doctor, Provider } from "@/data/providers";
 import { doctorService } from "@/shared/navigation/userMenu/editProfile/doctor/services";
 
@@ -11,7 +11,9 @@ import { doctorService } from "@/shared/navigation/userMenu/editProfile/doctor/s
  */
 export const mapDoctorsToProviders = async (
   doctors: DoctorNearby[],
-  language: string = "es"
+  language: string = "es",
+  // When true, avoid fetching availability slots for each doctor (e.g., center users)
+  skipAvailability: boolean = false
 ): Promise<Provider[]> => {
   if (!doctors || doctors.length === 0) {
     return [];
@@ -47,35 +49,37 @@ export const mapDoctorsToProviders = async (
         new Set(doctor.segurosAceptados.map((s) => s.seguro.nombre))
       );
 
-      // Try to fetch availability for the doctor; fall back to placeholder on failure
+      // Try to fetch availability for the doctor unless skipping is requested
       let availability = generateAvailabilityPlaceholder();
-      try {
-        const slotsResp = await doctorService.getDoctorSlotsAvailableInRange(
-          doctor.usuarioId,
-          new Date().toISOString().split("T")[0], // startDate: today
-          5,
-          {
-            target: language || "es",
-            source: language === "es" ? "en" : "es",
-            translate_fields: "diaSemana,mes"
-          }
-        );
+      if (!skipAvailability) {
+        try {
+          const slotsResp = await doctorService.getDoctorSlotsAvailableInRange(
+            doctor.usuarioId,
+            new Date().toISOString().split("T")[0], // startDate: today
+            5,
+            {
+              target: language || "es",
+              source: language === "es" ? "en" : "es",
+              translate_fields: "diaSemana,mes"
+            }
+          );
 
-        if (slotsResp?.data && Array.isArray(slotsResp.data)) {
-          availability = slotsResp.data.map((slot: any) => {
-            const dayOfMonth = slot.fecha.split("-")[2];
-            return {
-              date: dayOfMonth,
-              dayName: slot.diaSemana,
-              slots: slot.totalSlotsLibres,
-              month: slot.mes,
-            };
-          });
+          if (slotsResp?.data && Array.isArray(slotsResp.data)) {
+            availability = slotsResp.data.map((slot: any) => {
+              const dayOfMonth = slot.fecha.split("-")[2];
+              return {
+                date: dayOfMonth,
+                dayName: slot.diaSemana,
+                slots: slot.totalSlotsLibres,
+                month: slot.mes,
+              };
+            });
+          }
+        } catch (e) {
+          // Keep placeholder on error
+          // eslint-disable-next-line no-console
+          console.error(`Failed to fetch availability for doctor ID ${doctor.usuarioId}`, e);
         }
-      } catch (e) {
-        // Keep placeholder on error
-        // eslint-disable-next-line no-console
-        console.error(`Failed to fetch availability for doctor ID ${doctor.usuarioId}`, e);
       }
 
       // Default coordinates (TODO: extract from ubicaciones if available)
@@ -113,6 +117,51 @@ export const mapDoctorsToProviders = async (
       } as Doctor & { _rawDoctor: DoctorNearby };
     })
   );
+
+  return providers;
+};
+
+/**
+ * Maps center (clinic) API objects to UI Provider format (Clinic)
+ * Keeps a reference to the original center in `_rawCenter` for client-side filters
+ */
+export const mapCentersToProviders = (
+  centers: CenterNearby[] = [],
+  language: string = "es"
+): Provider[] => {
+  if (!centers || centers.length === 0) return [];
+
+  const providers: Provider[] = centers.map((c) => {
+    const name = c.nombreComercial || c.tipoCentro?.nombre || "Centro de salud";
+
+    const address = c.ubicacion?.direccionCompleta
+      ? [c.ubicacion.direccionCompleta]
+      : c.ubicacion?.provincia || "Sin dirección";
+
+    const coordinates = (c.ubicacion && c.ubicacion.latitud && c.ubicacion.longitud)
+      ? { lat: c.ubicacion.latitud, lng: c.ubicacion.longitud }
+      : [] as any;
+
+    return {
+      id: c.usuarioId.toString(),
+      type: "clinic",
+      name,
+      rating: 0,
+      reviewCount: 0,
+      address,
+      languages: [],
+      insurances: [],
+      phone: c.usuario?.telefono || c.telefono || "",
+      image: c.usuario?.fotoPerfil || "",
+      coordinates,
+      modality: ["Presencial"],
+      specialties: c.tipoCentro?.nombre ? [c.tipoCentro.nombre] : [],
+      connectionStatus: "not_connected",
+      // Attach raw center for filtering
+      // @ts-ignore - extra prop used for client-side filtering
+      _rawCenter: c,
+    } as Provider;
+  });
 
   return providers;
 };

@@ -480,6 +480,9 @@
     "list": "Accepted Insurance",
     "add": "Add Insurance",
     "select": "Select an insurance",
+    "selectType": "Select insurance type",
+    "typePlaceholder": "Insurance type",
+    "selectInsuranceFirst": "Please select an insurance first",
     "remove": "Remove insurance"
   },
   "educationForm": {

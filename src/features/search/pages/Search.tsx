@@ -540,8 +540,6 @@ function Search() {
     [selectedProviders, filteredProviders],
   );
 
-  console.log("filteredProviders", filteredProviders);
-
   return (
     <div className="min-h-screen flex flex-col bg-background rounded-4xl">
       <motion.div

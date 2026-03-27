@@ -28,7 +28,7 @@ export const useAcceptedInsurances = (options?: {
 
   return useQuery({
     // include doctorId in the key so queries are cached per doctor + language
-    queryKey: [QUERY_KEYS.ACCEPTED_INSURANCES(target), options?.doctorId ?? 0],
+    queryKey: [...QUERY_KEYS.ACCEPTED_INSURANCES(target), options?.doctorId ?? 0],
     queryFn: async () => {
 
       const response = options?.doctorId && options?.doctorId > 0 ? await doctorService.getAcceptedInsurancesByDoctorId(options?.doctorId, target, source, translate_fields) : await doctorService.getAcceptedInsurances(target, source, translate_fields);

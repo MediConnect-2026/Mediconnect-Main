@@ -11,7 +11,7 @@ import { Trash2, Loader2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { MCDialogBase } from "@/shared/components/MCDialogBase";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
-import { getUserAvatar, getUserFullName, getPatientAge } from "@/services/auth/auth.types";
+import { getUserAvatar, getUserFullName } from "@/services/auth/auth.types";
 import { useAppStore } from "@/stores/useAppStore";
 import { patientService } from "./services/patient.service";
 import type { UpdatePatientProfileRequest } from "./services/patient.types";

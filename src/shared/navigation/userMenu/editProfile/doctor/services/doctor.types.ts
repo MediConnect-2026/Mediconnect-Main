@@ -656,13 +656,47 @@ export interface GetDoctoresByDistanceResponse {
   success: boolean;
   total: number;
   doctores: DoctorNearby[];
-  centros: any[]; // Tipar según la estructura de centros que maneje tu backend
+  centros: CenterNearby[]; // Tipado para centros cercanos
   _translation?: {
     source: string;
     target: string;
     fields: string[];
     timestamp: string;
   };
+}
+
+/**
+ * Tipo para representar centros de salud en respuestas de búsqueda por distancia
+ */
+export interface CenterNearby {
+  usuarioId: number;
+  nombreComercial?: string;
+  rnc?: string;
+  tipoCentro?: {
+    id?: number;
+    nombre?: string;
+  };
+  ubicacion?: {
+    direccionCompleta?: string;
+    latitud?: number;
+    longitud?: number;
+    provincia?: string;
+    municipio?: string;
+  };
+  usuario?: {
+    id?: number;
+    email?: string;
+    telefono?: string;
+    fotoPerfil?: string;
+  };
+  telefono?: string;
+  descripcion?: string;
+  sitioWeb?: string;
+  servicios?: any[];
+  distanciaMetros?: number;
+  estado?: string;
+  creadoEn?: string;
+  actualizadoEn?: string | null;
 }
 
 export interface UpdateStatusDoctorServiceRequest {
