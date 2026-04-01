@@ -103,6 +103,8 @@ export interface CenterMyProfileData {
     tipoCentroId: number;
     ubicacionId: number;
     estadoVerificacion: string;
+    calificacionPromedio: number | null;
+    totalResenas: number | null;
     estado: string;
     creadoEn: string;
     actualizadoEn: string;
@@ -118,4 +120,108 @@ export interface CenterMyProfileData {
 export interface GetCenterMyProfileResponse {
     success: boolean;
     data: CenterMyProfileData;
+}
+
+export interface CenterInsurance {
+    id: number;
+    nombre: string;
+    urlImage: string | null;
+}
+
+export interface GetCenterInsurancesResponse {
+    success: boolean;
+    data: CenterInsurance[];
+}
+
+export interface DoctorAllianceRequestPayload {
+  destinatarioId: number;
+  mensaje: string;
+}
+
+export type AllianceRequestStatus = "Pendiente" | "Aceptada" | "Rechazada";
+
+export interface DoctorAllianceSpecialtyRef {
+    id?: number;
+    nombre?: string;
+    esPrincipal?: boolean;
+    id_especialidad?: number;
+    es_principal?: boolean;
+}
+
+export interface DoctorAllianceLanguageRef {
+    id: number;
+    nombre: string;
+    nivel?: string;
+}
+
+export interface DoctorAllianceInsuranceRef {
+    id: number;
+    nombre: string;
+    urlImage: string | null;
+    tipoSeguro?: {
+        id: number;
+        nombre: string;
+    };
+}
+
+
+export interface AllianceRequestRecord {
+  id: number;
+  doctorId: number;
+  centroSaludId: number;
+  mensaje: string;
+  estado: AllianceRequestStatus;
+  motivoRechazo: string | null;
+  iniciadaPor: "Doctor" | "Centro";
+  creadoEn: string;
+    actualizadoEn: string | null;
+  doctor?: {
+    usuarioId: number;
+    nombre: string;
+    apellido: string;
+        exequatur?: string;
+        calificacionPromedio?: number | string | null;
+        anosExperiencia?: number;
+        estado?: string;
+        usuario?: {
+            email?: string;
+            fotoPerfil: string | null;
+        };
+        especialidades?: DoctorAllianceSpecialtyRef[];
+        idiomas?: DoctorAllianceLanguageRef[];
+        seguros?: DoctorAllianceInsuranceRef[];
+  };
+  centroSalud?: {
+    usuarioId: number;
+    nombreComercial: string;
+        foto_perfil?: string | null;
+  };
+}
+
+export interface GetCenterAllianceRequestsResponse {
+    success: boolean;
+    data: AllianceRequestRecord[];
+}
+
+export interface CreateDoctorAllianceRequestResponse {
+  success: boolean;
+  message: string | AllianceRequestRecord;
+}
+
+export type AllianceRequestActionStatus = "Aceptada" | "Rechazada";
+
+export interface UpdateAllianceRequestStatusPayload {
+    estado: AllianceRequestActionStatus;
+    motivoRechazo?: string;
+}
+
+export interface UpdateAllianceRequestStatusResponse {
+    success: boolean;
+    message: string;
+    data?: AllianceRequestRecord;
+}
+
+export interface DeleteCenterAllianceResponse {
+    success: boolean;
+    message: string;
 }

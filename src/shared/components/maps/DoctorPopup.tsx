@@ -7,6 +7,7 @@ import MCButton from "../forms/MCButton";
 import { fadeInUp } from "@/lib/animations/commonAnimations";
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
+import { formatPhone } from "@/utils/phoneFormat";
 
 type DoctorPopupProps = {
   provider: Doctor;
@@ -22,7 +23,6 @@ type DoctorPopupProps = {
 
 const DoctorPopup: React.FC<DoctorPopupProps> = ({
   provider,
-  isConnected,
   onConnect,
   onScheduleAppointment,
   navigateFn,
@@ -144,7 +144,7 @@ const DoctorPopup: React.FC<DoctorPopupProps> = ({
             >
               <Phone className="w-3 h-3" />
               <span className="text-primary">
-                {provider.phone.replace(/(\d{3})(\d{3})(\d{4})/, "($1)-$2-$3")}
+                {formatPhone(provider.phone)}
               </span>
             </a>
           )}

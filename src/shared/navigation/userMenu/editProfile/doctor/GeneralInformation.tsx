@@ -24,6 +24,7 @@ import { doctorService } from "./services/doctor.service";
 import type { UpdateDoctorProfileRequest } from "./services/doctor.types";
 import { toast } from "sonner";
 import { base64ToFile } from "@/utils/base64ToFile";
+import { formatPhone } from "@/utils/phoneFormat";
 type CropType = "banner" | "profile";
 
 interface GeneralInformationProps {
@@ -76,17 +77,6 @@ function GeneralInformation({ onOpenChange }: GeneralInformationProps) {
     },
   ];
   
-  // Función para formatear el teléfono (ejemplo: (809) 003-2424)
-  function formatPhone(phone: string): string {
-    // Solo números
-    const digits = phone.replace(/\D/g, "");
-    if (digits.length === 10) {
-      // Formato nacional RD: (809) 123-4567
-      return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
-    }
-    return phone;
-  }
-
   // Mapear los datos del doctor a los valores del formulario
   const defaultValues = useMemo(
     () =>

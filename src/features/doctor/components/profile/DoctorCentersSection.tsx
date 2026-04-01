@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader } from "@/shared/ui/card";
 import { useTranslation } from "react-i18next";
 
@@ -16,6 +16,7 @@ import {
 } from "@/shared/ui/empty";
 import { Filter, CalendarX } from "lucide-react";
 import MCButton from "@/shared/components/forms/MCButton";
+import useTiposCentros from "@/features/onboarding/services/useTiposCentros";
 interface Center {
   id: string | number;
   name: string;
@@ -44,6 +45,18 @@ function DoctorCentersSection({ centers, onToggleConnection }: Props) {
   const { t } = useTranslation("doctor");
   const [searchTerm, setSearchTerm] = useState("");
   const isMobile = useIsMobile();
+  const { data: tiposCentroOptions = [], isLoading: isLoadingCenterTypes } =
+    useTiposCentros();
+
+  const centerTypeOptions = useMemo(
+    () =>
+      tiposCentroOptions.map((option) => ({
+        // Keep center type name as value so current filter comparison continues working.
+        value: option.label,
+        label: option.label,
+      })),
+    [tiposCentroOptions],
+  );
 
   // Estado de filtros
   const [filters, setFilters] = useState<CenterFilters>({
@@ -98,6 +111,8 @@ function DoctorCentersSection({ centers, onToggleConnection }: Props) {
     >
       <FilterCenters
         filters={filters}
+        centerTypeOptions={centerTypeOptions}
+        isLoadingCenterTypes={isLoadingCenterTypes}
         onFiltersChange={(partialFilters) =>
           setFilters((prev) => ({ ...prev, ...partialFilters }))
         }

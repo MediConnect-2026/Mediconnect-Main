@@ -46,6 +46,7 @@ import type {
   GetServiceByIdResponse,
   Doctor,
   GetSlotsAvailableForServiceResponse,
+  GetDoctorMyCentersResponse,
 } from './doctor.types';
 
 /**
@@ -137,6 +138,26 @@ export const doctorService = {
         throw new Error('Perfil de doctor no encontrado.');
       }
       throw new Error(errorData?.message || 'Error al obtener el perfil del doctor.');
+    }
+  },
+
+  getMyCenters: async (params?: any): Promise<GetDoctorMyCentersResponse> => {
+    try {
+      const response = await apiClient.get<GetDoctorMyCentersResponse>(
+        '/doctores/mis-centros',
+        { params }
+      );
+
+      return response.data;
+    } catch (error: any) {
+      console.error('❌ [Doctor Service] Error al obtener centros del doctor:', error);
+      const errorData = error.response?.data as DoctorServiceError;
+
+      throw new Error(
+        errorData?.message ||
+        error.message ||
+        'Error al obtener los centros del doctor. Intenta nuevamente.'
+      );
     }
   },
 

@@ -6,6 +6,7 @@ import { useIsMobile } from "@/lib/hooks/useIsMobile";
 import { cn } from "@/lib/utils";
 import { useAppStore } from "@/stores/useAppStore";
 import { useState } from "react";
+import { formatPhone } from "@/utils/phoneFormat";
 
 interface MCCenterCardProps {
   urlImage: string;
@@ -34,7 +35,7 @@ const MCCentersCards = ({
 }: MCCenterCardProps) => {
   const { t } = useTranslation("common");
   const isMobile = useIsMobile();
-  const userRole = useAppStore((state) => state.user?.role);
+  const userRole = useAppStore((state) => state.user?.rol);
 
   // Estado local para simular el cambio (opcional, puedes quitar si manejas por props)
   const [localStatus, setLocalStatus] = useState(connectionStatus);
@@ -109,7 +110,7 @@ const MCCentersCards = ({
           {phone && (
             <div className="flex items-center gap-1">
               <Phone size={isMobile ? 14 : 16} className="text-secondary" />
-              <span>{phone}</span>
+              <span>{formatPhone(phone)}</span>
             </div>
           )}
         </div>

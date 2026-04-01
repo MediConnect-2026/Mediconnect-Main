@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import type { CenterPersonalInfo } from "@/schema/verifyInfo.schema";
 import MapScheduleLocation from "@/shared/components/maps/MapScheduleLocation";
+import { formatPhone } from "@/utils/phoneFormat";
 
 interface CenterReadOnlyViewProps {
   data: CenterPersonalInfo;
@@ -8,15 +9,6 @@ interface CenterReadOnlyViewProps {
 
 function CenterReadOnlyView({ data }: CenterReadOnlyViewProps) {
   const { t } = useTranslation("common");
-
-  const formatPhone = (phone: string): string => {
-    if (!phone) return "-";
-    const cleaned = phone.replace(/\D/g, "");
-    if (cleaned.length === 10) {
-      return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6)}`;
-    }
-    return phone;
-  };
 
   console.log("CenterReadOnlyView data:", data);
   return (
@@ -56,7 +48,7 @@ function CenterReadOnlyView({ data }: CenterReadOnlyViewProps) {
           <p className="text-sm text-muted-foreground mb-1">
             {t("verification.identification.phone")}
           </p>
-          <p className="font-medium text-foreground">{formatPhone(data.phone)}</p>
+          <p className="font-medium text-foreground">{formatPhone(data.phone, { emptyValue: "-" })}</p>
         </div>
         <div>
           <p className="text-sm text-muted-foreground mb-1">

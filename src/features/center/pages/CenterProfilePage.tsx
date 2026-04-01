@@ -1,6 +1,8 @@
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMemo, useState } from "react";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
+import { useParams } from "react-router-dom";
 import MCSheetProfile from "@/shared/navigation/userMenu/editProfile/MCSheetProfile";
 import { useAppStore } from "@/stores/useAppStore";
 import { Card, CardContent, CardHeader } from "@/shared/ui/card";
@@ -15,7 +17,7 @@ import {
   EmptyContent,
 } from "@/shared/ui/empty";
 import MCButton from "@/shared/components/forms/MCButton";
-import { Filter } from "lucide-react";
+import { Filter, ShieldCheck } from "lucide-react";
 import MCDashboardContent from "@/shared/layout/MCDashboardContent";
 import CenterProfileBanner from "../components/profile/CenterProfileBanner";
 import CenterProfileBannerMobile from "../components/profile/CenterProfileBannerMobile";
@@ -26,61 +28,7 @@ import { QUERY_KEYS } from "@/lib/react-query/config";
 import { getUserAvatar, getUserFullName } from "@/services/auth/auth.types";
 import centerService from "@/shared/navigation/userMenu/editProfile/center/services/center.services";
 import { Skeleton } from "@/shared/ui/skeleton";
-
-// Mock data for connected doctors
-const doctorsList = [
-  {
-    name: "Dr. Carlos Méndez",
-    specialty: "Cardiología",
-    rating: 4.8,
-    yearsOfExperience: 15,
-    languages: ["es", "en", "fr"],
-    insuranceAccepted: ["senasa", "universal", "humano"],
-    isFavorite: false,
-    urlImage: "",
-  },
-  {
-    name: "Dra. María López",
-    specialty: "Dermatología",
-    rating: 4.9,
-    yearsOfExperience: 10,
-    languages: ["es", "en"],
-    insuranceAccepted: ["palic", "humano"],
-    isFavorite: true,
-    urlImage: "",
-  },
-  {
-    name: "Dr. Juan Reyes",
-    specialty: "Pediatría",
-    rating: 4.7,
-    yearsOfExperience: 8,
-    languages: ["es"],
-    insuranceAccepted: ["universal"],
-    isFavorite: true,
-    urlImage: "",
-  },
-  {
-    name: "Dra. Sofía Ramírez",
-    specialty: "Endocrinología",
-    rating: 4.6,
-    yearsOfExperience: 12,
-    languages: ["es", "fr"],
-    insuranceAccepted: ["senasa", "mapfre", "yunen"],
-    isFavorite: false,
-    urlImage: "",
-  },
-];
-
-// Mock insurances
-const insurancesList = [
-  { name: "SENASA" },
-  { name: "Humano" },
-  { name: "Universal" },
-  { name: "PALIC" },
-  { name: "MAPFRE" },
-  { name: "Yunen" },
-  { name: "ARS Crecer" },
-];
+import { formatPhone } from "@/utils/phoneFormat";
 
 interface StaffFilters {
   specialty: string | string[];
@@ -88,9 +36,69 @@ interface StaffFilters {
   joinDate: { from: Date | null; to: Date | null };
 }
 
+function parseApiNumeric(value: unknown): number {
+  if (typeof value === "number") {
+    return Number.isFinite(value) ? value : 0;
+  }
+
+  if (typeof value === "string") {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : 0;
+  }
+
+  // Decimal-like objects from backend serializers (e.g. { s, e, d })
+  if (value && typeof value === "object") {
+    const maybeDecimal = value as { toString?: () => string };
+    if (typeof maybeDecimal.toString === "function") {
+      const parsed = Number(maybeDecimal.toString());
+      return Number.isFinite(parsed) ? parsed : 0;
+    }
+  }
+
+  return 0;
+}
+
+function normalizeFilterText(value: string): string {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+}
+
+function parseValidDate(value?: string | null): Date | null {
+  if (!value) return null;
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
+function isDateInRange(
+  date: Date,
+  from: Date | null,
+  to: Date | null,
+): boolean {
+  const start = from ? new Date(from) : null;
+  const end = to ? new Date(to) : null;
+
+  if (start) {
+    start.setHours(0, 0, 0, 0);
+  }
+
+  if (end) {
+    end.setHours(23, 59, 59, 999);
+  }
+
+  if (start && date < start) return false;
+  if (end && date > end) return false;
+  return true;
+}
+
+
 function CenterProfilePage() {
   const [openSheet, setOpenSheet] = useState(false);
   const [searchName, setSearchName] = useState("");
+  const [deletingAllianceId, setDeletingAllianceId] = useState<string | number | null>(null);
+  const { centerId } = useParams();
   const { t, i18n } = useTranslation("center");
 
   const [staffFilters, setStaffFilters] = useState<StaffFilters>({
@@ -101,8 +109,18 @@ function CenterProfilePage() {
 
   const user = useAppStore((state) => state.user);
   const isMobile = useIsMobile();
+  const isMyProfile = !centerId || String(user?.id ?? "") === String(centerId);
 
   const language = i18n.language || "es";
+
+  const allianceTranslationParams = useMemo(
+    () => ({
+      target: language === "en" ? "en" : "es",
+      source: language === "en" ? "es" : "en",
+      translate_fields: "doctor.nombre,doctor.apellido,mensaje",
+    }),
+    [language],
+  );
 
   const profileTranslationParams =
     language !== "es"
@@ -114,38 +132,121 @@ function CenterProfilePage() {
       : undefined;
 
   const {
-    data: centerProfileResponse,
-    isLoading: isLoadingCenterProfile,
-    isError: isCenterProfileError,
-    refetch: refetchCenterProfile,
+    data: myCenterProfileResponse,
+    isLoading: isLoadingMyCenterProfile,
+    isError: isMyCenterProfileError,
+    refetch: refetchMyCenterProfile,
   } = useQuery({
-    queryKey: ["center-profile", language],
+    queryKey: ["center-profile", "me", language],
     queryFn: () => centerService.getMyProfile(profileTranslationParams),
+    enabled: isMyProfile,
     staleTime: 1000 * 60 * 5,
   });
 
-  const centerProfile = centerProfileResponse?.data;
+  const {
+    data: publicCenterProfileResponse,
+    isLoading: isLoadingPublicCenterProfile,
+    isError: isPublicCenterProfileError,
+    refetch: refetchPublicCenterProfile,
+  } = useQuery({
+    queryKey: ["center-profile", "public", centerId, language],
+    queryFn: () => centerService.getCenterById(centerId as string, profileTranslationParams),
+    enabled: !isMyProfile && Boolean(centerId),
+    staleTime: 1000 * 60 * 5,
+  });
 
-  // Mock center data
-  const formatPhone = (raw?: string | null) => {
-    if (!raw) return "";
-    const digits = raw.replace(/\D/g, "");
-    if (digits.length === 10) {
-      return `(${digits.slice(0, 3)})-${digits.slice(3, 6)}-${digits.slice(6)}`;
-    }
-    return raw;
-  };
+  const centerProfile = isMyProfile
+    ? myCenterProfileResponse?.data
+    : publicCenterProfileResponse?.data;
+
+  const isLoadingCenterProfile = isMyProfile
+    ? isLoadingMyCenterProfile
+    : isLoadingPublicCenterProfile;
+
+  const isCenterProfileError = isMyProfile
+    ? isMyCenterProfileError
+    : isPublicCenterProfileError;
+
+  const refetchCenterProfile = isMyProfile
+    ? refetchMyCenterProfile
+    : refetchPublicCenterProfile;
+
+  const {
+    data: allianceResponse,
+    isLoading: isAllianceLoading,
+    isError: isAllianceError,
+    refetch: refetchAlliance,
+  } = useQuery({
+    queryKey: [...QUERY_KEYS.CENTER_ALLIANCE_REQUESTS, language],
+    queryFn: () =>
+      centerService.getCenterAllianceRequests(allianceTranslationParams),
+    enabled: isMyProfile,
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const {
+    data: insurancesResponse,
+    isLoading: isInsurancesLoading,
+    isError: isInsurancesError,
+    refetch: refetchInsurances,
+  } = useQuery({
+    queryKey: [...QUERY_KEYS.MY_INSURANCES(language), "center-profile"],
+    queryFn: () => centerService.getInsurances(language),
+    enabled: isMyProfile,
+    staleTime: 1000 * 60 * 30,
+  });
+
+  const insurancesList = insurancesResponse?.data ?? [];
+
+  const doctorsList = useMemo(() => {
+    const requests = allianceResponse?.data ?? [];
+
+    return requests
+      .filter((request) => request.estado === "Aceptada" && request.doctor)
+      .map((request) => {
+        const doctor = request.doctor;
+        const specialties =
+          doctor?.especialidades
+            ?.map((item) => item.nombre?.trim())
+            .filter((value): value is string => Boolean(value)) ?? [];
+
+        const languages =
+          doctor?.idiomas
+            ?.map((item) => item.nombre?.trim())
+            .filter((value): value is string => Boolean(value)) ?? [];
+
+        const insuranceAccepted =
+          doctor?.seguros
+            ?.map((item) => item.nombre?.trim())
+            .filter((value): value is string => Boolean(value)) ?? [];
+
+        return {
+          id: request.id,
+          name: `${doctor?.nombre ?? ""} ${doctor?.apellido ?? ""}`.trim() || "-",
+          specialty: specialties.length > 0 ? specialties.join(", ") : t("profilePage.noSpecialty"),
+          specialtyList: specialties,
+          rating: parseApiNumeric(doctor?.calificacionPromedio),
+          yearsOfExperience: doctor?.anosExperiencia,
+          languages,
+          insuranceAccepted,
+          isFavorite: false,
+          urlImage: doctor?.usuario?.fotoPerfil ?? "",
+          createdAt: request.creadoEn,
+          updatedAt: request.actualizadoEn,
+        };
+      });
+  }, [allianceResponse?.data, t]);
 
   const center = {
-    id: String(centerProfile?.usuarioId ?? user?.id ?? ""),
-    name: centerProfile?.nombreComercial || getUserFullName(user),
+    id: String(centerProfile?.usuarioId ?? centerId ?? user?.id ?? ""),
+    name: centerProfile?.nombreComercial || getUserFullName(user) || "-",
     avatar:
       centerProfile?.foto_perfil ||
       centerProfile?.usuario?.fotoPerfil ||
       getUserAvatar(user),
-    banner: user?.banner,
-    rating: 4.8,
-    reviewCount: 12,
+    banner: isMyProfile ? user?.banner : undefined,
+    rating: centerProfile?.calificacionPromedio ? parseApiNumeric(centerProfile.calificacionPromedio) : 0,
+    reviewCount: centerProfile?.totalResenas ? parseApiNumeric(centerProfile.totalResenas) : 0,
     phone: formatPhone(centerProfile?.usuario?.telefono || ""),
     website: centerProfile?.sitio_web || "",
     description: centerProfile?.descripcion || "",
@@ -249,9 +350,27 @@ function CenterProfilePage() {
       const specs = Array.isArray(staffFilters.specialty)
         ? staffFilters.specialty
         : [staffFilters.specialty];
+      const normalizedSpecs = specs
+        .map((value) => normalizeFilterText(value))
+        .filter((value) => value.length > 0);
+
+      const doctorSpecialties =
+        doctor.specialtyList.length > 0
+          ? doctor.specialtyList
+          : doctor.specialty
+              .split(",")
+              .map((value) => value.trim())
+              .filter((value) => value.length > 0);
+
+      const normalizedDoctorSpecialties = doctorSpecialties.map((value) =>
+        normalizeFilterText(value),
+      );
+
       if (
-        specs.length > 0 &&
-        !specs.some((s) => doctor.specialty.toLowerCase() === s.toLowerCase())
+        normalizedSpecs.length > 0 &&
+        !normalizedSpecs.some((selectedSpecialty) =>
+          normalizedDoctorSpecialties.includes(selectedSpecialty),
+        )
       )
         return false;
     }
@@ -260,11 +379,52 @@ function CenterProfilePage() {
       const minRating = Array.isArray(staffFilters.rating)
         ? Math.max(...staffFilters.rating.map(Number))
         : Number(staffFilters.rating);
+      if (doctor.rating === undefined || doctor.rating === null) return false;
       if (minRating > 0 && doctor.rating < minRating) return false;
+    }
+
+    if (staffFilters.joinDate.from || staffFilters.joinDate.to) {
+      const createdAt = parseValidDate(doctor.createdAt);
+      const updatedAt = parseValidDate(doctor.updatedAt);
+
+      const hasDateInRange = [createdAt, updatedAt]
+        .filter((date): date is Date => date !== null)
+        .some((date) =>
+          isDateInRange(date, staffFilters.joinDate.from, staffFilters.joinDate.to),
+        );
+
+      if (!hasDateInRange) {
+        return false;
+      }
     }
 
     return true;
   });
+
+  const deleteAllianceMutation = useMutation({
+    mutationFn: async (requestId: string | number) =>
+      centerService.deleteAllianceRequest(requestId),
+    onSuccess: async () => {
+      await refetchAlliance();
+      toast.success(t("connection.allianceDisconnectSuccess"));
+    },
+    onError: (error: unknown) => {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : t("connection.allianceDisconnectError");
+      toast.error(errorMessage);
+    },
+    onSettled: () => {
+      setDeletingAllianceId(null);
+    },
+  });
+
+  const handleDisconnectAlliance = (requestId: string | number) => {
+    if (!isMyProfile) return;
+    setDeletingAllianceId(requestId);
+    deleteAllianceMutation.mutate(requestId);
+  };
 
   if (isLoadingCenterProfile) {
     return (
@@ -336,26 +496,56 @@ function CenterProfilePage() {
                 >
                   {t("profilePage.insurancesTitle")}
                 </h2>
-                <div className="grid grid-cols-2 gap-2">
-                  {insurancesList.map((insurance, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-accent/20 cursor-pointer"
-                    >
-                      <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-background border-2 font-bold border-primary/10 text-foreground">
-                        {insurance.name.substring(0, 2)}
-                      </div>
-                      <span className="text-sm font-medium text-foreground">
-                        {insurance.name}
-                      </span>
-                    </div>
-                  ))}
-                  <div className="flex items-center gap-3 p-2">
-                    <span className="text-sm text-primary hover:underline hover:text-secondary cursor-pointer">
-                      {t("profilePage.morePlans")}
-                    </span>
+                {isInsurancesLoading ? (
+                  <div className="grid grid-cols-2 gap-2">
+                    {Array.from({ length: 6 }, (_, idx) => (
+                      <Skeleton key={idx} className="h-16 w-full rounded-lg" />
+                    ))}
                   </div>
-                </div>
+                ) : isInsurancesError ? (
+                  <Card className="rounded-3xl border border-destructive/30 bg-destructive/5">
+                    <CardContent className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                      <p className="text-sm text-foreground">
+                        {t("profilePage.insurancesLoadError")}
+                      </p>
+                      <MCButton size="sm" variant="outline" onClick={() => refetchInsurances()}>
+                        {t("profilePage.retry")}
+                      </MCButton>
+                    </CardContent>
+                  </Card>
+                ) : insurancesList.length > 0 ? (
+                  <div className="grid grid-cols-2 gap-2">
+                    {insurancesList.map((insurance) => (
+                      <div
+                        key={insurance.id}
+                        className="flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-accent/20 cursor-pointer"
+                      >
+                        <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-background border-2 font-bold border-primary/10 text-foreground">
+                          {insurance.nombre.substring(0, 2).toUpperCase()}
+                        </div>
+                        <span className="text-sm font-medium text-foreground">
+                          {insurance.nombre}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <Empty>
+                    <EmptyHeader>
+                      <div className="flex flex-col items-center gap-2 py-6">
+                        <span className="flex items-center gap-2 text-primary">
+                          <ShieldCheck className="w-7 h-7" />
+                          <EmptyTitle className="text-lg font-semibold">
+                            {t("profilePage.insurancesUnavailable")}
+                          </EmptyTitle>
+                        </span>
+                        <EmptyDescription className="text-muted-foreground text-center max-w-md mx-auto">
+                          {t("profilePage.insurancesEmptyDescription")}
+                        </EmptyDescription>
+                      </div>
+                    </EmptyHeader>
+                  </Empty>
+                )}
               </CardContent>
             </Card>
 
@@ -372,7 +562,7 @@ function CenterProfilePage() {
                 ) : isLocationError ? (
                   <Card className="rounded-3xl border border-destructive/30 bg-destructive/5">
                     <CardContent className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                      <p className="text-sm text-foreground">{t("profilePage.locationLoadError", "Error loading location")}</p>
+                      <p className="text-sm text-foreground">{t("profilePage.locationLoadError")}</p>
                       <MCButton size="sm" variant="outline" onClick={() => refetchLocation()}>
                         {t("profilePage.retry")}
                       </MCButton>
@@ -385,7 +575,7 @@ function CenterProfilePage() {
                     showAddressInfo={true}
                   />
                 ) : (
-                  <p className="text-muted-foreground">{t("profilePage.locationUnavailable", "Location not available")}</p>
+                  <p className="text-muted-foreground">{t("profilePage.locationUnavailable")}</p>
                 )}
               </CardContent>
             </Card>
@@ -420,7 +610,40 @@ function CenterProfilePage() {
           </CardHeader>
 
           <CardContent className={isMobile ? "p-4 pt-2" : "p-6 pt-4"}>
-            {filteredDoctors.length === 0 ? (
+            {!isMyProfile ? (
+              <Empty>
+                <EmptyHeader>
+                  <div className="flex flex-col items-center gap-2">
+                    <span className="flex items-center gap-2 text-primary">
+                      <Filter className="w-7 h-7" />
+                      <EmptyTitle className="text-lg font-semibold">
+                        {t("profilePage.connectedDoctors")}
+                      </EmptyTitle>
+                    </span>
+                    <EmptyDescription className="text-muted-foreground text-center max-w-md mx-auto">
+                      {t("profilePage.publicProfileDoctorsUnavailable")}
+                    </EmptyDescription>
+                  </div>
+                </EmptyHeader>
+              </Empty>
+            ) : isAllianceLoading ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4 gap-4">
+                {Array.from({ length: 4 }, (_, idx) => (
+                  <Skeleton key={idx} className="w-full h-[360px] rounded-3xl" />
+                ))}
+              </div>
+            ) : isAllianceError ? (
+              <Card className="rounded-3xl border border-destructive/30 bg-destructive/5">
+                <CardContent className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                  <p className="text-sm text-foreground">
+                    {t("profilePage.affiliatedDoctorsLoadError")}
+                  </p>
+                  <MCButton size="sm" variant="outline" onClick={() => refetchAlliance()}>
+                    {t("profilePage.retry")}
+                  </MCButton>
+                </CardContent>
+              </Card>
+            ) : filteredDoctors.length === 0 ? (
               <Empty>
                 <EmptyHeader>
                   <div className="flex flex-col items-center gap-2">
@@ -450,10 +673,10 @@ function CenterProfilePage() {
               </Empty>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4 gap-4">
-                {filteredDoctors.map((doctor, idx) => (
+                {filteredDoctors.map((doctor) => (
                   <MCDoctorsCards
-                    id={idx}
-                    key={idx}
+                    id={doctor.id}
+                    key={doctor.id}
                     name={doctor.name}
                     specialty={doctor.specialty}
                     rating={doctor.rating}
@@ -463,6 +686,12 @@ function CenterProfilePage() {
                     isFavorite={doctor.isFavorite}
                     urlImage={doctor.urlImage}
                     connectionStatus="connected" // <-- Fuerza el estado conectado
+                    onConnect={handleDisconnectAlliance}
+                    isConnectionSubmitting={
+                      deleteAllianceMutation.isPending &&
+                      deletingAllianceId !== null &&
+                      String(deletingAllianceId) === String(doctor.id)
+                    }
                   />
                 ))}
               </div>

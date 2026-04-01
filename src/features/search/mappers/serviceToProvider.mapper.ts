@@ -132,6 +132,7 @@ export const mapCentersToProviders = (
   if (!centers || centers.length === 0) return [];
 
   const providers: Provider[] = centers.map((c) => {
+    const isConnected = c.estaConectado === true;
     const name = c.nombreComercial || c.tipoCentro?.nombre || "Centro de salud";
 
     const address = c.ubicacion?.direccionCompleta
@@ -156,7 +157,7 @@ export const mapCentersToProviders = (
       coordinates,
       modality: ["Presencial"],
       specialties: c.tipoCentro?.nombre ? [c.tipoCentro.nombre] : [],
-      connectionStatus: "not_connected",
+      connectionStatus: isConnected ? "connected" : "not_connected",
       // Attach raw center for filtering
       // @ts-ignore - extra prop used for client-side filtering
       _rawCenter: c,

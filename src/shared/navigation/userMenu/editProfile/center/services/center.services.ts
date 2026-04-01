@@ -1,10 +1,18 @@
 import apiClient from "@/services/api/client";
 import type {
+        AllianceRequestRecord,
   CenterProfileTranslationParams,
+    GetCenterInsurancesResponse,
   GetCenterMyProfileResponse,
     UpdateCenterLocationRequest,
     UpdateCenterLocationResponse,
   UpdateCenterProfileRequest,
+  CreateDoctorAllianceRequestResponse,
+    DeleteCenterAllianceResponse,
+    DoctorAllianceRequestPayload,
+    GetCenterAllianceRequestsResponse,
+    UpdateAllianceRequestStatusPayload,
+    UpdateAllianceRequestStatusResponse,
 } from "./center.types";
 import { API_ENDPOINTS } from "@/services/api/endpoints";
 import type { CenterStats, CenterStatsResponse } from "@/types/CenterStatsTypes";
@@ -19,6 +27,31 @@ const centerService = {
         } catch (error) {
             console.error("Error al obtener el perfil del centro:", error);
             throw error;
+        }
+    },
+
+    async getCenterById(
+        centerId: string | number,
+        params?: CenterProfileTranslationParams,
+    ): Promise<GetCenterMyProfileResponse> {
+        try {
+            const { data } = await apiClient.get<GetCenterMyProfileResponse>(
+                API_ENDPOINTS.HEALTH_CENTERS.BY_ID(centerId),
+                { params },
+            );
+
+            if (!data.success) {
+                throw new Error("No se pudo obtener el perfil del centro.");
+            }
+
+            return data;
+        } catch (error: any) {
+            const apiMessage = error?.response?.data?.message;
+            if (typeof apiMessage === "string" && apiMessage.trim().length > 0) {
+                throw new Error(apiMessage);
+            }
+
+            throw new Error("No se pudo obtener el perfil del centro.");
         }
     },
 
@@ -39,6 +72,36 @@ const centerService = {
         } catch (error) {
             console.error("Error al actualizar la ubicacion del centro:", error);
             throw error;
+        }
+    },
+
+    async getInsurances(language?: string): Promise<GetCenterInsurancesResponse> {
+        try {
+            const params: CenterProfileTranslationParams = {};
+
+            if (language && language !== "es") {
+                params.target = language;
+                params.source = "es";
+                params.translate_fields = "nombre";
+            }
+
+            const { data } = await apiClient.get<GetCenterInsurancesResponse>(
+                API_ENDPOINTS.HEALTH_CENTERS.SEGUROS,
+                { params },
+            );
+
+            if (!data.success) {
+                throw new Error("No se pudieron obtener los seguros del centro.");
+            }
+
+            return data;
+        } catch (error: any) {
+            const apiMessage = error?.response?.data?.message;
+            if (typeof apiMessage === "string" && apiMessage.trim().length > 0) {
+                throw new Error(apiMessage);
+            }
+
+            throw new Error("No se pudieron obtener los seguros del centro.");
         }
     },
 
@@ -106,7 +169,134 @@ const centerService = {
           console.error('Error fetching center stats general:', error);
           throw error;
       }
-    }
+    },
+    
+    createDoctorAllianceRequest: async ( payload: DoctorAllianceRequestPayload ): Promise<CreateDoctorAllianceRequestResponse> => {
+      try {
+      const { data } = await apiClient.post<CreateDoctorAllianceRequestResponse>(
+          API_ENDPOINTS.DOCTORES.SOLICITUDES_ALIANZA,
+          payload,
+      );
+
+      if (!data.success) {
+          const message =
+          typeof data.message === "string"
+              ? data.message
+              : "No se pudo enviar la solicitud de alianza.";
+          throw new Error(message);
+      }
+
+      return data;
+      } catch (error: any) {
+      const apiMessage = error?.response?.data?.message;
+      if (typeof apiMessage === "string" && apiMessage.trim().length > 0) {
+          throw new Error(apiMessage);
+      }
+      throw new Error("No se pudo enviar la solicitud de alianza.");
+      }
+    },
+
+        getCenterAllianceRequests: async (
+            params?: CenterProfileTranslationParams,
+        ): Promise<GetCenterAllianceRequestsResponse> => {
+            try {
+                const { data } = await apiClient.get<GetCenterAllianceRequestsResponse>(
+                    API_ENDPOINTS.HEALTH_CENTERS.SOLICITUDES_ALIANZA,
+                    {
+                        params,
+                    },
+                );
+
+                if (!data.success) {
+                    throw new Error("No se pudieron obtener las solicitudes de alianza.");
+                }
+
+                return data;
+            } catch (error: any) {
+                const apiMessage = error?.response?.data?.message;
+                if (typeof apiMessage === "string" && apiMessage.trim().length > 0) {
+                    throw new Error(apiMessage);
+                }
+
+                throw new Error("No se pudieron obtener las solicitudes de alianza.");
+            }
+        },
+
+        getCenterStaff: async (
+            params?: CenterProfileTranslationParams,
+        ): Promise<AllianceRequestRecord[]> => {
+            try {
+                const { data } = await apiClient.get<GetCenterAllianceRequestsResponse>(
+                    API_ENDPOINTS.HEALTH_CENTERS.SOLICITUDES_ALIANZA,
+                    {
+                        params,
+                    },
+                );
+
+                if (!data.success) {
+                    throw new Error("No se pudo obtener el personal del centro.");
+                }
+
+                return (data.data ?? []).filter(
+                    (request) => request.estado === "Aceptada" && Boolean(request.doctor),
+                );
+            } catch (error: any) {
+                const apiMessage = error?.response?.data?.message;
+                if (typeof apiMessage === "string" && apiMessage.trim().length > 0) {
+                    throw new Error(apiMessage);
+                }
+
+                throw new Error("No se pudo obtener el personal del centro.");
+            }
+        },
+
+        updateAllianceRequestStatus: async (
+            requestId: string | number,
+            payload: UpdateAllianceRequestStatusPayload,
+        ): Promise<UpdateAllianceRequestStatusResponse> => {
+            try {
+                const { data } = await apiClient.put<UpdateAllianceRequestStatusResponse>(
+                    API_ENDPOINTS.HEALTH_CENTERS.SOLICITUDES_ALIANZA_BY_ID(requestId),
+                    payload,
+                );
+
+                if (!data.success) {
+                    throw new Error("No se pudo actualizar la solicitud de alianza.");
+                }
+
+                return data;
+            } catch (error: any) {
+                const apiMessage = error?.response?.data?.message;
+                if (typeof apiMessage === "string" && apiMessage.trim().length > 0) {
+                    throw new Error(apiMessage);
+                }
+
+                throw new Error("No se pudo actualizar la solicitud de alianza.");
+            }
+        },
+
+        deleteAllianceRequest: async (
+            requestId: string | number,
+        ): Promise<DeleteCenterAllianceResponse> => {
+            try {
+                const { data } = await apiClient.delete<DeleteCenterAllianceResponse>(
+                    API_ENDPOINTS.HEALTH_CENTERS.SOLICITUDES_ALIANZA_BY_ID(requestId),
+                );
+
+                if (!data.success) {
+                    throw new Error("No se pudo eliminar la alianza con el doctor.");
+                }
+
+                return data;
+            } catch (error: any) {
+                const apiMessage = error?.response?.data?.message;
+                if (typeof apiMessage === "string" && apiMessage.trim().length > 0) {
+                    throw new Error(apiMessage);
+                }
+
+                throw new Error("No se pudo eliminar la alianza con el doctor.");
+            }
+        },
 };
 
 export default centerService;

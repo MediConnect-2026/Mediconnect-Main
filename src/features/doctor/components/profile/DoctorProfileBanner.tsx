@@ -122,7 +122,8 @@ function DoctorProfileBanner({
   const getDoctorSpecialty = (especialidades: any) => {
     if(!especialidades || especialidades.length === 0) return t("profileForm.generalPractitioner", "Sin especialidad");
 
-    return especialidades.map((e: any) => e.especialidades.nombre).join(", ");
+    console.log("Especialidades del doctor:", especialidades);
+    return especialidades.map((e: any) => e.nombre).join(", ");
   }
   
   const handleLogout = () => {

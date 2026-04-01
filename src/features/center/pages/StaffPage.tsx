@@ -1,4 +1,6 @@
-import { useState, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { AlertCircle, Filter, Loader2, UserX } from "lucide-react";
 import MCTablesLayouts from "@/shared/components/tables/MCTablesLayouts";
 import MCDoctorsCards from "@/shared/components/MCDoctorsCards";
 import MCFilterInput from "@/shared/components/filters/MCFilterInput";
@@ -19,17 +21,16 @@ import {
   EmptyDescription,
   EmptyContent,
 } from "@/shared/ui/empty";
-import { useTranslation } from "react-i18next";
-import { Filter, UserX } from "lucide-react";
 import MCButton from "@/shared/components/forms/MCButton";
-import { useIsMobile } from "@/lib/hooks/useIsMobile";
 import MCToogle from "@/shared/components/forms/MCToogle";
+import { useIsMobile } from "@/lib/hooks/useIsMobile";
 import FullFilterStaff from "@/features/center/components/filters/FullFilterStaff";
+import useCenterStaff from "@/features/center/hooks/useCenterStaff";
 
 import StaffTable from "../components/staff/StaffTable";
 
 // Types
-type StaffFilters = {
+export type StaffFilters = {
   specialty: string | string[];
   rating: string | string[];
   languages: string | string[];
@@ -38,159 +39,17 @@ type StaffFilters = {
   joinDate: { from: Date | null; to: Date | null };
 };
 
-// Mock data for staff
-export const staffList = [
-  {
-    id: "s1",
-    name: "Dra. María González",
-    specialty: "Dermatología",
-    rating: 4.8,
-    yearsOfExperience: 12,
-    languages: ["es", "en"],
-    insuranceAccepted: ["senasa", "universal", "humano"],
-    isFavorite: false,
-    urlImage: "https://randomuser.me/api/portraits/women/44.jpg",
-    joinDate: "2025-10-23",
-    totalAppointments: 130,
-    status: "active" as const,
-  },
-  {
-    id: "s2",
-    name: "Dr. Carlos Rodríguez",
-    specialty: "Cardiología",
-    rating: 4.9,
-    yearsOfExperience: 18,
-    languages: ["es", "en", "fr"],
-    insuranceAccepted: ["palic", "humano", "mapfre"],
-    isFavorite: true,
-    urlImage: "https://randomuser.me/api/portraits/men/32.jpg",
-    joinDate: "2025-09-15",
-    totalAppointments: 98,
-    status: "active" as const,
-  },
-  {
-    id: "s3",
-    name: "Dra. Ana Martínez",
-    specialty: "Pediatría",
-    rating: 4.7,
-    yearsOfExperience: 8,
-    languages: ["es"],
-    insuranceAccepted: ["senasa", "universal"],
-    isFavorite: true,
-    urlImage: "https://randomuser.me/api/portraits/women/68.jpg",
-    joinDate: "2025-08-10",
-    totalAppointments: 156,
-    status: "inactive" as const,
-  },
-  {
-    id: "s4",
-    name: "Dr. Roberto Díaz",
-    specialty: "Neurología",
-    rating: 4.6,
-    yearsOfExperience: 15,
-    languages: ["es", "en"],
-    insuranceAccepted: ["humano", "palic"],
-    isFavorite: false,
-    urlImage: "https://randomuser.me/api/portraits/men/65.jpg",
-    joinDate: "2025-07-05",
-    totalAppointments: 87,
-    status: "active" as const,
-  },
-  {
-    id: "s5",
-    name: "Dra. Laura Sánchez",
-    specialty: "Medicina Interna",
-    rating: 4.5,
-    yearsOfExperience: 10,
-    languages: ["es", "en", "it"],
-    insuranceAccepted: ["senasa", "mapfre", "universal"],
-    isFavorite: false,
-    urlImage: "https://randomuser.me/api/portraits/women/81.jpg",
-    joinDate: "2025-06-20",
-    totalAppointments: 112,
-    status: "active" as const,
-  },
-  {
-    id: "s6",
-    name: "Dr. Fernando López",
-    specialty: "Ginecología",
-    rating: 4.3,
-    yearsOfExperience: 20,
-    languages: ["es"],
-    insuranceAccepted: ["palic", "universal", "humano"],
-    isFavorite: true,
-    urlImage: "https://randomuser.me/api/portraits/men/77.jpg",
-    joinDate: "2025-05-12",
-    totalAppointments: 203,
-    status: "active" as const,
-  },
-  {
-    id: "s7",
-    name: "Dra. Carmen Vega",
-    specialty: "Traumatología",
-    rating: 4.8,
-    yearsOfExperience: 14,
-    languages: ["es", "en"],
-    insuranceAccepted: ["senasa", "humano"],
-    isFavorite: false,
-    urlImage: "https://randomuser.me/api/portraits/women/55.jpg",
-    joinDate: "2025-04-08",
-    totalAppointments: 145,
-    status: "inactive" as const,
-  },
-  {
-    id: "s8",
-    name: "Dr. Andrés Mejía",
-    specialty: "Psiquiatría",
-    rating: 4.9,
-    yearsOfExperience: 11,
-    languages: ["es", "en", "fr"],
-    insuranceAccepted: ["universal", "mapfre"],
-    isFavorite: true,
-    urlImage: "https://randomuser.me/api/portraits/men/45.jpg",
-    joinDate: "2025-03-25",
-    totalAppointments: 178,
-    status: "active" as const,
-  },
-  {
-    id: "s9",
-    name: "Dra. Patricia Herrera",
-    specialty: "Cardiología",
-    rating: 4.4,
-    yearsOfExperience: 9,
-    languages: ["es"],
-    insuranceAccepted: ["senasa", "palic"],
-    isFavorite: false,
-    urlImage: "https://randomuser.me/api/portraits/women/33.jpg",
-    joinDate: "2025-02-14",
-    totalAppointments: 67,
-    status: "active" as const,
-  },
-  {
-    id: "s10",
-    name: "Dr. Miguel Ángel Reyes",
-    specialty: "Pediatría",
-    rating: 4.7,
-    yearsOfExperience: 16,
-    languages: ["es", "en"],
-    insuranceAccepted: ["humano", "universal", "mapfre"],
-    isFavorite: true,
-    urlImage: "https://randomuser.me/api/portraits/men/52.jpg",
-    joinDate: "2025-01-30",
-    totalAppointments: 192,
-    status: "active" as const,
-  },
-];
-
 const ITEMS_PER_PAGE = 8;
 
 function StaffPage() {
   const { t } = useTranslation("center");
   const isMobile = useIsMobile();
+  const { data: staffList = [], isLoading, isError, refetch, error } =
+    useCenterStaff();
 
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [isPdfLoading, setIsPdfLoading] = useState(false);
   const [showCards, setShowCards] = useState(() => {
     try {
       const saved = localStorage.getItem("staffView");
@@ -229,22 +88,30 @@ function StaffPage() {
       )
       .filter((staff) => {
         if (specialty.length > 0 && !specialty.includes("all")) {
-          if (!specialty.includes(staff.specialty)) return false;
+          const matchesBySpecialtyId = staff.specialtyIds.some((specialtyId) =>
+            specialty.includes(specialtyId),
+          );
+          const matchesBySpecialtyName = specialty.includes(staff.specialty);
+
+          if (!matchesBySpecialtyId && !matchesBySpecialtyName) return false;
         }
+
         if (
           rating.length > 0 &&
           !rating.includes("0") &&
           !rating.includes("all")
         ) {
-          const minRating = Math.min(...rating.map((r) => parseFloat(r)));
+          const minRating = Math.min(...rating.map((value) => parseFloat(value)));
           if (staff.rating < minRating) return false;
         }
+
         if (languages.length > 0 && !languages.includes("all")) {
           const hasCommonLanguage = staff.languages.some((lang) =>
             languages.includes(lang),
           );
           if (!hasCommonLanguage) return false;
         }
+
         if (experience.length > 0 && !experience.includes("all")) {
           const matchesExperience = experience.some((exp) => {
             switch (exp) {
@@ -280,26 +147,37 @@ function StaffPage() {
           });
           if (!matchesExperience) return false;
         }
+
         if (status.length > 0 && !status.includes("all")) {
           if (!status.includes(staff.status)) return false;
         }
+
         if (filters.joinDate.from) {
           const staffDate = new Date(staff.joinDate);
           const fromDate = new Date(filters.joinDate.from);
           fromDate.setHours(0, 0, 0, 0);
           if (staffDate < fromDate) return false;
         }
+
         if (filters.joinDate.to) {
           const staffDate = new Date(staff.joinDate);
           const toDate = new Date(filters.joinDate.to);
           toDate.setHours(23, 59, 59, 999);
           if (staffDate > toDate) return false;
         }
+
         return true;
       });
-  }, [search, filters]);
+  }, [search, filters, staffList]);
 
   const totalPages = Math.ceil(filteredStaff.length / ITEMS_PER_PAGE);
+
+  useEffect(() => {
+    if (page > totalPages && totalPages > 0) {
+      setPage(1);
+    }
+  }, [page, totalPages]);
+
   const paginatedStaff = filteredStaff.slice(
     (page - 1) * ITEMS_PER_PAGE,
     page * ITEMS_PER_PAGE,
@@ -320,6 +198,7 @@ function StaffPage() {
     if (st.length > 0 && !st.includes("all")) count++;
     if (filters.joinDate.from || filters.joinDate.to) count++;
     if (search.trim() !== "") count++;
+
     return count;
   }
 
@@ -357,7 +236,7 @@ function StaffPage() {
   const pdfGeneratorComponent = (
     <MCPDFButton
       onClick={async () => {
-        setIsLoading(true);
+        setIsPdfLoading(true);
         await MCGeneratePDF({
           columns: [
             { title: t("staff.pdf.columnDoctor"), key: "name" },
@@ -378,9 +257,9 @@ function StaffPage() {
           title: t("staff.pdf.title"),
           subtitle: t("staff.pdf.subtitle"),
         });
-        setIsLoading(false);
+        setIsPdfLoading(false);
       }}
-      loading={isLoading}
+      loading={isPdfLoading}
     />
   );
 
@@ -404,6 +283,42 @@ function StaffPage() {
         }}
       />
     </div>
+  );
+
+  const loadingComponent = (
+    <div className="flex items-center justify-center py-16 text-muted-foreground gap-2">
+      <Loader2 className="h-5 w-5 animate-spin" />
+      <span>{t("staff.loading")}</span>
+    </div>
+  );
+
+  const errorComponent = (
+    <Empty>
+      <EmptyHeader>
+        <div className="flex flex-col items-center gap-2 px-4">
+          <span className="flex items-center justify-center gap-2 text-destructive">
+            <AlertCircle className={isMobile ? "w-5 h-5" : "w-7 h-7"} />
+            <EmptyTitle
+              className={`font-semibold ${isMobile ? "text-lg" : "text-xl"}`}
+            >
+              {t("staff.error.title")}
+            </EmptyTitle>
+          </span>
+          <EmptyDescription
+            className={`text-muted-foreground text-center max-w-md mx-auto ${
+              isMobile ? "text-sm" : "text-base"
+            }`}
+          >
+            {error?.message || t("staff.error.description")}
+          </EmptyDescription>
+        </div>
+      </EmptyHeader>
+      <EmptyContent>
+        <MCButton variant="outline" onClick={() => refetch()} size="sm">
+          {t("staff.error.retry")}
+        </MCButton>
+      </EmptyContent>
+    </Empty>
   );
 
   const emptyComponent = (
@@ -463,17 +378,19 @@ function StaffPage() {
             }
           />
         </PaginationItem>
-        {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-          <PaginationItem key={p}>
-            <PaginationLink
-              onClick={() => setPage(p)}
-              isActive={page === p}
-              className="cursor-pointer"
-            >
-              {p}
-            </PaginationLink>
-          </PaginationItem>
-        ))}
+        {Array.from({ length: totalPages }, (_, index) => index + 1).map(
+          (currentPage) => (
+            <PaginationItem key={currentPage}>
+              <PaginationLink
+                onClick={() => setPage(currentPage)}
+                isActive={page === currentPage}
+                className="cursor-pointer"
+              >
+                {currentPage}
+              </PaginationLink>
+            </PaginationItem>
+          ),
+        )}
         <PaginationItem>
           <PaginationNext
             onClick={() => setPage(Math.min(totalPages, page + 1))}
@@ -488,7 +405,11 @@ function StaffPage() {
     </Pagination>
   );
 
-  const tableComponent = showCards ? (
+  const tableComponent = isLoading ? (
+    loadingComponent
+  ) : isError ? (
+    errorComponent
+  ) : showCards ? (
     filteredStaff.length === 0 ? (
       emptyComponent
     ) : (
@@ -510,6 +431,7 @@ function StaffPage() {
               insuranceAccepted={staff.insuranceAccepted}
               isFavorite={staff.isFavorite}
               urlImage={staff.urlImage}
+              connectionStatus="connected"
             />
           ))}
         </div>

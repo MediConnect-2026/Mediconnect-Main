@@ -78,7 +78,10 @@ function VerifyInfo() {
   const {
     data: centerDocsResponse,
   } = useCenterDocuments({
-    enabled: !isDoctor && activeTab === "documentos",
+    // Keep sidebar progress status accurate from first render.
+    // If we fetch only when opening the documents tab, status jumps from
+    // pending to approved/rejected after tab change.
+    enabled: !isDoctor,
     language: i18n.language,
     staleTime: 1000 * 60 * 15,
   });
@@ -217,17 +220,64 @@ function VerifyInfo() {
       Rejected: "REJECTED",
     };
 
-    const ubicacion = payload.ubicacion || payload.ubicacion || {};
+    const ubicacion = payload.ubicacion || {};
+
+    const asNumericString = (...values: unknown[]): string => {
+      for (const value of values) {
+        const raw = String(value ?? "").trim();
+        if (/^\d+$/.test(raw)) {
+          return raw;
+        }
+      }
+      return "";
+    };
+
+    const provinceId = asNumericString(
+      ubicacion.provinciaId,
+      ubicacion.provincia_id,
+      ubicacion.provincia?.id,
+      ubicacion.barrio?.seccion?.provinciaId,
+      ubicacion.barrio?.seccion?.id_provincia
+    );
+
+    const municipalityId = asNumericString(
+      ubicacion.municipioId,
+      ubicacion.municipio_id,
+      ubicacion.municipio?.id,
+      ubicacion.barrio?.seccion?.municipioId,
+      ubicacion.barrio?.seccion?.id_municipio
+    );
+
+    const districtId = asNumericString(
+      ubicacion.distritoId,
+      ubicacion.distrito_id,
+      ubicacion.distritoMunicipalId,
+      ubicacion.distritoMunicipal?.id,
+      ubicacion.barrio?.seccion?.distritoMunicipalId,
+      ubicacion.barrio?.seccion?.distrito_id
+    );
+
+    const sectionId = asNumericString(
+      ubicacion.seccionId,
+      ubicacion.seccion_id,
+      ubicacion.seccion?.id,
+      ubicacion.barrio?.seccionId,
+      ubicacion.barrio?.seccion?.id
+    );
+
+    const barrioId = asNumericString(ubicacion.barrioId, ubicacion.barrio?.id);
 
     return {
       name: payload.nombreComercial || payload.nombre || "",
       description: payload.descripcion || "",
       website: payload.sitio_web || payload.sitioWeb || undefined,
       address: ubicacion.direccionCompleta || ubicacion.direccion || "",
-      province: ubicacion.provinciaNombre || ubicacion.provincia || "",
-      municipality: ubicacion.municipioNombre || ubicacion.municipio || "",
+      province: provinceId,
+      municipality: municipalityId,
+      district: districtId,
+      section: sectionId,
       codigoPostal: ubicacion.codigoPostal || "",
-      barrioId: ubicacion.barrioId ? String(ubicacion.barrioId) : "",
+      barrioId,
       rnc: payload.rnc || "",
       centerType: String(payload.tipoCentro?.id || payload.tipoCentroId || ""),
       centerTypeLabel: payload.tipoCentro?.nombre || payload.tipoCentro || "",

@@ -1,8 +1,6 @@
 import MCButton from "@/shared/components/forms/MCButton";
 import {
-  History,
   Settings,
-  Shield,
   Copy,
   LogOut,
   Ellipsis,
@@ -30,6 +28,10 @@ import { useTranslation } from "react-i18next";
 import { useAppStore } from "@/stores/useAppStore";
 import { cn } from "@/lib/utils";
 import ToogleConfirmConnection from "@/features/request/components/ToogleConfirmConnection";
+import { useNavigate } from "react-router-dom";
+import { ROUTES } from "@/router/routes";
+import useLogout from "@/lib/hooks/useLogout";
+import { useGlobalUIStore } from "@/stores/useGlobalUIStore";
 
 interface Props {
   center: any;
@@ -45,10 +47,36 @@ function CenterProfileBanner({
   onConnect,
 }: Props) {
   const { t } = useTranslation("center");
-  const userRole = useAppStore((state) => state.user?.role);
+  const userRole = useAppStore((state) => state.user?.rol);
+  const logoutUser = useLogout();
+  const setToast = useGlobalUIStore((state) => state.setToast);
 
+  const navigate = useNavigate();
+  
   const handleConfirmConnect = () => {
     onConnect?.(center?.id);
+  };
+
+  const handleLogout = () => {
+    logoutUser();
+  };
+
+  const handleCopyProfile = async () => {
+    const profileUrl = `${window.location.origin}${ROUTES.CENTER.CENTER_PROFILE_PUBLIC.replace(":centerId", String(center?.id ?? ""))}`;
+    try {
+      await navigator.clipboard.writeText(profileUrl);
+      setToast?.({
+        message: t("profileBanner.menu.profileCopied"),
+        type: "success",
+        open: true,
+      });
+    } catch {
+      setToast?.({
+        message: t("profileBanner.menu.copyProfileError"),
+        type: "error",
+        open: true,
+      });
+    }
   };
 
   let connectBtnText = t("profileBanner.connect");
@@ -110,7 +138,7 @@ function CenterProfileBanner({
               <div className="flex flex-col gap-1">
                 {/* Name */}
                 <h3 className="text-primary font-semibold text-2xl flex items-center gap-2">
-                  {center?.name || "Hospital Dario Contreras"}
+                  {center?.name || "-"}
                   <BadgeCheck
                     className="w-6 h-6 text-background"
                     fill="#8bb1ca"
@@ -123,17 +151,17 @@ function CenterProfileBanner({
                   <div className="flex items-center gap-1.5">
                     <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
                     <span className="font-medium">
-                      {center?.rating || "4.8"}
+                      {center?.rating}
                     </span>
                     <span className="text-primary/70">
-                      ({center?.reviewCount || 12} {t("profileBanner.reviews")})
+                      ({center?.reviewCount} {t("profileBanner.reviews")})
                     </span>
                   </div>
 
                   {/* Phone */}
                   <div className="flex items-center gap-1.5">
                     <Phone className="w-4 h-4 text-secondary" />
-                    <span>{center?.phone || "809-093-2342"}</span>
+                    <span>{center?.phone || "-"}</span>
                   </div>
 
                   {/* Website */}
@@ -141,13 +169,13 @@ function CenterProfileBanner({
                     <Globe className="w-4 h-4 text-secondary" />
                     <a
                       href={
-                        center?.website || "https://www.dariocontreras.gob.do"
+                        center?.website || "-"
                       }
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-secondary hover:underline"
                     >
-                      {center?.website || "www.dariocontreras.gob.do"}
+                      {center?.website || "-"}
                     </a>
                   </div>
                 </div>
@@ -198,24 +226,24 @@ function CenterProfileBanner({
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem>
+                      {/* <DropdownMenuItem>
                         <History className="w-4 h-4 mr-2" />
                         {t("profileBanner.menu.history")}
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>
+                      </DropdownMenuItem> */}
+                      <DropdownMenuItem onClick={() => navigate(ROUTES.CENTER.SETTINGS)}>
                         <Settings className="w-4 h-4 mr-2" />
                         {t("profileBanner.menu.settings")}
                       </DropdownMenuItem>
-                      <DropdownMenuItem>
+                      {/* <DropdownMenuItem>
                         <Shield className="w-4 h-4 mr-2" />
                         {t("profileBanner.menu.privacy")}
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>
+                      </DropdownMenuItem> */}
+                      <DropdownMenuItem onClick={handleCopyProfile}>
                         <Copy className="w-4 h-4 mr-2" />
                         {t("profileBanner.menu.copyProfile")}
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem>
+                      <DropdownMenuItem onClick={handleLogout}>
                         <LogOut className="w-4 h-4 mr-2 text-red-500" />
                         <span className="text-red-500">
                           {t("profileBanner.menu.logout")}

@@ -39,6 +39,7 @@ interface Doctor {
   onToggleFavorite?: () => void;
   connectionStatus?: "connected" | "not_connected" | "pending"; // <-- Agrega esto si no está
   onConnect?: (id: string | number) => void; // <-- Agrega esto si quieres manejar la conexión
+  isConnectionSubmitting?: boolean;
 }
 
 const VARIANT_STYLES = {
@@ -83,6 +84,7 @@ function MCDoctorsCards({
   onToggleFavorite,
   connectionStatus = "not_connected", // <-- default
   onConnect,
+  isConnectionSubmitting = false,
 }: Doctor) {
   const styles = VARIANT_STYLES[variant];
   const isMobile = useIsMobile();
@@ -93,6 +95,7 @@ function MCDoctorsCards({
   const [isFavoriteLocal, setIsFavoriteLocal] = useState(isFavorite ?? false);
   const [favoriteDialogOpen, setFavoriteDialogOpen] = useState(false);
   const [favoriteLoading, setFavoriteLoading] = useState(false);
+
 
   useEffect(() => {
     if (isFavorite !== undefined) {
@@ -345,6 +348,7 @@ function MCDoctorsCards({
               status={connectionStatus}
               id={typeof id === "string" ? parseInt(id) : (id ?? 0)}
               onConfirm={handleConfirmConnect}
+              isSubmitting={isConnectionSubmitting}
             >
               <MCButton
                 size={styles.buttonSize}

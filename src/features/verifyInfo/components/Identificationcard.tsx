@@ -20,6 +20,7 @@ import CenterForm from "./Centerform";
 import DoctorReadOnlyView from "./Doctorreadonlyview";
 import CenterReadOnlyView from "./Centerreadonlyview";
 import { Loader2 } from "lucide-react";
+import { useMemo } from "react";
 
 interface IdentificationCardProps {
   isDoctor: boolean;
@@ -44,6 +45,18 @@ function IdentificationCard({
 }: IdentificationCardProps) {
   const { t } = useTranslation("common");
   const isRejected = currentStatus === "REJECTED";
+
+  const formInstanceKey = useMemo(() => {
+    if (isDoctor) {
+      const info = currentInfo as DoctorPersonalInfo;
+      return `doctor-${info.identificationNumber || ""}-${info.email || ""}-${isEditing ? "edit" : "view"}`;
+    }
+
+    const info = currentInfo as CenterPersonalInfo;
+    const lat = info.coordinates?.latitude ?? "";
+    const lng = info.coordinates?.longitude ?? "";
+    return `center-${info.barrioId || ""}-${info.address || ""}-${lat}-${lng}-${isEditing ? "edit" : "view"}`;
+  }, [currentInfo, isDoctor, isEditing]);
 
   return (
     <Card className="rounded-4xl h-fit">
@@ -87,6 +100,7 @@ function IdentificationCard({
 
         {isEditing ? (
           <MCFormWrapper
+            key={formInstanceKey}
             schema={
               isDoctor
                 ? doctorPersonalInfoSchema(t)

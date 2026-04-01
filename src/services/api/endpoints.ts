@@ -121,7 +121,11 @@ export const API_ENDPOINTS = {
   // --- CENTROS DE SALUD ---
   HEALTH_CENTERS: {
     BASE: '/centros-salud',
+    BY_ID: (id: string | number) => `/centros-salud/${id}`,
     TIPOS: '/tipos-centros-salud',
+    SEGUROS: '/centros-salud/seguros',
+    SOLICITUDES_ALIANZA: '/centros-salud/solicitudes-alianza',
+    SOLICITUDES_ALIANZA_BY_ID: (id: string | number) => `/centros-salud/solicitudes-alianza/${id}`,
     STATS: {
       GENERAL: '/centros-salud/estadisticas/general',
       CRECIMIENTO_MEDICOS: '/centros-salud/estadisticas/crecimiento-medicos',
@@ -193,6 +197,7 @@ export const API_ENDPOINTS = {
   // --- DOCTORES ---
   DOCTORES: {
     PACIENTE_INFO: (pacienteId: string | number) => `/doctores/pacientes-info/${pacienteId}`,
+    SOLICITUDES_ALIANZA: '/doctores/solicitudes-alianza',
   },
   // --- TELECONSULTAS ---
   TELECONSULTAS: {

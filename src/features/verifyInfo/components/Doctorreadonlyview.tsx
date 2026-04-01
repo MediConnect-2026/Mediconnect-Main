@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 import type { DoctorPersonalInfo } from "@/schema/verifyInfo.schema";
+import { formatPhone } from "@/utils/phoneFormat";
 
 interface DoctorReadOnlyViewProps {
   data: DoctorPersonalInfo;
@@ -55,7 +56,7 @@ function DoctorReadOnlyView({ data }: DoctorReadOnlyViewProps) {
         <p className="text-sm text-muted-foreground mb-1">
           {t("verification.identification.phone")}
         </p>
-        <p className="font-medium text-foreground">{data.phone?.replace(/(\d{3})(\d{3})(\d{4})/, "$1-$2-$3")}</p>
+        <p className="font-medium text-foreground">{formatPhone(data.phone, { emptyValue: "-" })}</p>
       </div>
       <div>
         <p className="text-sm text-muted-foreground mb-1">

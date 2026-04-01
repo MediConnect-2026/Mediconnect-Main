@@ -281,7 +281,7 @@ function DashboardPage() {
                 <MCMetricCard
                   title={t("dashboard.metrics.averageRating")}
                   icon={<StarIcon />}
-                  value={metrics.avgRating !== null ? metrics.avgRating.toFixed(1) : '-'}
+                  value={metrics.avgRating !== null ? metrics.avgRating.toFixed(1) : 0}
                   subtitle={t("dashboard.metrics.averageRatingSubtitle")}
                   percentage=""
                   bordered

@@ -29,7 +29,7 @@ interface DoctorCardsProps {
   onSelect: (id: string) => void;
   onViewProfile: (id: string) => void;
   connectionStatus?: "connected" | "not_connected" | "pending";
-  onConnect?: (id: string) => void;
+  onConnect?: (id: string, message?: string) => void;
 }
 
 const DoctorCardsComponent = ({

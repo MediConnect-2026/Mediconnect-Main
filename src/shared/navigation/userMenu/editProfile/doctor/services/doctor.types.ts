@@ -670,6 +670,7 @@ export interface GetDoctoresByDistanceResponse {
  */
 export interface CenterNearby {
   usuarioId: number;
+  estaConectado?: boolean;
   nombreComercial?: string;
   rnc?: string;
   tipoCentro?: {
@@ -697,6 +698,36 @@ export interface CenterNearby {
   estado?: string;
   creadoEn?: string;
   actualizadoEn?: string | null;
+}
+
+export interface DoctorMyCenterRecord {
+  solicitudId: number;
+  aliadoDesde: string;
+  centroSalud: {
+    usuarioId: number;
+    nombreComercial: string;
+    tipoCentro?: {
+      id: number;
+      nombre: string;
+    } | null;
+    usuario?: {
+      email?: string;
+      telefono?: string;
+      fotoPerfil?: string;
+    } | null;
+    ubicacion?: {
+      id: number;
+      direccion?: string;
+      latitud?: number;
+      longitud?: number;
+      direccionCompleta?: string;
+    } | null;
+  };
+}
+
+export interface GetDoctorMyCentersResponse {
+  success: boolean;
+  data: DoctorMyCenterRecord[];
 }
 
 export interface UpdateStatusDoctorServiceRequest {

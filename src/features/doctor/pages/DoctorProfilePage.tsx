@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import MCSheetProfile from "@/shared/navigation/userMenu/editProfile/MCSheetProfile";
 import { useAppStore } from "@/stores/useAppStore";
@@ -20,7 +20,7 @@ import { useTranslation } from "react-i18next";
 
 function DoctorProfilePage() {
   const { doctorId } = useParams();
-  const { i18n } = useTranslation();
+  const { i18n, t } = useTranslation("doctor");
   const [openSheet, setOpenSheet] = useState(false);
   const isMobile = useIsMobile();
   const user = useAppStore((state) => state.user); 
@@ -43,49 +43,47 @@ function DoctorProfilePage() {
     staleTime: 1000 * 60 * 5,
   });
 
+  const { data: myCentersResponse, isLoading: isLoadingCenters } = useQuery({
+    queryKey: ["doctor-my-centers", i18n.language],
+    queryFn: () =>
+      doctorService.getMyCenters({
+        target: i18n.language === "en" ? "en" : "es",
+        source: i18n.language === "en" ? "es" : "en",
+        translate_fields:
+          "centroSalud.nombreComercial,centroSalud.tipoCentro.nombre,centroSalud.ubicacion.direccionCompleta",
+      }),
+    enabled: isMyProfile,
+    staleTime: 1000 * 60 * 5,
+  });
+
   // Usar los datos del store si es mi perfil, o los fetched si es otro doctor
   const doctorProfile = isMyProfile ? user : fetchedDoctorProfile?.data;
   // Para secciones que esperan el objeto doctor anidado (Doctor type)
   const doctorData = doctorProfile;
 
-  const centers = [
-    {
-      id: "1",
-      name: "Hospital Dario Contreras",
-      type: "Hospital General",
-      rating: 4.8,
-      reviewCount: 12,
-      phone: "809-093-2342",
-      urlImage:
-        "https://i.pinimg.com/736x/2d/79/92/2d799226aaefb127794b72128c3889cd.jpg",
+  const centers = useMemo(() => {
+    if (!isMyProfile) {
+      return [];
+    }
+
+    return (myCentersResponse?.data ?? []).map((item) => ({
+      id: item.centroSalud.usuarioId,
+      name: item.centroSalud.nombreComercial,
+      type:
+        item.centroSalud.tipoCentro?.nombre ||
+        t("profile.centers.centerTypeFallback", "Centro de salud"),
+      rating: 0,
+      reviewCount: 0,
+      phone: item.centroSalud.usuario?.telefono || "",
+      urlImage: item.centroSalud.usuario?.fotoPerfil || "",
       isConnected: true,
       description:
-        "Centro hospitalario de referencia nacional con atención 24/7.",
-    },
-    {
-      id: "2",
-      name: "Centro Médico Integral",
-      type: "Clínica",
-      rating: 4.6,
-      reviewCount: 8,
-      phone: "809-555-1234",
-      urlImage:
-        "https://i.pinimg.com/736x/5a/be/8f/5abe8ff7a562514b3a552a78369e0ed7.jpg",
-      isConnected: false,
-    },
-    {
-      id: "3",
-      name: "Clínica Familiar",
-      type: "Centro de Salud",
-      rating: 4.7,
-      reviewCount: 10,
-      phone: "809-222-5678",
-      urlImage:
-        "https://i.pinimg.com/736x/26/96/86/2696865c46c902b5a2a0cdd58b98ba95.jpg",
-      isConnected: false,
-      description: "Atención primaria y familiar para toda la comunidad.",
-    },
-  ];
+        item.centroSalud.ubicacion?.direccionCompleta ||
+        item.centroSalud.ubicacion?.direccion ||
+        "",
+      connectionStatus: "connected" as const,
+    }));
+  }, [isMyProfile, myCentersResponse?.data, t]);
 
   if (isLoadingProfile) {
     return (
@@ -145,7 +143,11 @@ function DoctorProfilePage() {
                 doctorId={profileDoctorId} 
                 isMyProfile={isMyProfile}
               />
-              <DoctorCentersSection centers={centers} />
+              {isLoadingCenters && isMyProfile ? (
+                <Skeleton className="w-full h-80 rounded-4xl" />
+              ) : (
+                <DoctorCentersSection centers={centers} />
+              )}
               {/* Educación y Experiencia - solo en mobile */}
               <div className="flex flex-col gap-4 lg:hidden">
                 <DoctorEducationSection 

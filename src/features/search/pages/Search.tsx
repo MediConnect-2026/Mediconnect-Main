@@ -27,6 +27,7 @@ import FiltersSearchProviders from "../components/filters/FiltersSearchProviders
 import useTiposCentros from "@/features/onboarding/services/useTiposCentros";
 import { useEspecialidades } from "@/features/onboarding/services";
 import { useSearchDoctors } from "../hooks/useSearchDoctors";
+import { useDoctorAllianceRequest } from "../hooks/useDoctorAllianceRequest";
 
 interface SearchProviderFilters {
   name: string;
@@ -70,12 +71,14 @@ const ProviderCard = memo(
     onSelect,
     onConnect,
     onViewProfile,
+    isConnecting,
   }: {
     provider: Provider;
     isSelected: boolean;
     onSelect: (id: string) => void;
-    onConnect?: (id: string) => void;
+    onConnect?: (id: string, message?: string) => void;
     onViewProfile: (id: string) => void;
+    isConnecting?: boolean;
   }) => {
 
     if (provider.type === "doctor") {
@@ -98,6 +101,7 @@ const ProviderCard = memo(
           isConnected={(provider as Clinic).connectionStatus ?? "not_connected"}
           onConnect={onConnect || (() => { })}
           onViewProfile={onViewProfile}
+          isConnecting={isConnecting}
         />
       );
     }
@@ -365,6 +369,9 @@ function Search() {
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [showMap, setShowMap] = useState(false);
   const [selectedProviders, setSelectedProviders] = useState<string[]>([]);
+  const [optimisticCenterStatuses, setOptimisticCenterStatuses] = useState<
+    Record<string, "connected" | "not_connected" | "pending">
+  >({});
   const [searchFilters, setSearchFilters] = useState<SearchProviderFilters>({
     name: "",
     insuranceAccepted: ["all"],
@@ -381,6 +388,7 @@ function Search() {
 
   const { data: tiposCentroOptions = [], isLoading: isLoadingCentro } = useTiposCentros();
   const { data: especialidadesOptions = [], isLoading: isLoadingEspecialidades } = useEspecialidades();
+  const allianceMutation = useDoctorAllianceRequest();
 
   // Use the search doctors hook with real API integration
   const {
@@ -532,12 +540,62 @@ function Search() {
     setShowMap((prev) => !prev);
   }, []);
 
+  const handleConnectCenter = useCallback(
+    async (id: string, message?: string) => {
+      const destinatarioId = Number(id);
+      const allianceMessage = (message ?? "").trim();
+
+      if (!Number.isFinite(destinatarioId) || allianceMessage.length < 10) {
+        return;
+      }
+
+      setOptimisticCenterStatuses((prev) => ({
+        ...prev,
+        [id]: "pending",
+      }));
+
+      try {
+        await allianceMutation.mutateAsync({
+          destinatarioId,
+          mensaje: allianceMessage,
+        });
+      } catch {
+        setOptimisticCenterStatuses((prev) => {
+          const next = { ...prev };
+          delete next[id];
+          return next;
+        });
+      }
+    },
+    [allianceMutation],
+  );
+
+  const providersWithOptimisticStatus = useMemo(
+    () =>
+      filteredProviders.map((provider) => {
+        if (provider.type !== "clinic") {
+          return provider;
+        }
+
+        const optimisticStatus = optimisticCenterStatuses[provider.id];
+        if (!optimisticStatus) {
+          return provider;
+        }
+
+        return {
+          ...provider,
+          connectionStatus: optimisticStatus,
+        };
+      }),
+    [filteredProviders, optimisticCenterStatuses],
+  );
+
   const selectedProvidersData = useMemo(
     () =>
-      filteredProviders.filter((provider) =>
+      providersWithOptimisticStatus.filter((provider) =>
         selectedProviders.includes(provider.id),
       ),
-    [selectedProviders, filteredProviders],
+    [selectedProviders, providersWithOptimisticStatus],
   );
 
   return (
@@ -614,7 +672,7 @@ function Search() {
             <div className="flex items-center justify-between">
               <h2 className="text-xs sm:text-sm font-medium opacity-70">
                 {t("search.providersFound", {
-                  count: filteredProviders.length,
+                  count: providersWithOptimisticStatus.length,
                   defaultValue: "{{count}} encontrados",
                 })}
               </h2>
@@ -627,16 +685,20 @@ function Search() {
                     {t("search.loading", "Buscando doctores...")}
                   </p>
                 </div>
-              ) : filteredProviders.length === 0 ? (
+              ) : providersWithOptimisticStatus.length === 0 ? (
                 <EmptyState />
               ) : (
-                filteredProviders.map((provider) => (
+                providersWithOptimisticStatus.map((provider) => (
                   <ProviderCard
                     key={provider.id}
                     provider={provider}
                     isSelected={selectedProviders.includes(provider.id)}
                     onSelect={handleProviderSelect}
                     onViewProfile={handleViewProfile}
+                    onConnect={
+                      provider.type === "clinic" ? handleConnectCenter : undefined
+                    }
+                    isConnecting={allianceMutation.isPending}
                   />
                 ))
               )}
@@ -649,7 +711,7 @@ function Search() {
           >
             <div className="h-full rounded-xl overflow-hidden relative">
               <MapSearchProviders
-                providers={filteredProviders}
+                providers={providersWithOptimisticStatus}
                 selectedProviders={selectedProviders}
                 onProviderSelect={handleProviderSelect}
               />

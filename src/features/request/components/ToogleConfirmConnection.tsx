@@ -1,15 +1,21 @@
+import { type ReactNode, useMemo, useRef, useState } from "react";
 import { MCModalBase } from "@/shared/components/MCModalBase";
 import { useTranslation } from "react-i18next";
 import { useAppStore } from "@/stores/useAppStore";
+import z from "zod";
+import MCFormWrapper from "@/shared/components/forms/MCFormWrapper";
+import MCTextArea from "@/shared/components/forms/MCTextArea";
 
 interface ToogleConfirmConnectionProps {
-  children: React.ReactNode;
+  children: ReactNode;
   status: "connected" | "not_connected" | "pending";
   id: number;
-  onConfirm?: () => void;
+  onConfirm?: (message?: string) => void | Promise<void>;
   onCancel?: () => void;
   isOpen?: boolean; // Control externo del estado del diálogo
   onClose?: () => void; // Callback cuando se cierra el diálogo
+  isSubmitting?: boolean;
+  enableMessageInput?: boolean;
 }
 
 function ToogleConfirmConnection({
@@ -20,11 +26,30 @@ function ToogleConfirmConnection({
   onCancel,
   isOpen,
   onClose,
+  isSubmitting = false,
+  enableMessageInput = false,
 }: ToogleConfirmConnectionProps) {
   const isConnected = status === "connected";
   const isPending = status === "pending";
   const { t } = useTranslation("center");
-  const userRole = useAppStore((state) => state.user?.role);
+  const userRole = useAppStore((state) => state.user?.rol);
+  const [isFormValid, setIsFormValid] = useState(false);
+  const submitRef = useRef<(() => void) | null>(null);
+
+  const requiresMessage =
+    enableMessageInput && userRole === "DOCTOR" && !isConnected && !isPending;
+
+  const messageSchema = useMemo(
+    () =>
+      z.object({
+        message: z
+          .string()
+          .trim()
+          .min(10, { message: t("connection.allianceMessageMin") })
+          .max(255, { message: t("connection.allianceMessageMax") }),
+      }),
+    [t],
+  );
 
   if (isPending) {
     return <>{children}</>;
@@ -56,6 +81,19 @@ function ToogleConfirmConnection({
       : t("connection.connect");
   }
 
+  const handleFormConfirm = (data: { message: string }) => {
+    onConfirm?.(data.message.trim());
+  };
+
+  const handleConfirm = () => {
+    if (requiresMessage) {
+      submitRef.current?.();
+      return;
+    }
+
+    onConfirm?.();
+  };
+
   return (
     <MCModalBase
       id={`toggle-connection-${id}`}
@@ -64,15 +102,44 @@ function ToogleConfirmConnection({
       title={title}
       triggerClassName="flex-1 w-full"
       description={description}
-      confirmText={confirmText}
+      confirmText={
+        isSubmitting
+          ? isConnected
+            ? t("connection.allianceDisconnecting")
+            : t("connection.allianceRequestSending")
+          : confirmText
+      }
       secondaryText={t("connection.cancel")}
-      onConfirm={onConfirm}
+      onConfirm={handleConfirm}
       onSecondary={onCancel}
       size="sm"
       isOpen={isOpen}
       onClose={onClose}
+      disabledConfirm={isSubmitting || (requiresMessage && !isFormValid)}
     >
-      <></>
+      {requiresMessage ? (
+        <MCFormWrapper
+          schema={messageSchema}
+          defaultValues={{ message: "" }}
+          onSubmit={handleFormConfirm}
+          submitRef={submitRef}
+          onValidationChange={setIsFormValid}
+        >
+          <MCTextArea
+            name="message"
+            label={t("connection.allianceMessageLabel")}
+            placeholder={t("connection.allianceMessagePlaceholder")}
+            rows={4}
+            maxRows={8}
+            required
+            charLimit={255}
+            showCharCount
+            disabled={isSubmitting}
+          />
+        </MCFormWrapper>
+      ) : (
+        <></>
+      )}
     </MCModalBase>
   );
 }

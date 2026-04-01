@@ -8,20 +8,23 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/tooltip";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
 import { useTranslation } from "react-i18next";
 import { memo } from "react";
+import { formatPhone } from "@/utils/phoneFormat";
 
 import ToogleConfirmConnection from "@/features/request/components/ToogleConfirmConnection";
 
 interface ClinicCardProps {
   clinic: Clinic;
   isConnected: "connected" | "not_connected" | "pending";
-  onConnect: (id: string) => void;
+  onConnect: (id: string, message?: string) => void;
   onViewProfile: (id: string) => void;
+  isConnecting?: boolean;
 }
 
 const CenterCardsComponent = ({
   clinic,
   isConnected,
   onConnect,
+  isConnecting = false,
 }: ClinicCardProps) => {
   const userRole = useAppStore((state) => state.user?.rol);
   const navigate = useNavigate();
@@ -32,8 +35,8 @@ const CenterCardsComponent = ({
     navigate(`/center/profile/${clinic.id}`);
   };
 
-  const handleConfirmConnect = () => {
-    onConnect(clinic.id);
+  const handleConfirmConnect = (message?: string) => {
+    onConnect(clinic.id, message);
   };
 
   // Nuevo texto y estado para el botón
@@ -48,17 +51,6 @@ const CenterCardsComponent = ({
     connectBtnText = t("clinicCard.pending");
     connectBtnDisabled = true;
   }
-
-  const formatPhone = (phone: string): string => {
-    const cleaned = phone.replace(/\D/g, "");
-    if (cleaned.length === 10) {
-      return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6)}`;
-    }
-    if (cleaned.length === 11) {
-      return `+${cleaned.slice(0, 1)} (${cleaned.slice(1, 4)}) ${cleaned.slice(4, 7)}-${cleaned.slice(7)}`;
-    }
-    return phone;
-  };
 
   return (
     <div
@@ -235,8 +227,10 @@ const CenterCardsComponent = ({
               <>
                 <ToogleConfirmConnection
                   status={isConnected}
-                  id={parseInt(clinic.id)}
+                  id={parseInt(clinic.id, 10)}
                   onConfirm={handleConfirmConnect}
+                  isSubmitting={isConnecting}
+                  enableMessageInput
                 >
                   <MCButton
                     variant={connectVariant}

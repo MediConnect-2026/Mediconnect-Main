@@ -56,6 +56,8 @@ export const QUERY_KEYS = {
   DOCTORS: ['doctors'],
   DOCTOR_BY_ID: (id: string | number) => ['doctors', id],
   MY_DOCTORS: (filters?: Record<string, any>) => ['doctors', 'my', filters].filter(Boolean),
+  DOCTORS_SEARCH: ['doctors', 'search'],
+  DOCTOR_ALLIANCE_REQUESTS: ['doctor', 'alliance', 'requests'],
   
   // Patients
   PATIENTS: ['patients'],
@@ -66,6 +68,8 @@ export const QUERY_KEYS = {
   CENTERS: ['centers'],
   CENTER_BY_ID: (id: string | number) => ['centers', id],
   CENTERS_STATS_RESUMEN: ['centers', 'stats', 'resumen'],
+  CENTER_ALLIANCE_REQUESTS: ['center', 'alliance', 'requests'],
+  CENTER_STAFF: (language?: string) => ['center', 'staff', language].filter(Boolean),
   
   // Conversations & Messages
   CONVERSATIONS: ['conversations'],

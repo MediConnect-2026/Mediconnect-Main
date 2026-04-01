@@ -4,27 +4,7 @@
  */
 import type { CitaDetalle, CitaEstado } from '@/types/AppointmentTypes';
 import type { Appointment, AppointmentStatus } from '@/types/CalendarTypes';
-
-/**
- * Formatea un número de teléfono al formato (xxx)-xxx-xxxx
- */
-const formatPhoneNumber = (phone?: string | null): string | undefined => {
-  if (!phone) return undefined;
-
-  // Remover todos los caracteres no numéricos
-  const cleaned = phone.replace(/\D/g, '');
-
-  // Verificar que tenga al menos 10 dígitos
-  if (cleaned.length < 10) return phone; // Retornar original si no es válido
-
-  // Formatear al estilo (xxx)-xxx-xxxx
-  const match = cleaned.match(/^(\d{3})(\d{3})(\d{4})$/);
-  if (match) {
-    return `(${match[1]})-${match[2]}-${match[3]}`;
-  }
-
-  return phone; // Retornar original si no coincide con el patrón
-};
+import { formatPhone } from '@/utils/phoneFormat';
 
 /**
  * Mapea el estado de la cita del backend al estado local
@@ -106,7 +86,9 @@ export const transformCitaToAppointment = (cita: CitaDetalle): Appointment => {
     // Campos opcionales que pueden no estar disponibles
     address: cita.servicio.ubicaciones.direccionCompleta, // El backend no devuelve la dirección directamente
     patientPhone: undefined,
-    doctorPhone: formatPhoneNumber(cita?.doctor?.usuario?.telefono),
+    doctorPhone: cita?.doctor?.usuario?.telefono
+      ? formatPhone(cita.doctor.usuario.telefono)
+      : undefined,
   };
 };
 

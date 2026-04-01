@@ -66,6 +66,8 @@ export const centerPersonalInfoBaseSchema = z.object({
   address: z.string(),
   province: z.string(),
   municipality: z.string(),
+  district: z.string().optional(),
+  section: z.string().optional(),
   codigoPostal: z.string().optional(),
   barrioId: z.string().optional(),
   rnc: z.string(),
@@ -99,6 +101,8 @@ export function centerPersonalInfoSchema(t: (key: string) => string) {
     municipality: z
       .string()
       .min(1, { message: t("validation.municipalityRequired") }),
+    district: z.string().optional(),
+    section: z.string().optional(),
     codigoPostal: z.string().optional(),
     barrioId: z.string().optional(),
     rnc: z

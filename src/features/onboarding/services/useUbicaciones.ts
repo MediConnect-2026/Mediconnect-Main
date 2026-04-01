@@ -9,6 +9,11 @@ import { useTranslation } from 'react-i18next';
 
 type NivelGeografico = 'provincias' | 'municipios' | 'distritos' | 'secciones' | 'barrios' | 'subbarrios';
 
+const isPositiveNumericId = (value: unknown): boolean => {
+	const normalized = String(value ?? '').trim();
+	return /^\d+$/.test(normalized) && Number(normalized) > 0;
+};
+
 /**
  * Hook para obtener ubicaciones geográficas jerárquicas
  * - provincias: búsqueda inicial
@@ -50,6 +55,26 @@ export function useUbicaciones(
 	const currentLanguage = i18n.language;
 	const source = currentLanguage === "en" ? "es" : "en";
 
+	const hasValidHierarchyParams = () => {
+		switch (nivel) {
+			case 'municipios':
+				return isPositiveNumericId(params?.idProvincia);
+			case 'distritos':
+				return isPositiveNumericId(params?.idMunicipio);
+			case 'secciones':
+				return isPositiveNumericId(params?.idDistrito) || isPositiveNumericId(params?.idMunicipio);
+			case 'barrios':
+				return isPositiveNumericId(params?.idSeccion);
+			case 'subbarrios':
+				return isPositiveNumericId(params?.idBarrio);
+			default:
+				return true;
+		}
+	};
+
+	const shouldEnableQuery =
+		(options?.enabled ?? true) && hasValidHierarchyParams();
+
 	// Mapear nivel a función de servicio
 	const fetchFn = () => {
 		switch (nivel) {
@@ -81,7 +106,7 @@ export function useUbicaciones(
 		refetchOnWindowFocus: false,
 		refetchOnReconnect: false,
 		refetchOnMount: options?.refetchOnMount ?? false,
-		enabled: options?.enabled ?? true,
+		enabled: shouldEnableQuery,
 		placeholderData: (previousData) => previousData,
 	}) : useQuery<SelectOption[], Error>({
 		queryKey: QUERY_KEYS.UBICACIONES(nivel, params),
@@ -91,7 +116,7 @@ export function useUbicaciones(
 		refetchOnWindowFocus: false,
 		refetchOnReconnect: false,
 		refetchOnMount: options?.refetchOnMount ?? false,
-		enabled: options?.enabled ?? true,
+		enabled: shouldEnableQuery,
 		placeholderData: (previousData) => previousData,
 	});
 
