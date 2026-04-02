@@ -198,6 +198,7 @@ export const API_ENDPOINTS = {
   DOCTORES: {
     PACIENTE_INFO: (pacienteId: string | number) => `/doctores/pacientes-info/${pacienteId}`,
     SOLICITUDES_ALIANZA: '/doctores/solicitudes-alianza',
+    SOLICITUDES_ALIANZA_BY_ID: (id: string | number) => `/doctores/solicitudes-alianza/${id}`,
   },
   // --- TELECONSULTAS ---
   TELECONSULTAS: {

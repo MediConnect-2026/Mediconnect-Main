@@ -5,10 +5,11 @@ import MCButton from "./forms/MCButton";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
 import { cn } from "@/lib/utils";
 import { useAppStore } from "@/stores/useAppStore";
-import { useState } from "react";
 import { formatPhone } from "@/utils/phoneFormat";
+import ToogleConfirmConnection from "@/features/request/components/ToogleConfirmConnection";
 
 interface MCCenterCardProps {
+  id?: string | number;
   urlImage: string;
   name: string;
   type: string;
@@ -19,9 +20,11 @@ interface MCCenterCardProps {
   connectionStatus?: "connected" | "not_connected" | "pending";
   onDetails?: () => void;
   onToggleConnection?: () => void;
+  isConnectionSubmitting?: boolean;
 }
 
 const MCCentersCards = ({
+  id,
   urlImage,
   name,
   type,
@@ -32,34 +35,25 @@ const MCCentersCards = ({
   connectionStatus = "not_connected",
   onDetails,
   onToggleConnection,
+  isConnectionSubmitting = false,
 }: MCCenterCardProps) => {
   const { t } = useTranslation("common");
   const isMobile = useIsMobile();
   const userRole = useAppStore((state) => state.user?.rol);
 
-  // Estado local para simular el cambio (opcional, puedes quitar si manejas por props)
-  const [localStatus, setLocalStatus] = useState(connectionStatus);
-
   let connectBtnText = t("clinicCard.connect");
   let connectBtnDisabled = false;
   let connectVariant: "primary" | "outline" = "outline";
 
-  if (localStatus === "connected") {
+  if (connectionStatus === "connected") {
     connectBtnText = t("clinicCard.connected");
     connectVariant = "primary";
-  } else if (localStatus === "pending") {
+  } else if (connectionStatus === "pending") {
     connectBtnText = t("clinicCard.pending");
     connectBtnDisabled = true;
   }
 
-  const handleToggleConnection = () => {
-    if (localStatus === "not_connected") {
-      setLocalStatus("pending");
-    } else if (localStatus === "connected") {
-      setLocalStatus("not_connected");
-    }
-    if (onToggleConnection) onToggleConnection();
-  };
+  const canToggleConnection = typeof onToggleConnection === "function";
 
   return (
     <Card className="rounded-3xl bg-transparent border border-primary/10 shadow-sm hover:shadow-lg transition-shadow h-full flex flex-col">
@@ -118,24 +112,30 @@ const MCCentersCards = ({
         <div className="grid grid-cols-2 gap-2 mt-auto">
           {userRole === "DOCTOR" ? (
             <>
-              <MCButton
-                variant={connectVariant}
-                size={isMobile ? "xs" : "sm"}
-                className={cn(
-                  "flex-1",
-                  isMobile && "text-xs px-2",
-                  localStatus === "connected" &&
-                    "bg-secondary hover:bg-secondary/90 text-white border-none active:bg-secondary/80",
-                  localStatus === "not_connected" &&
-                    "border-secondary text-secondary hover:bg-secondary/10 hover:border-secondary/80 active:bg-secondary/20",
-                  localStatus === "pending" &&
-                    "border-gray-300 text-gray-500 bg-gray-100 cursor-not-allowed",
-                )}
-                onClick={handleToggleConnection}
-                disabled={connectBtnDisabled}
+              <ToogleConfirmConnection
+                status={connectionStatus}
+                id={typeof id === "string" ? parseInt(id, 10) || 0 : (id ?? 0)}
+                onConfirm={() => onToggleConnection?.()}
+                isSubmitting={isConnectionSubmitting}
               >
-                {connectBtnText}
-              </MCButton>
+                <MCButton
+                  variant={connectVariant}
+                  size={isMobile ? "xs" : "sm"}
+                  className={cn(
+                    "flex-1",
+                    isMobile && "text-xs px-2",
+                    connectionStatus === "connected" &&
+                      "bg-secondary hover:bg-secondary/90 text-white border-none active:bg-secondary/80",
+                    connectionStatus === "not_connected" &&
+                      "border-secondary text-secondary hover:bg-secondary/10 hover:border-secondary/80 active:bg-secondary/20",
+                    connectionStatus === "pending" &&
+                      "border-gray-300 text-gray-500 bg-gray-100 cursor-not-allowed",
+                  )}
+                  disabled={connectBtnDisabled || !canToggleConnection || isConnectionSubmitting}
+                >
+                  {connectBtnText}
+                </MCButton>
+              </ToogleConfirmConnection>
               <MCButton
                 className="flex-1 rounded-full"
                 variant="primary"

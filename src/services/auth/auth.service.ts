@@ -35,15 +35,11 @@ export const authService = {
    * POST /auth/login
    */
   login: async (credentials: LoginRequest): Promise<LoginResponse> => {
-    try {
-      const { data } = await apiClient.post<LoginResponse>(
-        API_ENDPOINTS.AUTH.LOGIN,
-        credentials
-      );
-      return data;
-    } catch (error) {
-      throw error;
-    }
+    const { data } = await apiClient.post<LoginResponse>(
+      API_ENDPOINTS.AUTH.LOGIN,
+      credentials
+    );
+    return data;
   },
 
   /**

@@ -14,11 +14,14 @@ import {
   getDoctorServicesStats,
 } from '@/services/api/doctor-stats.service';
 import type {
+  DoctorPatientsStats,
   DoctorStatsResumen,
   DoctorServicesStats,
   ProductividadDato,
   ServicioUtilizado,
 } from '@/types/DoctorStatsTypes';
+
+type DoctorCitasStatsData = Awaited<ReturnType<typeof getDoctorCitasStats>>;
 
 /**
  * Hook para obtener el resumen de estadísticas del doctor
@@ -136,9 +139,9 @@ export const useDoctorMostUsedServices = (
  * @returns Query result con datos de citas
  */
 export const useDoctorCitasStats = (
-  options?: Omit<UseQueryOptions<any>, 'queryKey' | 'queryFn'>
+  options?: Omit<UseQueryOptions<DoctorCitasStatsData>, 'queryKey' | 'queryFn'>
 ) => {
-  return useQuery({
+  return useQuery<DoctorCitasStatsData>({
     queryKey: QUERY_KEYS.DOCTOR_STATS_CITAS,
     queryFn: getDoctorCitasStats,
     staleTime: 1000 * 60 * 5,
@@ -157,9 +160,9 @@ export const useDoctorCitasStats = (
  * @returns Query result con datos de pacientes
  */
 export const useDoctorPatientsStats = (
-  options?: Omit<UseQueryOptions<any>, 'queryKey' | 'queryFn'>
+  options?: Omit<UseQueryOptions<DoctorPatientsStats>, 'queryKey' | 'queryFn'>
 ) => {
-  return useQuery({
+  return useQuery<DoctorPatientsStats>({
     queryKey: QUERY_KEYS.DOCTOR_STATS_PACIENTES,
     queryFn: getDoctorPatientsStats,
     staleTime: 1000 * 60 * 5,

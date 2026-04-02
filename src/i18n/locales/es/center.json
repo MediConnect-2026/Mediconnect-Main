@@ -145,6 +145,12 @@
     "chart": {
       "affiliatedDoctorsGrowth": "Crecimiento de Médicos Afiliados",
       "affiliatedDoctorsLabel": "Médicos Afiliados",
+      "loading": "Cargando crecimiento de médicos...",
+      "errorTitle": "No se pudo cargar el gráfico",
+      "errorDescription": "Intenta nuevamente en unos segundos.",
+      "retry": "Reintentar",
+      "emptyTitle": "Sin datos para mostrar",
+      "emptyDescription": "Aún no hay información suficiente para graficar este período.",
       "week": "Semana",
       "month": "Mes",
       "threeMonths": "3 Meses",
@@ -153,7 +159,12 @@
     },
     "specialties": {
       "distributionTitle": "Distribución por Especialidad",
-      "others": "Otros"
+      "others": "Otros",
+      "loading": "Cargando distribución de especialidades...",
+      "error": "No se pudo cargar la distribución de especialidades.",
+      "emptyTitle": "Sin datos para mostrar",
+      "emptyDescription": "Aún no hay datos de especialidades suficientes para mostrar este gráfico.",
+      "noData": "Aún no hay datos de especialidades para mostrar."
     },
     "staffTable": {
       "title": "Tu equipo de atención"

@@ -154,6 +154,7 @@ export const centerDocumentsBaseSchema = z.object({
 export type CenterDocuments = z.infer<typeof centerDocumentsBaseSchema>;
 
 export function centerDocumentsSchema(t: (key: string) => string) {
+  void t;
   return centerDocumentsBaseSchema;
 }
 
@@ -172,5 +173,6 @@ export const doctorDocumentsBaseSchema = z.object({
 export type DoctorDocuments = z.infer<typeof doctorDocumentsBaseSchema>;
 
 export function doctorDocumentsSchema(t: (key: string) => string) {
+  void t;
   return doctorDocumentsBaseSchema;
 }

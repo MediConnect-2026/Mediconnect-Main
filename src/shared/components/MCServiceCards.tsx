@@ -44,7 +44,6 @@ const MCServiceCards = ({
   price,
   description,
   rating,
-  reviews,
   duration,
   modalidad,
   onDetails,

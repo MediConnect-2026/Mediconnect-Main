@@ -42,7 +42,7 @@ function MCPhoneInput({
   format = "do",
   countryCode,
 }: MCPhoneInputProps) {
-  const formContext = standalone ? null : useFormContext();
+  const formContext = useFormContext();
   const [displayValue, setDisplayValue] = useState("");
 
   const getUnformattedValue = (formatted: string): string => {

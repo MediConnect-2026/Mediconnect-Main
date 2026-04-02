@@ -37,8 +37,8 @@ function MCFilterDates({
 
   // Always use translation placeholders, ignore the prop placeholders
   const fixedPlaceholders = {
-    start: t("ui.dates.startDate"),
-    end: t("ui.dates.endDate"),
+    start: placeholder?.start || t("ui.dates.startDate"),
+    end: placeholder?.end || t("ui.dates.endDate"),
   };
 
   const getSizeClasses = () => {

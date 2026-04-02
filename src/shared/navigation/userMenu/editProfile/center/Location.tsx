@@ -46,7 +46,7 @@ function Location({ onOpenChange, locationId }: LocationProps) {
   const setToast = useGlobalUIStore((s) => s.setToast);
 
   const queryClient = useQueryClient();
-  const [formKey, setFormKey] = useState(0);
+  const [formKey] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [coordinates, setCoordinates] = useState({
@@ -520,7 +520,7 @@ function Location({ onOpenChange, locationId }: LocationProps) {
       }
 
       if (onOpenChange) onOpenChange(false);
-    } catch (error) {
+    } catch {
       setToast({
         message: t("locationForm.errors.updateFailed", "Error al actualizar la ubicación."),
         type: "error",

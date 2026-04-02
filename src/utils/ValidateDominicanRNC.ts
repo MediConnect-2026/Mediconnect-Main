@@ -21,7 +21,7 @@ export function ValidateDominicanRNC(input: string): boolean {
     let suma = 0;
     let multiplicador = 2;
     for (let i = numero.length - 2; i >= 0; i--) {
-      let temp = Number(numero.charAt(i)) * multiplicador;
+      const temp = Number(numero.charAt(i)) * multiplicador;
       suma += temp > 9 ? Math.floor(temp / 10) + (temp % 10) : temp;
       multiplicador = multiplicador === 2 ? 1 : 2;
     }

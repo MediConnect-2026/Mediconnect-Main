@@ -1,6 +1,6 @@
 import { X, User, FileText, Shield } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState } from "react";
 import { patientProfileSchema } from "@/schema/profile.schema";
 import { useTranslation } from "react-i18next";
 import PersonalInformation from "./PersonalInformation";
@@ -17,31 +17,18 @@ interface MCSheetPatientProps {
 
 function MCSheetPatient({ onOpenChange, whatTab, onInsurancesChanged, onClinicalHistoryChanged }: MCSheetPatientProps) {
   const { t } = useTranslation("patient");
-  const [activeTab, setActiveTab] = useState(
-    whatTab === "history"
-      ? "historial"
-      : whatTab === "insurance"
-        ? "seguros"
-        : "general",
-  );
+  const getTabFromWhatTab = (tab?: string) =>
+    tab === "history" ? "historial" : tab === "insurance" ? "seguros" : "general";
+
+  const [activeTab, setActiveTab] = useState(getTabFromWhatTab(whatTab));
+  const selectedTab = whatTab ? getTabFromWhatTab(whatTab) : activeTab;
   const isMobile = useIsMobile();
 
   const schema = useMemo(() => patientProfileSchema(t), [t]);
 
-  // Sincronizar activeTab cuando whatTab cambie
-  useEffect(() => {
-    if (whatTab === "history") {
-      setActiveTab("historial");
-    } else if (whatTab === "insurance") {
-      setActiveTab("seguros");
-    } else {
-      setActiveTab("general");
-    }
-  }, [whatTab]);
-
   return (
     <Tabs
-      value={activeTab}
+      value={selectedTab}
       onValueChange={setActiveTab}
       className={`w-full h-full min-h-full min-w-full ${
         isMobile ? "flex flex-col" : "grid grid-cols-[35%_65%]"

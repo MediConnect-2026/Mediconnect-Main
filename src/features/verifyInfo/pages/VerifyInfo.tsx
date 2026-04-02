@@ -384,7 +384,7 @@ function VerifyInfo() {
         JSON.stringify(transformedCenterDocuments)
       ) {
         // setCenterDocuments viene del store
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+         
         setCenterDocuments(transformedCenterDocuments);
       }
     }

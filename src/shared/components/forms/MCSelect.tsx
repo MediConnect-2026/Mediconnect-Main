@@ -60,24 +60,13 @@ function MCSelect({
     formState: { errors },
   } = useFormContext();
 
-  const [selectedValues, setSelectedValues] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const currentValue = watch(name);
+  const selectedValues =
+    multiple && Array.isArray(currentValue) ? currentValue : [];
 
   // Use translation for default placeholder
   const defaultPlaceholder = placeholder || t("ui.select.placeholder");
-
-  // Sincronizar selectedValues con los valores del formulario (importantes para edición)
-  useEffect(() => {
-    if (multiple && currentValue) {
-      // Asegurarse de que currentValue es un array
-      const valuesArray = Array.isArray(currentValue) ? currentValue : [];
-      // Solo actualizar si los valores son diferentes
-      if (JSON.stringify(valuesArray) !== JSON.stringify(selectedValues)) {
-        setSelectedValues(valuesArray);
-      }
-    }
-  }, [currentValue, multiple]); // No incluir selectedValues para evitar loop infinito
 
   useEffect(() => {
     if (externalValue === undefined) return;
@@ -125,7 +114,6 @@ function MCSelect({
         ? selectedValues.filter((v) => v !== value)
         : [...selectedValues, value];
 
-      setSelectedValues(newValues);
       setValue(name, newValues, { shouldValidate: true, shouldDirty: true });
       onChange?.(newValues);
     } else {
@@ -137,7 +125,6 @@ function MCSelect({
 
   const removeValue = (valueToRemove: string) => {
     const newValues = selectedValues.filter((v) => v !== valueToRemove);
-    setSelectedValues(newValues);
     setValue(name, newValues, { shouldValidate: true, shouldDirty: true });
     onChange?.(newValues);
   };

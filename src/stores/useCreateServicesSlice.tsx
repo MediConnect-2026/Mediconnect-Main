@@ -16,18 +16,24 @@ type ServiceStep =
 export interface CreateServicesSlice {
   createServiceData: CreateServiceType;
   setCreateServiceData: (data: Partial<CreateServiceType>) => void;
-  setCreateServiceField: (field: keyof CreateServiceType, value: any) => void;
+  setCreateServiceField: (
+    field: keyof CreateServiceType,
+    value: CreateServiceType[keyof CreateServiceType],
+  ) => void;
 
   locationData: LocationType;
   setLocationData: (data: Partial<LocationType>) => void;
-  setlocationField: (field: keyof LocationType, value: any) => void;
+  setlocationField: (
+    field: keyof LocationType,
+    value: LocationType[keyof LocationType],
+  ) => void;
   clearLocationData: () => void;
 
   comercialScheduleData: ComercialScheduleType;
   setComercialScheduleData: (data: Partial<ComercialScheduleType>) => void;
   setComercialScheduleField: (
     field: keyof ComercialScheduleType,
-    value: any,
+    value: ComercialScheduleType[keyof ComercialScheduleType],
   ) => void;
   clearComercialScheduleData: () => void;
 
@@ -47,7 +53,7 @@ export interface CreateServicesSlice {
   resetAll: () => void;
 }
 
-const createServicesSlice: StateCreator<CreateServicesSlice> = (set, get) => ({
+const createServicesSlice: StateCreator<CreateServicesSlice> = (set) => ({
   createServiceData: {
     name: "",
     specialty: "",
@@ -159,7 +165,7 @@ const createServicesSlice: StateCreator<CreateServicesSlice> = (set, get) => ({
   currentStep: 0,
 
   setCreateServiceStep: (step, status) =>
-    set((state) => {
+    set(() => {
       const stepKeys = [
         "servicesDetails",
         "location",
@@ -185,7 +191,7 @@ const createServicesSlice: StateCreator<CreateServicesSlice> = (set, get) => ({
       // Si estamos en el paso 0 (servicesDetails) después de setear el título
       if (currentStep === 0 && isTitleSeted) {
         // Determinar el siguiente paso
-        let nextStep = isTeleconsulta ? 2 : 1; // Saltar location si es teleconsulta
+        const nextStep = isTeleconsulta ? 2 : 1; // Saltar location si es teleconsulta
 
         const stepKeys = [
           "servicesDetails",

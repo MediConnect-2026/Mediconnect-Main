@@ -671,13 +671,23 @@ export interface GetDoctoresByDistanceResponse {
 export interface CenterNearby {
   usuarioId: number;
   estaConectado?: boolean;
+  estadoAlianza?: string;
+  solicitudAlianzaId?: number;
   nombreComercial?: string;
   rnc?: string;
+  foto_perfil?: string | null;
   tipoCentro?: {
     id?: number;
     nombre?: string;
   };
   ubicacion?: {
+    direccion?: string;
+    codigoPostal?: string;
+    nombre?: string;
+    barrio?: {
+      id?: number;
+      nombre?: string;
+    };
     direccionCompleta?: string;
     latitud?: number;
     longitud?: number;
@@ -692,7 +702,22 @@ export interface CenterNearby {
   };
   telefono?: string;
   descripcion?: string;
+  sitio_web?: string;
   sitioWeb?: string;
+  idiomas?: Array<{
+    id?: number;
+    nombre?: string;
+    nivel?: string;
+  }>;
+  seguros?: Array<{
+    id?: number;
+    nombre?: string;
+    urlImage?: string | null;
+    tipoSeguro?: {
+      id?: number;
+      nombre?: string;
+    };
+  }>;
   servicios?: any[];
   distanciaMetros?: number;
   estado?: string;
@@ -728,6 +753,11 @@ export interface DoctorMyCenterRecord {
 export interface GetDoctorMyCentersResponse {
   success: boolean;
   data: DoctorMyCenterRecord[];
+}
+
+export interface DeleteDoctorAllianceResponse {
+  success: boolean;
+  message: string;
 }
 
 export interface UpdateStatusDoctorServiceRequest {

@@ -49,6 +49,11 @@ export interface CenterProfileTranslationParams {
     target?: string;
     source?: string;
     translate_fields?: string;
+    centroSaludId?: string | number;
+}
+
+export interface CenterDoctorsGrowthParams extends CenterProfileTranslationParams {
+    periodo?: "semana" | "mes" | "3meses" | "año" | "todo";
 }
 
 export interface CenterProfileUser {
@@ -179,17 +184,18 @@ export interface AllianceRequestRecord {
     usuarioId: number;
     nombre: string;
     apellido: string;
-        exequatur?: string;
-        calificacionPromedio?: number | string | null;
-        anosExperiencia?: number;
-        estado?: string;
-        usuario?: {
-            email?: string;
-            fotoPerfil: string | null;
-        };
-        especialidades?: DoctorAllianceSpecialtyRef[];
-        idiomas?: DoctorAllianceLanguageRef[];
-        seguros?: DoctorAllianceInsuranceRef[];
+    exequatur?: string;
+    calificacionPromedio?: number | string | null;
+    anosExperiencia?: number;
+    estado?: string;
+    usuario?: {
+        email?: string;
+        fotoPerfil: string | null;
+    };
+    especialidades?: DoctorAllianceSpecialtyRef[];
+    idiomas?: DoctorAllianceLanguageRef[];
+    seguros?: DoctorAllianceInsuranceRef[];
+    isFavorite?: boolean;
   };
   centroSalud?: {
     usuarioId: number;
@@ -224,4 +230,23 @@ export interface UpdateAllianceRequestStatusResponse {
 export interface DeleteCenterAllianceResponse {
     success: boolean;
     message: string;
+}
+
+export type StaffStatus = "active" | "inactive";
+
+export interface CenterStaffMember {
+  id: string;
+  doctorId: number;
+  name: string;
+  specialty: string;
+  specialtyIds: string[];
+  rating: number;
+  yearsOfExperience: number;
+  languages: string[];
+  insuranceAccepted: string[];
+  isFavorite: boolean;
+  urlImage: string;
+  joinDate: string;
+  totalAppointments: number;
+  status: StaffStatus;
 }

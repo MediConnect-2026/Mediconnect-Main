@@ -64,7 +64,7 @@ export const useLogout = () => {
         open: true,
       });
     }
-  }, [logout, clearOnboarding, clearAuthFlow, setToast, navigate]);
+  }, [logout, clearOnboarding, clearAuthFlow, setToast, navigate, t]);
 
   return logoutUser;
 };

@@ -166,7 +166,7 @@ export const MCGeneratePrescriptionPDF = async (
       if (logoB64) {
         doc.addImage(logoB64, "PNG", mL, 8, 38, 17);
       }
-    } catch (_) {
+    } catch {
       /* silent */
     }
 

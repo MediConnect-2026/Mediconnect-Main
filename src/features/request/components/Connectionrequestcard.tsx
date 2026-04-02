@@ -38,7 +38,7 @@ interface ConnectionRequestCardProps {
   type: Tab;
   onConnect: (id: string) => Promise<void>;
   onReject: (id: string, reason: string) => Promise<void>;
-  onWithdraw: (id: string) => void;
+  onWithdraw: (id: string) => Promise<void>;
 }
 
 export const ConnectionRequestCard = ({
@@ -59,10 +59,12 @@ export const ConnectionRequestCard = ({
   const [isSubtitleTruncated, setIsSubtitleTruncated] = useState(false);
   const [isAcceptModalOpen, setIsAcceptModalOpen] = useState(false);
   const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
+  const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
   const [isRejectDetailModalOpen, setIsRejectDetailModalOpen] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
   const [isSubmittingAccept, setIsSubmittingAccept] = useState(false);
   const [isSubmittingReject, setIsSubmittingReject] = useState(false);
+  const [isSubmittingWithdraw, setIsSubmittingWithdraw] = useState(false);
 
   const isPending = request.status === "Pendiente";
   const isAccepted = request.status === "Aceptada";
@@ -129,6 +131,16 @@ export const ConnectionRequestCard = ({
       setIsRejectModalOpen(false);
     } finally {
       setIsSubmittingReject(false);
+    }
+  };
+
+  const handleWithdrawRequest = async () => {
+    setIsSubmittingWithdraw(true);
+    try {
+      await onWithdraw(request.id);
+      setIsWithdrawModalOpen(false);
+    } finally {
+      setIsSubmittingWithdraw(false);
     }
   };
 
@@ -216,7 +228,7 @@ export const ConnectionRequestCard = ({
           variant="outlineDelete"
           size="sm"
           className={isMobile ? "w-full" : ""}
-          onClick={() => onWithdraw(request.id)}
+          onClick={() => setIsWithdrawModalOpen(true)}
         >
           {t("requests.withdraw")}
         </MCButton>
@@ -403,6 +415,27 @@ export const ConnectionRequestCard = ({
             </p>
           </div>
         </div>
+      </MCModalBase>
+
+      <MCModalBase
+        id={`withdraw-request-${request.id}`}
+        isOpen={isWithdrawModalOpen}
+        onClose={() => setIsWithdrawModalOpen(false)}
+        title={t("requests.withdrawModalTitle")}
+        description={t("requests.withdrawModalDescription")}
+        variant="warning"
+        size="sm"
+        onConfirm={handleWithdrawRequest}
+        onSecondary={() => setIsWithdrawModalOpen(false)}
+        confirmText={
+          isSubmittingWithdraw
+            ? t("requests.sending")
+            : t("requests.withdrawConfirm")
+        }
+        secondaryText={t("requests.cancel")}
+        disabledConfirm={isSubmittingWithdraw}
+      >
+        <></>
       </MCModalBase>
     </div>
   );

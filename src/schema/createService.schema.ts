@@ -1,4 +1,4 @@
-import z, { array } from "zod";
+import z from "zod";
 
 export const UploadedFileSchema = z.object({
   url: z.string(),

@@ -68,19 +68,19 @@ function MCTextArea({
 
   // ✅ FIX: Llamar register() directamente, no dentro de un IIFE.
   // El IIFE crea un nuevo objeto en cada render, rompiendo el tracking de RHF.
-  const field = register(name);
+  const registerProps = register(name);
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     if (charLimit && e.target.value.length > charLimit) return;
     setCharCount(e.target.value.length);
     // ✅ FIX: Notificar a RHF primero, luego al handler externo
-    field.onChange(e);
+    registerProps.onChange(e);
     if (onChange) onChange(e);
   };
 
   const handleBlur = (e: React.FocusEvent<HTMLTextAreaElement>) => {
     // ✅ FIX: Mergear onBlur de RHF con el onBlur externo — antes se perdía uno u otro
-    field.onBlur(e);
+    registerProps.onBlur(e);
     if (onBlur) onBlur(e);
   };
 
@@ -97,6 +97,7 @@ function MCTextArea({
       )}
       <div className="relative w-full">
         <Textarea
+          {...registerProps}
           id={name}
           placeholder={placeholder}
           required={required}
@@ -113,9 +114,6 @@ function MCTextArea({
               : {}),
             ...style,
           }}
-          // ✅ FIX: Props de RHF aplicados explícitamente, sin IIFE ni spread condicional
-          name={field.name}
-          ref={field.ref}
           onChange={handleChange}
           onBlur={handleBlur}
           // ✅ FIX: Solo pasar value si viene como prop externo — si no, RHF controla

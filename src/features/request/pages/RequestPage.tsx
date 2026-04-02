@@ -6,6 +6,7 @@ import { useAppStore } from "@/stores/useAppStore";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
 import { QUERY_KEYS } from "@/lib/react-query/config";
 import centerService from "@/shared/navigation/userMenu/editProfile/center/services/center.services";
+import { doctorService } from "@/shared/navigation/userMenu/editProfile/doctor/services/doctor.service";
 import type { AllianceRequestRecord } from "@/shared/navigation/userMenu/editProfile/center/services/center.types";
 import { Spinner } from "@/shared/ui/spinner";
 import MCButton from "@/shared/components/forms/MCButton";
@@ -31,6 +32,7 @@ function RequestPage() {
   const userRole = useAppStore((state) => state.user?.rol);
   const isMobile = useIsMobile();
   const isCenter = userRole === "CENTER";
+  const isDoctor = userRole === "DOCTOR";
   const queryClient = useQueryClient();
   const language = i18n.language === "en" ? "en" : "es";
 
@@ -44,67 +46,37 @@ function RequestPage() {
     [language],
   );
 
-  const mockDoctorReceivedRequests = useMemo<ConnectionRequest[]>(
-    () => [
-      {
-        id: "d1",
-        name: "Edith García",
-        subtitle: t("requests.mock.specialtyCardiology"),
-        date: t("requests.mock.receivedToday"),
-        avatar: "",
-        profileId: "d1",
-        profileType: "doctor",
-        status: "Pendiente",
-      },
-      {
-        id: "d2",
-        name: "Carlos Mendoza",
-        subtitle: t("requests.mock.specialtyNeurology"),
-        date: t("requests.mock.receivedYesterday"),
-        avatar: "",
-        profileId: "d2",
-        profileType: "doctor",
-        status: "Pendiente",
-      },
-      {
-        id: "d3",
-        name: "María López",
-        subtitle: t("requests.mock.specialtyPediatrics"),
-        date: t("requests.mock.receivedTwoDaysAgo"),
-        avatar: "",
-        profileId: "d3",
-        profileType: "doctor",
-        status: "Pendiente",
-      },
-    ],
-    [t, language],
-  );
+  const allianceQueryKey = isCenter
+    ? QUERY_KEYS.CENTER_ALLIANCE_REQUESTS
+    : QUERY_KEYS.DOCTOR_ALLIANCE_REQUESTS;
 
-  const mockDoctorSentRequests = useMemo<ConnectionRequest[]>(
-    () => [
-      {
-        id: "d4",
-        name: "Roberto Sánchez",
-        subtitle: t("requests.mock.specialtyDermatology"),
-        date: t("requests.mock.sentToday"),
-        avatar: "",
-        profileId: "d4",
-        profileType: "doctor",
-        status: "Pendiente",
-      },
-      {
-        id: "d5",
-        name: "Ana Chen",
-        subtitle: t("requests.mock.specialtyOphthalmology"),
-        date: t("requests.mock.sentThreeDaysAgo"),
-        avatar: "",
-        profileId: "d5",
-        profileType: "doctor",
-        status: "Pendiente",
-      },
-    ],
-    [t, language],
-  );
+  const invalidateAllianceRelatedQueries = async () => {
+    const dashboardRelatedKeys = [
+      QUERY_KEYS.CENTER_STAFF(),
+      QUERY_KEYS.CENTERS_STATS_RESUMEN,
+      ["centers", "stats", "crecimiento-medicos"],
+      ["centers", "stats", "distribucion-especialidades"],
+      ["doctors", "my"],
+    ] as const;
+
+    await Promise.all([
+      queryClient.invalidateQueries({
+        queryKey: QUERY_KEYS.CENTER_ALLIANCE_REQUESTS,
+      }),
+      queryClient.invalidateQueries({
+        queryKey: QUERY_KEYS.DOCTOR_ALLIANCE_REQUESTS,
+      }),
+      queryClient.invalidateQueries({
+        queryKey: ["center", "alliance", "requests"],
+      }),
+      ...dashboardRelatedKeys.map((queryKey) =>
+        queryClient.invalidateQueries({
+          queryKey,
+          refetchType: "all",
+        }),
+      ),
+    ]);
+  };
 
   const {
     data: allianceResponse,
@@ -112,9 +84,12 @@ function RequestPage() {
     isError,
     refetch,
   } = useQuery({
-    queryKey: [...QUERY_KEYS.CENTER_ALLIANCE_REQUESTS, language],
-    queryFn: () => centerService.getCenterAllianceRequests(allianceTranslationParams),
-    enabled: isCenter,
+    queryKey: [...allianceQueryKey, language],
+    queryFn: () =>
+      isCenter
+        ? centerService.getCenterAllianceRequests(allianceTranslationParams)
+        : doctorService.getDoctorAllianceRequests(allianceTranslationParams),
+    enabled: isCenter || isDoctor,
   });
 
   const updateAllianceRequestMutation = useMutation({
@@ -127,29 +102,43 @@ function RequestPage() {
       estado: "Aceptada" | "Rechazada";
       motivoRechazo?: string;
     }) =>
-      centerService.updateAllianceRequestStatus(requestId, {
-        estado,
-        motivoRechazo,
-      }),
+      isCenter
+        ? centerService.updateAllianceRequestStatus(requestId, {
+            estado,
+            motivoRechazo,
+          })
+        : doctorService.updateAllianceRequestStatus(requestId, {
+            estado,
+            motivoRechazo,
+          }),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: QUERY_KEYS.CENTER_ALLIANCE_REQUESTS,
+      await invalidateAllianceRelatedQueries();
+      await queryClient.refetchQueries({
+        queryKey: allianceQueryKey,
+        type: "active",
       });
     },
   });
 
-  // Keep doctor role mocked in this phase; center role is hydrated from API.
-  const [receivedRequests, setReceivedRequests] = useState<ConnectionRequest[]>(
-    userRole === "DOCTOR"
-      ? mockDoctorReceivedRequests
-      : [],
-  );
-  const [sentRequests, setSentRequests] = useState<ConnectionRequest[]>(
-    userRole === "DOCTOR" ? mockDoctorSentRequests : [],
-  );
+  const deleteAllianceRequestMutation = useMutation({
+    mutationFn: ({ requestId }: { requestId: string }) =>
+      isCenter
+        ? centerService.deleteAllianceRequest(requestId)
+        : doctorService.deleteAllianceRequest(requestId),
+    onSuccess: async () => {
+      await invalidateAllianceRelatedQueries();
+      await queryClient.refetchQueries({
+        queryKey: allianceQueryKey,
+        type: "active",
+      });
+    },
+  });
+
+  const [receivedRequests, setReceivedRequests] = useState<ConnectionRequest[]>([]);
+  const [sentRequests, setSentRequests] = useState<ConnectionRequest[]>([]);
 
   useEffect(() => {
-    if (!isCenter || !allianceResponse?.data) {
+    if (!(isCenter || isDoctor) || !allianceResponse?.data) {
       return;
     }
 
@@ -159,18 +148,21 @@ function RequestPage() {
       userRole,
     );
 
+    const receivedInitiator = userRole === "CENTER" ? "Doctor" : "Centro";
+    const sentInitiator = userRole === "CENTER" ? "Centro" : "Doctor";
+
     setReceivedRequests(
       mappedRequests
-        .filter((item) => item.iniciadaPor === "Doctor")
+        .filter((item) => item.iniciadaPor === receivedInitiator)
         .map((item) => item.card),
     );
 
     setSentRequests(
       mappedRequests
-        .filter((item) => item.iniciadaPor === "Centro")
+        .filter((item) => item.iniciadaPor === sentInitiator)
         .map((item) => item.card),
     );
-  }, [isCenter, allianceResponse?.data, i18n.language, userRole]);
+  }, [isCenter, isDoctor, allianceResponse?.data, i18n.language, userRole]);
 
   const handleConnect = async (id: string) => {
     try {
@@ -248,8 +240,19 @@ function RequestPage() {
     }
   };
 
-  const handleWithdraw = (id: string) => {
-    setSentRequests((prev) => prev.filter((r) => r.id !== id));
+  const handleWithdraw = async (id: string) => {
+    try {
+      await deleteAllianceRequestMutation.mutateAsync({ requestId: id });
+      setSentRequests((prev) => prev.filter((r) => r.id !== id));
+      toast.success(t("requests.withdrawSuccess"));
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : t("requests.actionError");
+      toast.error(message);
+      throw error;
+    }
   };
 
   return (
@@ -276,14 +279,14 @@ function RequestPage() {
         </div>
 
         <div className="w-full">
-          {isCenter && isLoading ? (
+          {(isCenter || isDoctor) && isLoading ? (
             <div className="flex flex-col items-center justify-center gap-3 py-10">
               <Spinner className="size-6" />
               <p className="text-sm text-muted-foreground">
-                {t("search.loading")}
+                {t("loading")}
               </p>
             </div>
-          ) : isCenter && isError ? (
+          ) : (isCenter || isDoctor) && isError ? (
             <div className="flex flex-col items-center justify-center gap-3 py-10 text-center">
               <p className="text-sm text-muted-foreground">
                 {t("requests.loadError")}

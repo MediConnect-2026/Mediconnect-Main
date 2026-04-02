@@ -145,6 +145,12 @@
     "chart": {
       "affiliatedDoctorsGrowth": "Affiliated Doctors Growth",
       "affiliatedDoctorsLabel": "Affiliated Doctors",
+      "loading": "Loading doctors growth...",
+      "errorTitle": "Could not load the chart",
+      "errorDescription": "Please try again in a few seconds.",
+      "retry": "Retry",
+      "emptyTitle": "No data to display",
+      "emptyDescription": "There is not enough data to chart this period yet.",
       "week": "Week",
       "month": "Month",
       "threeMonths": "3 Months",
@@ -153,7 +159,12 @@
     },
     "specialties": {
       "distributionTitle": "Distribution by Specialty",
-      "others": "Others"
+      "others": "Others",
+      "loading": "Loading specialty distribution...",
+      "error": "Could not load specialty distribution.",
+      "emptyTitle": "No data to display",
+      "emptyDescription": "There is not enough specialty data to display this chart yet.",
+      "noData": "There is no specialty data to display yet."
     },
     "staffTable": {
       "title": "Your care team"

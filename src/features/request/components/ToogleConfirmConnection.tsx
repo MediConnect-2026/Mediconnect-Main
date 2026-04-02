@@ -5,6 +5,7 @@ import { useAppStore } from "@/stores/useAppStore";
 import z from "zod";
 import MCFormWrapper from "@/shared/components/forms/MCFormWrapper";
 import MCTextArea from "@/shared/components/forms/MCTextArea";
+import { Loader2 } from "lucide-react";
 
 interface ToogleConfirmConnectionProps {
   children: ReactNode;
@@ -104,9 +105,14 @@ function ToogleConfirmConnection({
       description={description}
       confirmText={
         isSubmitting
-          ? isConnected
-            ? t("connection.allianceDisconnecting")
-            : t("connection.allianceRequestSending")
+          ? (
+            <span className="inline-flex items-center gap-2">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              {isConnected
+                ? t("connection.allianceDisconnecting")
+                : t("connection.allianceRequestSending")}
+            </span>
+          )
           : confirmText
       }
       secondaryText={t("connection.cancel")}

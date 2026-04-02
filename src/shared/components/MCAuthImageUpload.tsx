@@ -1,7 +1,7 @@
 import { MCModalBase } from "@/shared/components/MCModalBase";
 import MCButton from "@/shared/components/forms/MCButton";
 import MCProfileImageUploader from "@/shared/components/MCProfileImageUploader";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { ImageUp, Camera, XIcon, FileText } from "lucide-react";
 import MCCameraModal from "@/shared/components/MCCameraModal";
 import { registerPlugin } from "react-filepond";
@@ -53,14 +53,11 @@ export function MCImageUpload({
 }: MCImageUploadProps) {
   const { t } = useTranslation("auth");
   const [rawImage, setRawImage] = useState<string | null>(null);
-  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
+  const [internalUploadedFiles, setInternalUploadedFiles] = useState<UploadedFile[]>([]);
   const [cropModalOpen, setCropModalOpen] = useState(false);
+  const isControlled = uploadedFilesProp !== undefined;
 
-  useEffect(() => {
-    if (uploadedFilesProp) {
-      setUploadedFiles(uploadedFilesProp);
-    }
-  }, [uploadedFilesProp]);
+  const uploadedFiles = isControlled ? (uploadedFilesProp ?? []) : internalUploadedFiles;
 
   const handleCameraCapture = (imageDataUrl: string) => {
     setRawImage(imageDataUrl);
@@ -74,18 +71,22 @@ export function MCImageUpload({
       type: "image/jpeg", // Tipo MIME completo
     };
 
-    setUploadedFiles((prev) => [...prev, newFile]);
+    if (!isControlled) {
+      setInternalUploadedFiles((prev) => [...prev, newFile]);
+    }
     setCropModalOpen(false);
     setRawImage(null);
     onFileUpload?.(cropped, "image/jpeg"); // Pasar tipo MIME completo
   };
 
   const handleRemoveFile = (index: number) => {
-    setUploadedFiles((prev) => prev.filter((_, i) => i !== index));
+    if (!isControlled) {
+      setInternalUploadedFiles((prev) => prev.filter((_, i) => i !== index));
+    }
     onFileRemove?.(index);
   };
 
-  const handleViewPDF = (base64Url: string, fileName: string) => {
+  const handleViewPDF = (base64Url: string) => {
     // Convertir base64 a blob para poder abrirlo correctamente
     try {
       // Extraer el base64 puro
@@ -141,12 +142,16 @@ export function MCImageUpload({
           reader.onload = (event) => {
             const base64Url = event.target?.result as string;
             const newFile = { url: base64Url, name: file.name, type: "application/pdf" }; // Tipo MIME completo
-            setUploadedFiles((prev) => {
+            if (!isControlled) {
+              setInternalUploadedFiles((prev) => {
               if (prev.length >= maxFiles) return prev;
               const updated = [...prev, newFile];
               onFileUpload?.(base64Url, "application/pdf"); // Pasar base64 URL en lugar de blob
               return updated;
             });
+            } else {
+              onFileUpload?.(base64Url, "application/pdf");
+            }
           };
           reader.readAsDataURL(file);
         } else if (file.type.startsWith("image/")) {
@@ -224,7 +229,7 @@ export function MCImageUpload({
                           {file.name}
                         </span>
                         <button
-                          onClick={() => handleViewPDF(file.url, file.name || 'document.pdf')}
+                          onClick={() => handleViewPDF(file.url)}
                           className="text-secondary underline text-xs mt-1 hover:text-secondary/80 cursor-pointer"
                         >
                           {t("imageUpload.viewPDF")}

@@ -3,8 +3,8 @@ import { useTranslation } from "react-i18next";
 import { QUERY_KEYS } from "@/lib/react-query/config";
 import centerService from "@/shared/navigation/userMenu/editProfile/center/services/center.services";
 import type { CenterProfileTranslationParams } from "@/shared/navigation/userMenu/editProfile/center/services/center.types";
-import { mapAllianceRequestsToStaff } from "@/features/center/utilities/staffMapper";
-import type { CenterStaffMember } from "@/features/center/types/staff.types";
+import { mapAllianceRequestsToStaff } from "@/utils/staffMapper";
+import type { CenterStaffMember } from "@/shared/navigation/userMenu/editProfile/center/services/center.types";
 
 export function useCenterStaff() {
   const { i18n } = useTranslation();

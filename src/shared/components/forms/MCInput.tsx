@@ -96,7 +96,7 @@ function MCInput({
   customDisplayValue,
   maxLength,
 }: MCInputProps) {
-  const formContext = standalone ? null : useFormContext();
+  const formContext = useFormContext();
   const { t } = useTranslation("common");
   const [passwordVisibility, setPasswordVisibility] = useState(false);
   const [cedulaValue, setCedulaValue] = useState(value || "");
@@ -173,24 +173,6 @@ function MCInput({
   // Estado local para mostrar el exequatur formateado
   const [exequaturValue, setExequaturValue] = useState(value || "");
 
-  // Sincronizar el estado local con el valor del formulario
-  useEffect(() => {
-    if (isCedulaVariant && !standalone && formContext) {
-      const currentValue = formContext.watch(name);
-      if (currentValue && currentValue !== cedulaValue.replace(/\D/g, "")) {
-        setCedulaValue(formatCedula(currentValue));
-      }
-    }
-  }, [formContext?.watch(name), isCedulaVariant, standalone]);
-
-  useEffect(() => {
-    if (isExequaturVariant && !standalone && formContext) {
-      const currentValue = formContext.watch(name);
-      if (currentValue && currentValue !== exequaturValue.replace(/\D/g, "")) {
-        setExequaturValue(formatExequatur(currentValue));
-      }
-    }
-  }, [formContext?.watch(name), isExequaturVariant, standalone]);
   const handleNumberKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (["e", "E", "+", "-", "."].includes(e.key)) {
       e.preventDefault();
@@ -337,15 +319,7 @@ function MCInput({
       : isTimeVariant
         ? {
             value: timeValue,
-            onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
-              const formatted = formatTime(e.target.value);
-              setTimeValue(formatted);
-              if (standalone) {
-                onChange?.({ ...e, target: { ...e.target, value: formatted } });
-              } else {
-                formContext?.setValue(name, formatted, { shouldValidate: true });
-              }
-            },
+            onChange: handleTimeChange,
           }
         : isDecideHourVariant
         ? {

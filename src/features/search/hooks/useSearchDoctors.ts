@@ -11,6 +11,13 @@ import {
   type SearchProviderFilters,
 } from "../mappers/filterMapper";
 
+const normalizeText = (value?: string) =>
+  (value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+
 export interface UseSearchDoctorsParams {
   lat: number | null;
   lng: number | null;
@@ -163,7 +170,7 @@ export function useSearchDoctors({
 
       try {
         const mappedDoctors = await mapDoctorsToProviders(query.data.doctores || [], language, skipAvailability);
-        const mappedCenters = mapCentersToProviders(query.data.centros || [], language);
+        const mappedCenters = mapCentersToProviders(query.data.centros || []);
         const combined = [...mappedDoctors, ...mappedCenters];
         if (mounted) {
           setProviders(combined);
@@ -192,13 +199,15 @@ export function useSearchDoctors({
 
     return providers.filter((provider) => {
       const rawDoctor = (provider as any)._rawDoctor as DoctorNearby | undefined;
-      if (!rawDoctor) return true;
+      const rawCenter = (provider as any)._rawCenter as CenterNearby | undefined;
 
-      // Name filter (applied to doctor's full name)
+      // Name filter (applied to doctors and centers)
       if (filters.name && filters.name.length > 0) {
-        const searchText = filters.name.toLowerCase();
-        const fullName = `${rawDoctor.nombre} ${rawDoctor.apellido}`.toLowerCase();
-        if (!fullName.includes(searchText)) {
+        const searchText = normalizeText(filters.name);
+        const providerName = rawDoctor
+          ? `${rawDoctor.nombre} ${rawDoctor.apellido}`
+          : provider.name;
+        if (!normalizeText(providerName).includes(searchText)) {
           return false;
         }
       }
@@ -213,29 +222,56 @@ export function useSearchDoctors({
             // Check if insurance is numeric ID or string name
             const isNumericId = !isNaN(Number(insurance));
 
-            return rawDoctor.segurosAceptados.some((s) => {
-              if (isNumericId) {
-                // Match by ID
-                return s.seguro.id === Number(insurance) || s.seguroId === Number(insurance);
-              } else {
+            if (rawDoctor) {
+              return rawDoctor.segurosAceptados.some((s) => {
+                if (isNumericId) {
+                  // Match by ID
+                  return s.seguro.id === Number(insurance) || s.seguroId === Number(insurance);
+                }
+
                 // Match by name (case-insensitive partial match)
-                return s.seguro.nombre.toLowerCase().includes(insurance.toLowerCase());
-              }
-            });
+                return normalizeText(s.seguro.nombre).includes(normalizeText(insurance));
+              });
+            }
+
+            if (rawCenter) {
+              return (rawCenter.seguros || []).some((s) => {
+                if (isNumericId) {
+                  return s.id === Number(insurance);
+                }
+
+                return normalizeText(s.nombre).includes(normalizeText(insurance));
+              });
+            }
+
+            return provider.insurances.some((insuranceName) =>
+              normalizeText(insuranceName).includes(normalizeText(insurance))
+            );
           }
         );
+
         if (!hasMatchingInsurance) {
           return false;
         }
       }
 
-      // Language filter (client-side - not available in API data yet)
+      // Language filter for doctors and centers
       if (
         filters.languages &&
         filters.languages !== "all"
       ) {
-        // TODO: Implement when language data is available in API
-        // For now, skip this filter
+        const selectedLanguage = normalizeText(filters.languages);
+        const providerLanguages = (provider.languages || []).map((languageName) =>
+          normalizeText(languageName)
+        );
+
+        const hasLanguage = providerLanguages.some((languageName) =>
+          languageName.includes(selectedLanguage)
+        );
+
+        if (!hasLanguage) {
+          return false;
+        }
       }
 
       // Scheduled appointments filter (client-side - would need horarios processing)

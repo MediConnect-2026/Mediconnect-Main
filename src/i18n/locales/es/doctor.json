@@ -214,6 +214,20 @@
         "service": "Seleccionar servicio",
         "dateRange": "Seleccionar rango"
       },
+      "values": {
+        "status": {
+          "all": "appointments.filters.values.status.all",
+          "scheduled": "appointments.filters.values.status.scheduled",
+          "inProgress": "appointments.filters.values.status.inProgress",
+          "completed": "appointments.filters.values.status.completed",
+          "cancelled": "appointments.filters.values.status.cancelled"
+        },
+        "type": {
+          "all": "appointments.filters.values.type.all",
+          "virtual": "appointments.filters.values.type.virtual",
+          "inPerson": "appointments.filters.values.type.inPerson"
+        }
+      },
       "status": {
         "all": "Todos",
         "pending": "Pendiente",

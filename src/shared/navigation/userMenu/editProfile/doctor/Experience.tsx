@@ -467,7 +467,8 @@ function ExperienceFields({
   );
 }
 
-function Experience({ }: ExperienceProps) {
+function Experience(props: ExperienceProps) {
+  void props;
   const { t, i18n } = useTranslation("doctor");
   const doctorExperience = useProfileStore((state) => state.doctorExperience);
 

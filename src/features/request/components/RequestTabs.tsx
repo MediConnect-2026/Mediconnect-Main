@@ -39,7 +39,7 @@ interface RequestTabsProps {
   sentRequests: ConnectionRequest[];
   onConnect: (id: string) => Promise<void>;
   onReject: (id: string, reason: string) => Promise<void>;
-  onWithdraw: (id: string) => void;
+  onWithdraw: (id: string) => Promise<void>;
 }
 
 export const RequestTabs = ({

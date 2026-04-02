@@ -221,13 +221,14 @@ function MorphingDialogContent({
 }: MorphingDialogContentProps) {
   const { setIsOpen, isOpen, uniqueId, triggerRef } = useMorphingDialog();
   const containerRef = useRef<HTMLDivElement>(null!);
-  const [firstFocusableElement, setFirstFocusableElement] =
-    useState<HTMLElement | null>(null);
-  const [lastFocusableElement, setLastFocusableElement] =
-    useState<HTMLElement | null>(null);
+  const firstFocusableElementRef = useRef<HTMLElement | null>(null);
+  const lastFocusableElementRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
+      const firstFocusableElement = firstFocusableElementRef.current;
+      const lastFocusableElement = lastFocusableElementRef.current;
+
       if (event.key === "Escape" && isTopDialog(uniqueId)) {
         setIsOpen(false);
       }
@@ -253,7 +254,7 @@ function MorphingDialogContent({
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [setIsOpen, firstFocusableElement, lastFocusableElement, uniqueId]);
+  }, [setIsOpen, uniqueId]);
 
   useEffect(() => {
     if (isOpen) {
@@ -262,13 +263,17 @@ function MorphingDialogContent({
         'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
       );
       if (focusableElements && focusableElements.length > 0) {
-        setFirstFocusableElement(focusableElements[0] as HTMLElement);
-        setLastFocusableElement(
-          focusableElements[focusableElements.length - 1] as HTMLElement,
-        );
+        firstFocusableElementRef.current = focusableElements[0] as HTMLElement;
+        lastFocusableElementRef.current =
+          focusableElements[focusableElements.length - 1] as HTMLElement;
         (focusableElements[0] as HTMLElement).focus();
+      } else {
+        firstFocusableElementRef.current = null;
+        lastFocusableElementRef.current = null;
       }
     } else {
+      firstFocusableElementRef.current = null;
+      lastFocusableElementRef.current = null;
       if (dialogStack.length === 0) {
         document.body.classList.remove("overflow-hidden");
       }
@@ -310,12 +315,6 @@ export type MorphingDialogContainerProps = {
 
 function MorphingDialogContainer({ children, className, style }: MorphingDialogContainerProps) {
   const { isOpen, uniqueId, setIsOpen } = useMorphingDialog();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-    return () => setMounted(false);
-  }, []);
 
   useEffect(() => {
     if (isOpen) {
@@ -337,7 +336,7 @@ function MorphingDialogContainer({ children, className, style }: MorphingDialogC
     [setIsOpen, uniqueId],
   );
 
-  if (!mounted) return null;
+  if (typeof document === "undefined") return null;
 
   let stackIndex = getStackIndex(uniqueId);
   if (stackIndex === -1 && isOpen) {

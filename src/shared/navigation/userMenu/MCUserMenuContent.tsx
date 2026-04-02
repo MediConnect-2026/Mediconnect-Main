@@ -68,9 +68,41 @@ interface MCUserMenuContentProps {
   userRole: string;
 }
 
+type MobileSubMenuProps = {
+  title: string;
+  children: React.ReactNode;
+  isOpen: boolean;
+  onClose: () => void;
+};
+
+function MobileSubMenu({
+  title,
+  children,
+  isOpen,
+  onClose,
+}: MobileSubMenuProps) {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 bg-background">
+      <div className="flex items-center justify-between p-4 border-b">
+        <h2 className="text-lg font-semibold">{title}</h2>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onClose}
+          className="p-1 h-8 w-8"
+        >
+          <X className="w-4 h-4" />
+        </Button>
+      </div>
+      <div className="p-4">{children}</div>
+    </div>
+  );
+}
+
 export function MCUserMenuContent({
   userData,
-  open,
   setOpen,
   subMenuOpen,
   setSubMenuOpen,
@@ -160,7 +192,7 @@ export function MCUserMenuContent({
           {
             sequence: ["g", "d"],
             action: () => {
-              console.log("Navigate to verification docs");
+              navigate("/verify-info");
             },
           },
         ]
@@ -170,7 +202,7 @@ export function MCUserMenuContent({
           {
             sequence: ["g", "r"],
             action: () => {
-              console.log("Navigate to requests");
+              navigate("/requests");
             },
           },
         ]
@@ -209,38 +241,6 @@ export function MCUserMenuContent({
         icon: <Moon className="w-4 h-4" />,
       },
     ];
-
-  // Componente para submenú móvil
-  const MobileSubMenu = ({
-    title,
-    children,
-    isOpen,
-    onClose,
-  }: {
-    title: string;
-    children: React.ReactNode;
-    isOpen: boolean;
-    onClose: () => void;
-  }) => {
-    if (!isOpen) return null;
-
-    return (
-      <div className="fixed inset-0 z-50 bg-background">
-        <div className="flex items-center justify-between p-4 border-b">
-          <h2 className="text-lg font-semibold">{title}</h2>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onClose}
-            className="p-1 h-8 w-8"
-          >
-            <X className="w-4 h-4" />
-          </Button>
-        </div>
-        <div className="p-4">{children}</div>
-      </div>
-    );
-  };
 
   type RoleSpecificItem = {
     icon: React.ReactNode;

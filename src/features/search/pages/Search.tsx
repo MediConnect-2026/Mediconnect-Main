@@ -28,6 +28,8 @@ import useTiposCentros from "@/features/onboarding/services/useTiposCentros";
 import { useEspecialidades } from "@/features/onboarding/services";
 import { useSearchDoctors } from "../hooks/useSearchDoctors";
 import { useDoctorAllianceRequest } from "../hooks/useDoctorAllianceRequest";
+import { useDoctorAllianceDelete } from "../hooks/useDoctorAllianceDelete";
+import { toast } from "sonner";
 
 interface SearchProviderFilters {
   name: string;
@@ -70,6 +72,7 @@ const ProviderCard = memo(
     isSelected,
     onSelect,
     onConnect,
+    onDisconnect,
     onViewProfile,
     isConnecting,
   }: {
@@ -77,6 +80,7 @@ const ProviderCard = memo(
     isSelected: boolean;
     onSelect: (id: string) => void;
     onConnect?: (id: string, message?: string) => void;
+    onDisconnect?: (id: string) => void;
     onViewProfile: (id: string) => void;
     isConnecting?: boolean;
   }) => {
@@ -100,6 +104,7 @@ const ProviderCard = memo(
           clinic={provider as Clinic}
           isConnected={(provider as Clinic).connectionStatus ?? "not_connected"}
           onConnect={onConnect || (() => { })}
+          onDisconnect={onDisconnect}
           onViewProfile={onViewProfile}
           isConnecting={isConnecting}
         />
@@ -389,6 +394,7 @@ function Search() {
   const { data: tiposCentroOptions = [], isLoading: isLoadingCentro } = useTiposCentros();
   const { data: especialidadesOptions = [], isLoading: isLoadingEspecialidades } = useEspecialidades();
   const allianceMutation = useDoctorAllianceRequest();
+  const deleteAllianceMutation = useDoctorAllianceDelete();
 
   // Use the search doctors hook with real API integration
   const {
@@ -570,6 +576,37 @@ function Search() {
     [allianceMutation],
   );
 
+  const handleDisconnectCenter = useCallback(
+    async (id: string) => {
+      const clinicProvider = filteredProviders.find(
+        (provider) => provider.type === "clinic" && provider.id === id,
+      ) as (Clinic & { _rawCenter?: { solicitudAlianzaId?: number } }) | undefined;
+
+      const allianceRequestId = clinicProvider?._rawCenter?.solicitudAlianzaId;
+
+      if (!allianceRequestId) {
+        toast.error("No se encontró la solicitud de alianza para este centro.");
+        return;
+      }
+
+      setOptimisticCenterStatuses((prev) => ({
+        ...prev,
+        [id]: "not_connected",
+      }));
+
+      try {
+        await deleteAllianceMutation.mutateAsync(allianceRequestId);
+      } catch {
+        setOptimisticCenterStatuses((prev) => {
+          const next = { ...prev };
+          delete next[id];
+          return next;
+        });
+      }
+    },
+    [deleteAllianceMutation, filteredProviders],
+  );
+
   const providersWithOptimisticStatus = useMemo(
     () =>
       filteredProviders.map((provider) => {
@@ -698,7 +735,10 @@ function Search() {
                     onConnect={
                       provider.type === "clinic" ? handleConnectCenter : undefined
                     }
-                    isConnecting={allianceMutation.isPending}
+                    onDisconnect={
+                      provider.type === "clinic" ? handleDisconnectCenter : undefined
+                    }
+                    isConnecting={allianceMutation.isPending || deleteAllianceMutation.isPending}
                   />
                 ))
               )}

@@ -57,7 +57,7 @@ function DashboardLayout() {
     if (!currentPath.startsWith("/doctor/services/create")) {
       resetCreateService();
     }
-    // eslint-disable-next-line
+     
   }, [
     location.pathname,
     resetAppointment,

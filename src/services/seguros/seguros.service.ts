@@ -13,15 +13,11 @@ export const segurosService = {
   obtenerSegurosAceptados: async (
     params?: ObtenerSegurosAceptadosParams
   ): Promise<ObtenerSegurosAceptadosResponse> => {
-    try {
-      const { data } = await apiClient.get<ObtenerSegurosAceptadosResponse>(
-        API_ENDPOINTS.SEGUROS.ACEPTADOS,
-        { params }
-      );
-      return data;
-    } catch (error) {
-      throw error;
-    }
+    const { data } = await apiClient.get<ObtenerSegurosAceptadosResponse>(
+      API_ENDPOINTS.SEGUROS.ACEPTADOS,
+      { params }
+    );
+    return data;
   },
 };
 

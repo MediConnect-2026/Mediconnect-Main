@@ -62,7 +62,7 @@ export const useGoogleLogin = (): UseGoogleLoginReturn => {
         }
 
         // Usuario ya registrado y activo - hacer login normal
-        login(accessToken, refreshToken, user as any);
+        login(accessToken, refreshToken, user);
 
         // Mostrar mensaje de éxito
         setToast({

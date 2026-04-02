@@ -33,7 +33,7 @@ export const useLogin = (): UseLoginReturn => {
       // Normalizar la respuesta y guardar en el store
       const { accessToken, refreshToken, user } = normalizeLoginResponse(data);
 
-      login(accessToken, refreshToken, user as any);
+      login(accessToken, refreshToken, user);
 
       // Mostrar mensaje de éxito
       setToast({

@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { QUERY_KEYS } from '@/lib/react-query/config';
 import especialidadesService from './especialidades.service';
 import type { SelectOption, EspecialidadesParams } from './especialidades.types';
@@ -52,11 +52,17 @@ export const useEspecialidades = (
   options?: { enabled?: boolean; refetchOnMount?: boolean }
 ) => {
   const { i18n } = useTranslation();
-  const currentLanguage = i18n.language;
+  const currentLanguage = i18n.language.toLowerCase().startsWith('en')
+    ? 'en'
+    : 'es';
   const queryClient = useQueryClient();
+  const queryParams = useMemo<Record<string, unknown> | undefined>(() => {
+    if (!params) return undefined;
+    return Object.fromEntries(Object.entries(params));
+  }, [params]);
 
   const query = useQuery<SelectOption[], Error>({
-    queryKey: QUERY_KEYS.ESPECIALIDADES(currentLanguage, params),
+    queryKey: QUERY_KEYS.ESPECIALIDADES(currentLanguage, queryParams),
     queryFn: () => especialidadesService.getAllActiveEspecialidades(currentLanguage),
     
     // Optimizaciones para datos relativamente estáticos:
@@ -101,7 +107,7 @@ export const useEspecialidades = (
           const isValid = Date.now() - timestamp < 1000 * 60 * 60 * 24 * 7;
           if (isValid && data) {
             queryClient.setQueryData(
-              QUERY_KEYS.ESPECIALIDADES(currentLanguage, params),
+              QUERY_KEYS.ESPECIALIDADES(currentLanguage, queryParams),
               data
             );
           }
@@ -110,7 +116,7 @@ export const useEspecialidades = (
         console.warn('Error loading especialidades from localStorage:', error);
       }
     }
-  }, [currentLanguage, params, queryClient, query.data]);
+  }, [currentLanguage, queryParams, queryClient, query.data]);
 
   return query;
 };
@@ -133,8 +139,13 @@ export const useEspecialidadesCustom = (
   params?: EspecialidadesParams,
   enabled: boolean = true
 ) => {
+  const customQueryParams = useMemo<Record<string, unknown> | undefined>(() => {
+    if (!params) return undefined;
+    return Object.fromEntries(Object.entries(params));
+  }, [params]);
+
   return useQuery<SelectOption[], Error>({
-    queryKey: QUERY_KEYS.ESPECIALIDADES_CUSTOM(params),
+    queryKey: QUERY_KEYS.ESPECIALIDADES_CUSTOM(customQueryParams),
     queryFn: () => especialidadesService.getEspecialidadesForSelect(params),
     staleTime: 1000 * 60 * 30, // 30 minutos
     gcTime: 1000 * 60 * 60 * 24, // 24 horas

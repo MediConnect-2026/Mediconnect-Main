@@ -46,7 +46,7 @@ export function AppointmentsCalendar({
     if (!citasResponse?.data || !userRole) return [];
 
     // `citasResponse.data` puede ser un arreglo o un objeto (CitaDetalle[] | CitaDetalle)
-    const raw = citasResponse.data as any;
+    const raw = citasResponse.data as unknown;
     const citasArray = Array.isArray(raw) ? raw : raw ? [raw] : [];
 
     return mapCitasToAppointments(citasArray, userRole);

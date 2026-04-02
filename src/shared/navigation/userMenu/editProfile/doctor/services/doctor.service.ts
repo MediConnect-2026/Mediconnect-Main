@@ -1,4 +1,11 @@
 import apiClient from '@/services/api/client';
+import API_ENDPOINTS from '@/services/api/endpoints';
+import type {
+  CenterProfileTranslationParams,
+  GetCenterAllianceRequestsResponse,
+  UpdateAllianceRequestStatusPayload,
+  UpdateAllianceRequestStatusResponse,
+} from '../../center/services/center.types';
 import type {
   GetDoctorProfileResponse,
   DoctorServiceError,
@@ -47,6 +54,7 @@ import type {
   Doctor,
   GetSlotsAvailableForServiceResponse,
   GetDoctorMyCentersResponse,
+  DeleteDoctorAllianceResponse,
 } from './doctor.types';
 
 /**
@@ -158,6 +166,80 @@ export const doctorService = {
         error.message ||
         'Error al obtener los centros del doctor. Intenta nuevamente.'
       );
+    }
+  },
+
+  deleteAllianceRequest: async (
+    requestId: string | number
+  ): Promise<DeleteDoctorAllianceResponse> => {
+    try {
+      const response = await apiClient.delete<DeleteDoctorAllianceResponse>(
+        API_ENDPOINTS.DOCTORES.SOLICITUDES_ALIANZA_BY_ID(requestId),
+      );
+
+      if (!response.data?.success) {
+        throw new Error('No se pudo eliminar la alianza con el centro.');
+      }
+
+      return response.data;
+    } catch (error: any) {
+      const apiMessage = error?.response?.data?.message;
+      if (typeof apiMessage === 'string' && apiMessage.trim().length > 0) {
+        throw new Error(apiMessage);
+      }
+
+      throw new Error('No se pudo eliminar la alianza con el centro.');
+    }
+  },
+
+  getDoctorAllianceRequests: async (
+    params?: CenterProfileTranslationParams,
+  ): Promise<GetCenterAllianceRequestsResponse> => {
+    try {
+      const { data } = await apiClient.get<GetCenterAllianceRequestsResponse>(
+        API_ENDPOINTS.DOCTORES.SOLICITUDES_ALIANZA,
+        {
+          params,
+        },
+      );
+
+      if (!data.success) {
+        throw new Error('No se pudieron obtener las solicitudes de alianza.');
+      }
+
+      return data;
+    } catch (error: any) {
+      const apiMessage = error?.response?.data?.message;
+      if (typeof apiMessage === 'string' && apiMessage.trim().length > 0) {
+        throw new Error(apiMessage);
+      }
+
+      throw new Error('No se pudieron obtener las solicitudes de alianza.');
+    }
+  },
+
+  updateAllianceRequestStatus: async (
+    requestId: string | number,
+    payload: UpdateAllianceRequestStatusPayload,
+  ): Promise<UpdateAllianceRequestStatusResponse> => {
+    try {
+      const { data } = await apiClient.put<UpdateAllianceRequestStatusResponse>(
+        API_ENDPOINTS.DOCTORES.SOLICITUDES_ALIANZA_BY_ID(requestId),
+        payload,
+      );
+
+      if (!data.success) {
+        throw new Error('No se pudo actualizar la solicitud de alianza.');
+      }
+
+      return data;
+    } catch (error: any) {
+      const apiMessage = error?.response?.data?.message;
+      if (typeof apiMessage === 'string' && apiMessage.trim().length > 0) {
+        throw new Error(apiMessage);
+      }
+
+      throw new Error('No se pudo actualizar la solicitud de alianza.');
     }
   },
 
@@ -1188,7 +1270,7 @@ export const doctorService = {
     }
   },
 
-  getDoctorSlotsAvailableInRange: async (doctorId: number, startDate: string, days: Number, params: any | null = null): Promise<any> => {
+  getDoctorSlotsAvailableInRange: async (doctorId: number, startDate: string, days: number, params: any | null = null): Promise<any> => {
     try {
       const response = await apiClient.get<any>(
         `/servicios/doctor/${doctorId}/disponibilidad`,

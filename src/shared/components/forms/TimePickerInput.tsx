@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import { ChevronUp, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -125,40 +125,24 @@ export function TimePickerInput({
   minuteStep = 5,
   className,
 }: TimePickerInputProps) {
-  const initialized = useRef(false);
+  const emittedDefaultRef = useRef(false);
+  const parsed = value ? parse24h(value) : { h12: 8, minute: 0, isPM: false };
+  const { h12, minute, isPM } = parsed;
 
-  const [h12, setH12] = useState(12);
-  const [minute, setMinute] = useState(0);
-  const [isPM, setIsPM] = useState(false);
-
-  // Keep latest onChange in a ref so effects don't need it as a dep
-  const onChangeRef = useRef(onChange);
-  useEffect(() => { onChangeRef.current = onChange; }, [onChange]);
-
-  // Parse incoming value on first mount & when value prop changes externally
+  // Populate initial value once when parent does not provide one.
   useEffect(() => {
     if (value) {
-      const parsed = parse24h(value);
-      setH12(parsed.h12);
-      setMinute(parsed.minute);
-      setIsPM(parsed.isPM);
-      initialized.current = true;
-    } else if (!initialized.current) {
-      // Default: 08:00 AM — emit immediately so the form field is populated
-      const defaultH12 = 8;
-      const defaultMinute = 0;
-      const defaultIsPM = false;
-      setH12(defaultH12);
-      setMinute(defaultMinute);
-      setIsPM(defaultIsPM);
-      initialized.current = true;
-      onChangeRef.current?.(to24h(defaultH12, defaultMinute, defaultIsPM));
+      emittedDefaultRef.current = true;
+      return;
     }
-  }, [value]);
+    if (!emittedDefaultRef.current) {
+      emittedDefaultRef.current = true;
+      onChange?.(to24h(8, 0, false));
+    }
+  }, [value, onChange]);
 
   const emit = useCallback(
     (newH12: number, newMinute: number, newIsPM: boolean) => {
-      initialized.current = true;
       onChange?.(to24h(newH12, newMinute, newIsPM));
     },
     [onChange],
@@ -171,8 +155,6 @@ export function TimePickerInput({
     if (next > 12) next = 1;
     // Crossing noon / midnight: flip AM/PM when going 11→12
     if (h12 === 11 && next === 12) nextPM = !isPM;
-    setH12(next);
-    setIsPM(nextPM);
     emit(next, minute, nextPM);
   };
 
@@ -182,28 +164,23 @@ export function TimePickerInput({
     if (next < 1) next = 12;
     // Crossing noon / midnight: flip AM/PM when going 12→11
     if (h12 === 12 && next === 11) nextPM = !isPM;
-    setH12(next);
-    setIsPM(nextPM);
     emit(next, minute, nextPM);
   };
 
   // ── Minute handlers ──
   const minuteUp = () => {
     const next = (minute + minuteStep) % 60;
-    setMinute(next);
     emit(h12, next, isPM);
   };
 
   const minuteDown = () => {
     const next = (minute - minuteStep + 60) % 60;
-    setMinute(next);
     emit(h12, next, isPM);
   };
 
   // ── AM/PM toggle ──
   const togglePeriod = () => {
     const next = !isPM;
-    setIsPM(next);
     emit(h12, minute, next);
   };
 

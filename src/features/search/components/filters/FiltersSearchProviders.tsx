@@ -187,7 +187,7 @@ function FiltersSearchProviders({
       />
       <MCFilterSelect
         name="yearsOfExperience"
-        label={t("search.yearsOfExperience")}
+        label={t("search.yearsOfExperience" , "Años de Experiencia")}
         options={YEARS_OF_EXPERIENCE_OPTIONS}
         multiple={false}
         noBadges

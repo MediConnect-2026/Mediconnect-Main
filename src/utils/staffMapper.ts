@@ -1,6 +1,6 @@
 import { AVAILABLE_LANGUAGES } from "@/features/onboarding/constants/languages.constants";
 import type { AllianceRequestRecord } from "@/shared/navigation/userMenu/editProfile/center/services/center.types";
-import type { CenterStaffMember } from "@/features/center/types/staff.types";
+import type { CenterStaffMember } from "@/shared/navigation/userMenu/editProfile/center/services/center.types";
 
 const languageNameToCodeMap = new Map<string, string>(
   AVAILABLE_LANGUAGES.flatMap((language) => [
@@ -61,10 +61,9 @@ export const mapAllianceRequestToStaff = (
       ?.map((insurance) => insurance.nombre?.trim() ?? "")
       .filter(Boolean) ?? [];
 
-  const doctorId = doctor.usuarioId ?? request.doctorId ?? request.id;
-
   return {
-    id: String(doctorId),
+    id: request.id.toString(),
+    doctorId: Number(request.doctorId),
     name: fullName || "-",
     specialty: specialtyNames[0] ?? "-",
     specialtyIds,

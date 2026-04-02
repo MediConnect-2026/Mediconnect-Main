@@ -33,7 +33,7 @@ interface MCModalBaseProps {
   | "image-preview";
   className?: string;
   variant?: "warning" | "confirm" | "decide" | "info";
-  onConfirm?: () => void;
+  onConfirm?: () => void | Promise<void>;
   onSecondary?: () => void;
   confirmText?: React.ReactNode | string;
   secondaryText?: React.ReactNode | string;
@@ -82,10 +82,15 @@ export function MCModalBase({
   const isMobile = useIsMobile();
 
   const [internalIsOpen, setInternalIsOpen] = useState(defaultOpen);
+  const [isConfirming, setIsConfirming] = useState(false);
 
   const isOpen = isControlled ? externalIsOpen : internalIsOpen;
 
   const handleOpenChange = (open: boolean) => {
+    if (!open && isConfirming) {
+      return;
+    }
+
     if (!open) {
       if (isControlled) {
         onClose?.();
@@ -142,10 +147,22 @@ export function MCModalBase({
   const contentPadding = isMobile ? "px-4 py-2" : "px-6 py-2";
   const footerPadding = isMobile ? "px-4 pb-4 pt-3" : "px-6 pb-4 pt-3";
 
-  const handleConfirm = () => {
-    onConfirm?.();
-    if (autoCloseOnConfirm) {
-      handleOpenChange(false);
+  const handleConfirm = async () => {
+    if (disabledConfirm || isConfirming) {
+      return;
+    }
+
+    setIsConfirming(true);
+
+    try {
+      await onConfirm?.();
+      if (autoCloseOnConfirm) {
+        handleOpenChange(false);
+      }
+    } catch {
+      // Keep the modal open if confirmation fails.
+    } finally {
+      setIsConfirming(false);
     }
   };
 
@@ -227,6 +244,7 @@ export function MCModalBase({
                 size={isMobile ? "l" : "m"}
                 onClick={handleSecondary}
                 className={isMobile ? "w-full" : ""}
+                disabled={isConfirming}
               >
                 {secondaryText}
               </MCButton>
@@ -235,7 +253,7 @@ export function MCModalBase({
                 size={isMobile ? "l" : "m"}
                 onClick={handleConfirm}
                 className={isMobile ? "w-full" : ""}
-                disabled={disabledConfirm}
+                disabled={disabledConfirm || isConfirming}
               >
                 {confirmText}
               </MCButton>
@@ -254,7 +272,7 @@ export function MCModalBase({
                 size={isMobile ? "l" : "m"}
                 onClick={handleConfirm}
                 className={isMobile ? "w-full" : ""}
-                disabled={disabledConfirm}
+                disabled={disabledConfirm || isConfirming}
               >
                 {confirmText}
               </MCButton>
@@ -273,6 +291,7 @@ export function MCModalBase({
                 size={isMobile ? "l" : "m"}
                 onClick={handleSecondary}
                 className={isMobile ? "w-full" : ""}
+                disabled={isConfirming}
               >
                 {secondaryText}
               </MCButton>
@@ -282,7 +301,7 @@ export function MCModalBase({
                   size={isMobile ? "l" : "m"}
                   onClick={handleConfirm}
                   className={isMobile ? "w-full" : ""}
-                  disabled={disabledConfirm}
+                  disabled={disabledConfirm || isConfirming}
                 >
                   {confirmText}
                 </MCButton>

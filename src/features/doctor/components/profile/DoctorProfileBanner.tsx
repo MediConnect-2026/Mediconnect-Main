@@ -120,11 +120,27 @@ function DoctorProfileBanner({
   };
 
   const getDoctorSpecialty = (especialidades: any) => {
-    if(!especialidades || especialidades.length === 0) return t("profileForm.generalPractitioner", "Sin especialidad");
+    if (!Array.isArray(especialidades) || especialidades.length === 0) {
+      return t("profileForm.generalPractitioner", "Sin especialidad");
+    }
 
-    console.log("Especialidades del doctor:", especialidades);
-    return especialidades.map((e: any) => e.nombre).join(", ");
-  }
+    const specialtyNames = especialidades
+      .map((item: any) => {
+        if (typeof item === "string") return item.trim();
+        if (!item || typeof item !== "object") return "";
+
+        const nestedName = item.especialidades?.nombre;
+        if (typeof nestedName === "string") return nestedName.trim();
+
+        if (typeof item.nombre === "string") return item.nombre.trim();
+        return "";
+      })
+      .filter((name: string) => name.length > 0);
+
+    return specialtyNames.length > 0
+      ? specialtyNames.join(", ")
+      : t("profileForm.generalPractitioner", "Sin especialidad");
+  };
   
   const handleLogout = () => {
     logout();
@@ -193,7 +209,6 @@ function DoctorProfileBanner({
     });
   };
 
-  console.log("DoctorProfileBanner renderizado con doctor:", doctor);
   return (
     <div className="shadow-md rounded-4xl border-0 mx-auto">
       <div className="relative h-60 flex items-end rounded-t-4xl  ">

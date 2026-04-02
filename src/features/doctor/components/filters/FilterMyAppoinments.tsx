@@ -24,6 +24,20 @@ interface FilterMyAppointmentsProps {
 
 type OptionType = { value: string; label: string | JSX.Element };
 
+const STATUS_FILTER_VALUES = {
+  all: "appointments.filters.values.status.all",
+  scheduled: "appointments.filters.values.status.scheduled",
+  inProgress: "appointments.filters.values.status.inProgress",
+  completed: "appointments.filters.values.status.completed",
+  cancelled: "appointments.filters.values.status.cancelled",
+} as const;
+
+const APPOINTMENT_TYPE_FILTER_VALUES = {
+  all: "appointments.filters.values.type.all",
+  virtual: "appointments.filters.values.type.virtual",
+  inPerson: "appointments.filters.values.type.inPerson",
+} as const;
+
 /**
  * Componente para filtrar citas del doctor
  * Memoizado para evitar re-renders innecesarios
@@ -32,10 +46,9 @@ type OptionType = { value: string; label: string | JSX.Element };
 const FilterMyAppointments = memo(function FilterMyAppointments({
   filters,
   onFiltersChange,
-  specialtyOptions = [],
   serviceOptions = [],
 }: FilterMyAppointmentsProps) {
-  const { t } = useTranslation("doctor");
+  const { t, i18n } = useTranslation("doctor");
   const isMobile = useIsMobile();
 
   const { data: especialidadesOptions = [], isLoading: isLoadingEspecialidades } = useEspecialidades();
@@ -43,24 +56,39 @@ const FilterMyAppointments = memo(function FilterMyAppointments({
   // Memoizar las opciones de estado para solo crearlas una vez
   const statusOptions: OptionType[] = useMemo(
     () => [
-      { value: "all", label: t("appointments.filters.status.all") },
-      { value: "scheduled", label: t("appointments.filters.status.scheduled") },
       {
-        value: "in_progress",
+        value: STATUS_FILTER_VALUES.all,
+        label: t("appointments.filters.status.all"),
+      },
+      {
+        value: STATUS_FILTER_VALUES.scheduled,
+        label: t("appointments.filters.status.scheduled"),
+      },
+      {
+        value: STATUS_FILTER_VALUES.inProgress,
         label: t("appointments.filters.status.inProgress"),
       },
-      { value: "completed", label: t("appointments.filters.status.completed") },
-      { value: "cancelled", label: t("appointments.filters.status.cancelled") },
+      {
+        value: STATUS_FILTER_VALUES.completed,
+        label: t("appointments.filters.status.completed"),
+      },
+      {
+        value: STATUS_FILTER_VALUES.cancelled,
+        label: t("appointments.filters.status.cancelled"),
+      },
     ],
-    [t]
+    [t, i18n.language]
   );
 
   // Memoizar las opciones de tipo (virtual/presencial)
   const typeOptions: OptionType[] = useMemo(
     () => [
-      { value: "all", label: t("appointments.filters.type.all") },
       {
-        value: "virtual",
+        value: APPOINTMENT_TYPE_FILTER_VALUES.all,
+        label: t("appointments.filters.type.all"),
+      },
+      {
+        value: APPOINTMENT_TYPE_FILTER_VALUES.virtual,
         label: (
           <span
             className={`flex items-center gap-1 ${isMobile ? "text-xs" : ""}`}
@@ -70,7 +98,7 @@ const FilterMyAppointments = memo(function FilterMyAppointments({
         ),
       },
       {
-        value: "in_person",
+        value: APPOINTMENT_TYPE_FILTER_VALUES.inPerson,
         label: (
           <span
             className={`flex items-center gap-1 ${isMobile ? "text-xs" : ""}`}
@@ -80,7 +108,7 @@ const FilterMyAppointments = memo(function FilterMyAppointments({
         ),
       },
     ],
-    [t, isMobile]
+    [t, i18n.language, isMobile]
   );
 
 
@@ -93,7 +121,7 @@ const FilterMyAppointments = memo(function FilterMyAppointments({
         label: svc,
       })),
     ],
-    [serviceOptions, t]
+    [serviceOptions, t, i18n.language]
   );
 
   // Memoizar los callbacks para evitar recrearlos en cada render

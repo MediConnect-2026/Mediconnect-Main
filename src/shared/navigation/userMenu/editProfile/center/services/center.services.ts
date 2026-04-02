@@ -1,6 +1,7 @@
 import apiClient from "@/services/api/client";
 import type {
         AllianceRequestRecord,
+    CenterDoctorsGrowthParams,
   CenterProfileTranslationParams,
     GetCenterInsurancesResponse,
   GetCenterMyProfileResponse,
@@ -15,7 +16,12 @@ import type {
     UpdateAllianceRequestStatusResponse,
 } from "./center.types";
 import { API_ENDPOINTS } from "@/services/api/endpoints";
-import type { CenterStats, CenterStatsResponse } from "@/types/CenterStatsTypes";
+import type {
+    CenterDoctorsGrowthResponse,
+    CenterSpecialtiesDistributionResponse,
+    CenterStats,
+    CenterStatsResponse,
+} from "@/types/CenterStatsTypes";
 
 const centerService = {
     async getMyProfile(params?: CenterProfileTranslationParams): Promise<GetCenterMyProfileResponse> {
@@ -75,7 +81,10 @@ const centerService = {
         }
     },
 
-    async getInsurances(language?: string): Promise<GetCenterInsurancesResponse> {
+    async getInsurances(
+        language?: string,
+        centerId?: string | number,
+    ): Promise<GetCenterInsurancesResponse> {
         try {
             const params: CenterProfileTranslationParams = {};
 
@@ -83,6 +92,10 @@ const centerService = {
                 params.target = language;
                 params.source = "es";
                 params.translate_fields = "nombre";
+            }
+
+            if (centerId !== undefined && centerId !== null && String(centerId).trim().length > 0) {
+                params.centroSaludId = centerId;
             }
 
             const { data } = await apiClient.get<GetCenterInsurancesResponse>(
@@ -168,6 +181,54 @@ const centerService = {
       } catch (error) {
           console.error('Error fetching center stats general:', error);
           throw error;
+      }
+    },
+
+    getCenterDoctorsGrowth: async (
+        params?: CenterDoctorsGrowthParams,
+    ): Promise<CenterDoctorsGrowthResponse> => {
+      try {
+          const { data } = await apiClient.get<CenterDoctorsGrowthResponse>(
+              API_ENDPOINTS.HEALTH_CENTERS.STATS.CRECIMIENTO_MEDICOS,
+              { params },
+          );
+
+          if (!data.success) {
+              throw new Error("No se pudo obtener el crecimiento de medicos.");
+          }
+
+          return data;
+      } catch (error: any) {
+          const apiMessage = error?.response?.data?.message;
+          if (typeof apiMessage === "string" && apiMessage.trim().length > 0) {
+              throw new Error(apiMessage);
+          }
+
+          throw new Error("No se pudo obtener el crecimiento de medicos.");
+      }
+    },
+
+    getCenterSpecialtiesDistribution: async (
+        params?: CenterProfileTranslationParams,
+    ): Promise<CenterSpecialtiesDistributionResponse> => {
+      try {
+          const { data } = await apiClient.get<CenterSpecialtiesDistributionResponse>(
+              API_ENDPOINTS.HEALTH_CENTERS.STATS.DISTRIBUCION_ESPECIALIDADES,
+              { params },
+          );
+
+          if (!data.success) {
+              throw new Error("No se pudo obtener la distribucion de especialidades.");
+          }
+
+          return data;
+      } catch (error: any) {
+          const apiMessage = error?.response?.data?.message;
+          if (typeof apiMessage === "string" && apiMessage.trim().length > 0) {
+              throw new Error(apiMessage);
+          }
+
+          throw new Error("No se pudo obtener la distribucion de especialidades.");
       }
     },
     

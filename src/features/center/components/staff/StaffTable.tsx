@@ -34,6 +34,7 @@ const PAGE_SIZE = 15;
 
 interface StaffMember {
   id: string;
+  doctorId: number;
   name: string;
   specialty: string;
   rating: number;
@@ -284,6 +285,7 @@ function StaffTable({ staffData = [] }: StaffTableProps) {
                         <StaffActions
                           doctor={{
                             id: staff.id,
+                            doctorId: staff.doctorId,
                             name: staff.name,
                             status: staff.status,
                           }}

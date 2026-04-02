@@ -110,6 +110,7 @@ function CenterProfilePage() {
   const user = useAppStore((state) => state.user);
   const isMobile = useIsMobile();
   const isMyProfile = !centerId || String(user?.id ?? "") === String(centerId);
+  const viewedCenterId = isMyProfile ? String(user?.id ?? "") : String(centerId ?? "");
 
   const language = i18n.language || "es";
 
@@ -177,10 +178,13 @@ function CenterProfilePage() {
     isError: isAllianceError,
     refetch: refetchAlliance,
   } = useQuery({
-    queryKey: [...QUERY_KEYS.CENTER_ALLIANCE_REQUESTS, language],
+    queryKey: [...QUERY_KEYS.CENTER_ALLIANCE_REQUESTS, viewedCenterId, language],
     queryFn: () =>
-      centerService.getCenterAllianceRequests(allianceTranslationParams),
-    enabled: isMyProfile,
+      centerService.getCenterAllianceRequests({
+        ...allianceTranslationParams,
+        centroSaludId: !isMyProfile && centerId ? centerId : undefined,
+      }),
+    enabled: isMyProfile || Boolean(centerId),
     staleTime: 1000 * 60 * 5,
   });
 
@@ -190,9 +194,13 @@ function CenterProfilePage() {
     isError: isInsurancesError,
     refetch: refetchInsurances,
   } = useQuery({
-    queryKey: [...QUERY_KEYS.MY_INSURANCES(language), "center-profile"],
-    queryFn: () => centerService.getInsurances(language),
-    enabled: isMyProfile,
+    queryKey: [...QUERY_KEYS.MY_INSURANCES(language), "center-profile", viewedCenterId],
+    queryFn: () =>
+      centerService.getInsurances(
+        language,
+        !isMyProfile && centerId ? centerId : undefined,
+      ),
+    enabled: isMyProfile || Boolean(centerId),
     staleTime: 1000 * 60 * 30,
   });
 
@@ -222,6 +230,7 @@ function CenterProfilePage() {
 
         return {
           id: request.id,
+          doctorId: request.doctorId,
           name: `${doctor?.nombre ?? ""} ${doctor?.apellido ?? ""}`.trim() || "-",
           specialty: specialties.length > 0 ? specialties.join(", ") : t("profilePage.noSpecialty"),
           specialtyList: specialties,
@@ -229,7 +238,7 @@ function CenterProfilePage() {
           yearsOfExperience: doctor?.anosExperiencia,
           languages,
           insuranceAccepted,
-          isFavorite: false,
+          isFavorite: request.doctor?.isFavorite ?? false,
           urlImage: doctor?.usuario?.fotoPerfil ?? "",
           createdAt: request.creadoEn,
           updatedAt: request.actualizadoEn,
@@ -401,6 +410,8 @@ function CenterProfilePage() {
     return true;
   });
 
+  console.log("Doctors List:", filteredDoctors);
+  
   const deleteAllianceMutation = useMutation({
     mutationFn: async (requestId: string | number) =>
       centerService.deleteAllianceRequest(requestId),
@@ -610,23 +621,7 @@ function CenterProfilePage() {
           </CardHeader>
 
           <CardContent className={isMobile ? "p-4 pt-2" : "p-6 pt-4"}>
-            {!isMyProfile ? (
-              <Empty>
-                <EmptyHeader>
-                  <div className="flex flex-col items-center gap-2">
-                    <span className="flex items-center gap-2 text-primary">
-                      <Filter className="w-7 h-7" />
-                      <EmptyTitle className="text-lg font-semibold">
-                        {t("profilePage.connectedDoctors")}
-                      </EmptyTitle>
-                    </span>
-                    <EmptyDescription className="text-muted-foreground text-center max-w-md mx-auto">
-                      {t("profilePage.publicProfileDoctorsUnavailable")}
-                    </EmptyDescription>
-                  </div>
-                </EmptyHeader>
-              </Empty>
-            ) : isAllianceLoading ? (
+            {isAllianceLoading ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4 gap-4">
                 {Array.from({ length: 4 }, (_, idx) => (
                   <Skeleton key={idx} className="w-full h-[360px] rounded-3xl" />
@@ -675,7 +670,7 @@ function CenterProfilePage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4 gap-4">
                 {filteredDoctors.map((doctor) => (
                   <MCDoctorsCards
-                    id={doctor.id}
+                    id={doctor.doctorId}
                     key={doctor.id}
                     name={doctor.name}
                     specialty={doctor.specialty}

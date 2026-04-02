@@ -418,7 +418,7 @@ export default function MapSelectLocation({
           const targetZoom = isMobile ? 15 : 16;
           try {
             map.easeTo({ center: [value.lng, value.lat], zoom: targetZoom, duration: 800 });
-          } catch (e) {
+          } catch {
             // fallback si easeTo falla por alguna razón
             map.flyTo({ center: [value.lng, value.lat], zoom: targetZoom, speed: 0.8 });
           }

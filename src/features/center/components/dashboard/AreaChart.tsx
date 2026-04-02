@@ -8,6 +8,7 @@ import {
   YAxis,
   Tooltip,
 } from "recharts";
+import { AlertCircle, BarChart3, Loader2 } from "lucide-react";
 import { Card, CardContent } from "@/shared/ui/card";
 import {
   ChartContainer,
@@ -15,6 +16,15 @@ import {
   type ChartConfig,
 } from "@/shared/ui/chart";
 import { useTranslation } from "react-i18next";
+import { useCenterDoctorsGrowth } from "@/lib/hooks/useCenterStats";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyTitle,
+} from "@/shared/ui/empty";
+import MCButton from "@/shared/components/forms/MCButton";
 
 interface ChartDataItem {
   day: string;
@@ -25,53 +35,21 @@ interface AreaChartProps {
   dateRange?: "week" | "month" | "3months" | "year" | "all";
 }
 
-const dataByPeriod: Record<string, ChartDataItem[]> = {
-  week: [
-    { day: "Lun", medicos: 405 },
-    { day: "Mar", medicos: 407 },
-    { day: "Mié", medicos: 408 },
-    { day: "Jue", medicos: 410 },
-    { day: "Vie", medicos: 411 },
-    { day: "Sáb", medicos: 412 },
-    { day: "Dom", medicos: 412 },
-  ],
-  month: [
-    { day: "Sem 1", medicos: 395 },
-    { day: "Sem 2", medicos: 400 },
-    { day: "Sem 3", medicos: 406 },
-    { day: "Sem 4", medicos: 412 },
-  ],
-  "3months": [
-    { day: "Ene", medicos: 380 },
-    { day: "Feb", medicos: 396 },
-    { day: "Mar", medicos: 412 },
-  ],
-  year: [
-    { day: "Ene", medicos: 320 },
-    { day: "Feb", medicos: 335 },
-    { day: "Mar", medicos: 348 },
-    { day: "Abr", medicos: 355 },
-    { day: "May", medicos: 362 },
-    { day: "Jun", medicos: 370 },
-    { day: "Jul", medicos: 378 },
-    { day: "Ago", medicos: 385 },
-    { day: "Sep", medicos: 392 },
-    { day: "Oct", medicos: 400 },
-    { day: "Nov", medicos: 406 },
-    { day: "Dic", medicos: 412 },
-  ],
-  all: [
-    { day: "2021", medicos: 150 },
-    { day: "2022", medicos: 220 },
-    { day: "2023", medicos: 295 },
-    { day: "2024", medicos: 370 },
-    { day: "2025", medicos: 412 },
-  ],
-};
-
 function AreaChart({ dateRange = "month" }: AreaChartProps) {
   const { t } = useTranslation("center");
-  const chartData = dataByPeriod[dateRange];
+  const {
+    data: growthPoints = [],
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useCenterDoctorsGrowth(dateRange);
+
+  const chartData: ChartDataItem[] = growthPoints.map((point) => ({
+    day: point.label,
+    medicos: point.total,
+  }));
+  const hasChartData = chartData.some((item) => item.medicos > 0);
 
   const chartConfig: ChartConfig = {
     medicos: {
@@ -83,32 +61,76 @@ function AreaChart({ dateRange = "month" }: AreaChartProps) {
   return (
     <Card className="h-full flex flex-col rounded-3xl border-none shadow-none p-0 m-0">
       <CardContent className="flex items-center justify-center h-full">
-        <ChartContainer config={chartConfig} className="h-full w-full p-0 m-0">
-          <RechartsAreaChart
-            width={982}
-            height={325}
-            data={chartData}
-            margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-          >
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis
-              dataKey="day"
-              tickLine={false}
-              axisLine={false}
-              tickMargin={8}
-            />
-            <YAxis tickLine={false} axisLine={false} tickMargin={8} />
-            <Tooltip content={<ChartTooltipContent indicator="dot" />} />
-            <Area
-              dataKey="medicos"
-              type="monotone"
-              fill="var(--accent)"
-              fillOpacity={0.3}
-              stroke="var(--accent)"
-              strokeWidth={2}
-            />
-          </RechartsAreaChart>
-        </ChartContainer>
+        {isLoading ? (
+          <div className="flex items-center justify-center h-full w-full gap-2 text-muted-foreground">
+            <Loader2 className="h-5 w-5 animate-spin" />
+            <span>{t("dashboard.chart.loading")}</span>
+          </div>
+        ) : isError ? (
+          <Empty>
+            <EmptyHeader>
+              <div className="flex flex-col items-center gap-2 px-4">
+                <span className="flex items-center justify-center gap-2 text-destructive">
+                  <AlertCircle className="w-6 h-6" />
+                  <EmptyTitle className="font-semibold text-lg">
+                    {t("dashboard.chart.errorTitle")}
+                  </EmptyTitle>
+                </span>
+                <EmptyDescription className="text-muted-foreground text-center max-w-md mx-auto text-sm">
+                  {error?.message || t("dashboard.chart.errorDescription")}
+                </EmptyDescription>
+              </div>
+            </EmptyHeader>
+            <EmptyContent>
+              <MCButton variant="outline" onClick={() => refetch()} size="sm">
+                {t("dashboard.chart.retry")}
+              </MCButton>
+            </EmptyContent>
+          </Empty>
+        ) : chartData.length === 0 || !hasChartData ? (
+          <Empty>
+            <EmptyHeader>
+              <div className="flex flex-col items-center gap-2 px-4">
+                <span className="flex items-center justify-center gap-2 text-primary">
+                  <BarChart3 className="w-6 h-6" />
+                  <EmptyTitle className="font-semibold text-lg">
+                    {t("dashboard.chart.emptyTitle")}
+                  </EmptyTitle>
+                </span>
+                <EmptyDescription className="text-muted-foreground text-center max-w-md mx-auto text-sm">
+                  {t("dashboard.chart.emptyDescription")}
+                </EmptyDescription>
+              </div>
+            </EmptyHeader>
+          </Empty>
+        ) : (
+          <ChartContainer config={chartConfig} className="h-full w-full p-0 m-0">
+            <RechartsAreaChart
+              width={982}
+              height={325}
+              data={chartData}
+              margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis
+                dataKey="day"
+                tickLine={false}
+                axisLine={false}
+                tickMargin={8}
+              />
+              <YAxis tickLine={false} axisLine={false} tickMargin={8} />
+              <Tooltip content={<ChartTooltipContent indicator="dot" />} />
+              <Area
+                dataKey="medicos"
+                type="monotone"
+                fill="var(--accent)"
+                fillOpacity={0.3}
+                stroke="var(--accent)"
+                strokeWidth={2}
+              />
+            </RechartsAreaChart>
+          </ChartContainer>
+        )}
       </CardContent>
     </Card>
   );

@@ -2,7 +2,7 @@ export interface ScheduleServices {
   id: number;
   doctorId: number;
   nombre: string;
-  dias: Number[]; // Array de números representando los días de la semana (0-6)
+  dias: number[]; // Array de números representando los días de la semana (0-6)
   horaInicio: string;
   horaFin: string;
   estado: string;
@@ -17,14 +17,14 @@ export interface GetScheduleServicesResponse {
 
 export interface CreateScheduleServiceRequest {
   nombre: string;
-  diasSemana: Number[]; // Array de números representando los días de la semana (0-6)
+  diasSemana: number[]; // Array de números representando los días de la semana (0-6)
   horaInicio: string;
   horaFin: string;
 }
 
 export interface UpdateScheduleServiceRequest {
   nombre: string;
-  diasSemana: Number[]; // Array de números representando los días de la semana (0-6)
+  diasSemana: number[]; // Array de números representando los días de la semana (0-6)
   horaInicio: string;
   horaFin: string;
   estado?: string; // Por defecto "Activo"

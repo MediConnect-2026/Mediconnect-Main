@@ -81,7 +81,7 @@ export const useWebSocket = () => {
         // El único campo confiable es remitenteId.
         const isOwnMessage = Number(event.remitenteId) === Number(currentUser?.id);
 
-        let messageWithEsPropio = {
+        const messageWithEsPropio = {
           ...event,
           esPropio: isOwnMessage,
         };

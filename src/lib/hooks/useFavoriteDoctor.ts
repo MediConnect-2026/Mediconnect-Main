@@ -1,16 +1,14 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { doctorService } from '@/shared/navigation/userMenu/editProfile/doctor/services/doctor.service';
 import { QUERY_KEYS } from '@/lib/react-query/config';
-import { useTranslation } from 'react-i18next';
 
 /**
  * Hook para agregar un doctor a favoritos
  */
 export const useAddDoctorToFavorites = () => {
   const queryClient = useQueryClient();
-  const { t } = useTranslation('common');
 
-  return useMutation({
+  return useMutation<unknown, Error, number, { previous: unknown }>({
     mutationFn: async (doctorId: number) => {
       return await doctorService.addDoctorToFavorites(doctorId);
     },
@@ -19,9 +17,10 @@ export const useAddDoctorToFavorites = () => {
       const previous = queryClient.getQueryData(QUERY_KEYS.DOCTOR_BY_ID(doctorId));
 
       // Optimistic update: mark doctor as favorite in cached doctor-by-id
-      queryClient.setQueryData(QUERY_KEYS.DOCTOR_BY_ID(doctorId), (old: any) => {
+      queryClient.setQueryData(QUERY_KEYS.DOCTOR_BY_ID(doctorId), (old: unknown) => {
         if (!old) return old;
         if (Array.isArray(old)) return old; // unexpected shape
+        if (typeof old !== 'object') return old;
         return {
           ...old,
           isFavorite: true,
@@ -32,7 +31,7 @@ export const useAddDoctorToFavorites = () => {
     },
     onError: (err, variables, context) => {
       if (context?.previous) {
-        queryClient.setQueryData(QUERY_KEYS.DOCTOR_BY_ID(variables as number), context.previous);
+        queryClient.setQueryData(QUERY_KEYS.DOCTOR_BY_ID(variables), context.previous);
       }
       console.error('Error adding doctor to favorites', err);
     },
@@ -46,9 +45,8 @@ export const useAddDoctorToFavorites = () => {
 
 export const useRemoveDoctorFromFavorites = () => {
   const queryClient = useQueryClient();
-  const { t } = useTranslation('common');
 
-  return useMutation({
+  return useMutation<unknown, Error, number, { previous: unknown }>({
     mutationFn: async (doctorId: number) => {
       return await doctorService.removeDoctorFromFavorites(doctorId);
     },
@@ -57,9 +55,10 @@ export const useRemoveDoctorFromFavorites = () => {
       const previous = queryClient.getQueryData(QUERY_KEYS.DOCTOR_BY_ID(doctorId));
 
       // Optimistic update: mark doctor as not favorite in cached doctor-by-id
-      queryClient.setQueryData(QUERY_KEYS.DOCTOR_BY_ID(doctorId), (old: any) => {
+      queryClient.setQueryData(QUERY_KEYS.DOCTOR_BY_ID(doctorId), (old: unknown) => {
         if (!old) return old;
         if (Array.isArray(old)) return old;
+        if (typeof old !== 'object') return old;
         return {
           ...old,
           isFavorite: false,
@@ -70,7 +69,7 @@ export const useRemoveDoctorFromFavorites = () => {
     },
     onError: (err, variables, context) => {
       if (context?.previous) {
-        queryClient.setQueryData(QUERY_KEYS.DOCTOR_BY_ID(variables as number), context.previous);
+        queryClient.setQueryData(QUERY_KEYS.DOCTOR_BY_ID(variables), context.previous);
       }
       console.error('Error removing doctor from favorites', err);
     },

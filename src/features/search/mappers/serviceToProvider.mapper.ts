@@ -77,7 +77,7 @@ export const mapDoctorsToProviders = async (
           }
         } catch (e) {
           // Keep placeholder on error
-          // eslint-disable-next-line no-console
+           
           console.error(`Failed to fetch availability for doctor ID ${doctor.usuarioId}`, e);
         }
       }
@@ -126,22 +126,45 @@ export const mapDoctorsToProviders = async (
  * Keeps a reference to the original center in `_rawCenter` for client-side filters
  */
 export const mapCentersToProviders = (
-  centers: CenterNearby[] = [],
-  language: string = "es"
+  centers: CenterNearby[] = []
 ): Provider[] => {
   if (!centers || centers.length === 0) return [];
 
   const providers: Provider[] = centers.map((c) => {
-    const isConnected = c.estaConectado === true;
+    const normalizedAllianceStatus = (c.estadoAlianza || "").toLowerCase();
+    const isConnected =
+      c.estaConectado === true ||
+      normalizedAllianceStatus === "aceptada" ||
+      normalizedAllianceStatus === "accepted";
+    const isPending =
+      normalizedAllianceStatus === "pendiente" ||
+      normalizedAllianceStatus === "pending" ||
+      normalizedAllianceStatus === "en_proceso" ||
+      normalizedAllianceStatus === "in_progress";
+
     const name = c.nombreComercial || c.tipoCentro?.nombre || "Centro de salud";
 
     const address = c.ubicacion?.direccionCompleta
       ? [c.ubicacion.direccionCompleta]
-      : c.ubicacion?.provincia || "Sin dirección";
+      : c.ubicacion?.direccion || c.ubicacion?.provincia || "Sin dirección";
 
-    const coordinates = (c.ubicacion && c.ubicacion.latitud && c.ubicacion.longitud)
+    const coordinates = (c.ubicacion && typeof c.ubicacion.latitud === "number" && typeof c.ubicacion.longitud === "number")
       ? { lat: c.ubicacion.latitud, lng: c.ubicacion.longitud }
       : [] as any;
+
+    const languages = Array.from(
+      new Set((c.idiomas || []).map((i) => i.nombre).filter(Boolean) as string[])
+    );
+
+    const insurances = Array.from(
+      new Set((c.seguros || []).map((s) => s.nombre).filter(Boolean) as string[])
+    );
+
+    const connectionStatus: "connected" | "not_connected" | "pending" = isConnected
+      ? "connected"
+      : isPending
+        ? "pending"
+        : "not_connected";
 
     return {
       id: c.usuarioId.toString(),
@@ -150,14 +173,14 @@ export const mapCentersToProviders = (
       rating: 0,
       reviewCount: 0,
       address,
-      languages: [],
-      insurances: [],
+      languages,
+      insurances,
       phone: c.usuario?.telefono || c.telefono || "",
-      image: c.usuario?.fotoPerfil || "",
+      image: c.usuario?.fotoPerfil || c.foto_perfil || "",
       coordinates,
       modality: ["Presencial"],
       specialties: c.tipoCentro?.nombre ? [c.tipoCentro.nombre] : [],
-      connectionStatus: isConnected ? "connected" : "not_connected",
+      connectionStatus,
       // Attach raw center for filtering
       // @ts-ignore - extra prop used for client-side filtering
       _rawCenter: c,

@@ -1,10 +1,11 @@
 import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import MCSheetProfile from "@/shared/navigation/userMenu/editProfile/MCSheetProfile";
 import { useAppStore } from "@/stores/useAppStore";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
 import { doctorService } from "@/shared/navigation/userMenu/editProfile/doctor/services/doctor.service";
 import { Skeleton } from "@/shared/ui/skeleton";
+import { toast } from "sonner";
 
 import DoctorProfileBanner from "../components/profile/DoctorProfileBanner";
 import DoctorProfileBannerMobile from "../components/profile/DoctorProfileBannerMobile";
@@ -15,7 +16,7 @@ import DoctorAboutSection from "../components/profile/DoctorAboutSection";
 import DoctorServicesSection from "../components/profile/DoctorServicesSection";
 import DoctorCentersSection from "../components/profile/DoctorCentersSection";
 import MCDashboardContent from "@/shared/layout/MCDashboardContent"; // <-- importa tu layout
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
 function DoctorProfilePage() {
@@ -23,13 +24,18 @@ function DoctorProfilePage() {
   const { i18n, t } = useTranslation("doctor");
   const [openSheet, setOpenSheet] = useState(false);
   const isMobile = useIsMobile();
-  const user = useAppStore((state) => state.user); 
+  const navigate = useNavigate();
+  const user = useAppStore((state) => state.user);
+  const [disconnectingAllianceId, setDisconnectingAllianceId] = useState<
+    string | number | null
+  >(null);
   const [sheetTab, setSheetTab] = useState<"general" | "education" | "insurance" | "experience" | "language">("general");
 
   const isMyProfile = !doctorId || user?.id === Number(doctorId);
 
   // Determinar el ID del doctor a mostrar
   const profileDoctorId = doctorId ? Number(doctorId) : Number(user?.id);
+  const hasValidProfileDoctorId = Number.isFinite(profileDoctorId) && profileDoctorId > 0;
 
   // Fetch del perfil público cuando es otro doctor
   const { data: fetchedDoctorProfile, isLoading: isLoadingProfile } = useQuery({
@@ -37,23 +43,47 @@ function DoctorProfilePage() {
     queryFn: () => doctorService.getDoctorById(profileDoctorId!, {
       target: i18n.language === 'en' ? 'en' : 'es',
       source: i18n.language === 'en' ? 'es' : 'en',
-      translate_fields: 'biografia'
+      translate_fields: 'biografia,nombre'
     }),
     enabled: !isMyProfile && !!profileDoctorId,
     staleTime: 1000 * 60 * 5,
   });
 
-  const { data: myCentersResponse, isLoading: isLoadingCenters } = useQuery({
-    queryKey: ["doctor-my-centers", i18n.language],
+  const {
+    data: myCentersResponse,
+    isLoading: isLoadingCenters,
+    refetch: refetchMyCenters,
+  } = useQuery({
+    queryKey: ["doctor-my-centers", profileDoctorId, i18n.language],
     queryFn: () =>
       doctorService.getMyCenters({
+        doctorId: !isMyProfile ? profileDoctorId : undefined,
         target: i18n.language === "en" ? "en" : "es",
         source: i18n.language === "en" ? "es" : "en",
         translate_fields:
           "centroSalud.nombreComercial,centroSalud.tipoCentro.nombre,centroSalud.ubicacion.direccionCompleta",
       }),
-    enabled: isMyProfile,
+    enabled: hasValidProfileDoctorId,
     staleTime: 1000 * 60 * 5,
+  });
+
+  const deleteAllianceMutation = useMutation({
+    mutationFn: (requestId: string | number) =>
+      doctorService.deleteAllianceRequest(requestId),
+    onSuccess: async () => {
+      await refetchMyCenters();
+      toast.success(t("connection.allianceDisconnectSuccess"));
+    },
+    onError: (error: unknown) => {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : t("connection.allianceDisconnectError");
+      toast.error(errorMessage);
+    },
+    onSettled: () => {
+      setDisconnectingAllianceId(null);
+    },
   });
 
   // Usar los datos del store si es mi perfil, o los fetched si es otro doctor
@@ -62,10 +92,6 @@ function DoctorProfilePage() {
   const doctorData = doctorProfile;
 
   const centers = useMemo(() => {
-    if (!isMyProfile) {
-      return [];
-    }
-
     return (myCentersResponse?.data ?? []).map((item) => ({
       id: item.centroSalud.usuarioId,
       name: item.centroSalud.nombreComercial,
@@ -77,13 +103,25 @@ function DoctorProfilePage() {
       phone: item.centroSalud.usuario?.telefono || "",
       urlImage: item.centroSalud.usuario?.fotoPerfil || "",
       isConnected: true,
+      allianceRequestId: item.solicitudId,
       description:
         item.centroSalud.ubicacion?.direccionCompleta ||
         item.centroSalud.ubicacion?.direccion ||
         "",
       connectionStatus: "connected" as const,
     }));
-  }, [isMyProfile, myCentersResponse?.data, t]);
+  }, [myCentersResponse?.data, t]);
+
+  const handleViewCenterProfile = (centerId: string | number) => {
+    navigate(`/center/profile/${centerId}`);
+  };
+
+  const handleDisconnectCenter = (requestId: string | number) => {
+    if (!isMyProfile) return;
+    setDisconnectingAllianceId(requestId);
+    deleteAllianceMutation.mutate(requestId);
+  };
+
 
   if (isLoadingProfile) {
     return (
@@ -143,10 +181,16 @@ function DoctorProfilePage() {
                 doctorId={profileDoctorId} 
                 isMyProfile={isMyProfile}
               />
-              {isLoadingCenters && isMyProfile ? (
+              {isLoadingCenters ? (
                 <Skeleton className="w-full h-80 rounded-4xl" />
               ) : (
-                <DoctorCentersSection centers={centers} />
+                <DoctorCentersSection
+                  centers={centers}
+                  onViewProfile={handleViewCenterProfile}
+                  onToggleConnection={isMyProfile ? handleDisconnectCenter : undefined}
+                  isConnectionSubmitting={deleteAllianceMutation.isPending}
+                  connectionSubmittingId={disconnectingAllianceId}
+                />
               )}
               {/* Educación y Experiencia - solo en mobile */}
               <div className="flex flex-col gap-4 lg:hidden">

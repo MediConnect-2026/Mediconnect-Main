@@ -48,14 +48,14 @@ export const QUERY_KEYS = {
   MY_APPOINTMENTS: ['appointments', 'my'],
   
   // Citas (Patient appointments from backend)
-  CITAS: (filters?: Record<string, any>) => ['citas', filters].filter(Boolean),
+  CITAS: (filters?: Record<string, unknown>) => ['citas', filters].filter(Boolean),
   CITA_BY_ID: (id: string | number) => ['citas', id],
-  CALENDARIO: (params?: Record<string, any>) => ['citas', 'calendario', params].filter(Boolean),
+  CALENDARIO: (params?: Record<string, unknown>) => ['citas', 'calendario', params].filter(Boolean),
   
   // Doctors
   DOCTORS: ['doctors'],
   DOCTOR_BY_ID: (id: string | number) => ['doctors', id],
-  MY_DOCTORS: (filters?: Record<string, any>) => ['doctors', 'my', filters].filter(Boolean),
+  MY_DOCTORS: (filters?: Record<string, unknown>) => ['doctors', 'my', filters].filter(Boolean),
   DOCTORS_SEARCH: ['doctors', 'search'],
   DOCTOR_ALLIANCE_REQUESTS: ['doctor', 'alliance', 'requests'],
   
@@ -68,6 +68,10 @@ export const QUERY_KEYS = {
   CENTERS: ['centers'],
   CENTER_BY_ID: (id: string | number) => ['centers', id],
   CENTERS_STATS_RESUMEN: ['centers', 'stats', 'resumen'],
+  CENTERS_STATS_CRECIMIENTO_MEDICOS: (periodo: string, language?: string) =>
+    ['centers', 'stats', 'crecimiento-medicos', periodo, language].filter(Boolean),
+  CENTERS_STATS_DISTRIBUCION_ESPECIALIDADES: (language?: string) =>
+    ['centers', 'stats', 'distribucion-especialidades', language].filter(Boolean),
   CENTER_ALLIANCE_REQUESTS: ['center', 'alliance', 'requests'],
   CENTER_STAFF: (language?: string) => ['center', 'staff', language].filter(Boolean),
   
@@ -86,16 +90,16 @@ export const QUERY_KEYS = {
   MUNICIPIOS_BY_PROVINCIA: (provinciaId: string | number) => ['municipios', 'provincia', provinciaId],
   
   // Especialidades (datos relativamente estáticos)
-  ESPECIALIDADES: (language?: string, params?: Record<string, any>) => 
+  ESPECIALIDADES: (language?: string, params?: Record<string, unknown>) => 
     ['especialidades', language, params].filter(Boolean),
-  ESPECIALIDADES_CUSTOM: (params?: Record<string, any>) => ['especialidades', 'custom', params],
+  ESPECIALIDADES_CUSTOM: (params?: Record<string, unknown>) => ['especialidades', 'custom', params],
 
   // Tipos de centro (datos relativamente estáticos)
-  TIPOS_CENTROS: (language?: string, params?: Record<string, any>) => 
+  TIPOS_CENTROS: (language?: string, params?: Record<string, unknown>) => 
     ['tipos_centro', language, params].filter(Boolean),
-  TIPOS_CENTRO_CUSTOM: (params?: Record<string, any>) => ['tipos_centro', 'custom', params],
+  TIPOS_CENTRO_CUSTOM: (params?: Record<string, unknown>) => ['tipos_centro', 'custom', params],
 
-  UBICACIONES: ( nivel: string, params?: Record<string, any>) => 
+  UBICACIONES: ( nivel: string, params?: Record<string, unknown>) => 
     ['ubicaciones', nivel, params].filter(Boolean),
 
   // Alergias (datos relativamente estáticos)

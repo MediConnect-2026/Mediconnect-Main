@@ -77,7 +77,8 @@ export const formatTimeTo12h = (time?: string | null): string | undefined => {
     const d = parseISO(time);
     if (!isNaN(d.getTime())) return format(d, 'h:mm a');
   } catch (e) {
-    // ignore
+    // No es un formato reconocible
+    console.warn(`No se pudo parsear la hora: ${time}`, e);
   }
 
   return undefined;

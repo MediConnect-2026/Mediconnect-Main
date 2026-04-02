@@ -1,10 +1,7 @@
 import { Star } from "lucide-react";
 import MCFilterSelect from "@/shared/components/filters/MCFilterSelect";
-import { Label } from "@/shared/ui/label";
-import { Switch } from "@/shared/ui/switch";
 import { type JSX } from "react";
 import { useTranslation } from "react-i18next";
-import { useAppStore } from "@/stores/useAppStore";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
 
 interface CenterFilters {
@@ -29,7 +26,6 @@ function FilterCenters({
   onFiltersChange,
 }: FilterCentersProps) {
   const { t } = useTranslation("doctor");
-  const userRole = useAppStore((state) => state.user?.rol);
   const isMobile = useIsMobile();
 
   const ratingOptions: OptionType[] = [

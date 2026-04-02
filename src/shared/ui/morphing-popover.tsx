@@ -8,6 +8,8 @@ import {
   createContext,
   useContext,
   isValidElement,
+  cloneElement,
+  type ReactElement,
 } from "react";
 import {
   AnimatePresence,
@@ -130,21 +132,20 @@ function MorphingPopoverTrigger({
   };
 
   if (asChild && isValidElement(children)) {
-    const MotionComponent = motion.create(
-      children.type as React.ForwardRefExoticComponent<any>,
-    );
     const childProps = children.props as Record<string, unknown>;
 
     return (
-      <MotionComponent
-        {...childProps}
-        onClick={handleTriggerClick}
+      <motion.div
         layoutId={`popover-trigger-${context.uniqueId}`}
-        className={childProps.className}
         key={context.uniqueId}
-        aria-expanded={context.isOpen}
-        aria-controls={`popover-content-${context.uniqueId}`}
-      />
+      >
+        {cloneElement(children as ReactElement<Record<string, unknown>>, {
+          ...childProps,
+          onClick: handleTriggerClick,
+          "aria-expanded": context.isOpen,
+          "aria-controls": `popover-content-${context.uniqueId}`,
+        })}
+      </motion.div>
     );
   }
 
