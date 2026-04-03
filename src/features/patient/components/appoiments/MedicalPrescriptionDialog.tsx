@@ -22,7 +22,7 @@ import {
   TooltipProvider,
 } from "@/shared/ui/tooltip";
 import MCPDFButton from "@/shared/components/forms/MCPDFButton";
-import { MCGeneratePrescriptionPDF } from "@/shared/components/Mcgenerateprescriptionpdf";
+import { MCGeneratePrescriptionPDF } from "@/shared/components/MCGeneratePrescriptionPDF";
 import { useAppStore } from "@/stores/useAppStore";
 
 interface MedicalPrescriptionDialogProps {

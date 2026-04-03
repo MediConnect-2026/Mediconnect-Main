@@ -55,6 +55,31 @@ export default function MapSearchProviders({
   );
   const [locationDenied, setLocationDenied] = useState(false);
 
+  // ResizeObserver para que Mapbox recalcule el canvas cuando cambia el contenedor
+  useEffect(() => {
+    const container = isFullscreen
+      ? fullscreenContainerRef.current
+      : normalContainerRef.current;
+    if (!container || !mapRef.current) return;
+
+    const resizeObserver = new ResizeObserver(() => {
+      mapRef.current?.resize();
+    });
+
+    resizeObserver.observe(container);
+
+    return () => resizeObserver.disconnect();
+  }, [isFullscreen]);
+
+  // Forzar resize cuando cambia el breakpoint o el tamaño del contenedor
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      mapRef.current?.resize();
+    }, 250); // Ajusta el tiempo si tu animación dura más
+
+    return () => clearTimeout(timeout);
+  }, [isFullscreen]);
+
   useEffect(() => {
     const container = isFullscreen
       ? fullscreenContainerRef.current

@@ -100,7 +100,7 @@ function MCTablesLayouts({
           <div
             className={`grid gap-4 ${
               isMobile
-                ? "grid-cols-2"
+                ? "grid-cols-1"
                 : metrics.length === 4
                   ? "grid-cols-2 sm:grid-cols-2 lg:grid-cols-4"
                   : metrics.length === 3

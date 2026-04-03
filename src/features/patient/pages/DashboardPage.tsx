@@ -1,4 +1,4 @@
-import React from "react";
+
 import { useTranslation } from "react-i18next";
 import { Card } from "@/shared/ui/card";
 import { AppointmentsCalendar } from "@/shared/components/calendar/AppointmentsCalendar";

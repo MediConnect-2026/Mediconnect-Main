@@ -233,3 +233,40 @@ input[type="time"] {
   appearance: none;
   -moz-appearance: textfield;
 }
+/* Spinner Médico - Efecto Pulso */
+.medical-loader {
+  width: 60px;
+  height: 60px;
+  display: inline-block;
+  position: relative;
+}
+
+.medical-loader::after,
+.medical-loader::before {
+  content: "";
+  box-sizing: border-box;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  /* Usamos tu color primario para que cambie según el tema */
+  border: 3px solid var(--primary);
+  position: absolute;
+  left: 0;
+  top: 0;
+  animation: animloader 2s linear infinite;
+}
+
+.medical-loader::after {
+  animation-delay: 1s;
+}
+
+@keyframes animloader {
+  0% {
+    transform: scale(0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0;
+  }
+}

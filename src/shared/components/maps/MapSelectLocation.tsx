@@ -45,6 +45,32 @@ export default function MapSelectLocation({
 
   const [address, setAddress] = useState<ParsedDominicanAddress | null>(null);
 
+  // ResizeObserver para que Mapbox recalcule el canvas cuando cambia el contenedor
+  useEffect(() => {
+    const container = isFullscreen
+      ? fullscreenContainerRef.current
+      : normalContainerRef.current;
+    if (!container || !mapRef.current) return;
+
+    const resizeObserver = new ResizeObserver(() => {
+      mapRef.current?.resize();
+    });
+
+    resizeObserver.observe(container);
+
+    return () => resizeObserver.disconnect();
+  }, [isFullscreen]);
+
+  // Forzar resize cuando cambia el breakpoint o el tamaño del contenedor
+  useEffect(() => {
+    // Espera a que termine la animación/layout
+    const timeout = setTimeout(() => {
+      mapRef.current?.resize();
+    }, 250); // Ajusta el tiempo si tu animación dura más
+
+    return () => clearTimeout(timeout);
+  }, [isMobile, isFullscreen]);
+
   // Función para obtener detalles de la ubicación usando Mapbox Geocoding API
   const getLocationDetails = async (lng: number, lat: number) => {
     try {
