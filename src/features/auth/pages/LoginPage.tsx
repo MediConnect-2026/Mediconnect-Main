@@ -14,6 +14,8 @@ import { useNavigate } from "react-router-dom";
 import OAuthProvider from "../components/OAuthProvider";
 import { useGlobalUIStore } from "@/stores/useGlobalUIStore";
 import { ToggleGroup, ToggleGroupItem } from "@/shared/ui/toggle-group";
+import { ArrowLeft } from "lucide-react";
+
 function LoginPage() {
   const { t } = useTranslation("auth");
   const isMobile = useIsMobile();
@@ -62,6 +64,17 @@ function LoginPage() {
     }
   };
 
+  const backButtonContent = (
+    <button
+      onClick={() => navigate("/")}
+      className="group flex items-center gap-2 text-primary transition-all duration-150 hover:opacity-80 active:scale-95"
+      type="button"
+    >
+      <ArrowLeft className="text-primary transition-transform duration-200 group-hover:-translate-x-1 group-hover:scale-110" />
+      <span className="font-medium text-lg">{t("header.back", "Back")}</span>
+    </button>
+  );
+
   return (
     <section className="max-h-screen h-screen overflow-hidden w-full bg-white">
       <div
@@ -72,8 +85,12 @@ function LoginPage() {
         {/* SOLO DESKTOP: main vacío para el grid */}
         {!isMobile && (
           <main className="relative flex flex-col justify-center items-center px-8">
-            {/* Toggle de idiomas en la esquina superior izquierda */}
+            {/* Back button arriba a la izquierda */}
             <div className="absolute top-6 left-6 z-20">
+              {backButtonContent}
+            </div>
+            {/* Selector de idioma arriba a la derecha */}
+            <div className="absolute top-6 right-6 z-20">
               <ToggleGroup
                 type="single"
                 value={currentLanguage}
