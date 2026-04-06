@@ -8,6 +8,8 @@ import { ChevronDownIcon } from "@/shared/ui/chevron-down";
 import { useTranslation } from "react-i18next";
 import { useGlobalUIStore } from "@/stores/useGlobalUIStore";
 import { cl } from "@/utils/cloudinary";
+import { useNavigate } from "react-router-dom";
+import { ROUTES } from "@/router/routes";
 
 const languages = [
   {
@@ -97,6 +99,7 @@ type MobileNavbarProps = {
 
 function MobileNavbar({ id, isFixed = false }: MobileNavbarProps) {
   const { t } = useTranslation("landing");
+  const navigate = useNavigate();
   const language = useGlobalUIStore((state) => state.language);
   const [isOpen, setIsOpen] = useState(false);
   const [isLanguageSelectorOpen, setIsLanguageSelectorOpen] = useState(false);
@@ -255,6 +258,11 @@ function MobileNavbar({ id, isFixed = false }: MobileNavbarProps) {
                   <MediButton
                     variant="secondary"
                     className="w-full h-14 px-6 text-xl font-medium rounded-full border text-primary bg-white border-primary active:bg-primary/10 active:scale-95 transition-all duration-150"
+                    onClick={() => {
+                      setIsOpen(false);
+                      setIsLanguageSelectorOpen(false);
+                      navigate(ROUTES.LOGIN);
+                    }}
                   >
                     {t("navbar.login")}
                   </MediButton>
@@ -263,6 +271,11 @@ function MobileNavbar({ id, isFixed = false }: MobileNavbarProps) {
                   <MediButton
                     variant="primary"
                     className="w-full h-14 px-6 text-xl font-medium rounded-full bg-primary text-white active:opacity-90 active:scale-95 transition-all duration-150"
+                    onClick={() => {
+                      setIsOpen(false);
+                      setIsLanguageSelectorOpen(false);
+                      navigate(ROUTES.REGISTER);
+                    }}
                   >
                     {t("navbar.register")}
                   </MediButton>

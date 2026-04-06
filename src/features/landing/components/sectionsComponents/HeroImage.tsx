@@ -6,10 +6,11 @@ import MobileNavbar from "./MobileNavbar";
 
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { clHero } from "@/utils/cloudinary";
-import { useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import { ROUTES } from "@/router/routes";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -66,6 +67,7 @@ function HeroImageSection({ isCarouselActive = false }: HeroImageSectionProps) {
   const heroImageUrl = clHero(
     "https://res.cloudinary.com/dy2wtanhl/image/upload/v1771637857/HeroImage_vyiijs.jpg",
   );
+  const navigate = useNavigate();
 
   useGSAP(() => {
     gsap.fromTo(
@@ -194,6 +196,7 @@ function HeroImageSection({ isCarouselActive = false }: HeroImageSectionProps) {
                       ? "active:scale-95 active:opacity-90 transition-all duration-150"
                       : ""
                   }`}
+                  onClick={() => navigate(ROUTES.LOGIN)}
                 >
                   {t("hero.connect")}
                 </MediButton>
@@ -204,6 +207,7 @@ function HeroImageSection({ isCarouselActive = false }: HeroImageSectionProps) {
                       ? "active:scale-95 active:bg-white/10 transition-all duration-150"
                       : ""
                   }`}
+                  onClick={() => navigate(ROUTES.REGISTER)}
                 >
                   {t("hero.startNow")}
                 </MediButton>

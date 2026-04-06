@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { motion, type Variants } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import MediButton from "@/shared/components/landing/MediButton";
+import { useNavigate } from "react-router-dom";
+import { ROUTES } from "@/router/routes";
 
 const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1];
 
@@ -68,6 +70,7 @@ interface InfoContainersProps {
 function InfoContainers({ userType = "patient" }: InfoContainersProps) {
   const { t } = useTranslation("landing");
   const [currentType, setCurrentType] = useState(userType);
+  const navigate = useNavigate();
 
   useEffect(() => {
     setCurrentType(userType);
@@ -137,10 +140,18 @@ function InfoContainers({ userType = "patient" }: InfoContainersProps) {
         className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full max-w-full sm:max-w-md"
         variants={buttonsVariants}
       >
-        <MediButton variant="primary" className="w-full sm:w-auto">
+        <MediButton
+          variant="primary"
+          className="w-full sm:w-auto"
+          onClick={() => navigate(ROUTES.LOGIN)}
+        >
           {content.buttons.primary}
         </MediButton>
-        <MediButton variant="secondary" className="w-full sm:w-auto">
+        <MediButton
+          variant="secondary"
+          className="w-full sm:w-auto"
+          onClick={() => navigate(ROUTES.REGISTER)}
+        >
           {content.buttons.secondary}
         </MediButton>
       </motion.div>

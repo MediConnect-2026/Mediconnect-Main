@@ -3,6 +3,8 @@ import MediButton from "@/shared/components/landing/MediButton";
 import LanguageDropDown from "@/shared/components/landing/LanguageDropDown";
 import { useTranslation } from "react-i18next";
 import { cl } from "@/utils/cloudinary";
+import { useNavigate } from "react-router-dom";
+import { ROUTES } from "@/router/routes";
 
 type NavbarProps = {
   id?: string;
@@ -11,6 +13,7 @@ type NavbarProps = {
 
 function Navbar({ id, isFixed = false }: NavbarProps) {
   const { t } = useTranslation("landing");
+  const navigate = useNavigate();
 
   const logoGreen = cl(
     "https://res.cloudinary.com/dy2wtanhl/image/upload/v1771637879/MediConnectLanding-green_trpgvu.png",
@@ -98,6 +101,7 @@ function Navbar({ id, isFixed = false }: NavbarProps) {
               ? "text-primary bg-transparent border-primary"
               : "text-white bg-transparent border-white"
           }
+          onClick={() => navigate(ROUTES.LOGIN)}
         >
           {t("navbar.login")}
         </MediButton>
@@ -106,6 +110,7 @@ function Navbar({ id, isFixed = false }: NavbarProps) {
           className={
             isFixed ? "bg-primary text-white" : "bg-white text-primary"
           }
+          onClick={() => navigate(ROUTES.REGISTER)}
         >
           {t("navbar.register")}
         </MediButton>
