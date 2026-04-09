@@ -5,6 +5,7 @@ import { DropdownMenuTrigger } from "@/shared/animate-ui/components/radix/dropdo
 import { MCUserAvatar } from "./MCUserAvatar";
 
 interface UserData {
+  userId: number;
   name: string;
   email: string;
   avatar: string;

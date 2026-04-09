@@ -42,8 +42,8 @@ function MCFileUpload({
   standalone = false,
   onFileChange,
 }: MCFileUploadProps) {
-  const formContext = standalone ? null : useFormContext();
-  const { t } = useTranslation("common");
+  const formContext = useFormContext();
+  useTranslation("common");
 
   const [files, setFiles] = useState<File[]>([]);
   const [isDragging, setIsDragging] = useState(false);

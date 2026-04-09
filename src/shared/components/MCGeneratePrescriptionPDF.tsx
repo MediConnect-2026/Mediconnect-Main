@@ -95,47 +95,47 @@ export const MCGeneratePrescriptionPDF = async (
   const L =
     language === "es"
       ? {
-          title: "RECETA MÉDICA",
-          date: "Fecha de consulta",
-          time: "Horario",
-          price: "Precio",
-          patients: "N° Pacientes",
-          modality: "Modalidad",
-          location: "Ubicación",
-          insurance: "Seguro",
-          diagnosis: "Diagnóstico",
-          observations: "Observaciones",
-          patient: "Paciente",
-          doctor: "Médico",
-          generated: "Generado el",
-          footer: "MediConnect · Documento Confidencial",
-          page: "Pág.",
-          of: "de",
-          noDiag: "Sin diagnóstico registrado.",
-          noObs: "Sin observaciones adicionales.",
-          noInsurance: "Sin seguro registrado.",
-        }
+        title: "RECETA MÉDICA",
+        date: "Fecha de consulta",
+        time: "Horario",
+        price: "Precio",
+        patients: "N° Pacientes",
+        modality: "Modalidad",
+        location: "Ubicación",
+        insurance: "Seguro",
+        diagnosis: "Diagnóstico",
+        observations: "Observaciones",
+        patient: "Paciente",
+        doctor: "Médico",
+        generated: "Generado el",
+        footer: "MediConnect · Documento Confidencial",
+        page: "Pág.",
+        of: "de",
+        noDiag: "Sin diagnóstico registrado.",
+        noObs: "Sin observaciones adicionales.",
+        noInsurance: "Sin seguro registrado.",
+      }
       : {
-          title: "MEDICAL PRESCRIPTION",
-          date: "Appointment date",
-          time: "Time",
-          price: "Price",
-          patients: "Patients",
-          modality: "Modality",
-          location: "Location",
-          insurance: "Insurance",
-          diagnosis: "Diagnosis",
-          observations: "Observations",
-          patient: "Patient",
-          doctor: "Physician",
-          generated: "Generated on",
-          footer: "MediConnect · Confidential Document",
-          page: "Page",
-          of: "of",
-          noDiag: "No diagnosis recorded.",
-          noObs: "No additional observations.",
-          noInsurance: "No insurance registered.",
-        };
+        title: "MEDICAL PRESCRIPTION",
+        date: "Appointment date",
+        time: "Time",
+        price: "Price",
+        patients: "Patients",
+        modality: "Modality",
+        location: "Location",
+        insurance: "Insurance",
+        diagnosis: "Diagnosis",
+        observations: "Observations",
+        patient: "Patient",
+        doctor: "Physician",
+        generated: "Generated on",
+        footer: "MediConnect · Confidential Document",
+        page: "Page",
+        of: "of",
+        noDiag: "No diagnosis recorded.",
+        noObs: "No additional observations.",
+        noInsurance: "No insurance registered.",
+      };
 
   try {
     const doc = new jsPDF({
@@ -166,7 +166,7 @@ export const MCGeneratePrescriptionPDF = async (
       if (logoB64) {
         doc.addImage(logoB64, "PNG", mL, 8, 38, 17);
       }
-    } catch (_) {
+    } catch {
       /* silent */
     }
 
@@ -228,7 +228,7 @@ export const MCGeneratePrescriptionPDF = async (
     const detailRows: { label: string; value: string }[] = [
       { label: L.date, value: date },
       { label: L.time, value: time },
-      { label: L.price, value: `$${price}` },
+      { label: L.price, value: `${price}` },
     ];
     if (numberOfPatients !== undefined)
       detailRows.push({ label: L.patients, value: String(numberOfPatients) });

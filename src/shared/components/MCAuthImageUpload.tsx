@@ -1,7 +1,7 @@
 import { MCModalBase } from "@/shared/components/MCModalBase";
 import MCButton from "@/shared/components/forms/MCButton";
 import MCProfileImageUploader from "@/shared/components/MCProfileImageUploader";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { ImageUp, Camera, XIcon, FileText } from "lucide-react";
 import MCCameraModal from "@/shared/components/MCCameraModal";
 import { registerPlugin } from "react-filepond";
@@ -53,14 +53,11 @@ export function MCImageUpload({
 }: MCImageUploadProps) {
   const { t } = useTranslation("auth");
   const [rawImage, setRawImage] = useState<string | null>(null);
-  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
+  const [internalUploadedFiles, setInternalUploadedFiles] = useState<UploadedFile[]>([]);
   const [cropModalOpen, setCropModalOpen] = useState(false);
+  const isControlled = uploadedFilesProp !== undefined;
 
-  useEffect(() => {
-    if (uploadedFilesProp) {
-      setUploadedFiles(uploadedFilesProp);
-    }
-  }, [uploadedFilesProp]);
+  const uploadedFiles = isControlled ? (uploadedFilesProp ?? []) : internalUploadedFiles;
 
   const handleCameraCapture = (imageDataUrl: string) => {
     setRawImage(imageDataUrl);
@@ -71,18 +68,54 @@ export function MCImageUpload({
     const newFile = {
       url: cropped,
       name: `image_${Date.now()}.jpg`,
-      type: "image",
+      type: "image/jpeg", // Tipo MIME completo
     };
 
-    setUploadedFiles((prev) => [...prev, newFile]);
+    if (!isControlled) {
+      setInternalUploadedFiles((prev) => [...prev, newFile]);
+    }
     setCropModalOpen(false);
     setRawImage(null);
-    onFileUpload?.(cropped, "image");
+    onFileUpload?.(cropped, "image/jpeg"); // Pasar tipo MIME completo
   };
 
   const handleRemoveFile = (index: number) => {
-    setUploadedFiles((prev) => prev.filter((_, i) => i !== index));
+    if (!isControlled) {
+      setInternalUploadedFiles((prev) => prev.filter((_, i) => i !== index));
+    }
     onFileRemove?.(index);
+  };
+
+  const handleViewPDF = (base64Url: string) => {
+    // Convertir base64 a blob para poder abrirlo correctamente
+    try {
+      // Extraer el base64 puro
+      const base64Data = base64Url.includes(',') 
+        ? base64Url.split(',')[1] 
+        : base64Url;
+      
+      // Decodificar y crear blob
+      const byteCharacters = atob(base64Data);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      const blob = new Blob([byteArray], { type: 'application/pdf' });
+      
+      // Crear URL temporal y abrir
+      const blobUrl = URL.createObjectURL(blob);
+      const newWindow = window.open(blobUrl, '_blank');
+      
+      // Limpiar la URL después de un tiempo
+      if (newWindow) {
+        newWindow.onload = () => {
+          setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+        };
+      }
+    } catch (error) {
+      console.error('Error al abrir PDF:', error);
+    }
   };
 
   const handleFileUpload = () => {
@@ -104,14 +137,23 @@ export function MCImageUpload({
 
       filesToProcess.forEach((file) => {
         if (file.type === "application/pdf") {
-          const url = URL.createObjectURL(file);
-          const newFile = { url, name: file.name, type: "pdf" };
-          setUploadedFiles((prev) => {
-            if (prev.length >= maxFiles) return prev;
-            const updated = [...prev, newFile];
-            onFileUpload?.(url, "pdf");
-            return updated;
-          });
+          // Convertir PDF a base64 en lugar de usar blob URL
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            const base64Url = event.target?.result as string;
+            const newFile = { url: base64Url, name: file.name, type: "application/pdf" }; // Tipo MIME completo
+            if (!isControlled) {
+              setInternalUploadedFiles((prev) => {
+              if (prev.length >= maxFiles) return prev;
+              const updated = [...prev, newFile];
+              onFileUpload?.(base64Url, "application/pdf"); // Pasar base64 URL en lugar de blob
+              return updated;
+            });
+            } else {
+              onFileUpload?.(base64Url, "application/pdf");
+            }
+          };
+          reader.readAsDataURL(file);
         } else if (file.type.startsWith("image/")) {
           const reader = new FileReader();
           reader.onload = (event) => {
@@ -180,20 +222,18 @@ export function MCImageUpload({
                     key={index}
                     className="relative border-2 border-gray-200 rounded-lg p-3 bg-gray-50"
                   >
-                    {file.type === "pdf" ? (
+                    {file.type === "application/pdf" || file.type === "pdf" ? (
                       <div className="flex flex-col items-center">
                         <FileText className="w-10 h-10 text-secondary mb-2" />
                         <span className="text-xs text-gray-700 truncate w-full text-center">
                           {file.name}
                         </span>
-                        <a
-                          href={file.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-secondary underline text-xs mt-1"
+                        <button
+                          onClick={() => handleViewPDF(file.url)}
+                          className="text-secondary underline text-xs mt-1 hover:text-secondary/80 cursor-pointer"
                         >
                           {t("imageUpload.viewPDF")}
-                        </a>
+                        </button>
                       </div>
                     ) : (
                       <div className="flex justify-center">

@@ -35,7 +35,7 @@ export const ChatHeader = ({
                 className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
               />
               <AvatarFallback className="bg-muted text-muted-foreground">
-                {t("chatHeader.doctorName")
+                {(t("chatHeader.doctorName") ?? "")
                   .split(" ")
                   .map((n) => n[0])
                   .join("")}

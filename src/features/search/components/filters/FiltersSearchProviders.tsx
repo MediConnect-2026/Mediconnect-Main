@@ -1,195 +1,222 @@
-import { Star } from "lucide-react";
 import MCFilterSelect from "@/shared/components/filters/MCFilterSelect";
-import { type DoctorFiltersSlice } from "@/stores/filters/doctorFilters.slice";
 import { useTranslation } from "react-i18next";
-import { type JSX } from "react";
-// Define OptionType interface
-interface OptionType {
-  value: string;
-  label: string | JSX.Element;
+
+interface SearchProviderFilters {
+  name: string;
+  insuranceAccepted: string[];
+  providerType: string[];
+  modality: string;
+  specialty: string[];
+  gender: string;
+  yearsOfExperience: number | null;
+  languages: string;
+  scheduledAppointments: string;
+  rating: number | null;
+  radio?: number | null;
 }
 
-const tipoProveedorOptions = [
-  { value: "all", label: "Todos" },
-  { value: "doctor", label: "Doctor" },
-  { value: "hospital", label: "Hospital" },
-  { value: "clinic", label: "Clínica" }, // Cambiado
-];
-
-const especialidadOptions = [
-  { value: "all", label: "Todos" },
-  { value: "Cardiología", label: "Cardiología" },
-  { value: "Pediatría", label: "Pediatría" },
-  { value: "Dermatología", label: "Dermatología" },
-  { value: "Medicina General", label: "Medicina General" },
-  { value: "Ginecología", label: "Ginecología" },
-  { value: "Neurología", label: "Neurología" },
-  { value: "Psiquiatría", label: "Psiquiatría" },
-];
-
-const modalidadOptions = [
-  { value: "all", label: "Todos" },
-  { value: "presencial", label: "Presencial" },
-  { value: "virtual", label: "Virtual" },
-  { value: "hibrido", label: "Híbrido" },
-];
-
-const generoOptions = [
-  { value: "all", label: "Todos" },
-  { value: "masculino", label: "Masculino" },
-  { value: "femenino", label: "Femenino" },
-];
-
-const idiomasOptions = [
-  { value: "all", label: "Todos" },
-  { value: "Español", label: "Español" },
-  { value: "Inglés", label: "Inglés" },
-  { value: "Francés", label: "Francés" },
-];
-
-const horarioOptions = [
-  { value: "all", label: "Todos" },
-  { value: "mañana", label: "Mañana" },
-  { value: "tarde", label: "Tarde" },
-  { value: "noche", label: "Noche" },
-];
-
 interface FiltersSearchProvidersProps {
-  searchProviderFilters: DoctorFiltersSlice["SearchProviderFilters"];
-  setSearchProviderFilters: DoctorFiltersSlice["setSearchProviderFilters"];
+  searchFilters: SearchProviderFilters;
+  onFilterChange: (key: string, values: string[]) => void;
+  onYearsChange: (value: number | null) => void;
+  isLoadingCentro: boolean;
+  tiposCentroOptions: { value: string; label: string }[];
+  isLoadingEspecialidades: boolean;
+  especialidadesOptions: { value: string; label: string }[];
 }
 
 function FiltersSearchProviders({
-  searchProviderFilters,
-  setSearchProviderFilters,
+  searchFilters,
+  onFilterChange,
+  onYearsChange,
+  isLoadingCentro,
+  tiposCentroOptions,
+  isLoadingEspecialidades,
+  especialidadesOptions,
 }: FiltersSearchProvidersProps) {
   const { t } = useTranslation("common");
 
-  const rankingOptions: OptionType[] = [
-    {
-      value: "4.5",
-      label: (
-        <span className="flex items-center gap-1">
-          {t("filters.ranking.4_5")}{" "}
-          <Star className="w-4 h-4 text-yellow-400" />
-        </span>
-      ),
-    },
-    {
-      value: "4",
-      label: (
-        <span className="flex items-center gap-1">
-          {t("filters.ranking.4")} <Star className="w-4 h-4 text-yellow-400" />
-        </span>
-      ),
-    },
-    {
-      value: "3.5",
-      label: (
-        <span className="flex items-center gap-1">
-          {t("filters.ranking.3_5")}{" "}
-          <Star className="w-4 h-4 text-yellow-400" />
-        </span>
-      ),
-    },
-    {
-      value: "3",
-      label: (
-        <span className="flex items-center gap-1">
-          {t("filters.ranking.3")} <Star className="w-4 h-4 text-yellow-400" />
-        </span>
-      ),
-    },
-    {
-      value: "0",
-      label: (
-        <span className="flex items-center gap-1">
-          {t("filters.ranking.all")}
-        </span>
-      ),
-    },
+  const RATING_OPTIONS = [
+    { value: "all", label: t("search.options.all") },
+    { value: "4.5", label: t("search.options.rating.4.5") },
+    { value: "4", label: t("search.options.rating.4") },
+    { value: "3.5", label: t("search.options.rating.3.5") },
+    { value: "3", label: t("search.options.rating.3") },
   ];
 
-  const handleFilterChange = (filterKey: string, values: string | string[]) => {
-    const arrayValues = Array.isArray(values) ? values : [values];
-    setSearchProviderFilters({
-      ...searchProviderFilters,
-      [filterKey]: arrayValues,
-    });
-  };
+  const YEARS_OF_EXPERIENCE_OPTIONS = [
+    { value: "all", label: t("search.options.all") },
+    { value: "1", label: t("search.options.years.1") },
+    { value: "3", label: t("search.options.years.3") },
+    { value: "5", label: t("search.options.years.5") },
+    { value: "10", label: t("search.options.years.10") },
+  ];
+
+  const RADIO_OPTIONS = [
+    { value: "all", label: t("search.options.all") },
+    { value: "5", label: t("search.options.radio.1") },
+    { value: "10", label: t("search.options.radio.2") },
+    { value: "20", label: t("search.options.radio.3") },
+    { value: "30", label: t("search.options.radio.4") },
+    { value: "40", label: t("search.options.radio.5") },
+    { value: "50", label: t("search.options.radio.6") },
+  ];
+
+  const IDIOMAS_OPTIONS = [
+    { value: "all", label: t("search.options.all") },
+    { value: "Español", label: t("search.options.languages.spanish") },
+    { value: "Inglés", label: t("search.options.languages.english") },
+    { value: "Francés", label: t("search.options.languages.french") },
+  ];
+
+  const MODALIDAD_OPTIONS = [
+    { value: "all", label: t("search.options.all") },
+    { value: "presencial", label: t("search.options.modality.Presencial") },
+    { value: "teleconsulta", label: t("search.options.modality.Virtual") },
+    { value: "Mixta", label: t("search.options.modality.hibrido") },
+  ];
+
+  const GENERO_OPTIONS = [
+    { value: "all", label: t("search.options.all") },
+    { value: "M", label: t("search.options.gender.masculino") },
+    { value: "F", label: t("search.options.gender.femenino") },
+    { value: "O", label: t("search.options.gender.other") },
+  ];
+
+  const HORARIO_OPTIONS = [
+    { value: "all", label: t("search.options.all") },
+    { value: "mañana", label: t("search.options.schedule.mañana") },
+    { value: "tarde", label: t("search.options.schedule.tarde") },
+    { value: "noche", label: t("search.options.schedule.noche") },
+  ];
 
   return (
     <div className="grid grid-cols-2 gap-4 w-full">
       <MCFilterSelect
         name="providerType"
         label={t("search.providerType", "Tipo de Proveedor")}
-        options={tipoProveedorOptions}
+        options={[{ value: "all", label: t("search.options.all") }, ...tiposCentroOptions]}
         multiple
-        value={searchProviderFilters.providerType}
-        onChange={(values) => handleFilterChange("providerType", values)}
+        disabled={isLoadingCentro}
+        value={searchFilters.providerType}
+        onChange={(values) =>
+          onFilterChange(
+            "providerType",
+            Array.isArray(values) ? values : [values],
+          )
+        }
         noBadges
       />
       <MCFilterSelect
         name="specialty"
         label={t("search.specialty", "Especialidad")}
-        options={especialidadOptions}
+        options={[{ value: "all", label: t("search.options.all") }, ...especialidadesOptions]}
         multiple
-        value={searchProviderFilters.specialty}
-        onChange={(values) => handleFilterChange("specialty", values)}
+        disabled={isLoadingEspecialidades}
+        value={searchFilters.specialty}
+        onChange={(values) =>
+          onFilterChange(
+            "specialty",
+            Array.isArray(values) ? values : [values],
+          )
+        }
         noBadges
       />
       <MCFilterSelect
         name="modality"
         label={t("search.modality", "Modalidad")}
-        options={modalidadOptions}
-        multiple
-        value={searchProviderFilters.modality}
-        onChange={(values) => handleFilterChange("modality", values)}
+        options={MODALIDAD_OPTIONS}
+        multiple={false}
+        value={searchFilters.modality}
+        onChange={(values) => {
+          const val = Array.isArray(values) ? values[0] : values;
+          onFilterChange("modality", [val]);
+        }}
         noBadges
       />
       <MCFilterSelect
         name="gender"
         label={t("search.gender", "Género")}
-        options={generoOptions}
-        multiple
-        value={searchProviderFilters.gender}
-        onChange={(values) => handleFilterChange("gender", values)}
+        options={GENERO_OPTIONS}
+        multiple={false}
+        value={searchFilters.gender}
+        onChange={(values) => {
+          const val = Array.isArray(values) ? values[0] : values;
+          onFilterChange("gender", [val]);
+        }}
         noBadges
       />
       <MCFilterSelect
         name="languages"
         label={t("search.languages", "Idiomas")}
-        options={idiomasOptions}
-        multiple
-        value={searchProviderFilters.languages}
-        onChange={(values) => handleFilterChange("languages", values)}
+        options={IDIOMAS_OPTIONS}
+        multiple={false}
+        value={searchFilters.languages}
+        onChange={(values) => {
+          const val = Array.isArray(values) ? values[0] : values;
+          onFilterChange("languages", [val]);
+        }}
         noBadges
       />
       <MCFilterSelect
         name="scheduledAppointments"
         label={t("search.schedule", "Horario")}
-        options={horarioOptions}
-        multiple
-        value={searchProviderFilters.scheduledAppointments}
-        onChange={(values) =>
-          handleFilterChange("scheduledAppointments", values)
-        }
+        options={HORARIO_OPTIONS}
+        multiple={false}
+        value={searchFilters.scheduledAppointments}
+        onChange={(values) => {
+          const val = Array.isArray(values) ? values[0] : values;
+          onFilterChange("scheduledAppointments", [val]);
+        }}
         noBadges
       />
       <MCFilterSelect
         name="rating"
         label={t("search.rating", "Calificación")}
-        options={rankingOptions}
+        options={RATING_OPTIONS}
         multiple
         noBadges
         value={
-          searchProviderFilters.rating === null
-            ? ""
-            : Array.isArray(searchProviderFilters.rating)
-              ? searchProviderFilters.rating.map(String)
-              : String(searchProviderFilters.rating)
+          searchFilters.rating !== null
+            ? [String(searchFilters.rating)]
+            : ["all"]
         }
-        onChange={(values) => handleFilterChange("rating", values)}
+        onChange={(values) =>
+          onFilterChange("rating", Array.isArray(values) ? values : [values])
+        }
+      />
+      <MCFilterSelect
+        name="yearsOfExperience"
+        label={t("search.yearsOfExperience" , "Años de Experiencia")}
+        options={YEARS_OF_EXPERIENCE_OPTIONS}
+        multiple={false}
+        noBadges
+        value={
+          searchFilters.yearsOfExperience !== null
+            ? String(searchFilters.yearsOfExperience)
+            : "all"
+        }
+        onChange={(values) => {
+          const val = Array.isArray(values) ? values[0] : values;
+          const parsed = val === "all" ? null : Number(val);
+          onYearsChange(parsed);
+        }}
+      />
+      <MCFilterSelect
+        name="radio"
+        label={t("search.radio")}
+        options={RADIO_OPTIONS}
+        multiple={false}
+        noBadges
+        value={
+          searchFilters.radio !== null
+            ? String(searchFilters.radio)
+            : "all"
+        }
+        onChange={(values) => {
+          const val = Array.isArray(values) ? values[0] : values;
+          onFilterChange("radio", [val]);
+        }}
       />
     </div>
   );

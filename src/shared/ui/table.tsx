@@ -64,36 +64,12 @@ function TableRow({ className, ...props }: React.ComponentProps<"tr">) {
 }
 
 function TableHead({ className, ...props }: React.ComponentProps<"th">) {
-  const ref = React.useRef<HTMLTableCellElement>(null);
-  const [alignment, setAlignment] = React.useState<string>("text-left");
-
-  React.useEffect(() => {
-    if (ref.current) {
-      const row = ref.current.parentElement;
-      if (row) {
-        const cells = Array.from(row.children);
-        const index = cells.indexOf(ref.current);
-        const totalCells = cells.length;
-
-        if (index === 0) {
-          setAlignment("text-start");
-        } else if (index === totalCells - 1) {
-          setAlignment("text-end");
-        } else {
-          setAlignment("text-center");
-        }
-      }
-    }
-  }, []);
-
   return (
     <th
-      ref={ref}
       data-slot="table-head"
       className={cn(
         // Quitado bg-primary/10
-        "text-foreground h-12 px-2 align-middle font-bold whitespace-nowrap text-base [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
-        alignment,
+        "text-foreground h-12 px-2 align-middle font-bold whitespace-nowrap text-base text-left [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
         className,
       )}
       {...props}
@@ -102,35 +78,11 @@ function TableHead({ className, ...props }: React.ComponentProps<"th">) {
 }
 
 function TableCell({ className, ...props }: React.ComponentProps<"td">) {
-  const ref = React.useRef<HTMLTableCellElement>(null);
-  const [alignment, setAlignment] = React.useState<string>("text-left");
-
-  React.useEffect(() => {
-    if (ref.current) {
-      const row = ref.current.parentElement;
-      if (row) {
-        const cells = Array.from(row.children);
-        const index = cells.indexOf(ref.current);
-        const totalCells = cells.length;
-
-        if (index === 0) {
-          setAlignment("text-start");
-        } else if (index === totalCells - 1) {
-          setAlignment("text-end");
-        } else {
-          setAlignment("text-center");
-        }
-      }
-    }
-  }, []);
-
   return (
     <td
-      ref={ref}
       data-slot="table-cell"
       className={cn(
-        "p-2 align-middle whitespace-nowrap [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
-        alignment,
+        "p-2 align-middle whitespace-nowrap text-left [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
         className,
       )}
       {...props}

@@ -3,6 +3,7 @@ import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import { AnimatePresence, motion, type Transition } from "motion/react";
 import useClickOutside from "@/lib/hooks/useClickOutside";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
+import { createPortal } from "react-dom";
 
 interface ImageCarouselModalProps {
   images: string[];
@@ -91,10 +92,11 @@ export const ImageCarouselModal = ({
     };
   }, [open, onClose, goNext, goPrev]);
 
-  return (
+  return createPortal(
     <AnimatePresence>
       {open && (
         <motion.div
+          style={{ zIndex: 9999 }}
           className="fixed inset-0 z-50 flex items-center justify-center"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -153,9 +155,8 @@ export const ImageCarouselModal = ({
               <>
                 <motion.button
                   onClick={goPrev}
-                  className={`absolute ${
-                    isMobile ? "left-2 p-2" : "left-4 p-3"
-                  } z-50 rounded-full bg-white/10 hover:bg-white/20 active:bg-white/25 transition-colors backdrop-blur-sm`}
+                  className={`absolute ${isMobile ? "left-2 p-2" : "left-4 p-3"
+                    } z-50 rounded-full bg-white/10 hover:bg-white/20 active:bg-white/25 transition-colors backdrop-blur-sm`}
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.2 }}
@@ -167,9 +168,8 @@ export const ImageCarouselModal = ({
                 </motion.button>
                 <motion.button
                   onClick={goNext}
-                  className={`absolute ${
-                    isMobile ? "right-2 p-2" : "right-4 p-3"
-                  } z-50 rounded-full bg-white/10 hover:bg-white/20 active:bg-white/25 transition-colors backdrop-blur-sm`}
+                  className={`absolute ${isMobile ? "right-2 p-2" : "right-4 p-3"
+                    } z-50 rounded-full bg-white/10 hover:bg-white/20 active:bg-white/25 transition-colors backdrop-blur-sm`}
                   initial={{ opacity: 0, x: 10 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.2 }}
@@ -201,11 +201,10 @@ export const ImageCarouselModal = ({
             {/* Thumbnail strip - Conditional rendering for mobile */}
             {images.length > 1 && (
               <motion.div
-                className={`absolute ${
-                  isMobile
-                    ? "bottom-2 px-2 py-2 gap-1.5"
-                    : "bottom-4 px-4 py-3 gap-2"
-                } left-1/2 -translate-x-1/2 z-50 flex rounded-xl sm:rounded-2xl bg-white/10 backdrop-blur-sm max-w-[95vw] sm:max-w-[90vw] overflow-x-auto scrollbar-hide`}
+                className={`absolute ${isMobile
+                  ? "bottom-2 px-2 py-2 gap-1.5"
+                  : "bottom-4 px-4 py-3 gap-2"
+                  } left-1/2 -translate-x-1/2 z-50 flex rounded-xl sm:rounded-2xl bg-white/10 backdrop-blur-sm max-w-[95vw] sm:max-w-[90vw] overflow-x-auto scrollbar-hide`}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
@@ -214,13 +213,11 @@ export const ImageCarouselModal = ({
                   <button
                     key={i}
                     onClick={() => setCurrentIndex(i)}
-                    className={`flex-shrink-0 ${
-                      isMobile ? "w-10 h-10 sm:w-12 sm:h-12" : "w-14 h-14"
-                    } rounded-md sm:rounded-lg overflow-hidden transition-all duration-200 ${
-                      i === currentIndex
+                    className={`flex-shrink-0 ${isMobile ? "w-10 h-10 sm:w-12 sm:h-12" : "w-14 h-14"
+                      } rounded-md sm:rounded-lg overflow-hidden transition-all duration-200 ${i === currentIndex
                         ? "ring-2 ring-white scale-110 opacity-100"
                         : "opacity-60 hover:opacity-100 active:opacity-100"
-                    }`}
+                      }`}
                     aria-label={`Ver imagen ${i + 1}`}
                   >
                     <img
@@ -250,6 +247,7 @@ export const ImageCarouselModal = ({
           </motion.div>
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 };

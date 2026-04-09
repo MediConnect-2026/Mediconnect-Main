@@ -7,21 +7,16 @@ export interface PrescriptionSlice {
   clearPrescription: () => void;
 }
 
+const defaultPrescription: Prescription = {
+  diagnosisTitle: "",
+  diagnosisDescription: "",
+  documents: [],
+};
+
 export const createPrescriptionSlice: StateCreator<PrescriptionSlice> = (
   set,
 ) => ({
-  prescription: {
-    diagnosisTitle: "",
-    diagnosisDescription: "",
-    documents: [],
-  },
+  prescription: defaultPrescription,
   addPrescription: (data) => set({ prescription: data }),
-  clearPrescription: () =>
-    set({
-      prescription: {
-        diagnosisTitle: "",
-        diagnosisDescription: "",
-        documents: [],
-      },
-    }),
+  clearPrescription: () => set({ prescription: defaultPrescription }),
 });

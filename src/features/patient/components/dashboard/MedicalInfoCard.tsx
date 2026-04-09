@@ -1,4 +1,4 @@
-import { Heart, AlertTriangle } from "lucide-react";
+import { Heart, AlertTriangle, Loader2 } from "lucide-react";
 import { Card, CardContent } from "@/shared/ui/card";
 import { motion } from "framer-motion";
 import { fadeInUp } from "@/lib/animations/commonAnimations";
@@ -13,6 +13,8 @@ interface MedicalInfoCardProps {
   bloodType: string;
   allergies: string[];
   conditions: string[];
+  isLoadingAllergies?: boolean;
+  isLoadingConditions?: boolean;
 }
 
 const MedicalInfoCard = ({
@@ -24,6 +26,8 @@ const MedicalInfoCard = ({
   bloodType,
   allergies,
   conditions,
+  isLoadingAllergies = false,
+  isLoadingConditions = false,
 }: MedicalInfoCardProps) => {
   const { t } = useTranslation("patient");
 
@@ -100,7 +104,11 @@ const MedicalInfoCard = ({
                   {t("clinicalHistory.allergies")}
                 </span>
               </div>
-              {allergies.length > 0 ? (
+              {isLoadingAllergies ? (
+                <div className="flex items-center justify-center py-2">
+                  <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+                </div>
+              ) : allergies.length > 0 ? (
                 allergies.map((allergy, idx) => (
                   <p key={idx} className="mt-1 text-sm text-muted-foreground">
                     {allergy}
@@ -120,10 +128,18 @@ const MedicalInfoCard = ({
                   {t("clinicalHistory.conditions")}
                 </span>
               </div>
-              {conditions.length > 0 ? (
+              {isLoadingConditions ? (
+                <div className="flex items-center justify-center py-2">
+                  <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+                </div>
+              ) : conditions.length > 0 ? (
                 conditions.map((condition, idx) => (
                   <p key={idx} className="mt-1 text-sm text-muted-foreground">
-                    {condition}
+                    {condition.startsWith("Condición Personal") || condition.startsWith("Personal status") ? (
+                      <span className="text-red-600">{t("clinicalHistory.personalConditionTitle")}</span>
+                    ) : (
+                      condition
+                    )}
                   </p>
                 ))
               ) : (

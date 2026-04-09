@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import type { Appointment } from "@/types/CalendarTypes";
 import { format } from "date-fns";
-import { es } from "date-fns/locale";
+import { enUS, es } from "date-fns/locale";
 import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
 import type { AppointmentStatus } from "@/types/CalendarTypes";
@@ -37,6 +37,8 @@ import { useIsMobile } from "@/lib/hooks/useIsMobile";
 import AcceptAppointment from "@/features/doctor/components/appointments/modals/AcceptAppointment";
 import RejectAppointment from "@/features/doctor/components/appointments/modals/RejectAppointment";
 import RescheduleAppointment from "@/features/doctor/components/appointments/modals/RescheduleAppointment";
+import { useStartConversation } from "@/lib/hooks/useStartConversation";
+import { formatTimeTo12h } from "@/utils/appointmentMapper";
 
 interface AppointmentDetailsProps {
   appointment: Appointment | null;
@@ -47,10 +49,19 @@ export const AppointmentDetails = ({
   appointment,
   onClose,
 }: AppointmentDetailsProps) => {
-  const userRole = useAppStore((state) => state.user?.role);
+  const userRole = useAppStore((state) => state.user?.rol);
   const { t } = useTranslation("common");
+  const { i18n } = useTranslation();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+  const language = i18n.resolvedLanguage || i18n.language;
+  const dateLocale = language.startsWith("en") ? enUS : es;
+  const dayDateFormat = language.startsWith("en")
+    ? "EEEE, MMMM d"
+    : "EEEE, d 'de' MMMM";
+
+  const { startConversation, isLoading: isStartingConversation } = useStartConversation();
+  console.log(appointment);
 
   const statusLabels: Record<AppointmentStatus, string> = {
     scheduled: t("calendar.status.scheduled"),
@@ -71,7 +82,11 @@ export const AppointmentDetails = ({
   const isUpcoming = ["scheduled", "pending", "in_progress"].includes(
     appointment?.status ?? "",
   );
-  const isVirtual = appointment?.modality === "virtual";
+
+  const modLower = appointment?.modality?.toLowerCase() || "";
+  const isVirtual = modLower.includes("virtual") || modLower.includes("teleconsulta");
+  const isPresencial = modLower.includes("presencial") || modLower.includes("in_person");
+
   const isInProgress = appointment?.status === "in_progress";
   const isPending = appointment?.status === "pending";
   const isScheduled = appointment?.status === "scheduled";
@@ -84,18 +99,18 @@ export const AppointmentDetails = ({
     );
   };
 
-  const handleCompleteAppointment = (appointmentId: string) => {
-    // Logic to mark as completed
-    console.log("Completing appointment:", appointmentId);
-  };
+  function handleChatClick(event: React.MouseEvent<HTMLButtonElement>): void {
+    event.stopPropagation(); // Evita que el clic se propague al contenedor padre
 
-  const handleContinueConsultation = (appointmentId: string) => {
+    const recipientId = userRole === "DOCTOR" ? appointment?.patientId : appointment?.doctorId;
+    if (recipientId) {
+      startConversation(Number(recipientId));
+    }
+  }
+
+  const handleAddMedicalDiagnosis = (appointmentId: string) => {
     navigate(ROUTES.DOCTOR.CONSULTATION.replace(":id", appointmentId));
   };
-
-  function handleChatClick(event: React.MouseEvent<HTMLButtonElement>): void {
-    // Implementation needed
-  }
 
   // Render actions based on user role and appointment status
   const renderActions = () => {
@@ -131,6 +146,24 @@ export const AppointmentDetails = ({
       if (isScheduled) {
         return (
           <div className="flex flex-col gap-2">
+            {isVirtual && (
+              <MCButton
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                size="sm"
+                onClick={() => handleJoin(appointment.id)}
+              >
+                {t("appointments.joinTeleconsult")}
+              </MCButton>
+            )}
+            {isPresencial && (
+              <MCButton
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                size="sm"
+                onClick={() => handleAddMedicalDiagnosis(appointment.id)}
+              >
+                {t("appointments.addMedicalDiagnosis")}
+              </MCButton>
+            )}
             <ViewDetailsAppointmentDialog appointmentId={appointment.id}>
               <MCButton className="w-full" size="sm">
                 {t("appointments.viewAppointment")}
@@ -141,7 +174,10 @@ export const AppointmentDetails = ({
                 {t("appointments.reschedule")}
               </MCButton>
             </RescheduleAppointment>
-            <CancelAppointmentDialog appointmentId={appointment.id}>
+            <CancelAppointmentDialog
+              appointmentId={appointment.id}
+              onCancelSuccess={onClose}
+            >
               <MCButton variant="outlineDelete" className="w-full" size="sm">
                 {t("appointments.cancel")}
               </MCButton>
@@ -176,37 +212,55 @@ export const AppointmentDetails = ({
               >
                 {t("appointments.joinTeleconsult")}
               </MCButton>
-              <MCButton
-                className="w-full bg-green-600 hover:bg-green-700 text-white"
-                size="sm"
-                onClick={() => handleCompleteAppointment(appointment.id)}
+              <ViewDetailsAppointmentDialog appointmentId={appointment.id}>
+                <MCButton className="w-full" size="sm">
+                  {t("appointments.viewAppointment")}
+                </MCButton>
+              </ViewDetailsAppointmentDialog>
+              <RescheduleAppointment appointmentId={appointment.id}>
+                <MCButton className="w-full" size="sm" variant="outline">
+                  {t("appointments.reschedule")}
+                </MCButton>
+              </RescheduleAppointment>
+              <CancelAppointmentDialog
+                appointmentId={appointment.id}
+                onCancelSuccess={onClose}
               >
-                {t("appointments.markCompleted")}
-              </MCButton>
+                <MCButton variant="outlineDelete" className="w-full" size="sm">
+                  {t("appointments.cancel")}
+                </MCButton>
+              </CancelAppointmentDialog>
             </div>
           );
         } else {
           return (
             <div className="flex flex-col gap-2">
               <ViewDetailsAppointmentDialog appointmentId={appointment.id}>
-                <MCButton className="w-full" size="sm" variant="outline">
+                <MCButton className="w-full" size="sm">
                   {t("appointments.viewAppointment")}
                 </MCButton>
               </ViewDetailsAppointmentDialog>
+              <RescheduleAppointment appointmentId={appointment.id}>
+                <MCButton className="w-full" size="sm" variant="outline">
+                  {t("appointments.reschedule")}
+                </MCButton>
+              </RescheduleAppointment>
+              <CancelAppointmentDialog
+                appointmentId={appointment.id}
+                onCancelSuccess={onClose}
+              >
+                <MCButton variant="outlineDelete" className="w-full" size="sm">
+                  {t("appointments.cancel")}
+                </MCButton>
+              </CancelAppointmentDialog>
               <MCButton
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white"
                 size="sm"
-                onClick={() => handleContinueConsultation(appointment.id)}
+                onClick={() => handleAddMedicalDiagnosis(appointment.id)}
               >
-                {t("appointments.continueConsultation")}
+                {t("appointments.addMedicalDiagnosis")}
               </MCButton>
-              <MCButton
-                className="w-full bg-green-600 hover:bg-green-700 text-white"
-                size="sm"
-                onClick={() => handleCompleteAppointment(appointment.id)}
-              >
-                {t("appointments.markCompleted")}
-              </MCButton>
+
             </div>
           );
         }
@@ -246,6 +300,15 @@ export const AppointmentDetails = ({
 
       return (
         <div className="flex flex-col gap-2">
+          {isScheduled && isVirtual && (
+            <MCButton
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+              size="sm"
+              onClick={() => handleJoin(appointment.id)}
+            >
+              {t("appointments.join")}
+            </MCButton>
+          )}
           <ViewDetailsAppointmentDialog appointmentId={appointment.id}>
             <MCButton className="w-full" size="sm">
               {t("appointments.viewDetails")}
@@ -259,7 +322,10 @@ export const AppointmentDetails = ({
               {t("appointments.reschedule")}
             </MCButton>
           </ScheduleAppointmentDialog>
-          <CancelAppointmentDialog appointmentId={appointment.id}>
+          <CancelAppointmentDialog
+            appointmentId={appointment.id}
+            onCancelSuccess={onClose}
+          >
             <MCButton variant="outlineDelete" className="w-full" size="sm">
               {t("appointments.cancel")}
             </MCButton>
@@ -360,6 +426,7 @@ export const AppointmentDetails = ({
                 variant="ghost"
                 size="icon"
                 onClick={handleChatClick}
+                disabled={isStartingConversation}
                 className="rounded-full h-6 w-6 sm:h-7 sm:w-7 flex-shrink-0 hover:bg-primary/10 hover:text-primary"
                 title={t("appointments.openChat")}
               >
@@ -403,10 +470,10 @@ export const AppointmentDetails = ({
             </div>
             <div className="min-w-0 flex-1">
               <p className="font-medium text-xs sm:text-sm">
-                {format(appointment.date, "EEEE, d 'de' MMMM", { locale: es })}
+                {format(appointment.date, dayDateFormat, { locale: dateLocale })}
               </p>
               <p className="text-xs text-muted-foreground">
-                {appointment.time} • {appointment.duration} min
+                {formatTimeTo12h(appointment.time)} • {appointment.duration} min
               </p>
             </div>
           </div>
@@ -414,7 +481,7 @@ export const AppointmentDetails = ({
           {/* Modality */}
           <div className="flex items-center gap-2 p-2.5 sm:p-3 sm:py-3 g-muted rounded-lg">
             <div className="w-7 h-7 sm:w-8 sm:h-8 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
-              {appointment.modality === "virtual" ? (
+              {appointment.modality.includes("virtual") || appointment.modality.includes("teleconsulta") ? (
                 <Video className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary" />
               ) : (
                 <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary" />
@@ -444,7 +511,7 @@ export const AppointmentDetails = ({
                 </p>
                 {appointment.price && (
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    ${appointment.price.toLocaleString("es-MX")} MXN
+                    RD$ {appointment.price}
                     {appointment.numberOfSessions &&
                       appointment.numberOfSessions > 1 &&
                       ` • ${appointment.numberOfSessions} sesiones`}
@@ -509,6 +576,18 @@ export const AppointmentDetails = ({
             </h4>
             <div className="bg-muted rounded-lg ">
               <p className="text-xs leading-relaxed">{appointment.notes}</p>
+            </div>
+          </div>
+        )}
+
+        {/* Cancel Reason */}
+        {isCancelled && appointment.cancelReason && (
+          <div className="p-2.5 sm:p-3 bg-[#C62828]/10 border border-[#C62828]/20 rounded-lg flex flex-col gap-2">
+            <h4 className="text-base font-semibold text-[#C62828]">
+              {t("calendar.cancelReason", { defaultValue: "Razón de cancelación" })}
+            </h4>
+            <div>
+              <p className="text-xs leading-relaxed text-[#C62828]">{appointment.cancelReason}</p>
             </div>
           </div>
         )}

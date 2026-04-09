@@ -14,7 +14,19 @@ function AuthLayout() {
   useEffect(() => {
     return () => {
       const currentPath = window.location.pathname;
-      if (!currentPath.startsWith("/auth")) {
+      // Rutas del flujo de autenticación que deben preservar el estado
+      const authFlowPaths = [
+        "/auth",
+        "/forgot-password",
+        "/verify-email",
+        "/reset-password",
+        "/password-success",
+        "/login"
+      ];
+      
+      const isAuthFlow = authFlowPaths.some(path => currentPath.startsWith(path));
+      
+      if (!isAuthFlow) {
         clearOnboarding();
         clearAuthFlow();
         setAccessPage(false, [], "Auth flow exited");

@@ -1,4 +1,3 @@
-import type { number } from "zod";
 
 export type AppointmentStatus =
   | "scheduled"
@@ -22,11 +21,12 @@ export interface Appointment {
   type: "consulta" | "revision" | "urgencia" | "seguimiento";
   status: AppointmentStatus;
   notes?: string;
+  cancelReason?: string;
   patientPhone?: string;
   patientEmail?: string;
   doctorEmail?: string;
   doctorPhone?: string;
-  modality?: "presencial" | "virtual";
+  modality?: any | "presencial" | "virtual";
   address?: string;
   location: {
     lat: number;

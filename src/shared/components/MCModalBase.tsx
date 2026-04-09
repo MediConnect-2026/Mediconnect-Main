@@ -1,5 +1,5 @@
 import type React from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useImperativeHandle, useState } from "react";
 import MCButton from "@/shared/components/forms/MCButton";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
 import {
@@ -21,30 +21,34 @@ interface MCModalBaseProps {
   triggerClassName?: string;
   title?: string;
   size?:
-    | "sm"
-    | "smWide"
-    | "md"
-    | "mdAuto"
-    | "lg"
-    | "lgAuto"
-    | "xl"
-    | "2xl"
-    | "wider"
-    | "image-preview";
+  | "sm"
+  | "smWide"
+  | "md"
+  | "mdAuto"
+  | "lg"
+  | "lgAuto"
+  | "xl"
+  | "2xl"
+  | "wider"
+  | "image-preview";
   className?: string;
   variant?: "warning" | "confirm" | "decide" | "info";
-  onConfirm?: () => void;
+  onConfirm?: () => void | Promise<void>;
   onSecondary?: () => void;
-  confirmText?: string;
-  secondaryText?: string;
+  confirmText?: React.ReactNode | string;
+  secondaryText?: React.ReactNode | string;
   typeclose?: "Arrow" | "X";
   zIndex?: number;
+  closeRef?: React.RefObject<{ close: () => void } | null>;
   borderHeader?: boolean;
   borderFooter?: boolean;
   actionOne?: boolean;
   defaultOpen?: boolean;
   disabledConfirm?: boolean; // Nueva prop para deshabilitar el botón de confirmar
   description?: string; // <-- Agrega esta línea
+  autoCloseOnConfirm?: boolean;
+  hideConfirm?: boolean; // Nueva prop para ocultar el botón de confirmar
+  showConfirm?: boolean; // Prop para controlar la visibilidad del botón de confirmar (opcional, si se prefiere sobre hideConfirm)
 }
 
 export function MCModalBase({
@@ -60,6 +64,7 @@ export function MCModalBase({
   variant = "info",
   onConfirm,
   onSecondary,
+  closeRef,
   confirmText = "Confirmar",
   secondaryText = "Cancelar",
   zIndex = 50,
@@ -68,16 +73,24 @@ export function MCModalBase({
   actionOne = false,
   defaultOpen = false,
   disabledConfirm = false, // Valor por defecto
+  hideConfirm = false, // Nueva prop para ocultar el botón de confirmar
   description = "", // <-- Agrega aquí
+  showConfirm = true, // Valor por defecto para mostrar el botón de confirmar
+  autoCloseOnConfirm = true,
 }: MCModalBaseProps) {
   const isControlled = externalIsOpen !== undefined;
   const isMobile = useIsMobile();
 
   const [internalIsOpen, setInternalIsOpen] = useState(defaultOpen);
+  const [isConfirming, setIsConfirming] = useState(false);
 
   const isOpen = isControlled ? externalIsOpen : internalIsOpen;
 
   const handleOpenChange = (open: boolean) => {
+    if (!open && isConfirming) {
+      return;
+    }
+
     if (!open) {
       if (isControlled) {
         onClose?.();
@@ -90,6 +103,10 @@ export function MCModalBase({
       }
     }
   };
+
+  useImperativeHandle(closeRef, () => ({
+    close: () => handleOpenChange(false)
+  }));
 
   useEffect(() => {
     if (!isOpen) return;
@@ -130,9 +147,23 @@ export function MCModalBase({
   const contentPadding = isMobile ? "px-4 py-2" : "px-6 py-2";
   const footerPadding = isMobile ? "px-4 pb-4 pt-3" : "px-6 pb-4 pt-3";
 
-  const handleConfirm = () => {
-    onConfirm?.();
-    handleOpenChange(false);
+  const handleConfirm = async () => {
+    if (disabledConfirm || isConfirming) {
+      return;
+    }
+
+    setIsConfirming(true);
+
+    try {
+      await onConfirm?.();
+      if (autoCloseOnConfirm) {
+        handleOpenChange(false);
+      }
+    } catch {
+      // Keep the modal open if confirmation fails.
+    } finally {
+      setIsConfirming(false);
+    }
   };
 
   const handleSecondary = () => {
@@ -155,7 +186,7 @@ export function MCModalBase({
           {trigger}
         </MorphingDialogTrigger>
       )}
-      <MorphingDialogContainer className={paddingClasses}>
+      <MorphingDialogContainer className={paddingClasses} style={{ zIndex }}>
         <MorphingDialogContent
           className={`bg-bg-secondary rounded-3xl shadow-lg ${sizeClasses[size]} ${className} flex flex-col dark:border dark:border-primary/15`}
         >
@@ -170,9 +201,8 @@ export function MCModalBase({
               {title && (
                 <MorphingDialogTitle>
                   <h2
-                    className={`font-semibold text-primary dark:text-primary-dark ${
-                      isMobile ? "text-lg" : "text-xl"
-                    }`}
+                    className={`font-semibold text-primary dark:text-primary-dark ${isMobile ? "text-lg" : "text-xl"
+                      }`}
                   >
                     {title}
                   </h2>
@@ -187,11 +217,10 @@ export function MCModalBase({
 
           {/* Content con scroll vertical oculto */}
           <MorphingDialogDescription
-            className={`${contentPadding} flex-1 min-h-0 text-gray-600 dark:text-gray-300 ${
-              size === "wider"
+            className={`${contentPadding} flex-1 min-h-0 text-gray-600 dark:text-gray-300 ${size === "wider"
                 ? "overflow-x-auto overflow-y-auto scrollbar-hide"
                 : "overflow-y-auto scrollbar-hide"
-            }`}
+              }`}
           >
             {/* Muestra la descripción si existe */}
             {description && (
@@ -205,17 +234,17 @@ export function MCModalBase({
           {/* Footer */}
           {!actionOne && variant === "warning" && (
             <div
-              className={`flex gap-2 justify-end ${footerPadding} flex-shrink-0 ${
-                borderFooter
+              className={`flex gap-2 justify-end ${footerPadding} flex-shrink-0 ${borderFooter
                   ? "border-t border-gray-100 dark:border-neutral-800"
                   : ""
-              } ${isMobile ? "flex-col-reverse" : ""}`}
+                } ${isMobile ? "flex-col-reverse" : ""}`}
             >
               <MCButton
                 variant="secondary"
                 size={isMobile ? "l" : "m"}
                 onClick={handleSecondary}
                 className={isMobile ? "w-full" : ""}
+                disabled={isConfirming}
               >
                 {secondaryText}
               </MCButton>
@@ -224,7 +253,7 @@ export function MCModalBase({
                 size={isMobile ? "l" : "m"}
                 onClick={handleConfirm}
                 className={isMobile ? "w-full" : ""}
-                disabled={disabledConfirm}
+                disabled={disabledConfirm || isConfirming}
               >
                 {confirmText}
               </MCButton>
@@ -233,18 +262,17 @@ export function MCModalBase({
 
           {!actionOne && variant === "confirm" && (
             <div
-              className={`flex justify-end ${footerPadding} flex-shrink-0 ${
-                borderFooter
+              className={`flex justify-end ${footerPadding} flex-shrink-0 ${borderFooter
                   ? "border-t border-gray-100 dark:border-neutral-800"
                   : ""
-              }`}
+                }`}
             >
               <MCButton
                 variant="primary"
                 size={isMobile ? "l" : "m"}
                 onClick={handleConfirm}
                 className={isMobile ? "w-full" : ""}
-                disabled={disabledConfirm}
+                disabled={disabledConfirm || isConfirming}
               >
                 {confirmText}
               </MCButton>
@@ -253,29 +281,31 @@ export function MCModalBase({
 
           {!actionOne && variant === "decide" && (
             <div
-              className={`flex gap-2 justify-end ${footerPadding} flex-shrink-0 ${
-                borderFooter
+              className={`flex gap-2 justify-end ${footerPadding} flex-shrink-0 ${borderFooter
                   ? "border-t border-gray-100 dark:border-neutral-800"
                   : ""
-              } ${isMobile ? "flex-col-reverse" : ""}`}
+                } ${isMobile ? "flex-col-reverse" : ""}`}
             >
               <MCButton
                 variant="secondary"
                 size={isMobile ? "l" : "m"}
                 onClick={handleSecondary}
                 className={isMobile ? "w-full" : ""}
+                disabled={isConfirming}
               >
                 {secondaryText}
               </MCButton>
-              <MCButton
-                variant="primary"
-                size={isMobile ? "l" : "m"}
-                onClick={handleConfirm}
-                className={isMobile ? "w-full" : ""}
-                disabled={disabledConfirm}
-              >
-                {confirmText}
-              </MCButton>
+              {showConfirm && !hideConfirm && (
+                <MCButton
+                  variant="primary"
+                  size={isMobile ? "l" : "m"}
+                  onClick={handleConfirm}
+                  className={isMobile ? "w-full" : ""}
+                  disabled={disabledConfirm || isConfirming}
+                >
+                  {confirmText}
+                </MCButton>
+              )}
             </div>
           )}
         </MorphingDialogContent>

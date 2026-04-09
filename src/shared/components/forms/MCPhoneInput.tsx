@@ -2,6 +2,7 @@ import { Input } from "@/shared/ui/input";
 import { useFormContext } from "react-hook-form";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
+import { formatPhone } from "@/utils/phoneFormat";
 
 interface MCPhoneInputProps {
   name: string;
@@ -41,39 +42,8 @@ function MCPhoneInput({
   format = "do",
   countryCode,
 }: MCPhoneInputProps) {
-  const formContext = standalone ? null : useFormContext();
+  const formContext = useFormContext();
   const [displayValue, setDisplayValue] = useState("");
-
-  const formatPhoneNumber = (input: string): string => {
-    // Remover todo excepto números
-    const numbers = input.replace(/\D/g, "");
-
-    // Aplicar formato según el tipo
-    if (format === "us") {
-      // Formato US: (XXX) XXX-XXXX
-      if (numbers.length === 0) return "";
-      if (numbers.length <= 3) return numbers;
-      if (numbers.length <= 6)
-        return `(${numbers.slice(0, 3)}) ${numbers.slice(3)}`;
-      return `(${numbers.slice(0, 3)}) ${numbers.slice(3, 6)}-${numbers.slice(6, 10)}`;
-    } else if (format === "do") {
-      // Formato DO: XXX-XXX-XXXX
-      if (numbers.length === 0) return "";
-      if (numbers.length <= 3) return numbers;
-      if (numbers.length <= 6)
-        return `${numbers.slice(0, 3)}-${numbers.slice(3)}`;
-      return `${numbers.slice(0, 3)}-${numbers.slice(3, 6)}-${numbers.slice(6, 10)}`;
-    } else {
-      // Formato internacional genérico
-      if (numbers.length === 0) return "";
-      if (numbers.length <= 3) return numbers;
-      if (numbers.length <= 6)
-        return `${numbers.slice(0, 3)}-${numbers.slice(3)}`;
-      if (numbers.length <= 9)
-        return `${numbers.slice(0, 3)}-${numbers.slice(3, 6)}-${numbers.slice(6)}`;
-      return `${numbers.slice(0, 3)}-${numbers.slice(3, 6)}-${numbers.slice(6, 9)}-${numbers.slice(9, 13)}`;
-    }
-  };
 
   const getUnformattedValue = (formatted: string): string => {
     return formatted.replace(/\D/g, "");
@@ -138,7 +108,11 @@ function MCPhoneInput({
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const inputValue = e.target.value;
-    const formatted = formatPhoneNumber(inputValue);
+    const formatted = formatPhone(inputValue, {
+      style: format,
+      partial: true,
+      preserveOriginalOnInvalid: false,
+    });
     const unformatted = getUnformattedValue(formatted);
 
     setDisplayValue(formatted);
@@ -165,7 +139,13 @@ function MCPhoneInput({
   // Props del input
   const inputProps = standalone
     ? {
-        value: displayValue || formatPhoneNumber(value || ""),
+        value:
+          displayValue ||
+          formatPhone(value || "", {
+            style: format,
+            partial: true,
+            preserveOriginalOnInvalid: false,
+          }),
         onChange: handlePhoneChange,
       }
     : (() => {
@@ -175,7 +155,12 @@ function MCPhoneInput({
         return {
           ...field,
           value:
-            displayValue || formatPhoneNumber(formContext.watch(name) || ""),
+            displayValue ||
+            formatPhone(formContext.watch(name) || "", {
+              style: format,
+              partial: true,
+              preserveOriginalOnInvalid: false,
+            }),
           onChange: handlePhoneChange,
         };
       })();

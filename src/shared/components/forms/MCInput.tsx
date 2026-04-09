@@ -6,6 +6,7 @@ import { Button } from "@/shared/ui/button";
 import { cn } from "@/lib/utils";
 import { useState, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { formatDominicanCedula } from "@/utils/identityDocument";
 
 interface MCInputProps {
   name: string;
@@ -24,6 +25,7 @@ interface MCInputProps {
   variant?:
     | "edit"
     | "default"
+    | "exequatur"
     | "cedula"
     | "time"
     | "decideHour"
@@ -31,6 +33,8 @@ interface MCInputProps {
     | "internal-horizontal";
   standalone?: boolean;
   icon?: React.ReactNode;
+  // Nueva prop para establecer fecha máxima (útil para fechas de nacimiento)
+  maxDate?: string;
   internalTitle?: string;
   internalPlaceholder?: string;
   displayMode?: "placeholder" | "value";
@@ -39,11 +43,13 @@ interface MCInputProps {
   maxLength?: number;
 }
 
-function formatCedula(value: string) {
-  const digits = value.replace(/\D/g, "").slice(0, 11);
+function formatExequatur(value: string) {
+  // Solo números, máximo 5 dígitos
+  const digits = value.replace(/\D/g, "").slice(0, 5);
+  // Formato visual: xxx-xx
   if (digits.length <= 3) return digits;
-  if (digits.length <= 10) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
-  return `${digits.slice(0, 3)}-${digits.slice(3, 10)}-${digits.slice(10)}`;
+  return `${digits.slice(0, 3)}-${digits.slice(3)}`;
+
 }
 
 function formatTime(value: string): string {
@@ -76,6 +82,7 @@ function MCInput({
   variant = "default",
   standalone = false,
   icon,
+  maxDate,
   internalTitle,
   internalPlaceholder,
   displayMode = "placeholder",
@@ -83,7 +90,7 @@ function MCInput({
   customDisplayValue,
   maxLength,
 }: MCInputProps) {
-  const formContext = standalone ? null : useFormContext();
+  const formContext = useFormContext();
   const { t } = useTranslation("common");
   const [passwordVisibility, setPasswordVisibility] = useState(false);
   const [cedulaValue, setCedulaValue] = useState(value || "");
@@ -152,6 +159,13 @@ function MCInput({
     }
     return "";
   };
+
+  // Detectar si es campo de cédula o exequatur
+  const isCedulaVariant = variant === "cedula";
+  const isExequaturVariant = variant === "exequatur";
+
+  // Estado local para mostrar el exequatur formateado
+  const [exequaturValue, setExequaturValue] = useState(value || "");
 
   const handleNumberKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (["e", "E", "+", "-", "."].includes(e.key)) {
@@ -241,7 +255,6 @@ function MCInput({
     }
   }, [timeValue, variant]);
 
-  const isCedulaVariant = variant === "cedula";
   const isTimeVariant = variant === "time";
   const isDecideHourVariant = variant === "decideHour";
   const isInternalVariant =
@@ -250,10 +263,9 @@ function MCInput({
   const isHorizontalLayout = variant === "internal-horizontal";
 
   const handleCedulaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const formatted = formatCedula(e.target.value);
+    const formatted = formatDominicanCedula(e.target.value);
     setCedulaValue(formatted);
     const onlyDigits = formatted.replace(/\D/g, "");
-
     if (standalone) {
       const syntheticEvent = {
         ...e,
@@ -263,6 +275,27 @@ function MCInput({
       onChange?.(syntheticEvent);
     } else {
       formContext?.setValue(name, onlyDigits, { shouldValidate: true });
+      // IMPORTANTE: También llamar al onChange prop si existe
+      // para que el componente padre pueda actualizar su estado
+      if (onChange) {
+        onChange({ ...e, target: { ...e.target, value: onlyDigits } });
+      }
+    }
+  };
+
+  const handleExequaturChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatExequatur(e.target.value);
+    setExequaturValue(formatted);
+    // Enviar solo los números al formulario
+    const onlyDigits = formatted.replace(/\D/g, "");
+    
+    if (standalone) {
+      onChange?.({ ...e, target: { ...e.target, value: onlyDigits } });
+    } else {
+      formContext?.setValue(name, onlyDigits, { shouldValidate: true });
+      if (onChange) {
+        onChange({ ...e, target: { ...e.target, value: onlyDigits } });
+      }
     }
   };
 
@@ -272,13 +305,17 @@ function MCInput({
         value: cedulaValue,
         onChange: handleCedulaChange,
       }
-    : isTimeVariant
+    : isExequaturVariant
       ? {
-          value: timeValue,
-          onChange: handleTimeChange,
-          placeholder: "00:00:00",
+          value: exequaturValue,
+          onChange: handleExequaturChange,
         }
-      : isDecideHourVariant
+      : isTimeVariant
+        ? {
+            value: timeValue,
+            onChange: handleTimeChange,
+          }
+        : isDecideHourVariant
         ? {
             value: timeValue,
             onChange: handleDecideHourChange,
@@ -306,6 +343,25 @@ function MCInput({
             })();
 
   const error = !standalone && formContext?.formState?.errors?.[name];
+
+  // Calcular atributos adicionales para inputs de fecha
+  const getDateAttributes = () => {
+    if (type !== "date") return {};
+    
+    const attributes: { max?: string } = {};
+    
+    // Si se proporciona maxDate explícitamente, usarlo
+    if (maxDate) {
+      attributes.max = maxDate;
+    } 
+    // Si es un campo de fecha de nacimiento, establecer máximo a hoy
+    else if (name === "birthDate" || name === "fechaNacimiento") {
+      const today = new Date().toISOString().split('T')[0];
+      attributes.max = today;
+    }
+    
+    return attributes;
+  };
 
   const getCurrentValue = () => {
     if (isCedulaVariant) return cedulaValue;
@@ -370,7 +426,7 @@ function MCInput({
         </div>
       )}
 
-      {/* LAYOUT VERTICAL */}
+      {/* Input Container */}
       {isVerticalLayout ? (
         <div className="border border-primary/50 rounded-full px-4 sm:px-5 py-3 cursor-pointer">
           {internalTitle && (
@@ -398,6 +454,7 @@ function MCInput({
                 onKeyDown={type === "number" ? handleNumberKeyDown : undefined}
                 onInput={type === "number" ? handleNumberInput : undefined}
                 {...inputProps}
+                {...getDateAttributes()}
                 className={cn(
                   "h-fit px-0 border-none w-full text-left placeholder:text-left focus:ring-0 focus:outline-none",
                   "text-primary/60 placeholder:text-primary/60 text-sm sm:text-base cursor-pointer",
@@ -439,6 +496,7 @@ function MCInput({
                   required={required}
                   disabled={isInternalDisabled}
                   {...inputProps}
+                  {...getDateAttributes()}
                   className={cn(
                     "h-fit w-full px-0 border-none text-right placeholder:text-right focus:ring-0 focus:outline-none cursor-pointer",
                     "text-primary/60 placeholder:text-primary/60 text-sm sm:text-base",
@@ -488,6 +546,7 @@ function MCInput({
             onKeyDown={type === "number" ? handleNumberKeyDown : undefined}
             onInput={type === "number" ? handleNumberInput : undefined}
             {...inputProps}
+            {...getDateAttributes()}
             maxLength={maxLength}
             className={cn(
               "w-full rounded-4xl focus:ring-0 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 text-primary placeholder:text-md",

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Select,
   SelectContent,
@@ -30,6 +30,7 @@ interface MCSelectProps {
   searchable?: boolean;
   onChange?: (value: string | string[]) => void;
   labelPosition?: LabelPosition;
+  value?: string;
 }
 
 function MCSelect({
@@ -48,6 +49,7 @@ function MCSelect({
   searchable = false,
   onChange,
   labelPosition = "left",
+  value: externalValue,
 }: MCSelectProps) {
   const { t } = useTranslation("common");
 
@@ -58,12 +60,20 @@ function MCSelect({
     formState: { errors },
   } = useFormContext();
 
-  const [selectedValues, setSelectedValues] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const currentValue = watch(name);
+  const selectedValues =
+    multiple && Array.isArray(currentValue) ? currentValue : [];
 
   // Use translation for default placeholder
   const defaultPlaceholder = placeholder || t("ui.select.placeholder");
+
+  useEffect(() => {
+    if (externalValue === undefined) return;
+    if (currentValue !== externalValue) {
+      setValue(name, externalValue, { shouldValidate: true, shouldDirty: true });
+    }
+  }, [externalValue]);
 
   const handleStatusColor = () => {
     switch (status) {
@@ -104,11 +114,10 @@ function MCSelect({
         ? selectedValues.filter((v) => v !== value)
         : [...selectedValues, value];
 
-      setSelectedValues(newValues);
-      setValue(name, newValues);
+      setValue(name, newValues, { shouldValidate: true, shouldDirty: true });
       onChange?.(newValues);
     } else {
-      setValue(name, value);
+      setValue(name, value, { shouldValidate: true, shouldDirty: true });
       onChange?.(value);
     }
     setSearchQuery(""); // Limpiar búsqueda después de seleccionar
@@ -116,8 +125,7 @@ function MCSelect({
 
   const removeValue = (valueToRemove: string) => {
     const newValues = selectedValues.filter((v) => v !== valueToRemove);
-    setSelectedValues(newValues);
-    setValue(name, newValues);
+    setValue(name, newValues, { shouldValidate: true, shouldDirty: true });
     onChange?.(newValues);
   };
 

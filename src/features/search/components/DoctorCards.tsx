@@ -11,7 +11,10 @@ import { type Doctor } from "@/data/providers";
 import { cn } from "@/lib/utils";
 import { useAppStore } from "@/stores/useAppStore";
 import MCButton from "@/shared/components/forms/MCButton";
-import React, { useState } from "react";
+import React, { useState, memo } from "react";
+import { MCDialogBase } from "@/shared/components/MCDialogBase";
+import { useGlobalUIStore } from "@/stores/useGlobalUIStore";
+import { doctorService } from "@/shared/navigation/userMenu/editProfile/doctor/services";
 import { useNavigate } from "react-router-dom";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/tooltip";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
@@ -26,10 +29,10 @@ interface DoctorCardsProps {
   onSelect: (id: string) => void;
   onViewProfile: (id: string) => void;
   connectionStatus?: "connected" | "not_connected" | "pending";
-  onConnect?: (id: string) => void;
+  onConnect?: (id: string, message?: string) => void;
 }
 
-export const DoctorCards = ({
+const DoctorCardsComponent = ({
   doctor,
   isSelected,
   onSelect,
@@ -37,15 +40,58 @@ export const DoctorCards = ({
   connectionStatus = "not_connected",
   onConnect,
 }: DoctorCardsProps) => {
-  const userRole = useAppStore((state) => state.user?.role);
+  const userRole = useAppStore((state) => state.user?.rol);
   const [isFavorite, setIsFavorite] = useState(doctor.isFavorite ?? false);
+  const [favoriteDialogOpen, setFavoriteDialogOpen] = useState(false);
+  const [favoriteLoading, setFavoriteLoading] = useState(false);
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const { t } = useTranslation("common");
+  const setToast = useGlobalUIStore((state) => state.setToast);
 
   const handleFavoriteToggle = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setIsFavorite((prev) => !prev);
+    // Open confirm dialog instead of toggling immediately
+    setFavoriteDialogOpen(true);
+  };
+
+  const confirmToggleFavorite = async () => {
+    setFavoriteLoading(true);
+    try {
+      if (isFavorite) {
+        // Eliminar de favoritos
+        await doctorService.removeDoctorFromFavorites(parseInt(doctor.id, 10));
+        setIsFavorite(false);
+        setToast?.({
+          type: "success",
+          message: t("doctorCard.favoriteRemoved") || "Doctor eliminado de favoritos",
+          open: true,
+        });
+      } else {
+        // Agregar a favoritos
+        await doctorService.addDoctorToFavorites(parseInt(doctor.id, 10));
+        setIsFavorite(true);
+        setToast?.({
+          type: "success",
+          message: t("doctorCard.favoriteAdded") || "Doctor agregado a favoritos",
+          open: true,
+        });
+      }
+      setFavoriteDialogOpen(false);
+    } catch (err: any) {
+      console.error("Failed to toggle favorite", err);
+      setToast?.({
+        type: "error",
+        message:
+          err?.message || 
+          (isFavorite 
+            ? t("doctorCard.favoriteRemoveError") || "No se pudo eliminar de favoritos"
+            : t("doctorCard.favoriteAddError") || "No se pudo agregar a favoritos"),
+        open: true,
+      });
+    } finally {
+      setFavoriteLoading(false);
+    }
   };
 
   const handleConfirmConnect = () => {
@@ -66,7 +112,30 @@ export const DoctorCards = ({
   }
 
   return (
-    <div
+    <>  
+      <MCDialogBase
+        open={favoriteDialogOpen}
+        onOpenChange={(o) => setFavoriteDialogOpen(o)}
+        title={
+          isFavorite
+            ? t("doctorCard.confirmRemoveFavoriteTitle") || "Eliminar de favoritos"
+            : t("doctorCard.confirmFavoriteTitle") || "Agregar a favoritos"
+        }
+        description={
+          isFavorite
+            ? t("doctorCard.confirmRemoveFavoriteDescription", { name: doctor.name }) ||
+              `¿Deseas eliminar a ${doctor.name} de tus favoritos?`
+            : t("doctorCard.confirmFavoriteDescription", { name: doctor.name }) ||
+              `¿Deseas agregar a ${doctor.name} a tus favoritos?`
+        }
+        confirmText={t("common.confirm") || "Confirmar"}
+        secondaryText={t("common.cancel") || "Cancelar"}
+        onConfirm={confirmToggleFavorite}
+        onSecondary={() => setFavoriteDialogOpen(false)}
+        variant="confirm"
+        loading={favoriteLoading}
+      > </MCDialogBase>
+      <div
       className={cn(
         "bg-background p-3 sm:p-4 border-b transition-all duration-200",
         isSelected
@@ -417,11 +486,11 @@ export const DoctorCards = ({
                             )}
                           >
                             {isMobile
-                              ? slot.dayName.substring(0, 3)
-                              : slot.dayName}
+                              ? `${slot.dayName.substring(0, 3)}`
+                              : `${slot.dayName}`}
                           </span>
                           <span className="text-muted-foreground text-[9px] sm:text-[10px]">
-                            {slot.date}
+                            {slot.month} {slot.date}
                           </span>
                           <span
                             className={cn(
@@ -459,7 +528,7 @@ export const DoctorCards = ({
                             : slot.dayName}
                         </span>
                         <span className="text-muted-foreground text-[9px] sm:text-[10px]">
-                          {slot.date}
+                          {slot.month} {slot.date}
                         </span>
                         <span
                           className={cn(
@@ -576,5 +645,8 @@ export const DoctorCards = ({
         </div>
       </div>
     </div>
+    </>
   );
 };
+
+export const DoctorCards = memo(DoctorCardsComponent);

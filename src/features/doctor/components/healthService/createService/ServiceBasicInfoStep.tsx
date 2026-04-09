@@ -10,7 +10,11 @@ import PriceModal from "./Modals/PriceModal";
 import DurationModal from "./Modals/DurationModal";
 import MCSelect from "@/shared/components/forms/MCSelect";
 import MCInput from "@/shared/components/forms/MCInput";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { especialidadesService } from "@/features/onboarding/services/especialidades.service";
+import { formatCurrency } from "@/utils/formatCurrency";
+import type { SelectOption } from "@/features/onboarding/services/especialidades.types";
+import i18n from "@/i18n/config";
 
 function ServiceBasicInfoStep() {
   const { t } = useTranslation("doctor");
@@ -19,12 +23,18 @@ function ServiceBasicInfoStep() {
 
   const basicInfoSchema = serviceSchema(t).pick({
     specialty: true,
+    specialityName: true,
     selectedModality: true,
     pricePerSession: true,
     description: true,
     numberOfSessions: true,
     duration: true,
   });
+
+  const [especialidadesOptions, setEspecialidadesOptions] = useState<SelectOption[]>([]);
+  const [loadingEspecialidades, setLoadingEspecialidades] = useState(true);
+  const [isFormValid, setIsFormValid] = useState(false);
+
 
   const createServiceData = useCreateServicesStore((s) => s.createServiceData);
   const setCreateServiceData = useCreateServicesStore(
@@ -34,6 +44,8 @@ function ServiceBasicInfoStep() {
   const goToNextStep = useCreateServicesStore((s) => s.goToNextStep);
   const goToPreviousStep = useCreateServicesStore((s) => s.goToPreviousStep);
 
+
+  // Actualizar el formulario cuando cambien los datos del store
   useEffect(() => {
     if (formRef.current) {
       formRef.current.setValue(
@@ -48,17 +60,57 @@ function ServiceBasicInfoStep() {
         "pricePerSession",
         createServiceData.pricePerSession || 1,
       );
+
+      if (createServiceData.description) {
+        formRef.current.setValue(
+          "description",
+          createServiceData.description || "",
+        );
+      }
+      
       formRef.current.setValue(
-        "description",
-        createServiceData.description || "",
+        "selectedModality",
+        createServiceData.selectedModality || "presencial",
+      );
+      formRef.current.setValue(
+        "specialty",
+        createServiceData.specialty || "",
+        { shouldValidate: true },
+      );
+      formRef.current.setValue(
+        "specialityName",
+        createServiceData.specialityName || "",
+        { shouldValidate: true },
       );
     }
   }, [
+    createServiceData.specialty,
+    createServiceData.selectedModality,
     createServiceData.numberOfSessions,
     createServiceData.duration,
     createServiceData.pricePerSession,
     createServiceData.description,
+    createServiceData.specialityName,
   ]);
+
+  //Cargar especialidades para el select
+  useEffect(() => {
+    const fetchEspecialidades = async () => {
+      setLoadingEspecialidades(true);
+      try {
+        const language = i18n.language === "es" ? "es" : i18n.language; // Obtener el idioma actual, por defecto español
+        const data = await especialidadesService.getAllActiveEspecialidades(language);
+        setEspecialidadesOptions(data);
+      } catch (error) {
+        console.error("Error fetching especialidades:", error);
+        setEspecialidadesOptions([]); // En caso de error, establecer opciones vacías
+      } finally {
+        setLoadingEspecialidades(false);
+      }
+    };
+
+    fetchEspecialidades();
+  }, [i18n.language]);
 
   const handleSubmit = (data: any) => {
     const formattedData = {
@@ -83,15 +135,37 @@ function ServiceBasicInfoStep() {
     goToPreviousStep();
   };
 
+  const handleEspecialidadChange = (option: any | null) => {
+    const value = option ? option : "";
+    formRef.current.setValue("specialty", value, { shouldValidate: true });
+    if(especialidadesOptions.length > 0) {
+      const selectedOption = especialidadesOptions.find((opt) => opt.value === value);
+      setCreateServiceData({
+        ...createServiceData,
+        specialty: value,
+        specialityName: selectedOption?.label || "",
+      });
+    } else {
+      setCreateServiceData({
+        ...createServiceData,
+        specialty: value
+      });
+    }
+  };
+
+  const handleModalityChange = (option: any | null) => {
+    const value = option ? option : "";
+    formRef.current.setValue("selectedModality", value, { shouldValidate: true });
+    setCreateServiceData({
+      ...createServiceData,
+      selectedModality: value,
+    });
+  };
+
   const modalityOptions = [
     { value: "presencial", label: t("modality.presencial") },
     { value: "teleconsulta", label: t("modality.teleconsulta") },
     { value: "Mixta", label: t("modality.mixed") },
-  ];
-
-  const specialtyOptions = [
-    { value: "cardiologia", label: t("specialty.cardiology") },
-    { value: "pediatria", label: t("specialty.pediatrics") },
   ];
 
   const formatDurationDisplay = (duration: any) => {
@@ -112,6 +186,13 @@ function ServiceBasicInfoStep() {
     return "0m";
   };
 
+  const isButtonDisabled =
+  !isFormValid ||
+  !createServiceData.specialty?.trim() ||
+  !createServiceData.selectedModality?.trim() ||
+  !createServiceData.pricePerSession ||
+  createServiceData.pricePerSession <= 0;
+
   return (
     <ServicesLayoutsSteps
       title={t("createService.basicInfo.title")}
@@ -130,20 +211,25 @@ function ServiceBasicInfoStep() {
           duration: createServiceData.duration || { hours: 0, minutes: 30 },
         }}
         onSubmit={handleSubmit}
+        onValidationChange={setIsFormValid}
         className="w-full"
       >
         <div className="space-y-4 mb-6">
           <MCSelect
             name="specialty"
             label={t("form.specialty")}
-            options={specialtyOptions}
+            options={especialidadesOptions}
             placeholder={t("form.selectSpecialty")}
+            onChange={handleEspecialidadChange}
+            disabled={loadingEspecialidades}
+            searchable={true}
           />
           <MCSelect
             name="selectedModality"
             label={t("form.modality")}
             options={modalityOptions}
             placeholder={t("form.selectModality")}
+            onChange={handleModalityChange}
           />
           <DescriptionModal>
             <MCInput
@@ -151,7 +237,7 @@ function ServiceBasicInfoStep() {
               label={t("form.description")}
               placeholder={t("form.serviceDescription")}
               variant="internal-vertical"
-              internalTitle={t("form.optional")}
+              internalTitle={t("form.serviceDescription")}
               internalPlaceholder={t("form.descriptionPlaceholder")}
             />
           </DescriptionModal>
@@ -185,11 +271,11 @@ function ServiceBasicInfoStep() {
               name="pricePerSession"
               label={t("form.price")}
               type="number"
-              isPrice
               variant="internal-horizontal"
               internalTitle={t("form.pricePerSession")}
               internalPlaceholder={t("form.pricePerSessionPlaceholder")}
               displayMode="value"
+              customDisplayValue={formatCurrency(createServiceData.pricePerSession)}
             />
           </PriceModal>
         </div>
@@ -199,6 +285,7 @@ function ServiceBasicInfoStep() {
           }}
           continueButtonProps={{
             type: "submit",
+            disabled: isButtonDisabled,
           }}
         />
       </MCFormWrapper>

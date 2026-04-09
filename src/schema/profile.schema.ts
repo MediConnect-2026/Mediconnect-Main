@@ -16,27 +16,37 @@ export function profileSchema(t: (key: string) => string) {
 }
 
 export function doctorProfileSchema(t: (key: string) => string) {
-  return profileSchema(t).extend({
-    specialty: z.string().min(1, t("validation.specialtyRequired")),
-    phone: z.coerce
-      .string()
-      .regex(/^\d{10}$/, t("validation.phoneInvalid"))
-      .optional(),
-    yearsExperience: z.string().min(0, t("validation.yearsPositive")),
-    biography: z.string().optional(),
-    secondarySpecialties: z
-      .array(z.string().min(1, t("validation.secondarySpecialtyRequired")))
-      .optional(),
-    licenseNumber: z.string().min(1, t("validation.licenseNumberRequired")),
-    identityDocument: z.coerce
-      .string()
-      .min(1, t("validation.identityDocumentRequired"))
-      .refine((val) => ValidateDominicanID(val), {
-        message: t("validation.identityDocumentInvalid"),
-      }),
-    nationality: z.string().min(1, t("validation.nationalityRequired")),
-    birthDate: z.string().min(1, t("validation.birthDateRequired")),
-  });
+  return profileSchema(t)
+    .omit({ fullName: true })
+    .extend({
+      name: z.string().min(1, t("validation.nameRequired")),
+      lastName: z.string().min(1, t("validation.lastNameRequired")),
+      specialty: z.string().min(1, t("validation.specialtyRequired")),
+      phone: z
+        .string()
+        .optional()
+        .transform((val) => {
+          if (!val) return val;
+          return val.replace(/\D/g, "");
+        })
+        .refine((val) => !val || val.length === 10, {
+          message: t("validation.phoneInvalid"),
+        }),
+      yearsExperience: z.coerce.number().min(0, t("validation.yearsPositive")),
+      biography: z.string().optional(),
+      secondarySpecialties: z
+        .array(z.string().min(1, t("validation.secondarySpecialtyRequired")))
+        .optional(),
+      licenseNumber: z.string().min(1, t("validation.licenseNumberRequired")),
+      identityDocument: z.coerce
+        .string()
+        .min(1, t("validation.identityDocumentRequired"))
+        .refine((val) => ValidateDominicanID(val), {
+          message: t("validation.identityDocumentInvalid"),
+        }),
+      nationality: z.string().min(1, t("validation.nationalityRequired")),
+      birthDate: z.string().min(1, t("validation.birthDateRequired")),
+    });
 }
 
 export function doctorEducationSchema(t: (key: string) => string) {
@@ -61,13 +71,27 @@ export function doctorExperienceSchema(t: (key: string) => string) {
     experiences: z
       .array(
         z.object({
+          id: z.number().optional(),
           hospital: z.string().min(1, t("validation.hospitalRequired")),
           position: z.string().min(1, t("validation.positionRequired")),
           startMonth: z.string().min(1, t("validation.startMonthRequired")),
           startYear: z.string().min(1, t("validation.startYearRequired")),
-          endMonth: z.string().min(1, t("validation.endMonthRequired")),
-          endYear: z.string().min(1, t("validation.endYearRequired")),
-        }),
+          endMonth: z.string().optional(),
+          endYear: z.string().optional(),
+          isCurrently: z.boolean().optional(),
+        }).refine(
+          (data) => {
+            // Si no está trabajando actualmente, endMonth y endYear son requeridos
+            if (!data.isCurrently) {
+              return !!data.endMonth && !!data.endYear;
+            }
+            return true;
+          },
+          {
+            message: t("validation.endDateRequired"),
+            path: ["endMonth"],
+          }
+        ),
       )
       .min(1, t("validation.experienceAtLeastOne")),
   });
@@ -76,8 +100,14 @@ export function doctorExperienceSchema(t: (key: string) => string) {
 export function doctorLanguageSchema(t: (key: string) => string) {
   return z.object({
     languages: z
-      .array(z.string().min(1, t("validation.languageRequired")))
-      .min(1, t("validation.languageAtLeastOne")),
+      .array(
+        z.object({
+          id: z.number().optional(),
+          idIdioma: z.number().min(1, t("validation.languageRequired")),
+          idNivelDominio: z.number().min(1, t("validation.proficiencyRequired")),
+        })
+      )
+      .optional(),
   });
 }
 
@@ -97,15 +127,17 @@ export function patientProfileSchema(t: (key: string) => string) {
       .refine((val) => ValidateDominicanID(val), {
         message: t("validation.identityDocumentInvalid"),
       }),
-    phone: z.coerce
+    phone: z
       .string()
-      .regex(/^\d{10}$/, t("validation.phoneInvalid"))
-      .optional(),
-    age: z
-      .number()
-      .min(0, t("validation.agePositive"))
-      .max(150, t("validation.ageMax"))
-      .optional(),
+      .optional()
+      .transform((val) => {
+        if (!val) return val;
+        return val.replace(/\D/g, "");
+      })
+      .refine((val) => !val || val.length === 10, {
+        message: t("validation.phoneInvalid"),
+      }),
+    birthDate: z.coerce.date().optional(),
     gender: z
       .enum(["MALE", "FEMALE", "OTHER"], {
         message: t("validation.genderRequired"),
@@ -120,12 +152,12 @@ export function patientProfileSchema(t: (key: string) => string) {
       .string()
       .min(1, t("validation.nationalityRequired"))
       .optional(),
-    weight: z
+    weight: z.coerce
       .number()
       .min(0.1, t("validation.weightPositive"))
       .max(500, t("validation.weightMax"))
       .optional(),
-    height: z
+    height: z.coerce
       .number()
       .min(1, t("validation.heightPositive"))
       .max(300, t("validation.heightMax"))
@@ -155,10 +187,16 @@ export function patientInsuranceSchema(t: (key: string) => string) {
 export function centerProfileSchema(t: (key: string) => string) {
   return profileSchema(t).extend({
     centerType: z.string().min(1, t("validation.centerTypeRequired")),
-    phone: z.coerce
+    phone: z
       .string()
-      .regex(/^\d{10}$/, t("validation.phoneInvalid"))
-      .optional(),
+      .optional()
+      .transform((val) => {
+        if (!val) return val;
+        return val.replace(/\D/g, "");
+      })
+      .refine((val) => !val || val.length === 10, {
+        message: t("validation.phoneInvalid"),
+      }),
     website: z
       .string()
       .url(t("validation.websiteInvalid"))
@@ -171,6 +209,7 @@ export function centerProfileSchema(t: (key: string) => string) {
         message: t("validation.taxIdInvalid"),
       }),
     address: z.string().min(1, t("validation.addressRequired")).optional(),
+    description: z.string().optional(),
   });
 }
 
@@ -179,6 +218,9 @@ export function centerLocationSchema(t: (key: string) => string) {
     address: z.string().min(1, t("validation.addressRequired")),
     province: z.string().min(1, t("validation.provinceRequired")),
     municipality: z.string().min(1, t("validation.municipalityRequired")),
+    section: z.string().min(1, t("validation.sectionRequired")),
+    district: z.string().optional(),
+    neighborhood: z.string().min(1, t("validation.neighborhoodRequired")),
     coordinates: z.object({
       latitude: z
         .number()

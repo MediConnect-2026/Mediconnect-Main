@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
-import { Card, CardContent, CardFooter, CardTitle } from "@/shared/ui/card";
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardTitle } from "@/shared/ui/card";
 import { Star, Languages, ShieldCheck, Stethoscope } from "lucide-react";
 import MCButton from "./forms/MCButton";
 import {
@@ -16,6 +17,10 @@ import ScheduleAppointmentDialog from "@/features/patient/components/appoiments/
 import { useNavigate } from "react-router-dom";
 import HistoryDialog from "@/features/patient/components/doctors/HistoryDialog";
 import ToogleConfirmConnection from "@/features/request/components/ToogleConfirmConnection";
+import { MCDialogBase } from "@/shared/components/MCDialogBase";
+import { useGlobalUIStore } from "@/stores/useGlobalUIStore";
+import { doctorService } from "@/shared/navigation/userMenu/editProfile/doctor/services";
+
 export type DoctorCardVariant = "s" | "m" | "default";
 
 interface Doctor {
@@ -34,6 +39,7 @@ interface Doctor {
   onToggleFavorite?: () => void;
   connectionStatus?: "connected" | "not_connected" | "pending"; // <-- Agrega esto si no está
   onConnect?: (id: string | number) => void; // <-- Agrega esto si quieres manejar la conexión
+  isConnectionSubmitting?: boolean;
 }
 
 const VARIANT_STYLES = {
@@ -78,13 +84,69 @@ function MCDoctorsCards({
   onToggleFavorite,
   connectionStatus = "not_connected", // <-- default
   onConnect,
+  isConnectionSubmitting = false,
 }: Doctor) {
   const styles = VARIANT_STYLES[variant];
   const isMobile = useIsMobile();
-  const { t } = useTranslation("patient");
+  const { t } = useTranslation(["patient", "common"]);
   const navigate = useNavigate();
+  const setToast = useGlobalUIStore((state) => state.setToast);
 
-  const userRole = useAppStore((state) => state.user?.role);
+  const [isFavoriteLocal, setIsFavoriteLocal] = useState(isFavorite ?? false);
+  const [favoriteDialogOpen, setFavoriteDialogOpen] = useState(false);
+  const [favoriteLoading, setFavoriteLoading] = useState(false);
+
+  useEffect(() => {
+    if (isFavorite !== undefined) {
+      setIsFavoriteLocal(isFavorite);
+    }
+  }, [isFavorite]);
+
+  const handleFavoriteToggle = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setFavoriteDialogOpen(true);
+  };
+
+  const confirmToggleFavorite = async () => {
+    if (!id) return;
+    setFavoriteLoading(true);
+    try {
+      if (isFavoriteLocal) {
+        await doctorService.removeDoctorFromFavorites(Number(id));
+        setIsFavoriteLocal(false);
+        setToast?.({
+          type: "success",
+          message: t("common:doctorCard.favoriteRemoved", "Doctor eliminado de favoritos"),
+          open: true,
+        });
+      } else {
+        await doctorService.addDoctorToFavorites(Number(id));
+        setIsFavoriteLocal(true);
+        setToast?.({
+          type: "success",
+          message: t("common:doctorCard.favoriteAdded", "Doctor agregado a favoritos"),
+          open: true,
+        });
+      }
+      setFavoriteDialogOpen(false);
+      if (onToggleFavorite) onToggleFavorite();
+    } catch (err: any) {
+      console.error("Failed to toggle favorite", err);
+      setToast?.({
+        type: "error",
+        message:
+          err?.message ||
+          (isFavoriteLocal
+            ? t("common:doctorCard.favoriteRemoveError", "No se pudo eliminar de favoritos")
+            : t("common:doctorCard.favoriteAddError", "No se pudo agregar a favoritos")),
+        open: true,
+      });
+    } finally {
+      setFavoriteLoading(false);
+    }
+  };
+
+  const userRole = useAppStore((state) => state.user?.rol);
 
   const handleProfileClick = () => {
     if (id) {
@@ -108,6 +170,29 @@ function MCDoctorsCards({
   };
 
   return (
+    <>
+      <MCDialogBase
+        open={favoriteDialogOpen}
+        onOpenChange={(o) => setFavoriteDialogOpen(o)}
+        title={
+          isFavoriteLocal
+            ? t("common:doctorCard.confirmRemoveFavoriteTitle", "Eliminar de favoritos")
+            : t("common:doctorCard.confirmFavoriteTitle", "Agregar a favoritos")
+        }
+        description={
+          isFavoriteLocal
+            ? t("common:doctorCard.confirmRemoveFavoriteDescription", { name: name, defaultValue: `¿Deseas eliminar a ${name} de tus favoritos?` })
+            : t("common:doctorCard.confirmFavoriteDescription", { name: name, defaultValue: `¿Deseas agregar a ${name} a tus favoritos?` })
+        }
+        confirmText={t("common:common.confirm", "Confirmar")}
+        secondaryText={t("common:common.cancel", "Cancelar")}
+        onConfirm={confirmToggleFavorite}
+        onSecondary={() => setFavoriteDialogOpen(false)}
+        variant="confirm"
+        loading={favoriteLoading}
+      >
+        <span className="hidden"></span>
+      </MCDialogBase>
     <Card className="rounded-3xl bg-transparent border border-primary/10 shadow-sm hover:shadow-lg transition-shadow h-full flex flex-col">
       <div className="relative overflow-hidden rounded-3xl border border-primary/5">
         {urlImage ? (
@@ -157,9 +242,9 @@ function MCDoctorsCards({
               backdropFilter: "blur(16px) saturate(180%) contrast(120%)",
               WebkitBackdropFilter: "blur(16px) saturate(180%) contrast(120%)",
             }}
-            onClick={onToggleFavorite} // <-- Usa el prop
+            onClick={handleFavoriteToggle}
           >
-            {isFavorite ? (
+            {isFavoriteLocal ? (
               <HeartFilled size={20} fill="red" className="text-red-500" />
             ) : (
               <HeartOutlined size={20} className="text-white/50 stroke-2" />
@@ -262,6 +347,7 @@ function MCDoctorsCards({
               status={connectionStatus}
               id={typeof id === "string" ? parseInt(id) : (id ?? 0)}
               onConfirm={handleConfirmConnect}
+              isSubmitting={isConnectionSubmitting}
             >
               <MCButton
                 size={styles.buttonSize}
@@ -330,6 +416,7 @@ function MCDoctorsCards({
         )}
       </div>
     </Card>
+    </>
   );
 }
 

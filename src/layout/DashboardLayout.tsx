@@ -5,6 +5,9 @@ import { useAppointmentStore } from "@/stores/useAppointmentStore";
 import { useEffect } from "react";
 import { useGlobalUIStore } from "@/stores/useGlobalUIStore";
 import { useCreateServicesStore } from "@/stores/useCreateServicesStore";
+import { useWebSocket } from "@/lib/hooks/useWebSocket";
+import { useAppStore } from "@/stores/useAppStore";
+import { chatService } from "@/services/chat";
 
 function DashboardLayout() {
   const location = useLocation();
@@ -18,6 +21,21 @@ function DashboardLayout() {
     (state) => state.resetVerificationContext,
   );
   const resetCreateService = useCreateServicesStore((state) => state.resetAll);
+  const user = useAppStore((state) => state.user);
+  const setConversations = useAppStore((state) => state.setConversations);
+
+  // Inicializar WebSocket de forma global para todo el dashboard (Chat, Notificaciones en vivo)
+  useWebSocket();
+
+  // Precargar las conversaciones para que el badge de mensajes no leídos se muestre en toda la App usando reduce
+  useEffect(() => {
+    if (user) {
+      chatService
+        .getConversations()
+        .then((data) => setConversations(data))
+        .catch((err) => console.error("Error pre-loading conversations:", err));
+    }
+  }, [user, setConversations]);
 
   useEffect(() => {
     const currentPath = window.location.pathname;
@@ -39,7 +57,7 @@ function DashboardLayout() {
     if (!currentPath.startsWith("/doctor/services/create")) {
       resetCreateService();
     }
-    // eslint-disable-next-line
+     
   }, [
     location.pathname,
     resetAppointment,

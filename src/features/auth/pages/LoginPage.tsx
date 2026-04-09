@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 
@@ -14,8 +14,10 @@ import { useNavigate } from "react-router-dom";
 import OAuthProvider from "../components/OAuthProvider";
 import { useGlobalUIStore } from "@/stores/useGlobalUIStore";
 import { ToggleGroup, ToggleGroupItem } from "@/shared/ui/toggle-group";
-import { ArrowLeft } from "lucide-react";
 
+import { useLogin } from "@/lib/hooks/auth";
+import { ROUTES } from "@/router/routes";
+import { ArrowLeft } from "lucide-react";
 function LoginPage() {
   const { t } = useTranslation("auth");
   const isMobile = useIsMobile();
@@ -24,6 +26,9 @@ function LoginPage() {
   const navigate = useNavigate();
   const setLanguage = useGlobalUIStore((state) => state.setLanguage);
   const currentLanguage = useGlobalUIStore((state) => state.language);
+  const [isGoogleAuthenticating, setIsGoogleAuthenticating] = useState(false);
+
+  const { loginUser, isPending } = useLogin();
 
   const containerRef = useRef<HTMLElement>(null);
   const logoRef = useRef<HTMLImageElement>(null);
@@ -32,6 +37,16 @@ function LoginPage() {
 
   useGSAP(
     () => {
+      // Asegurar que las refs están disponibles antes de animar
+      if (!logoRef.current || !headingRef.current || !formRef.current) {
+        return;
+      }
+
+      // Limpiar cualquier estilo inline previo antes de animar
+      gsap.set([logoRef.current, headingRef.current, formRef.current], {
+        clearProps: "all",
+      });
+
       const tl = gsap.timeline();
 
       tl.fromTo(
@@ -51,17 +66,26 @@ function LoginPage() {
           { y: 0, opacity: 1, duration: 0.5, ease: "power2.out" },
           "-=0.3",
         );
+
+      // Cleanup function para resetear cuando el componente se desmonte
+      return () => {
+        tl.kill();
+        gsap.set([logoRef.current, headingRef.current, formRef.current], {
+          clearProps: "all",
+        });
+      };
     },
-    { scope: containerRef },
+    { scope: containerRef, dependencies: [] },
   );
 
   const handleSubmit = (data: LoginSchemaType) => {
-    if (data.email && data.password) {
-      setLoginCredentials({ email: data.email, password: data.password });
-      navigate("/admin/dashboard");
-    } else {
-      alert(t("login.errorFields"));
-    }
+    setLoginCredentials({ email: data.email, password: data.password });
+
+    // Hacer login con la API
+    loginUser({
+      email: data.email,
+      password: data.password,
+    });
   };
 
   const backButtonContent = (
@@ -173,15 +197,23 @@ function LoginPage() {
                 placeholder={t("login.passwordPlaceholder", "Password")}
               />
               <div className="flex justify-end w-full mb-4">
-                <a
-                  className="text-base text-primary font-semibold hover:underline"
-                  onClick={() => navigate("/auth/forgot-password")}
+                <button
+                  type="button"
+                  className="text-base text-primary font-semibold hover:underline cursor-pointer"
+                  onClick={() => navigate(ROUTES.FORGOT_PASSWORD)}
                 >
                   {t("login.forgot", "Forgot your password?")}
-                </a>
+                </button>
               </div>
-              <MCButton type="submit" className="w-full" variant="primary">
-                {t("login.submit", "Sign In")}
+              <MCButton
+                type="submit"
+                className="w-full"
+                variant="primary"
+                disabled={isPending || isGoogleAuthenticating}
+              >
+                {isPending
+                  ? t("errors.loading", "Loading...")
+                  : t("login.submit", "Sign In")}
               </MCButton>
 
               <div className="flex items-center my-4">
@@ -190,13 +222,13 @@ function LoginPage() {
                 <hr className="flex-grow border-t border-gray-300" />
               </div>
 
-              <OAuthProvider />
+              <OAuthProvider onAuthStateChange={setIsGoogleAuthenticating} />
             </MCFormWrapper>
             <div className="mt-4 text-center text-sm sm:text-base">
               <span>{t("login.noAccount", "¿No tienes cuenta?")}</span>
               <button
                 className="ml-2 text-primary font-semibold hover:underline"
-                onClick={() => navigate("/auth/register")}
+                onClick={() => navigate(ROUTES.REGISTER)}
                 type="button"
               >
                 {t("login.register", "Regístrate")}

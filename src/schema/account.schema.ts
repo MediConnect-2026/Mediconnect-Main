@@ -28,6 +28,8 @@ export function changePasswordSchema(t: (key: string) => string) {
       confirmNewPassword: z
         .string()
         .min(8, { message: t("validation.confirmPasswordRequired") }),
+      recoveryToken: z.string().optional(), // Token obtenido después de validar OTP
+      otp: z.string().optional(), // OTP para validación
     })
     .refine((data) => data.newPassword === data.confirmNewPassword, {
       message: t("validation.passwordsDoNotMatch"),

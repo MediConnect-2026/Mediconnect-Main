@@ -9,6 +9,7 @@ import {
   DialogClose,
   DialogDescription,
 } from "@/shared/ui/dialog";
+import { Loader2 } from "lucide-react";
 import MCButton from "@/shared/components/forms/MCButton";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
 
@@ -28,6 +29,8 @@ interface MCDialogBaseProps {
   zIndex?: number;
   borderHeader?: boolean;
   borderFooter?: boolean;
+  loading?: boolean;
+  disableClose?: boolean;
 }
 
 export function MCDialogBase({
@@ -46,6 +49,8 @@ export function MCDialogBase({
   zIndex = 50,
   borderHeader = false,
   borderFooter = false,
+  loading = false,
+  disableClose = false,
 }: MCDialogBaseProps) {
   const isMobile = useIsMobile();
   const contentRef = useRef<HTMLDivElement>(null);
@@ -61,13 +66,13 @@ export function MCDialogBase({
 
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        onOpenChange(false);
+        if (!disableClose) onOpenChange(false);
       }
     };
 
     document.addEventListener("keydown", handleEscape);
     return () => document.removeEventListener("keydown", handleEscape);
-  }, [open, onOpenChange]);
+  }, [open, onOpenChange, disableClose]);
 
   // Sistema de tamaños con jerarquía clara y precisa
   const sizeClasses = {
@@ -85,18 +90,22 @@ export function MCDialogBase({
   };
 
   // Espaciado adaptativo para móvil
-  const paddingClasses = isMobile ? "p-3" : "p-4";
   const headerPadding = isMobile ? "px-4 pt-4 pb-3" : "px-6 pt-4 pb-3";
   const contentPadding = isMobile ? "px-4 py-2" : "px-6 py-2";
   const footerPadding = isMobile ? "px-4 pb-4 pt-3" : "px-6 pb-4 pt-3";
 
   const handleConfirm = () => {
     onConfirm?.();
-    onOpenChange(false);
+    // Do NOT auto-close here. Parent should control closing (useful for async flows).
+  };
+
+  const handleDialogOpenChange = (newOpen: boolean) => {
+    if (disableClose && !newOpen) return;
+    onOpenChange(newOpen);
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleDialogOpenChange}>
       <DialogContent
         className={`bg-bg-secondary rounded-3xl border-2 border-transparent dark:border-white/15 shadow-lg
           ${sizeClasses[size]} ${className}
@@ -109,7 +118,9 @@ export function MCDialogBase({
         {/* Header */}
         {(title || description) && (
           <DialogHeader
-            className={`flex justify-between items-start ${headerPadding} flex-shrink-0`}
+            className={`flex justify-between items-start ${headerPadding} flex-shrink-0 ${
+              borderHeader ? 'border-b border-gray-100 dark:border-neutral-800' : ''
+            }`}
           >
             <div className="flex-1">
               {title && (
@@ -149,23 +160,42 @@ export function MCDialogBase({
                 : ""
             } ${isMobile ? "flex-col-reverse" : ""}`}
           >
-            <DialogClose asChild>
+            {disableClose ? (
               <MCButton
                 variant="secondary"
                 size={isMobile ? "l" : "m"}
                 onClick={onSecondary}
                 className={isMobile ? "w-full" : ""}
+                disabled={disableClose}
               >
                 {secondaryText}
               </MCButton>
-            </DialogClose>
+            ) : (
+              <DialogClose asChild>
+                <MCButton
+                  variant="secondary"
+                  size={isMobile ? "l" : "m"}
+                  onClick={onSecondary}
+                  className={isMobile ? "w-full" : ""}
+                >
+                  {secondaryText}
+                </MCButton>
+              </DialogClose>
+            )}
             <MCButton
               variant="delete"
               size={isMobile ? "l" : "m"}
               onClick={handleConfirm}
               className={isMobile ? "w-full" : ""}
             >
-              {confirmText}
+              {loading ? (
+                <div className="flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>{confirmText}</span>
+                </div>
+              ) : (
+                confirmText
+              )}
             </MCButton>
           </DialogFooter>
         )}
@@ -184,7 +214,14 @@ export function MCDialogBase({
               onClick={handleConfirm}
               className={isMobile ? "w-full" : ""}
             >
-              {confirmText}
+              {loading ? (
+                <div className="flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>{confirmText}</span>
+                </div>
+              ) : (
+                confirmText
+              )}
             </MCButton>
           </DialogFooter>
         )}
@@ -197,25 +234,52 @@ export function MCDialogBase({
                 : ""
             } ${isMobile ? "flex-col-reverse" : ""}`}
           >
-            <DialogClose asChild>
+            {disableClose ? (
               <MCButton
                 variant="secondary"
                 size={isMobile ? "l" : "m"}
                 onClick={onSecondary}
                 className={isMobile ? "w-full" : ""}
+                disabled={disableClose}
               >
                 {secondaryText}
               </MCButton>
-            </DialogClose>
+            ) : (
+              <DialogClose asChild>
+                <MCButton
+                  variant="secondary"
+                  size={isMobile ? "l" : "m"}
+                  onClick={onSecondary}
+                  className={isMobile ? "w-full" : ""}
+                >
+                  {secondaryText}
+                </MCButton>
+              </DialogClose>
+            )}
             <MCButton
               variant="primary"
               size={isMobile ? "l" : "m"}
               onClick={handleConfirm}
               className={isMobile ? "w-full" : ""}
+              disabled={loading}
             >
-              {confirmText}
+              {loading ? (
+                <div className="flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>{confirmText}</span>
+                </div>
+              ) : (
+                confirmText
+              )}
             </MCButton>
           </DialogFooter>
+        )}
+        {loading && (
+          <div className="absolute inset-0 bg-black/20 flex items-center justify-center pointer-events-auto">
+            <div className="flex flex-col items-center gap-2 p-4 bg-bg-secondary/80 rounded-lg">
+              <Loader2 className="h-6 w-6 animate-spin text-primary" />
+            </div>
+          </div>
         )}
       </DialogContent>
     </Dialog>

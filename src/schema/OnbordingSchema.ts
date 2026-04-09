@@ -1,6 +1,40 @@
 import { z } from "zod";
 import { ValidateDominicanID } from "@/utils/ValidateDominicanID";
 import { ValidateDominicanRNC } from "@/utils/ValidateDominicanRNC";
+import i18next from "i18next";
+
+const PASSWORD_SECURITY_REGEX = /^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{6,}$/;
+
+const getValidationMessage = (
+  t: (key: string) => string,
+  key: string,
+  fallback: { es: string; en: string },
+) => {
+  const translated = t(key);
+  if (!translated || translated === key) {
+    return i18next.language?.toLowerCase().startsWith("en")
+      ? fallback.en
+      : fallback.es;
+  }
+  return translated;
+};
+
+const passwordWithSecurity = (t: (key: string) => string) =>
+  z
+    .string()
+    .min(
+      8,
+      getValidationMessage(t, "validation.passwordMin", {
+        es: "La contraseña debe tener al menos 8 caracteres",
+        en: "Password must be at least 8 characters",
+      }),
+    )
+    .refine((val) => PASSWORD_SECURITY_REGEX.test(val), {
+      message: getValidationMessage(t, "validation.passwordSecurity", {
+        es: "La contraseña debe incluir al menos una mayúscula, un número y un carácter especial.",
+        en: "Password must include at least one uppercase letter, one number, and one special character.",
+      }),
+    });
 
 // Schema para archivos subidos
 export const UploadedFileSchema = z.object({
@@ -18,6 +52,7 @@ export const BasePatientSchema = z.object({
   email: z.string(),
   password: z.string(),
   confirmPassword: z.string(),
+  gender: z.string(),
   urlImg: UploadedFileSchema.optional(),
 });
 
@@ -29,13 +64,15 @@ export const BaseDoctorSchema = z.object({
   role: z.literal("Doctor"),
   nationality: z.string(),
   identityDocument: z.string(),
+  language: z.string(),
+  proficiencyLevel: z.string(),
   exequatur: z.string(),
   mainSpecialty: z.string(),
   secondarySpecialties: z.array(z.string()).optional(),
   phone: z.string(),
   email: z.string(),
   urlImg: UploadedFileSchema.optional(),
-  identityDocumentFile: UploadedFileSchema.optional(),
+  identityDocumentFile: z.array(UploadedFileSchema).optional(),
   certifications: z.array(UploadedFileSchema).optional(),
   academicTitle: UploadedFileSchema.optional(),
   password: z.string(),
@@ -79,8 +116,8 @@ export function PatientOnboardingSchema(t: (key: string) => string) {
       .string()
       .min(1, t("validation.emailRequired"))
       .email(t("validation.emailInvalid")),
-    password: z.string().min(6, t("validation.passwordMin")),
-    confirmPassword: z.string().min(6, t("validation.passwordMin")),
+    password: passwordWithSecurity(t),
+    confirmPassword: passwordWithSecurity(t),
   }).superRefine((data, ctx) => {
     if (data.password !== data.confirmPassword) {
       ctx.addIssue({
@@ -97,6 +134,7 @@ export function PatientBasicInfoSchema(t: (key: string) => string) {
     name: true,
     lastName: true,
     identityDocument: true,
+    gender: true,
   }).extend({
     name: z.string().min(1, t("validation.nameRequired")),
     lastName: z.string().min(1, t("validation.lastNameRequired")),
@@ -106,6 +144,7 @@ export function PatientBasicInfoSchema(t: (key: string) => string) {
       .refine((val) => ValidateDominicanID(val), {
         message: t("validation.identityDocumentInvalid"),
       }),
+    gender: z.string().min(1, t("validation.genderRequired")),
   });
 }
 
@@ -115,8 +154,8 @@ export function CreatePasswordSchema(t: (key: string) => string) {
     confirmPassword: true,
   })
     .extend({
-      password: z.string().min(6, t("validation.passwordMin")),
-      confirmPassword: z.string().min(6, t("validation.passwordMin")),
+      password: passwordWithSecurity(t),
+      confirmPassword: passwordWithSecurity(t),
     })
     .superRefine((data, ctx) => {
       if (data.password !== data.confirmPassword) {
@@ -145,23 +184,34 @@ export function DoctorOnboardingSchema(t: (key: string) => string) {
       .refine((val) => ValidateDominicanID(val), {
         message: t("validation.identityDocumentInvalid"),
       }),
-    exequatur: z.string().min(1, t("validation.exequaturRequired")),
+    language: z.string().min(1, t("validation.languageRequired")),
+    proficiencyLevel: z.string().min(1, t("validation.proficiencyLevelRequired")),
+    exequatur: z.coerce
+      .string()
+      .min(1, t("validation.exequaturRequired"))
+      .transform((val) => val.replace(/\D/g, ""))
+      .refine((val) => val.length === 5, {
+        message: t("validation.exequaturInvalid"),
+      }),
     mainSpecialty: z.string().min(1, t("validation.mainSpecialtyRequired")),
     secondarySpecialties: z.array(z.string()).optional(),
     phone: z.coerce
       .string()
       .min(1, t("validation.phoneRequired"))
-      .regex(/^\d{10}$/, t("validation.phoneInvalid")),
+      .transform((val) => val.replace(/\D/g, ""))
+      .refine((val) => val.length === 10, {
+        message: t("validation.phoneInvalid"),
+      }),
     email: z
       .string()
       .min(1, t("validation.emailRequired"))
       .email(t("validation.emailInvalid")),
     urlImg: UploadedFileSchema.optional(),
-    identityDocumentFile: UploadedFileSchema.optional(),
+    identityDocumentFile: z.array(UploadedFileSchema).max(2, t("validation.maxDocumentFiles")).optional(),
     certifications: z.array(UploadedFileSchema).optional(),
     academicTitle: UploadedFileSchema.optional(),
-    password: z.string().min(6, t("validation.passwordMin")),
-    confirmPassword: z.string().min(6, t("validation.passwordMin")),
+    password: passwordWithSecurity(t),
+    confirmPassword: passwordWithSecurity(t),
   }).superRefine((data, ctx) => {
     if (data.password !== data.confirmPassword) {
       ctx.addIssue({
@@ -181,6 +231,8 @@ export function DoctorBasicInfoSchema(t: (key: string) => string) {
     birthDate: true,
     nationality: true,
     identityDocument: true,
+    language: true,
+    proficiencyLevel: true,
     phone: true,
   }).extend({
     name: z.string().min(1, t("validation.nameRequired")),
@@ -197,10 +249,15 @@ export function DoctorBasicInfoSchema(t: (key: string) => string) {
       .refine((val) => ValidateDominicanID(val), {
         message: t("validation.identityDocumentInvalid"),
       }),
+    language: z.string().min(1, t("validation.languageRequired")),
+    proficiencyLevel: z.string().min(1, t("validation.proficiencyLevelRequired")),
     phone: z.coerce
       .string()
       .min(1, t("validation.phoneRequired"))
-      .regex(/^\d{10}$/, t("validation.phoneInvalid")),
+      .transform((val) => val.replace(/\D/g, ""))
+      .refine((val) => val.length === 10, {
+        message: t("validation.phoneInvalid"),
+      }),
   });
 }
 
@@ -210,7 +267,13 @@ export function DoctorProfessionalInfoSchema(t: (key: string) => string) {
     mainSpecialty: true,
     secondarySpecialties: true,
   }).extend({
-    exequatur: z.string().min(1, t("validation.exequaturRequired")),
+    exequatur: z.coerce
+      .string()
+      .min(1, t("validation.exequaturRequired"))
+      .transform((val) => val.replace(/\D/g, ""))
+      .refine((val) => val.length === 5, {
+        message: t("validation.exequaturInvalid"),
+      }),
     mainSpecialty: z.string().min(1, t("validation.mainSpecialtyRequired")),
     secondarySpecialties: z.array(z.string()).optional(),
   });
@@ -228,6 +291,11 @@ export function CenterOnboardingSchema(t: (key: string) => string) {
     address: z.string().min(1, t("validation.addressRequired")),
     province: z.string().min(1, t("validation.provinceRequired")),
     municipality: z.string().min(1, t("validation.municipalityRequired")),
+    // Distrito es opcional: la API puede devolver distritoMunicipal: null
+    district: z.string().optional().or(z.literal("")),
+    section: z.string().min(1, t("validation.sectionRequired")),
+    neighborhood: z.string().min(1, t("validation.neighborhoodRequired")),
+    subNeighborhood: z.string().optional().or(z.literal("")),
     rnc: z.coerce
       .string()
       .min(1, t("validation.rncRequired"))
@@ -242,15 +310,18 @@ export function CenterOnboardingSchema(t: (key: string) => string) {
     phone: z.coerce
       .string()
       .min(1, t("validation.phoneRequired"))
-      .regex(/^\d{10}$/, t("validation.phoneInvalid")),
+      .transform((val) => val.replace(/\D/g, ""))
+      .refine((val) => val.length === 10, {
+        message: t("validation.phoneInvalid"),
+      }),
     email: z
       .string()
       .min(1, t("validation.emailRequired"))
       .email(t("validation.emailInvalid")),
     urlImg: UploadedFileSchema.optional(),
     healthCertificateFile: UploadedFileSchema.optional(),
-    password: z.string().min(6, t("validation.passwordMin")),
-    confirmPassword: z.string().min(6, t("validation.passwordMin")),
+    password: passwordWithSecurity(t),
+    confirmPassword: passwordWithSecurity(t),
   }).superRefine((data, ctx) => {
     if (data.password !== data.confirmPassword) {
       ctx.addIssue({
@@ -288,20 +359,24 @@ export function CenterBasicInfoSchema(t: (key: string) => string) {
     phone: z.coerce
       .string()
       .min(1, t("validation.phoneRequired"))
-      .regex(/^\d{10}$/, t("validation.phoneInvalid")),
+      .transform((val) => val.replace(/\D/g, ""))
+      .refine((val) => val.length === 10, {
+        message: t("validation.phoneInvalid"),
+      }),
   });
 }
 
 export function CenterLocationInfoSchema(t: (key: string) => string) {
-  return BaseCenterSchema.pick({
-    address: true,
-    province: true,
-    municipality: true,
-    coordinates: true,
-  }).extend({
+  return z.object({
     address: z.string().min(1, t("validation.addressRequired")),
     province: z.string().min(1, t("validation.provinceRequired")),
     municipality: z.string().min(1, t("validation.municipalityRequired")),
+    // Distrito es opcional: distritoMunicipal puede ser null en la respuesta
+    // del API de geopoint (zonas sin distrito municipal asignado).
+    district: z.string().optional().or(z.literal("")),
+    section: z.string().min(1, t("validation.sectionRequired")),
+    neighborhood: z.string().min(1, t("validation.neighborhoodRequired")),
+    subNeighborhood: z.string().optional().or(z.literal("")),
     coordinates: z.object({
       latitude: z.number(),
       longitude: z.number(),

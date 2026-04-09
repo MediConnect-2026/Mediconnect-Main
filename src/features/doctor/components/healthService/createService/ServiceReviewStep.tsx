@@ -6,44 +6,183 @@ import { useIsMobile } from "@/lib/hooks/useIsMobile";
 import PhotoGallery from "../PhotoGallery";
 import MapScheduleLocation from "@/shared/components/maps/MapScheduleLocation";
 import { useNavigate } from "react-router-dom";
+import { mapDoctorServices } from "@/features/onboarding/services/doctor-registration.mapper";
+import { doctorService } from "@/shared/navigation/userMenu/editProfile/doctor/services";
+import { useGlobalUIStore } from "@/stores/useGlobalUIStore";
+import { useState } from "react";
+import { ROUTES } from "@/router/routes";
 
-const locationsData = [
-  {
-    id: 1,
-    name: "Clínica Abreu",
-    address: "Av. Independencia 105, Santo Domingo",
-    latitude: 18.4636,
-    longitude: -69.9271,
-  },
-  {
-    id: 2,
-    name: "Centro Médico UCE",
-    address: "Av. Máximo Gómez 46, Santo Domingo",
-    latitude: 18.4762,
-    longitude: -69.9117,
-  },
-];
-
-const mappedLocations = locationsData.map((loc) => ({
-  lat: loc.latitude,
-  lng: loc.longitude,
-  label: loc.name || loc.address,
-  color: "#e11d48",
-}));
-
-function ServiceReviewStep() {
+function ServiceReviewStep({ isEditMode = false, serviceId }: { isEditMode?: boolean; serviceId?: number }) {
   const { t } = useTranslation("doctor");
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
+  const setToast = useGlobalUIStore((state) => state.setToast);
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const serviceCreateData = useCreateServicesStore((s) => s.createServiceData);
   const goToPreviousStep = useCreateServicesStore((s) => s.goToPreviousStep);
-  const navigate = useNavigate();
+  const clearCreateServiceData = useCreateServicesStore((s) => s.clearComercialScheduleData); // ✅ Opcional: limpiar datos después de crear
+  const locationData = useCreateServicesStore((s) => s.locationData);
 
-  const handleSubmit = () => {
-    navigate("/doctor/services");
+  const handleSubmit = async () => {
+    
+    setIsSubmitting(true);
+
+    try {
+      // ✅ Mapear datos
+      const request = await mapDoctorServices(serviceCreateData);
+      
+      // ✅ Crear servicio
+      await doctorService.createService(request);
+
+      // ✅ Mostrar mensaje de éxito
+      setToast({
+        type: "success",
+        message: t("createService.review.successMessage"),
+        open: true,
+      });
+
+      clearCreateServiceData();
+
+      // ✅ Navegar a la página de servicios
+      navigate("/doctor/services");
+
+    } catch (error: any) {
+      console.log("Error al crear el servicio:", error);
+
+      // ✅ Determinar el mensaje de error apropiado
+      let errorMessage = t("createService.review.errorMessage");
+
+      // ✅ Caso 1: Error de Axios original (Opción 1)
+      if (error.response?.data) {
+        const errorData = error.response.data;
+        
+        // Si el backend envía un mensaje específico
+        if (errorData.message) {
+          errorMessage = errorData.message;
+        }
+        // Errores por código de estado
+        else if (error.response.status === 400) {
+          errorMessage = t("createService.review.validationError");
+        }
+        else if (error.response.status === 409) {
+          errorMessage = t("createService.review.conflictError");
+        }
+        else if (error.response.status === 401 || error.response.status === 403) {
+          errorMessage = t("createService.review.authError");
+        }
+        else if (error.response.status >= 500) {
+          errorMessage = t("createService.review.serverError");
+        }
+      }
+      // ✅ Caso 2: Error personalizado (Opción 2)
+      else if (error.statusCode) {
+        errorMessage = error.message;
+        
+        if (error.statusCode === 400) {
+          errorMessage = error.message || t("createService.review.validationError");
+        }
+        else if (error.statusCode === 409) {
+          errorMessage = t("createService.review.conflictError");
+        }
+        else if (error.statusCode === 401 || error.statusCode === 403) {
+          errorMessage = t("createService.review.authError");
+        }
+        else if (error.statusCode >= 500) {
+          errorMessage = t("createService.review.serverError");
+        }
+      }
+      // ✅ Caso 3: Error de JavaScript simple
+      else if (error.message) {
+        errorMessage = error.message;
+      }
+      // ✅ Error de red
+      else if (!error.response && error.code === "ERR_NETWORK") {
+        errorMessage = t("createService.review.networkError");
+      }
+
+      // ✅ Mostrar mensaje de error
+      setToast({
+        type: "error",
+        message: errorMessage,
+        open: true,
+      });
+
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleUpdate = async () => {
+    if (!serviceId) return;
+
+    if(!serviceCreateData.location || serviceCreateData.location <= 0) {
+      setToast({
+        type: "error",
+        message: t("createService.review.locationError"),
+        open: true,
+      });
+      return;
+    }
+    // Lógica similar a handleSubmit pero para actualizar un servicio existente
+    setIsSubmitting(true);
+
+      try {
+        // ✅ Mapear datos
+        const mappedDataForUpdate = {
+          especialidadId: Number(serviceCreateData.specialty),
+          nombre: serviceCreateData.name,
+          descripcion: serviceCreateData.description,
+          precio: serviceCreateData.pricePerSession,
+          duracionMinutos: (serviceCreateData.duration.hours * 60 + serviceCreateData.duration.minutes),
+          sesiones: serviceCreateData.numberOfSessions,
+          modalidad: serviceCreateData.selectedModality === 'presencial' ? "Presencial" : serviceCreateData.selectedModality === 'teleconsulta' ? "Teleconsulta" : "Mixta",
+          ubicacionIds: [serviceCreateData.location || 0],
+          horarioIds: serviceCreateData.comercial_schedule || [],
+        };
+
+        await doctorService.updateService(serviceId, mappedDataForUpdate);
+        
+        // ✅ Mostrar mensaje de éxito
+        setToast({
+          type: "success",
+          message: t("createService.review.updateSuccessMessage"),
+          open: true,
+        });
+
+        // ✅ Navegar a la página de servicios
+        navigate(ROUTES.DOCTOR.SERVICES, { replace: true });
+      } catch (error) {
+        console.log("Error al actualizar el servicio:", error);
+        setToast({
+          type: "error",
+          message: t("createService.review.updateErrorMessage"),
+          open: true,
+        });
+      } finally {
+        setIsSubmitting(false);
+      }
   };
 
   const modality = serviceCreateData.selectedModality;
+  const selectedEspecialty = serviceCreateData.specialityName || serviceCreateData.specialty || "";
+  
+  // Validar coordenadas antes de crear la ubicación
+  const hasValidCoordinates = 
+    locationData?.coordinates?.latitude !== undefined &&
+    locationData?.coordinates?.longitude !== undefined &&
+    !isNaN(locationData.coordinates.latitude) &&
+    !isNaN(locationData.coordinates.longitude) &&
+    isFinite(locationData.coordinates.latitude) &&
+    isFinite(locationData.coordinates.longitude);
+
+  const locationSelected = hasValidCoordinates ? [{
+    lat: locationData.coordinates.latitude,
+    lng: locationData.coordinates.longitude,
+    label: locationData.name || "",
+    color: "#e11d48",
+  }] : [];
 
   return (
     <ServicesLayoutsSteps
@@ -75,7 +214,7 @@ function ServiceReviewStep() {
               {t("createService.review.specialty")}
             </h4>
             <p className={isMobile ? "text-base" : "text-lg"}>
-              {serviceCreateData.specialty}
+              {selectedEspecialty}
             </p>
           </div>
           <div>
@@ -85,7 +224,7 @@ function ServiceReviewStep() {
               {t("createService.review.modality")}
             </h4>
             <p className={isMobile ? "text-base" : "text-lg"}>
-              {serviceCreateData.selectedModality}
+              {serviceCreateData.selectedModality === "presencial" ? t("createService.review.modalityPresencial") : serviceCreateData.selectedModality === "teleconsulta" ? t("createService.review.modalityTeleconsulta") : t("createService.review.modalityMixta")}
             </p>
           </div>
           <div>
@@ -126,8 +265,8 @@ function ServiceReviewStep() {
               {t("createService.review.location")}
             </h2>
             <MapScheduleLocation
-              showAddressInfo
-              multipleLocations={mappedLocations}
+              showAddressInfo={false}
+              multipleLocations={locationSelected}
             />
           </div>
         )}
@@ -150,11 +289,15 @@ function ServiceReviewStep() {
         <AuthFooterContainer
           type="Save"
           continueButtonProps={{
-            onClick: handleSubmit,
-            children: t("createService.review.save"),
+            onClick: isEditMode ? handleUpdate : handleSubmit,
+            children: isSubmitting 
+              ? t("createService.review.saving") 
+              : t("createService.review.save"),
+            disabled: isSubmitting, // ✅ Deshabilitar mientras se envía
           }}
           backButtonProps={{
             onClick: () => goToPreviousStep(),
+            disabled: isSubmitting, // ✅ Deshabilitar también el botón de atrás
           }}
         />
       </div>

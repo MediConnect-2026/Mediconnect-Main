@@ -6,6 +6,7 @@ import NavbarBell from "../components/NavbarBell";
 import { useTranslation } from "react-i18next";
 import { useAppStore } from "@/stores/useAppStore";
 import { useGlobalUIStore } from "@/stores/useGlobalUIStore";
+import { useLogout } from "@/lib/hooks/useLogout";
 import { NAVBAR_CONFIG } from "@/config/navbar.config";
 import { Sheet, SheetContent, SheetTrigger } from "@/shared/ui/sheet";
 import { Menu, X, LogOut, Search, MessageCircle } from "lucide-react";
@@ -15,9 +16,11 @@ function MCMobileNavbar() {
   const location = useLocation();
   const navigate = useNavigate();
   const theme = useGlobalUIStore((state) => state.theme);
-  const role = useAppStore((state) => state.user?.role);
-  const user = useAppStore((state) => state.user);
-  const logout = useAppStore((state) => state.logout);
+  const role = useAppStore((state) => state.user?.rol);
+  const logoutUser = useLogout();
+
+  // Obtener el total de mensajes no leídos desde el estado global directamente
+  const unreadMessagesCount = useAppStore((state) => state.globalUnreadCount);
 
   const effectiveRole = role || "PATIENT";
   const menuConfig = NAVBAR_CONFIG[effectiveRole as keyof typeof NAVBAR_CONFIG];
@@ -31,9 +34,8 @@ function MCMobileNavbar() {
   };
 
   const handleLogout = () => {
-    logout();
-    navigate("/auth/login");
     setOpen(false);
+    logoutUser();
   };
 
   return (
@@ -62,11 +64,10 @@ function MCMobileNavbar() {
           `}
         >
           <Search
-            className={`h-6 w-6 transition-colors duration-300 stroke-[1.5px] group-hover:text-primary ${
-              location.pathname === "/search"
-                ? "text-background"
-                : "text-primary/70"
-            }`}
+            className={`h-6 w-6 transition-colors duration-300 stroke-[1.5px] group-hover:text-primary ${location.pathname === "/search"
+              ? "text-background"
+              : "text-primary/70"
+              }`}
           />
         </Link>
 
@@ -79,12 +80,16 @@ function MCMobileNavbar() {
           `}
         >
           <MessageCircle
-            className={`h-6 w-6 transition-colors duration-300 stroke-[1.5px] group-hover:text-primary ${
-              location.pathname.startsWith("/chat")
-                ? "text-background"
-                : "text-primary/70"
-            }`}
+            className={`h-6 w-6 transition-colors duration-300 stroke-[1.5px] group-hover:text-primary ${location.pathname.startsWith("/chat")
+              ? "text-background"
+              : "text-primary/70"
+              }`}
           />
+          {unreadMessagesCount > 0 && (
+            <span className="absolute top-0 right-0 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shadow-sm ring-2 ring-background">
+              {unreadMessagesCount > 99 ? "99+" : unreadMessagesCount}
+            </span>
+          )}
         </Link>
 
         {/* Notifications Bell */}
@@ -143,11 +148,10 @@ function MCMobileNavbar() {
                       <Button
                         key={item.href}
                         variant="ghost"
-                        className={`w-full justify-start text-left h-12 px-4 rounded-xl transition-all duration-200 active:scale-95 ${
-                          location.pathname === item.href
-                            ? "bg-primary text-primary-foreground hover:bg-primary focus:bg-primary"
-                            : "text-primary hover:bg-accent/70 hover:text-primary focus:bg-accent"
-                        }`}
+                        className={`w-full justify-start text-left h-12 px-4 rounded-xl transition-all duration-200 active:scale-95 ${location.pathname === item.href
+                          ? "bg-primary text-primary-foreground hover:bg-primary focus:bg-primary"
+                          : "text-primary hover:bg-accent/70 hover:text-primary focus:bg-accent"
+                          }`}
                         onClick={() => handleNavigation(item.href)}
                       >
                         {/* ✅ común para todos los roles, con fallback al label */}

@@ -6,6 +6,7 @@ import { DoctorProfessionalInfoSchema } from "@/schema/OnbordingSchema";
 import { useEffect } from "react";
 import { useGlobalUIStore } from "@/stores/useGlobalUIStore";
 import { useTranslation } from "react-i18next";
+import { useEspecialidades } from "@/features/onboarding/services";
 
 type PersonalIdentificationStep2Props = {
   children?: React.ReactNode;
@@ -25,36 +26,9 @@ function PersonalIdentificationStep2({
   const setDoctorField = useAppStore((state) => state.setDoctorField);
   const setCurrent = useGlobalUIStore((s) => s.setDoctorOnboardingStep);
 
-  const specialtyOptions = [
-    {
-      value: "medicina_general",
-      label: t(
-        "professionalIdentificationStep.specialtyOptions.medicina_general",
-      ),
-    },
-    {
-      value: "pediatria",
-      label: t("professionalIdentificationStep.specialtyOptions.pediatria"),
-    },
-    {
-      value: "cardiologia",
-      label: t("professionalIdentificationStep.specialtyOptions.cardiologia"),
-    },
-    {
-      value: "dermatologia",
-      label: t("professionalIdentificationStep.specialtyOptions.dermatologia"),
-    },
-    {
-      value: "ginecologia",
-      label: t("professionalIdentificationStep.specialtyOptions.ginecologia"),
-    },
-    {
-      value: "otra",
-      label: t("professionalIdentificationStep.specialtyOptions.otra"),
-    },
-  ];
-
-  const handleSubmit = (data: any) => {
+  // Obtener especialidades con traducción automática según el idioma actual
+  const { data: especialidades = [], isLoading: isLoadingEspecialidades } = useEspecialidades();
+  const handleSubmit = (_data: any) => {
     setCurrent(0);
     onValidationChange?.(true);
     onNext?.();
@@ -82,6 +56,7 @@ function PersonalIdentificationStep2({
         <div className="space-y-4">
           <MCInput
             name="exequatur"
+            variant="exequatur"
             label={t("professionalIdentificationStep.exequaturLabel")}
             placeholder={t(
               "professionalIdentificationStep.exequaturPlaceholder",
@@ -91,7 +66,13 @@ function PersonalIdentificationStep2({
           <MCSelect
             name="mainSpecialty"
             label={t("professionalIdentificationStep.mainSpecialtyLabel")}
-            options={specialtyOptions}
+            options={especialidades}
+            disabled={isLoadingEspecialidades}
+            placeholder={
+              isLoadingEspecialidades
+                ? t("professionalIdentificationStep.loadingSpecialties", "Cargando especialidades...")
+                : t("professionalIdentificationStep.mainSpecialtyPlaceholder", "Selecciona tu especialidad principal")
+            }
             onChange={(value) => {
               if (Array.isArray(value)) {
                 setDoctorField?.("mainSpecialty", value[0] ?? "");
@@ -105,7 +86,13 @@ function PersonalIdentificationStep2({
             label={t(
               "professionalIdentificationStep.secondarySpecialtiesLabel",
             )}
-            options={specialtyOptions}
+            options={especialidades}
+            disabled={isLoadingEspecialidades}
+            placeholder={
+              isLoadingEspecialidades
+                ? t("professionalIdentificationStep.loadingSpecialties", "Cargando especialidades...")
+                : t("professionalIdentificationStep.secondarySpecialtiesPlaceholder", "Selecciona especialidades secundarias (opcional)")
+            }
             multiple
             onChange={(value) => {
               if (Array.isArray(value)) {

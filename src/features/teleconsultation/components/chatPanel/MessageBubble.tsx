@@ -42,7 +42,7 @@ export const MessageBubble = ({
       y: 0,
       scale: 1,
       transition: {
-        type: "spring" as "spring",
+        type: "spring" as const,
         stiffness: 500,
         damping: 30,
       },

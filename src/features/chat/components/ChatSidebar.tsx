@@ -1,6 +1,6 @@
 import { Search, ArrowLeft } from "lucide-react";
 import { Input } from "@/shared/ui/input";
-import type { Conversation } from "@/types/ChatTypes";
+import type { ConversationWithDetails } from "@/types/ChatTypes";
 import { ChatListItem } from "./ChatListItem";
 import { useState } from "react";
 import { ScrollArea } from "@/shared/ui/scroll-area";
@@ -10,9 +10,9 @@ import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 
 interface ChatSidebarProps {
-  conversations: Conversation[];
-  activeConversationId: string | null;
-  onSelectConversation: (id: string) => void;
+  conversations: ConversationWithDetails[];
+  activeConversationId: number | null;
+  onSelectConversation: (id: number) => void;
   isOpen?: boolean;
   onClose?: () => void;
 }
@@ -29,13 +29,22 @@ export function ChatSidebar({
   const { t } = useTranslation("common");
   const navigate = useNavigate();
 
-  const filteredConversations = conversations.filter((conv) =>
-    conv.name.toLowerCase().includes(searchQuery.toLowerCase()),
-  );
+  // Filtrar conversaciones por nombre del otro usuario
+  const filteredConversations = conversations.filter((conv) => {
+    const userName = `${conv.otroUsuario.nombre} ${conv.otroUsuario.apellido}`.toLowerCase();
+    return userName.includes(searchQuery.toLowerCase());
+  });
 
-  const handleSelectConversation = (id: string) => {
+  // Ordenar por último mensaje (más reciente primero)
+  const sortedConversations = [...filteredConversations].sort((a, b) => {
+    const timeA = a.ultimoMensaje?.enviadoEn || a.creadoEn;
+    const timeB = b.ultimoMensaje?.enviadoEn || b.creadoEn;
+    return new Date(timeB).getTime() - new Date(timeA).getTime();
+  });
+
+  const handleSelectConversation = (id: number) => {
     onSelectConversation(id);
-    navigate(`/chat/${id}`); // <-- Navega a la ruta del chat
+    navigate(`/chat/${id}`);
     if (isMobile && onClose) {
       onClose();
     }
@@ -82,7 +91,7 @@ export function ChatSidebar({
       {/* Lista de conversaciones */}
       <ScrollArea className="flex-1">
         <div className="px-2 pb-4 flex flex-col gap-1 md:gap-2">
-          {filteredConversations.map((conversation) => (
+          {sortedConversations.map((conversation) => (
             <ChatListItem
               key={conversation.id}
               conversation={conversation}
@@ -91,11 +100,12 @@ export function ChatSidebar({
             />
           ))}
 
-          {filteredConversations.length === 0 && (
+          {sortedConversations.length === 0 && (
             <div className="text-center py-8 px-4">
               <p className="text-sm text-muted-foreground">
-                {t("chatPanel.noConversationsFound") ||
-                  "No se encontraron conversaciones"}
+                {searchQuery
+                  ? t("chatPanel.noConversationsFound") || "No se encontraron conversaciones"
+                  : t("chatPanel.noConversations") || "No tienes conversaciones aún"}
               </p>
             </div>
           )}

@@ -19,6 +19,12 @@ function DoctorOnboardingPage() {
   const doctorOnboardingData = useAppStore(
     (state) => state.doctorOnboardingData
   );
+  
+  // Detectar si viene de registro con Google
+  const registrationToken = useAppStore((state) => state.registrationToken);
+  const googleUserData = useAppStore((state) => state.googleUserData);
+  const isGoogleRegistration = registrationToken && googleUserData;
+  
   useEffect(() => {
     if (!verifyEmail.verified) {
       navigate("/auth/register", { replace: true });
@@ -38,9 +44,16 @@ function DoctorOnboardingPage() {
       doctorOnboardingData?.birthDate &&
       doctorOnboardingData?.nationality &&
       doctorOnboardingData?.phone &&
-      doctorOnboardingData?.email;
+      doctorOnboardingData?.email &&
+      doctorOnboardingData?.identityDocument &&
+      doctorOnboardingData?.exequatur &&
+      doctorOnboardingData?.mainSpecialty &&
+      doctorOnboardingData?.secondarySpecialties;
 
-    const isIdDocComplete = Boolean(doctorOnboardingData?.identityDocumentFile);
+    const isIdDocComplete = Boolean(
+      doctorOnboardingData?.identityDocumentFile &&
+        doctorOnboardingData.identityDocumentFile.length > 0
+    );
 
     const isProfilePhotoComplete = Boolean(doctorOnboardingData?.urlImg);
 
@@ -69,6 +82,9 @@ function DoctorOnboardingPage() {
     doctorOnboardingData?.phone,
     doctorOnboardingData?.email,
     doctorOnboardingData?.identityDocument,
+    doctorOnboardingData?.exequatur,
+    doctorOnboardingData?.mainSpecialty,
+    doctorOnboardingData?.secondarySpecialties,
     doctorOnboardingData?.identityDocumentFile,
     doctorOnboardingData?.urlImg,
     doctorOnboardingData?.certifications,
@@ -92,6 +108,13 @@ function DoctorOnboardingPage() {
         trigger: <GovernmentIdUpload />,
       },
       {
+        id: "degree",
+        title: t("doctorOnboarding.steps.degree"),
+        completed: completionStates.isAcademicTitleComplete,
+        onClick: () => console.log("Título"),
+        trigger: <AcademicDegreeUpload />,
+      },
+      {
         id: "profile-photo",
         title: t("doctorOnboarding.steps.profilePhoto"),
         optional: true,
@@ -106,14 +129,6 @@ function DoctorOnboardingPage() {
         completed: completionStates.isCertificationsComplete,
         onClick: () => console.log("Certificaciones"),
         trigger: <AdditionalCertificationsUpload />,
-      },
-      {
-        id: "degree",
-        title: t("doctorOnboarding.steps.degree"),
-        optional: true,
-        completed: completionStates.isAcademicTitleComplete,
-        onClick: () => console.log("Título"),
-        trigger: <AcademicDegreeUpload />,
       },
     ];
   }, [completionStates, navigate, t]);
@@ -186,7 +201,7 @@ function DoctorOnboardingPage() {
               progressStats.requiredItemsCount,
           }}
           backButtonProps={{
-            onClick: () => navigate("/auth/otp-verification"),
+            onClick: () => navigate(isGoogleRegistration ? "/auth/register" : "/auth/otp-verification"), 
           }}
         />
       </div>

@@ -326,6 +326,7 @@ function StaffTable({
                     <StaffActions
                       doctor={{
                         id: doctor.id,
+                        allianceRequestId: String(doctor.id),
                         name: doctor.name,
                         status: doctor.status,
                       }}

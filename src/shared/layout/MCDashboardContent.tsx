@@ -128,7 +128,6 @@ const LeaveCreateService = React.forwardRef(function LeaveCreateService({
   const { clearComercialScheduleData } = useCreateServicesStore();
 
   const handleConfirmLeave = () => {
-    console.log("sallll mmg");
     clearComercialScheduleData();
     navigate("/doctor/services");
   };

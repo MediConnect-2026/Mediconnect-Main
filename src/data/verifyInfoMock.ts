@@ -16,6 +16,7 @@ export const mockDoctorData: DoctorPersonalInfo = {
   secondarySpecialty: "Medicina Interna",
   medicalLicense: "EX12345",
   verificationStatus: "REJECTED",
+  comentarioVerificacion: "El nombre no coincide con el documento enviado. Por favor verifica.",
 };
 
 export const mockCenterData: CenterPersonalInfo = {
@@ -34,4 +35,5 @@ export const mockCenterData: CenterPersonalInfo = {
     longitude: -69.9312,
   },
   verificationStatus: "REJECTED",
+  comentarioVerificacion: "La documentación del RNC no es válida. Adjunta el documento correcto.",
 };

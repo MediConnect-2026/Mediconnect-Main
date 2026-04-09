@@ -7,22 +7,28 @@ import { useNavigate } from "react-router-dom";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/tooltip";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
 import { useTranslation } from "react-i18next";
+import { memo } from "react";
+import { formatPhone } from "@/utils/phoneFormat";
 
 import ToogleConfirmConnection from "@/features/request/components/ToogleConfirmConnection";
 
 interface ClinicCardProps {
   clinic: Clinic;
   isConnected: "connected" | "not_connected" | "pending";
-  onConnect: (id: string) => void;
+  onConnect: (id: string, message?: string) => void;
+  onDisconnect?: (id: string) => void;
   onViewProfile: (id: string) => void;
+  isConnecting?: boolean;
 }
 
-export const CenterCards = ({
+const CenterCardsComponent = ({
   clinic,
   isConnected,
   onConnect,
+  onDisconnect,
+  isConnecting = false,
 }: ClinicCardProps) => {
-  const userRole = useAppStore((state) => state.user?.role);
+  const userRole = useAppStore((state) => state.user?.rol);
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const { t } = useTranslation("common");
@@ -31,8 +37,12 @@ export const CenterCards = ({
     navigate(`/center/profile/${clinic.id}`);
   };
 
-  const handleConfirmConnect = () => {
-    onConnect(clinic.id);
+  const handleConfirmConnect = (message?: string) => {
+    onConnect(clinic.id, message);
+  };
+
+  const handleConfirmDisconnect = () => {
+    onDisconnect?.(clinic.id);
   };
 
   // Nuevo texto y estado para el botón
@@ -41,8 +51,9 @@ export const CenterCards = ({
   let connectVariant: "primary" | "outline" = "outline";
 
   if (isConnected === "connected") {
-    connectBtnText = t("clinicCard.connected");
-    connectVariant = "primary";
+    connectBtnText = t("clinicCard.allied", "Aliado");
+    connectBtnDisabled = false;
+    connectVariant = "outline";
   } else if (isConnected === "pending") {
     connectBtnText = t("clinicCard.pending");
     connectBtnDisabled = true;
@@ -158,7 +169,7 @@ export const CenterCards = ({
                   </TooltipContent>
                 </Tooltip>
               ) : (
-                <span>{clinic.languages.join(", ")}</span>
+                <span>{clinic.languages.length > 0 ? clinic.languages.join(", ") : t("clinicCard.noLanguages", "No disponible")}</span>
               )}
             </div>
             {clinic.phone && (
@@ -169,7 +180,7 @@ export const CenterCards = ({
                     isMobile ? "w-3 h-3" : "w-4 h-4",
                   )}
                 />
-                <span>{clinic.phone}</span>
+                <span>{formatPhone(clinic.phone)}</span>
               </div>
             )}
           </div>
@@ -211,7 +222,11 @@ export const CenterCards = ({
                 </TooltipContent>
               </Tooltip>
             ) : (
-              <span className="truncate">{clinic.insurances.join(", ")}</span>
+              <span className="truncate">
+                {clinic.insurances.length > 0
+                  ? clinic.insurances.join(", ")
+                  : t("clinicCard.noInsurances", "No disponible")}
+              </span>
             )}
           </div>
 
@@ -221,29 +236,51 @@ export const CenterCards = ({
           >
             {userRole === "DOCTOR" ? (
               <>
-                <ToogleConfirmConnection
-                  status={isConnected}
-                  id={parseInt(clinic.id)}
-                  onConfirm={handleConfirmConnect}
-                >
-                  <MCButton
-                    variant={connectVariant}
-                    size={isMobile ? "xs" : "sm"}
-                    className={cn(
-                      "flex-1",
-                      isMobile && "text-xs px-2",
-                      isConnected === "connected" &&
-                        "bg-secondary hover:bg-secondary/90 text-white border-none active:bg-secondary/80",
-                      isConnected === "not_connected" &&
-                        "border-secondary text-secondary hover:bg-secondary/10 hover:border-secondary/80 active:bg-secondary/20",
-                      isConnected === "pending" &&
-                        "border-gray-300 text-gray-500 bg-gray-100 cursor-not-allowed",
-                    )}
-                    disabled={connectBtnDisabled}
+                {isConnected === "not_connected" ? (
+                  <ToogleConfirmConnection
+                    status={isConnected}
+                    id={parseInt(clinic.id, 10)}
+                    onConfirm={handleConfirmConnect}
+                    isSubmitting={isConnecting}
+                    enableMessageInput
                   >
-                    {connectBtnText}
-                  </MCButton>
-                </ToogleConfirmConnection>
+                    <MCButton
+                      variant={connectVariant}
+                      size={isMobile ? "xs" : "sm"}
+                      className={cn(
+                        "flex-1",
+                        isMobile && "text-xs px-2",
+                        "border-secondary text-secondary hover:bg-secondary/10 hover:border-secondary/80 active:bg-secondary/20",
+                      )}
+                      disabled={connectBtnDisabled}
+                    >
+                      {connectBtnText}
+                    </MCButton>
+                  </ToogleConfirmConnection>
+                ) : (
+                  <ToogleConfirmConnection
+                    status={isConnected}
+                    id={parseInt(clinic.id, 10)}
+                    onConfirm={isConnected === "connected" ? handleConfirmDisconnect : undefined}
+                    isSubmitting={isConnecting}
+                  >
+                    <MCButton
+                      variant={connectVariant}
+                      size={isMobile ? "xs" : "sm"}
+                      className={cn(
+                        "flex-1",
+                        isMobile && "text-xs px-2",
+                        isConnected === "connected" &&
+                          "border-emerald-500 text-emerald-700 bg-emerald-50 hover:bg-emerald-100 dark:border-emerald-400 dark:text-emerald-300 dark:bg-emerald-950/30",
+                        isConnected === "pending" &&
+                          "border-gray-300 text-gray-500 bg-gray-100 cursor-not-allowed",
+                      )}
+                      disabled={connectBtnDisabled || isConnecting}
+                    >
+                      {connectBtnText}
+                    </MCButton>
+                  </ToogleConfirmConnection>
+                )}
                 <MCButton
                   variant="outline"
                   size={isMobile ? "xs" : "sm"}
@@ -269,3 +306,5 @@ export const CenterCards = ({
     </div>
   );
 };
+
+export const CenterCards = memo(CenterCardsComponent);

@@ -2,6 +2,8 @@ import React, { useMemo } from "react";
 import MCFilterSelect from "@/shared/components/filters/MCFilterSelect";
 import MCFilterDates from "@/shared/components/filters/MCFilterDates";
 import { useTranslation } from "react-i18next";
+import useUbicaciones from "@/features/onboarding/services/useUbicaciones";
+import usePatientServices from "@/features/patient/hooks/usePatientServices";
 
 interface HistoryFilters {
   services: string[];
@@ -13,17 +15,39 @@ interface HistoryFilters {
 interface FilterHistoryAppointmentsProps {
   filters: HistoryFilters;
   onFiltersChange: (filters: Partial<HistoryFilters>) => void;
+  pacienteId?: string | number;
 }
 
 function FilterHistoryAppointments({
   filters,
   onFiltersChange,
+  pacienteId,
 }: FilterHistoryAppointmentsProps) {
   const { t } = useTranslation("patient");
 
+  const {
+    data: patientServicesResp,
+    isLoading: isLoadingServices,
+  } = usePatientServices(pacienteId);
+
+  const {
+    data: doctorLocations = [],
+    isLoading: isLoadingLocations,
+    isError: locationsError,
+  } = useUbicaciones("doctor", {});
+
   // Opciones para servicios del historial
-  const serviceOptions = useMemo(
-    () => [
+  const serviceOptions = useMemo(() => {
+    if (pacienteId && isLoadingServices) return [];
+
+    if (patientServicesResp?.success && Array.isArray(patientServicesResp.data) && patientServicesResp.data.length > 0) {
+      return patientServicesResp.data.map((service: any) => ({
+        value: service.nombre,
+        label: service.nombre,
+      }));
+    }
+
+    return [
       {
         value: "Consulta Cardiología",
         label: t("filters.services.cardiology"),
@@ -37,9 +61,8 @@ function FilterHistoryAppointments({
       { value: "Ginecología", label: t("filters.services.gynecology") },
       { value: "Pediatría", label: t("filters.services.pediatrics") },
       { value: "Oftalmología", label: t("filters.services.ophthalmology") },
-    ],
-    [t],
-  );
+    ];
+  }, [t, patientServicesResp, isLoadingServices, pacienteId]);
 
   // Opciones para rangos de tiempo
   const timeRangeOptions = useMemo(
@@ -51,31 +74,14 @@ function FilterHistoryAppointments({
     [t],
   );
 
-  // Opciones para ubicaciones
+
   const locationOptions = useMemo(
-    () => [
-      {
-        value: "Centro Médico Norte",
-        label: t("filters.locations.northMedicalCenter"),
-      },
-      {
-        value: "Hospital General",
-        label: t("filters.locations.generalHospital"),
-      },
-      {
-        value: "Clínica Santa María",
-        label: t("filters.locations.santaMariaClinic"),
-      },
-      {
-        value: "Centro Especializado",
-        label: t("filters.locations.specializedCenter"),
-      },
-      {
-        value: "Consulta Virtual",
-        label: t("filters.locations.virtualConsultation"),
-      },
-    ],
-    [t],
+    () =>
+      doctorLocations.map((loc) => ({
+        value: loc.id.toString(),
+        label: loc.nombre,
+      })),
+    [doctorLocations]
   );
 
   return (
@@ -84,12 +90,14 @@ function FilterHistoryAppointments({
       <MCFilterSelect
         name="services"
         label={t("filters.history.services")}
+        placeholder={isLoadingServices ? "Cargando..." : "Seleccionar"}
         options={serviceOptions}
         multiple
         value={filters.services}
         noBadges
         onChange={(vals) => onFiltersChange({ services: vals as string[] })}
         searchable
+        disabled={isLoadingServices}
       />
 
       {/* Filtro de Horarios */}
@@ -107,12 +115,14 @@ function FilterHistoryAppointments({
       <MCFilterSelect
         name="locations"
         label={t("filters.history.locations")}
+        placeholder={isLoadingLocations ? "Cargando..." : "Seleccionar"}
         options={locationOptions}
         multiple
         value={filters.locations}
         noBadges
         onChange={(vals) => onFiltersChange({ locations: vals as string[] })}
         searchable
+        disabled={isLoadingLocations}
       />
 
       {/* Filtro de Rango de Fechas */}

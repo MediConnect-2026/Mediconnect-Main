@@ -14,7 +14,7 @@ import { useTranslation } from "react-i18next";
 function MessagesPrivacyPage() {
   const { t } = useTranslation("common");
   const isMobile = useIsMobile();
-  const userRole = useAppStore((state) => state.user?.role);
+  const userRole = useAppStore((state) => state.user?.rol);
 
   const doctorConfig = useProfileStore(
     (state) => state.doctorMessageConfigData,

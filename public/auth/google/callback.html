@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autenticando con Google...</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background: #f5f5f5;
+        }
+        .container {
+            text-align: center;
+            padding: 2rem;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        h2 {
+            margin: 0;
+            color: #333;
+            font-size: 1.2rem;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="spinner"></div>
+        <h2>Autenticando con Google...</h2>
+    </div>
+
+    <script>
+        (function() {
+            try {
+                console.log('📍 Callback de Google iniciado');
+                console.log('Hash completo:', window.location.hash);
+                
+                // Obtener el hash de la URL (donde Google devuelve el token)
+                const hash = window.location.hash.substring(1);
+                const params = new URLSearchParams(hash);
+                
+                // Extraer el id_token
+                const idToken = params.get('id_token');
+                const accessToken = params.get('access_token');
+                const error = params.get('error');
+
+                console.log('Parámetros extraídos:', { 
+                    hasIdToken: !!idToken, 
+                    hasAccessToken: !!accessToken, 
+                    error 
+                });
+
+                if (error) {
+                    console.error('❌ Error de Google OAuth:', error);
+                    if (window.opener) {
+                        window.opener.postMessage({
+                            type: 'GOOGLE_AUTH_ERROR',
+                            error: error
+                        }, window.location.origin);
+                    }
+                    setTimeout(() => window.close(), 1000);
+                    return;
+                }
+
+                if (idToken) {
+                    console.log('✅ ID Token recibido, enviando a ventana padre');
+                    
+                    // Enviar el token a la ventana padre
+                    if (window.opener) {
+                        window.opener.postMessage({
+                            type: 'GOOGLE_AUTH_SUCCESS',
+                            idToken: idToken,
+                            accessToken: accessToken
+                        }, window.location.origin);
+                        
+                        console.log('✅ Mensaje enviado a ventana padre');
+                    } else {
+                        console.error('❌ No hay ventana padre (opener)');
+                    }
+                    
+                    // Actualizar UI y cerrar
+                    document.querySelector('h2').textContent = '¡Autenticación exitosa!';
+                    setTimeout(() => {
+                        console.log('🔒 Cerrando popup...');
+                        window.close();
+                    }, 1000);
+                } else {
+                    console.error('❌ No se recibió id_token de Google');
+                    document.querySelector('h2').textContent = 'Error: No se recibió token';
+                    if (window.opener) {
+                        window.opener.postMessage({
+                            type: 'GOOGLE_AUTH_ERROR',
+                            error: 'No se recibió token'
+                        }, window.location.origin);
+                    }
+                    setTimeout(() => window.close(), 2000);
+                }
+            } catch (error) {
+                console.error('❌ Error procesando callback de Google:', error);
+                document.querySelector('h2').textContent = 'Error en la autenticación';
+                if (window.opener) {
+                    window.opener.postMessage({
+                        type: 'GOOGLE_AUTH_ERROR',
+                        error: error.message
+                    }, window.location.origin);
+                }
+                setTimeout(() => window.close(), 2000);
+            }
+        })();
+    </script>
+</body>
+</html>

@@ -6,9 +6,8 @@ import {
   Plus,
   Trash2,
   Eye,
-  Send,
   AlertTriangle,
-  XCircle,
+  Loader2,
 } from "lucide-react";
 import type { UploadedFileWithStatus, UploadedFile } from "@/types/Documents";
 import StatusBadge from "./Statusbadge";
@@ -33,6 +32,7 @@ interface DocumentCardProps {
   arrayParentFeedback?: string;
   onSubmitAll?: () => void;
   onCancelAll?: () => void;
+  isUploading?: boolean;
 }
 
 const formatDate = () => {
@@ -67,7 +67,13 @@ export default function DocumentCard({
   arrayParentFeedback,
   onSubmitAll,
   onCancelAll,
+  isUploading = false,
 }: DocumentCardProps) {
+  const truncateWithTitle = (name?: string, max = 100) => {
+    if (!name) return { text: '', full: '' };
+    if (name.length > max) return { text: `${name.slice(0, max)}...`, full: name };
+    return { text: name, full: '' };
+  };
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -76,6 +82,7 @@ export default function DocumentCard({
 
   const { t } = useTranslation("common");
   const isMobile = useIsMobile();
+  const uploading = isUploading ?? false;
 
   // ...existing code...
 
@@ -193,6 +200,11 @@ export default function DocumentCard({
   const currentDocument = isArray ? null : document;
   const currentDocuments = isArray ? documents : [];
 
+  // Nombre truncado del documento actual (para previews/button labels)
+  const currentNameInfo = currentDocument
+    ? truncateWithTitle(currentDocument?.name || 'documento.pdf')
+    : { text: '', full: '' };
+
   const feedbackColorClass =
     currentStatus === "APPROVED"
       ? "text-status-approved"
@@ -205,6 +217,8 @@ export default function DocumentCard({
     : document && document.type.startsWith("image/")
       ? [document]
       : [];
+
+  console.log(currentDocument);
 
   return (
     <div
@@ -244,7 +258,7 @@ export default function DocumentCard({
           ) : (
             <>
               <p className="text-sm text-muted-foreground mt-0.5">
-                {currentDocument?.name || "documento.pdf"}
+                <span title={currentNameInfo.full || undefined}>{currentNameInfo.text}</span>
                 <span className="mx-2">•</span>
                 {formatFileSize(currentDocument?.size || 0)}
                 <span className="mx-2">•</span>
@@ -271,6 +285,42 @@ export default function DocumentCard({
         </div>
       </div>
 
+      {/* Preview para documento individual (no array) */}
+      {!isArray && currentDocument && (
+        <div className="rounded-lg md:rounded-xl border border-primary/15 p-3 md:p-4">
+          <div className="flex items-start gap-2 md:gap-3">
+            <div className="flex-1 min-w-0">
+              {/* Preview para imágenes */}
+              {currentDocument?.type?.startsWith("image/") && (
+                <img
+                  src={currentDocument.url}
+                  alt={currentNameInfo.text}
+                  className="w-full max-w-md rounded-lg object-cover cursor-pointer border"
+                  onClick={() => {
+                    setCarouselStartIndex(0);
+                    setCarouselOpen(true);
+                  }}
+                />
+              )}
+
+              {/* Botón para ver PDFs */}
+              {currentDocument?.type?.startsWith("application/") && (
+                <PreviewDocumentsDialog
+                  documentUrl={currentDocument.url}
+                  documentType={currentDocument.type}
+                  documentName={currentNameInfo.text}
+                >
+                  <button className="flex items-center gap-2 px-3 md:px-4 py-2 md:py-2.5 rounded-lg bg-primary/10 hover:bg-primary/20 transition-colors text-sm md:text-base font-medium text-primary">
+                    <Eye className="w-4 h-4 md:w-5 md:h-5" />
+                    {t("verification.documentsSection.viewDocument")}
+                  </button>
+                </PreviewDocumentsDialog>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Lista de documentos existentes para arrays */}
       {isArray && currentDocuments.length > 0 && (
         <div className="space-y-2 md:space-y-3">
@@ -281,8 +331,8 @@ export default function DocumentCard({
             >
               <div className="flex items-start gap-2 md:gap-3">
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-foreground truncate">
-                    {doc.name}
+                  <p className="text-sm font-medium text-foreground truncate" title={doc.name}>
+                    {truncateWithTitle(doc.name).text}
                   </p>
                   <p className="text-xs text-muted-foreground">
                     {formatFileSize(doc.size)} • {doc.uploadedAt}
@@ -396,8 +446,8 @@ export default function DocumentCard({
                   </div>
                 )}
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-foreground truncate">
-                    {file.name}
+                  <p className="text-sm font-medium text-foreground truncate" title={file.name}>
+                    {truncateWithTitle(file.name).text}
                   </p>
                   <p className="text-xs text-muted-foreground">
                     {formatFileSize(file.size)}
@@ -429,10 +479,11 @@ export default function DocumentCard({
 
           <div className="flex flex-col md:flex-row gap-2">
             <MCButton
-              onClick={() => fileInputRef.current?.click()}
+              onClick={() => { if (!uploading) fileInputRef.current?.click(); }}
               variant="outline"
               className="flex-1"
               size={isMobile ? "sm" : "sm"}
+              disabled={uploading}
             >
               {isArray
                 ? t("verification.documentsSection.addMore")
@@ -442,9 +493,16 @@ export default function DocumentCard({
               className="flex-1"
               onClick={handleConfirmSubmit}
               size={isMobile ? "sm" : "sm"}
+              disabled={uploading}
             >
-              <Upload className="w-4 h-4" />
-              {isArray && selectedFiles.length > 1
+              {uploading ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Upload className="w-4 h-4" />
+              )}
+              {uploading
+                ? t('verification.documentsSection.sending', 'Enviando...')
+                : isArray && selectedFiles.length > 1
                 ? t("verification.documentsSection.sendMultiple", {
                     count: selectedFiles.length,
                   })
@@ -466,7 +524,7 @@ export default function DocumentCard({
                     // Limita la selección a máximo 5 archivos en total
                     if (
                       currentDocuments.length + selectedFiles.length <
-                      maxFiles
+                      maxFiles && !uploading
                     ) {
                       fileInputRef.current?.click();
                     }
@@ -491,8 +549,9 @@ export default function DocumentCard({
             : currentDocument?.verificationStatus === "REJECTED" &&
               onResubmit && (
                 <button
-                  onClick={() => fileInputRef.current?.click()}
+                  onClick={() => { if (!uploading) fileInputRef.current?.click(); }}
                   className="w-full flex items-center justify-center gap-2 py-2.5 md:py-3 rounded-xl border border-primary/15 bg-bg-secondary text-foreground font-medium hover:bg-muted transition-colors text-sm md:text-base"
+                  disabled={uploading}
                 >
                   <Upload className="w-4 h-4 md:w-5 md:h-5" />
                   {t("verification.documentsSection.resubmit")}

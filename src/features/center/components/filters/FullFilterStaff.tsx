@@ -5,6 +5,8 @@ import MCFilterDates from "@/shared/components/filters/MCFilterDates";
 import { Star } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { JSX } from "react";
+import { useEspecialidades } from "@/features/onboarding/services";
+import { AVAILABLE_LANGUAGES } from "@/features/onboarding/constants/languages.constants";
 
 interface OptionType {
   value: string;
@@ -31,7 +33,9 @@ function FullFilterStaff({
   onClearFilters,
   activeFiltersCount,
 }: FullFilterStaffProps) {
-  const { t } = useTranslation("center");
+  const { t, i18n } = useTranslation("center");
+  const { data: specialties = [], isLoading: specialtiesLoading } =
+    useEspecialidades();
 
   const handleFilterChange = (name: string, value: any) => {
     onFiltersChange({ [name]: value });
@@ -84,52 +88,25 @@ function FullFilterStaff({
     },
   ];
 
-  const specialtyOptions: OptionType[] = [
-    { value: "all", label: t("staff.filters.allSpecialties") },
-    { value: "Cardiología", label: t("staff.specialties.cardiology") },
-    { value: "Dermatología", label: t("staff.specialties.dermatology") },
-    { value: "Pediatría", label: t("staff.specialties.pediatrics") },
-    { value: "Neurología", label: t("staff.specialties.neurology") },
-    {
-      value: "Medicina Interna",
-      label: t("staff.specialties.internalMedicine"),
-    },
-    { value: "Ginecología", label: t("staff.specialties.gynecology") },
-    { value: "Traumatología", label: t("staff.specialties.traumatology") },
-    { value: "Psiquiatría", label: t("staff.specialties.psychiatry") },
-    { value: "Oftalmología", label: t("staff.specialties.ophthalmology") },
-    {
-      value: "Otorrinolaringología",
-      label: t("staff.specialties.otolaryngology"),
-    },
-    { value: "Urología", label: t("staff.specialties.urology") },
-    { value: "Endocrinología", label: t("staff.specialties.endocrinology") },
-    {
-      value: "Gastroenterología",
-      label: t("staff.specialties.gastroenterology"),
-    },
-    { value: "Hematología", label: t("staff.specialties.hematology") },
-    { value: "Infectología", label: t("staff.specialties.infectology") },
-    { value: "Nefrología", label: t("staff.specialties.nephrology") },
-    { value: "Neumología", label: t("staff.specialties.pulmonology") },
-    { value: "Oncología", label: t("staff.specialties.oncology") },
-    { value: "Reumatología", label: t("staff.specialties.rheumatology") },
-  ];
+  const specialtyOptions: OptionType[] = React.useMemo(() => {
+    const apiOptions = specialties.map((specialty) => ({
+      value: String(specialty.value),
+      label: specialty.label,
+    }));
 
-  const languagesOptions: OptionType[] = [
-    { value: "all", label: t("staff.filters.allLanguages") },
-    { value: "es", label: t("staff.languages.es") },
-    { value: "en", label: t("staff.languages.en") },
-    { value: "fr", label: t("staff.languages.fr") },
-    { value: "it", label: t("staff.languages.it") },
-    { value: "pt", label: t("staff.languages.pt") },
-    { value: "de", label: t("staff.languages.de") },
-    { value: "ja", label: t("staff.languages.ja") },
-    { value: "ko", label: t("staff.languages.ko") },
-    { value: "zh", label: t("staff.languages.zh") },
-    { value: "ru", label: t("staff.languages.ru") },
-    { value: "ar", label: t("staff.languages.ar") },
-  ];
+    return [{ value: "all", label: t("staff.filters.allSpecialties") }, ...apiOptions];
+  }, [specialties, t]);
+
+  const languagesOptions: OptionType[] = React.useMemo(
+    () => [
+      { value: "all", label: t("staff.filters.allLanguages") },
+      ...AVAILABLE_LANGUAGES.map((language) => ({
+        value: language.code,
+        label: i18n.language.startsWith("en") ? language.labelEn : language.label,
+      })),
+    ],
+    [i18n.language, t],
+  );
 
   const experienceOptions: OptionType[] = [
     { value: "all", label: t("staff.filters.allExperience") },
@@ -173,6 +150,13 @@ function FullFilterStaff({
           multiple={true}
           noBadges={true}
           searchable={true}
+          disabled={specialtiesLoading}
+          status={specialtiesLoading ? "loading" : "default"}
+          statusMessage={
+            specialtiesLoading
+              ? t("staff.filters.loadingSpecialties")
+              : undefined
+          }
         />
 
         <MCFilterSelect

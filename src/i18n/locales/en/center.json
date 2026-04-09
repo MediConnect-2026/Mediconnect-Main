@@ -69,11 +69,21 @@
   "profilePage": {
     "aboutTitle": "About",
     "aboutDescription": "Comprehensive care for the whole family, focused on preventing, diagnosing and treating common diseases. Our family doctor accompanies each patient at all stages of life, considering their physical, emotional and social well-being.",
+    "profileLoadError": "Unable to load the center's basic information. Please try again.",
+    "retry": "Retry",
     "insurancesTitle": "Accepted insurances",
+    "insurancesLoadError": "Unable to load accepted insurances. Please try again.",
+    "insurancesUnavailable": "Insurances not available",
+    "insurancesEmptyDescription": "This center does not have linked insurances yet.",
     "morePlans": "See more plans...",
     "locationTitle": "Location",
+    "locationLoadError": "Unable to load the location. Please try again.",
+    "locationUnavailable": "Location not available",
     "connectedDoctors": "Medical directory",
+    "publicProfileDoctorsUnavailable": "The medical directory is not available on the center public profile.",
+    "affiliatedDoctorsLoadError": "Unable to load the medical directory. Please try again.",
     "searchPlaceholder": "Search by name",
+    "noSpecialty": "No specialty",
     "emptyTitle": "No doctors found",
     "emptyDescription": "Try adjusting your filters or search criteria.",
     "clearFilters": "Clear filters"
@@ -93,6 +103,8 @@
       "settings": "Settings",
       "privacy": "Privacy",
       "copyProfile": "Copy profile",
+      "profileCopied": "Profile link copied to clipboard.",
+      "copyProfileError": "Could not copy the profile link.",
       "logout": "Logout"
     }
   },
@@ -101,6 +113,16 @@
     "connectMedicalCenter": "Connect Medical Center",
     "disconnectMedicalCenterDesc": "Are you sure you want to disconnect this medical center? This action cannot be undone.",
     "connectMedicalCenterDesc": "Do you want to connect this medical center?",
+    "allianceMessageLabel": "Request message",
+    "allianceMessagePlaceholder": "I would like to collaborate in your health center",
+    "allianceMessageMin": "The message must contain at least 10 characters.",
+    "allianceMessageMax": "The message cannot exceed 255 characters.",
+    "allianceRequestSending": "Sending...",
+    "allianceRequestSent": "Alliance request sent successfully.",
+    "allianceRequestError": "Alliance request could not be sent.",
+    "allianceDisconnecting": "Disconnecting...",
+    "allianceDisconnectSuccess": "Alliance removed successfully.",
+    "allianceDisconnectError": "Could not remove the alliance with the doctor.",
     "disconnectDoctor": "Disconnect Doctor",
     "connectDoctor": "Connect Doctor",
     "disconnectDoctorDesc": "Are you sure you want to disconnect this doctor? This action cannot be undone.",
@@ -123,6 +145,12 @@
     "chart": {
       "affiliatedDoctorsGrowth": "Affiliated Doctors Growth",
       "affiliatedDoctorsLabel": "Affiliated Doctors",
+      "loading": "Loading doctors growth...",
+      "errorTitle": "Could not load the chart",
+      "errorDescription": "Please try again in a few seconds.",
+      "retry": "Retry",
+      "emptyTitle": "No data to display",
+      "emptyDescription": "There is not enough data to chart this period yet.",
       "week": "Week",
       "month": "Month",
       "threeMonths": "3 Months",
@@ -131,7 +159,12 @@
     },
     "specialties": {
       "distributionTitle": "Distribution by Specialty",
-      "others": "Others"
+      "others": "Others",
+      "loading": "Loading specialty distribution...",
+      "error": "Could not load specialty distribution.",
+      "emptyTitle": "No data to display",
+      "emptyDescription": "There is not enough specialty data to display this chart yet.",
+      "noData": "There is no specialty data to display yet."
     },
     "staffTable": {
       "title": "Your care team"
@@ -140,6 +173,12 @@
   "staff": {
     "pageTitle": "Medical Staff",
     "searchPlaceholder": "Search doctor...",
+    "loading": "Loading medical staff...",
+    "error": {
+      "title": "Could not load staff",
+      "description": "Please try again in a few seconds.",
+      "retry": "Retry"
+    },
     "viewProfile": "View Profile",
     "disconnect": "Disconnect",
     "inviteDoctor": "Invite Doctor",
@@ -177,6 +216,7 @@
     "filters": {
       "title": "Filters",
       "specialty": "Specialty",
+      "loadingSpecialties": "Loading specialties...",
       "specialties": "Medical Specialties",
       "specialtyPlaceholder": "All specialties",
       "specialtiesPlaceholder": "Select specialties...",

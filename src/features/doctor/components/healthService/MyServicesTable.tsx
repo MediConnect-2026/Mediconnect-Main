@@ -26,6 +26,7 @@ import {
 } from "@/shared/ui/tooltip";
 import { useTranslation } from "react-i18next";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
+import { useNavigate } from "react-router-dom";
 import ServicesActions from "./ServicesActions";
 
 const PAGE_SIZE = 15;
@@ -35,7 +36,7 @@ interface Service {
   servicio: string;
   especialidad: string;
   ubicacion: string | string[];
-  tipo: string;
+  modalidad: string;
   precio: string;
   duracion: string;
   rating: number;
@@ -45,12 +46,59 @@ interface Service {
 
 interface MyServicesTableProps {
   services?: Service[];
+  onViewDetails?: (serviceId: string) => void;
+  onEdit?: (serviceId: string) => void;
+  onDeactivate?: (serviceId: string) => void;
+  onActivate?: (serviceId: string) => void;
+  onDelete?: (serviceId: string) => void;
 }
 
-function MyServicesTable({ services = [] }: MyServicesTableProps) {
+function MyServicesTable({ services = [], onViewDetails, onEdit, onDeactivate, onActivate, onDelete }: MyServicesTableProps) {
   const { t } = useTranslation("doctor");
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
   const [page, setPage] = React.useState(1);
+
+  // Handler wrappers: call the provided prop if present, otherwise fallback
+  const handleView = (serviceId: string) => {
+    if (onViewDetails) {
+      onViewDetails(serviceId);
+    } else {
+      navigate(`/service/${serviceId}`);
+    }
+  };
+
+  const handleEdit = (serviceId: string) => {
+    if (onEdit) {
+      onEdit(serviceId);
+    } else {
+      console.warn("⚠️ [MyServicesTable] onEdit callback not provided for service:", serviceId);
+    }
+  };
+
+  const handleDeactivate = (serviceId: string) => {
+    if (onDeactivate) {
+      onDeactivate(serviceId);
+    } else {
+      console.warn("⚠️ [MyServicesTable] onDeactivate callback not provided for service:", serviceId);
+    }
+  };
+
+  const handleActivate = (serviceId: string) => {
+    if (onActivate) {
+      onActivate(serviceId);
+    } else {
+      console.warn("⚠️ [MyServicesTable] onActivate callback not provided for service:", serviceId);
+    }
+  };
+
+  const handleDelete = (serviceId: string) => {
+    if (onDelete) {
+      onDelete(serviceId);
+    } else {
+      console.warn("⚠️ [MyServicesTable] onDelete callback not provided for service:", serviceId);
+    }
+  };
 
   const totalPages = Math.ceil(services.length / PAGE_SIZE);
   const startIndex = (page - 1) * PAGE_SIZE;
@@ -78,7 +126,7 @@ function MyServicesTable({ services = [] }: MyServicesTableProps) {
               {t("services.table.location")}
             </TableHead>
             <TableHead className={isMobile ? "text-xs" : ""}>
-              {t("services.table.type")}
+              {t("services.table.modality")}
             </TableHead>
             <TableHead className={isMobile ? "text-xs" : ""}>
               {t("services.table.price")}
@@ -163,7 +211,7 @@ function MyServicesTable({ services = [] }: MyServicesTableProps) {
                   )}
                 </TableCell>
                 <TableCell className={isMobile ? "text-xs" : ""}>
-                  {row.tipo}
+                  {row.modalidad}
                 </TableCell>
                 <TableCell className={isMobile ? "text-xs" : ""}>
                   {row.precio}
@@ -195,11 +243,11 @@ function MyServicesTable({ services = [] }: MyServicesTableProps) {
                   <ServicesActions
                     status={row.estado === "Activo" ? "active" : "inactive"}
                     serviceId={row.id}
-                    onView={() => alert(`Ver servicio ${row.id}`)}
-                    onEdit={() => alert(`Editar servicio ${row.id}`)}
-                    onDeactivate={() => alert(`Desactivar servicio ${row.id}`)}
-                    onActivate={() => alert(`Activar servicio ${row.id}`)}
-                    onDelete={() => alert(`Eliminar servicio ${row.id}`)}
+                    onView={() => handleView(row.id)}
+                    onEdit={() => handleEdit(row.id)}
+                    onDeactivate={() => handleDeactivate(row.id)}
+                    onActivate={() => handleActivate(row.id)}
+                    onDelete={() => handleDelete(row.id)}
                   />
                 </TableCell>
               </TableRow>

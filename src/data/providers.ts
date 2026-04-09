@@ -14,7 +14,7 @@ export interface BaseProvider {
   coordinates: {
     lat: number;
     lng: number;
-  };
+  } | { lat: number; lng: number }[];
 }
 
 export interface Doctor extends BaseProvider {
@@ -29,6 +29,7 @@ export interface Doctor extends BaseProvider {
     date: string;
     dayName: string;
     slots: number;
+    month?: string;
   }[];
   connectionStatus?: "connected" | "not_connected" | "pending"; // <-- Cambia aquí
   isFavorite?: boolean;

@@ -7,14 +7,24 @@ type ProviderPopupProps = {
   provider: Provider;
   isSelected?: boolean;
   onSelect?: (id: string) => void;
+  onScheduleAppointment?: (providerId: string) => void;
   navigateFn?: (path: string) => void;
+  userRole?: string | null;
+  isMobile?: boolean;
+  onContact?: (providerId: string) => void;
+  isStartingConversation?: boolean;
 };
 
 const ProviderPopup: React.FC<ProviderPopupProps> = ({
   provider,
   isSelected,
   onSelect,
+  onScheduleAppointment,
+  onContact,
   navigateFn,
+  userRole,
+  isMobile,
+  isStartingConversation = false,
 }) => {
   if (provider.type === "doctor") {
     return (
@@ -22,7 +32,12 @@ const ProviderPopup: React.FC<ProviderPopupProps> = ({
         provider={provider}
         isConnected={isSelected}
         onConnect={onSelect}
+        onScheduleAppointment={onScheduleAppointment}
         navigateFn={navigateFn}
+        userRole={userRole}
+        isMobile={isMobile}
+        onContact={onContact}
+        isContactLoading={isStartingConversation}
       />
     );
   }
@@ -33,6 +48,8 @@ const ProviderPopup: React.FC<ProviderPopupProps> = ({
       isConnected={isSelected}
       onConnect={onSelect}
       navigateFn={navigateFn}
+      userRole={userRole}
+      isMobile={isMobile}
     />
   );
 };

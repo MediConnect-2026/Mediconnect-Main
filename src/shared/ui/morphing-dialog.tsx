@@ -221,13 +221,14 @@ function MorphingDialogContent({
 }: MorphingDialogContentProps) {
   const { setIsOpen, isOpen, uniqueId, triggerRef } = useMorphingDialog();
   const containerRef = useRef<HTMLDivElement>(null!);
-  const [firstFocusableElement, setFirstFocusableElement] =
-    useState<HTMLElement | null>(null);
-  const [lastFocusableElement, setLastFocusableElement] =
-    useState<HTMLElement | null>(null);
+  const firstFocusableElementRef = useRef<HTMLElement | null>(null);
+  const lastFocusableElementRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
+      const firstFocusableElement = firstFocusableElementRef.current;
+      const lastFocusableElement = lastFocusableElementRef.current;
+
       if (event.key === "Escape" && isTopDialog(uniqueId)) {
         setIsOpen(false);
       }
@@ -253,7 +254,7 @@ function MorphingDialogContent({
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [setIsOpen, firstFocusableElement, lastFocusableElement, uniqueId]);
+  }, [setIsOpen, uniqueId]);
 
   useEffect(() => {
     if (isOpen) {
@@ -262,13 +263,17 @@ function MorphingDialogContent({
         'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
       );
       if (focusableElements && focusableElements.length > 0) {
-        setFirstFocusableElement(focusableElements[0] as HTMLElement);
-        setLastFocusableElement(
-          focusableElements[focusableElements.length - 1] as HTMLElement,
-        );
+        firstFocusableElementRef.current = focusableElements[0] as HTMLElement;
+        lastFocusableElementRef.current =
+          focusableElements[focusableElements.length - 1] as HTMLElement;
         (focusableElements[0] as HTMLElement).focus();
+      } else {
+        firstFocusableElementRef.current = null;
+        lastFocusableElementRef.current = null;
       }
     } else {
+      firstFocusableElementRef.current = null;
+      lastFocusableElementRef.current = null;
       if (dialogStack.length === 0) {
         document.body.classList.remove("overflow-hidden");
       }
@@ -308,14 +313,8 @@ export type MorphingDialogContainerProps = {
   style?: React.CSSProperties;
 };
 
-function MorphingDialogContainer({ children }: MorphingDialogContainerProps) {
+function MorphingDialogContainer({ children, className, style }: MorphingDialogContainerProps) {
   const { isOpen, uniqueId, setIsOpen } = useMorphingDialog();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-    return () => setMounted(false);
-  }, []);
 
   useEffect(() => {
     if (isOpen) {
@@ -337,9 +336,16 @@ function MorphingDialogContainer({ children }: MorphingDialogContainerProps) {
     [setIsOpen, uniqueId],
   );
 
-  if (!mounted) return null;
+  if (typeof document === "undefined") return null;
 
-  const zIndex = 50 + getStackIndex(uniqueId) * 10;
+  let stackIndex = getStackIndex(uniqueId);
+  if (stackIndex === -1 && isOpen) {
+    stackIndex = dialogStack.length;
+  }
+  
+  // Base zIndex or override from style
+  const baseZIndex = style?.zIndex !== undefined ? Number(style.zIndex) : 50;
+  const calculatedZIndex = baseZIndex + stackIndex * 10;
 
   return createPortal(
     <AnimatePresence initial={false} mode="sync">
@@ -348,17 +354,19 @@ function MorphingDialogContainer({ children }: MorphingDialogContainerProps) {
           <motion.div
             key={`backdrop-${uniqueId}`}
             className="fixed inset-0 h-full w-full bg-black/10 backdrop-blur-sm dark:bg-black/40"
-            style={{ zIndex: zIndex - 1 }}
+            style={{ zIndex: calculatedZIndex - 1 }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={handleBackdropClick}
           />
           <div
-            className="fixed inset-0 flex items-center justify-center pointer-events-none"
-            style={{ zIndex }}
+            className={cn("fixed inset-0 flex items-center justify-center pointer-events-none", className)}
+            style={{ zIndex: calculatedZIndex }}
           >
-            <div className="pointer-events-auto">{children}</div>
+            <div className="pointer-events-auto flex items-center justify-center max-w-full max-h-full">
+               {children}
+            </div>
           </div>
         </>
       )}

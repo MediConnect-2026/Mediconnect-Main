@@ -24,6 +24,7 @@ interface MCTablesLayoutsProps {
   actionPlusComponent?: React.ReactNode;
   isDashboard?: boolean;
   titleSize?: string;
+  paginationComponent?: React.ReactNode;
 }
 
 function MCTablesLayouts({
@@ -37,16 +38,17 @@ function MCTablesLayouts({
   actionPlusComponent,
   isDashboard = false,
   titleSize,
+  paginationComponent,
 }: MCTablesLayoutsProps) {
   const isMobile = useIsMobile();
 
   return (
     <div
-      className={`bg-background ${!isDashboard ? "min-h-screen" : "h-fit"} flex gap-4 rounded-4xl ${
+      className={`bg-background ${!isDashboard ? "min-h-screen" : "h-fit"} flex flex-col gap-4 rounded-4xl ${
         isDashboard ? "p-10" : isMobile ? "py-6 px-6" : "p-10"
       }`}
     >
-      <motion.main {...fadeInUp} className="w-full flex flex-col gap-6">
+      <motion.main {...fadeInUp} className="w-full flex flex-col flex-1 min-h-0">
         {/* Header con título y acciones */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <h1
@@ -98,7 +100,7 @@ function MCTablesLayouts({
         {/* Métricas Cards */}
         {metrics.length > 0 && (
           <div
-            className={`grid gap-4 ${
+            className={`grid gap-4 mt-6 ${
               isMobile
                 ? "grid-cols-1"
                 : metrics.length === 4
@@ -122,8 +124,17 @@ function MCTablesLayouts({
           </div>
         )}
 
-        {/* Tabla/Contenido */}
-        <div>{tableComponent}</div>
+        {/* Tabla/Contenido - con flex-1 para ocupar espacio disponible */}
+        <div className="flex-1 overflow-auto mt-6">
+          {tableComponent}
+        </div>
+
+        {/* Paginación fija en la parte inferior */}
+        {paginationComponent && (
+          <div className="mt-4 pt-4 border-t border-border">
+            {paginationComponent}
+          </div>
+        )}
       </motion.main>
     </div>
   );

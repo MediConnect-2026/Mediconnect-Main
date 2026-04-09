@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useSequentialShortcuts } from "@/lib/hooks/useSequentialShortcuts";
+import { useLogout } from "@/lib/hooks/useLogout";
 import {
   DropdownMenuContent,
   DropdownMenuGroup,
@@ -34,13 +35,15 @@ import { useTranslation } from "react-i18next";
 import type { Theme } from "@/stores/useGlobalUISlice";
 import { cn } from "@/lib/utils";
 import { ROUTES } from "@/router/routes";
-
+import { useCallback } from "react";
+import { Avatar, AvatarImage } from "@/shared/ui/avatar";
 const isMac =
   typeof window !== "undefined" &&
   /Mac|iPod|iPhone|iPad/.test(navigator.platform);
 const cmdOrCtrl = isMac ? "⌘" : "Ctrl";
 
 interface UserData {
+  userId: number;
   name: string;
   email: string;
   avatar: string;
@@ -65,9 +68,41 @@ interface MCUserMenuContentProps {
   userRole: string;
 }
 
+type MobileSubMenuProps = {
+  title: string;
+  children: React.ReactNode;
+  isOpen: boolean;
+  onClose: () => void;
+};
+
+function MobileSubMenu({
+  title,
+  children,
+  isOpen,
+  onClose,
+}: MobileSubMenuProps) {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 bg-background">
+      <div className="flex items-center justify-between p-4 border-b">
+        <h2 className="text-lg font-semibold">{title}</h2>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onClose}
+          className="p-1 h-8 w-8"
+        >
+          <X className="w-4 h-4" />
+        </Button>
+      </div>
+      <div className="p-4">{children}</div>
+    </div>
+  );
+}
+
 export function MCUserMenuContent({
   userData,
-  open,
   setOpen,
   subMenuOpen,
   setSubMenuOpen,
@@ -82,6 +117,16 @@ export function MCUserMenuContent({
 }: MCUserMenuContentProps) {
   const { t } = useTranslation("common");
   const navigate = useNavigate();
+  const logoutUser = useLogout();
+
+  // Función para manejar el cierre de sesión
+  const handleLogout = useCallback(() => {
+    // Cerrar el menú antes de hacer logout
+    setOpen(false);
+    
+    // Ejecutar logout (limpia estado y redirige)
+    logoutUser();
+  }, [logoutUser, setOpen]);
 
   const handleLanguageChange = (langCode: string) => {
     setLanguage(langCode);
@@ -104,7 +149,7 @@ export function MCUserMenuContent({
   const getProfileRoute = (): string => {
     switch (userRole) {
       case "DOCTOR":
-        return "/doctor/profile";
+        return `/doctor/profile/${userData.userId}`;
       case "CENTER":
         return "/center/profile";
       case "PATIENT":
@@ -140,16 +185,14 @@ export function MCUserMenuContent({
     },
     {
       sequence: ["g", "a"],
-      action: () => {
-        console.log("Logout triggered");
-      },
+      action: handleLogout,
     },
     ...(userRole === "DOCTOR" || userRole === "CENTER"
       ? [
           {
             sequence: ["g", "d"],
             action: () => {
-              console.log("Navigate to verification docs");
+              navigate("/verify-info");
             },
           },
         ]
@@ -159,7 +202,7 @@ export function MCUserMenuContent({
           {
             sequence: ["g", "r"],
             action: () => {
-              console.log("Navigate to requests");
+              navigate("/requests");
             },
           },
         ]
@@ -198,38 +241,6 @@ export function MCUserMenuContent({
         icon: <Moon className="w-4 h-4" />,
       },
     ];
-
-  // Componente para submenú móvil
-  const MobileSubMenu = ({
-    title,
-    children,
-    isOpen,
-    onClose,
-  }: {
-    title: string;
-    children: React.ReactNode;
-    isOpen: boolean;
-    onClose: () => void;
-  }) => {
-    if (!isOpen) return null;
-
-    return (
-      <div className="fixed inset-0 z-50 bg-background">
-        <div className="flex items-center justify-between p-4 border-b">
-          <h2 className="text-lg font-semibold">{title}</h2>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onClose}
-            className="p-1 h-8 w-8"
-          >
-            <X className="w-4 h-4" />
-          </Button>
-        </div>
-        <div className="p-4">{children}</div>
-      </div>
-    );
-  };
 
   type RoleSpecificItem = {
     icon: React.ReactNode;
@@ -302,7 +313,17 @@ export function MCUserMenuContent({
           <div className="flex items-center gap-3 min-w-0">
             {/* Avatar: tamaño fijo igual en mobile y desktop */}
             <div className="flex-shrink-0">
-              <MCUserAvatar name={userData.name} size={44} square={false} />
+              {userData.avatar ? (
+                <Avatar className="h-[54px] w-[54px] rounded-full shadow-lg transition-all">
+                  <AvatarImage
+                    alt={userData.name}
+                    src={userData.avatar}
+                    className="object-cover"
+                  />
+                </Avatar>
+              ) : (
+                <MCUserAvatar name={userData.name} size={44} square={false} />
+              )}
             </div>
 
             {/* Texto: ocupa el espacio restante con truncado */}
@@ -463,7 +484,7 @@ export function MCUserMenuContent({
         <DropdownMenuSeparator className="bg-primary/15" />
 
         {/* Cerrar sesión */}
-        <DropdownMenuItem variant="destructive">
+        <DropdownMenuItem variant="destructive" onSelect={handleLogout}>
           <LogOut className="w-4 h-4 mr-2" />
           {t("userMenu.logout")}
           {!isMobile && <DropdownMenuShortcut>G → A</DropdownMenuShortcut>}

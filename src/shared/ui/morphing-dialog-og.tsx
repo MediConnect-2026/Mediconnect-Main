@@ -144,10 +144,8 @@ function MorphingDialogContent({
 }: MorphingDialogContentProps) {
   const { setIsOpen, isOpen, uniqueId, triggerRef } = useMorphingDialog();
   const containerRef = useRef<HTMLDivElement>(null!);
-  const [firstFocusableElement, setFirstFocusableElement] =
-    useState<HTMLElement | null>(null);
-  const [lastFocusableElement, setLastFocusableElement] =
-    useState<HTMLElement | null>(null);
+  const firstFocusableElementRef = useRef<HTMLElement | null>(null);
+  const lastFocusableElementRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -155,6 +153,8 @@ function MorphingDialogContent({
         setIsOpen(false);
       }
       if (event.key === "Tab") {
+        const firstFocusableElement = firstFocusableElementRef.current;
+        const lastFocusableElement = lastFocusableElementRef.current;
         if (!firstFocusableElement || !lastFocusableElement) return;
 
         if (event.shiftKey) {
@@ -185,10 +185,9 @@ function MorphingDialogContent({
         'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
       );
       if (focusableElements && focusableElements.length > 0) {
-        setFirstFocusableElement(focusableElements[0] as HTMLElement);
-        setLastFocusableElement(
-          focusableElements[focusableElements.length - 1] as HTMLElement
-        );
+        firstFocusableElementRef.current = focusableElements[0] as HTMLElement;
+        lastFocusableElementRef.current =
+          focusableElements[focusableElements.length - 1] as HTMLElement;
         (focusableElements[0] as HTMLElement).focus();
       }
     } else {
@@ -227,14 +226,7 @@ export type MorphingDialogContainerProps = {
 
 function MorphingDialogContainer({ children }: MorphingDialogContainerProps) {
   const { isOpen, uniqueId } = useMorphingDialog();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-    return () => setMounted(false);
-  }, []);
-
-  if (!mounted) return null;
+  if (typeof document === "undefined") return null;
 
   return createPortal(
     <AnimatePresence initial={false} mode="sync">

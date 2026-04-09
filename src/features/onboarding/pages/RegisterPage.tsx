@@ -33,12 +33,71 @@ function RegisterPage() {
   const detailsRefs = useRef<Record<string, HTMLUListElement | null>>({});
   const resetFlows = useAppStore((state) => state.clearOnboarding);
   const clearAuthFlow = useAppStore((state) => state.clearAuthFlow);
+  
+  // Detectar si viene de registro con Google
+  const registrationToken = useAppStore((state) => state.registrationToken);
+  const googleUserData = useAppStore((state) => state.googleUserData);
+  const isGoogleRegistration = registrationToken && googleUserData;
+  
+  // Store setters para pre-poblar datos cuando viene de Google
+  const setVerifyEmail = useAppStore((state) => state.setVerifyEmail);
+  const setPatientEmail = useAppStore((state) => state.setPatientOnboardingData);
+  const patientBasicInfo = useAppStore((state) => state.patientOnboardingData);
+  const setEmailDoctor = useAppStore((state) => state.setDoctorOnboardingData);
+  const doctorBasicInfo = useAppStore((state) => state.doctorOnboardingData);
+  const setEmailCenter = useAppStore((state) => state.setCenterOnboardingData);
+  const centerBasicInfo = useAppStore((state) => state.centerOnboardingData);
 
   const handleselectRole = (roleKey: "Patient" | "Doctor" | "Center") => {
     if (selectedRole !== roleKey) {
-      resetFlows();
-      clearAuthFlow();
+      // Solo limpiar flows si NO viene de Google
+      if (!isGoogleRegistration) {
+        resetFlows();
+        clearAuthFlow();
+      }
       setRoleInStore(roleKey);
+    }
+  };
+  
+  const handleContinue = () => {
+    if (!selectedRole) return;
+
+    // Si viene de Google, pre-poblar datos y saltarse email verification y OTP
+    if (isGoogleRegistration && googleUserData) {
+      const email = googleUserData.email || "";
+      
+      // Marcar email como verificado
+      setVerifyEmail({ email, verified: true });
+      
+      // Guardar email en el store del rol correspondiente
+      if (selectedRole === "Doctor" && setEmailDoctor && doctorBasicInfo) {
+        setEmailDoctor({
+          ...doctorBasicInfo,
+          email,
+        });
+      } else if (selectedRole === "Patient" && setPatientEmail && patientBasicInfo) {
+        setPatientEmail({
+          ...patientBasicInfo,
+          email,
+        });
+      } else if (selectedRole === "Center" && setEmailCenter && centerBasicInfo) {
+        setEmailCenter({
+          ...centerBasicInfo,
+          email,
+        });
+      }
+      
+      // Navegar directamente a la página de información del rol
+      if (selectedRole === "Patient") {
+        navigate("/auth/patient-onboarding/basic-info", { replace: true });
+      } else if (selectedRole === "Doctor") {
+        navigate("/auth/doctor-onboarding", { replace: true });
+      } else if (selectedRole === "Center") {
+        navigate("/auth/center-onboarding", { replace: true });
+      }
+    } else {
+      // Flujo normal: ir a email verification
+      navigate("/auth/reg-email-verification");
     }
   };
 
@@ -170,7 +229,7 @@ function RegisterPage() {
           <AuthFooterContainer
             continueButtonProps={{
               children: t("footer.continue"),
-              onClick: () => navigate("/auth/reg-email-verification"),
+              onClick: handleContinue,
               disabled: !selectedRole,
             }}
             backButtonProps={{

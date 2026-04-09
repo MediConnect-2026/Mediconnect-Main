@@ -44,7 +44,7 @@ const AuthFooterContainer: React.FC<AuthFooterContainerProps> = ({
             iconPosition="right"
             {...continueButtonProps}
           >
-            {type === "Continue" ? t("footer.continue") : t("footer.save")}
+            {continueButtonProps?.children ?? (type === "Continue" ? t("footer.continue") : t("footer.save"))}
           </MCButton>
         </ContinueButtonWrapper>
       ) : (
@@ -54,7 +54,7 @@ const AuthFooterContainer: React.FC<AuthFooterContainerProps> = ({
           iconPosition="right"
           {...continueButtonProps}
         >
-          {type === "Continue" ? t("footer.continue") : t("footer.save")}
+          {continueButtonProps?.children ?? (type === "Continue" ? t("footer.continue") : t("footer.save"))}
         </MCButton>
       )}
     </div>

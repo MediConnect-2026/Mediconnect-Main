@@ -6,13 +6,21 @@ import { ShieldCheck, MessageCircle, UserX } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
 import { useTranslation } from "react-i18next";
+import { useAppStore } from "@/stores/useAppStore";
+import { roleMapping, type AppUserRole } from "@/services/auth/auth.types";
 
 function PrivacyOverviewPage() {
   const { t } = useTranslation("common");
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+  const userRole = useAppStore((state) => state.user?.rol);
 
-  const actions: AccountAction[] = [
+  // Determinar el rol de aplicación (puede venir en español o inglés)
+  const appRole: AppUserRole | undefined = userRole 
+    ? (roleMapping[userRole as keyof typeof roleMapping] || userRole as AppUserRole)
+    : undefined;
+
+  const allActions: AccountAction[] = [
     {
       id: "profile-privacy",
       title: t("privacy.profilePrivacy"),
@@ -33,10 +41,24 @@ function PrivacyOverviewPage() {
     },
   ];
 
+  // Filtrar acciones según el rol del usuario
+  const actions = allActions.filter((action) => {
+    switch (appRole) {
+      case 'PATIENT':
+        return action.id === 'blocked-users';
+      case 'DOCTOR':
+      case 'CENTER':
+        return action.id === 'messages-privacy' || action.id === 'blocked-users';
+      case 'ADMINISTRATOR':
+        return true; // Mostrar todas las opciones
+      default:
+        return true; // Por defecto mostrar todo si no hay rol definido
+    }
+  });
   return (
     <MCDashboardContent
       mainWidth={isMobile ? "w-full" : "max-w-2xl"}
-      disabledBackButton={true}
+      disabledBackButton={false}
     >
       <div className="flex flex-col gap-6 items-center justify-center w-full mb-8">
         <div

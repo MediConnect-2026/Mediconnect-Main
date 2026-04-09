@@ -64,6 +64,7 @@ import VerifyInfo from "@/features/verifyInfo/pages/VerifyInfo";
 // Teleconsultation Pages
 import TeleconsultConfirmPage from "@/features/teleconsultation/pages/TeleconsultConfirmPage";
 import TeleconsultRoomPage from "@/features/teleconsultation/pages/TeleconsultRoomPage";
+import ErrorBoundary from "@/shared/components/ErrorBoundary";
 
 // Settings Pages
 import AccountOverviewPage from "@/features/account/settings/pages/AccountOverviewPage";
@@ -82,8 +83,7 @@ import MessagesPrivacyPage from "@/features/account/privacy/pages/MessagesPrivac
 //Landing page
 import LandingPage from "@/features/landing/pages/LandingPage";
 function AppRouter() {
-  const userRole = useAppStore((state) => state.user?.role);
-
+  const userRole = useAppStore((state) => state.user?.rol);
   return (
     <BrowserRouter>
       <ScrollToTop />
@@ -201,11 +201,19 @@ function AppRouter() {
             {/* Profile Routes */}
             <Route
               path={ROUTES.PATIENT.PATIENT_PROFILE_PRIVATE}
-              element={<PatientProfilePage />}
+              element={
+                <ProtectedRoute patient>
+                  <PatientProfilePage />
+                </ProtectedRoute>
+              }
             />
             <Route
               path={ROUTES.PATIENT.PATIENT_PROFILE_PUBLIC}
-              element={<PatientProfilePage />}
+              element={
+                <ProtectedRoute patient>
+                  <PatientProfilePage />
+                </ProtectedRoute>
+              }
             />
             <Route
               path={ROUTES.DOCTOR.DOCTOR_PROFILE_PUBLIC}
@@ -343,7 +351,11 @@ function AppRouter() {
             />
             <Route
               path={ROUTES.TELECONSULT.ROOM}
-              element={<TeleconsultRoomPage />}
+              element={
+                <ErrorBoundary>
+                  <TeleconsultRoomPage />
+                </ErrorBoundary>
+              }
             />
 
             {/* Settings Routes */}

@@ -1,6 +1,8 @@
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { insurancePlans, type InsurancePlan } from "@/data/searchData";
+import { Loader2 } from "lucide-react";
+import { useAvailableInsurances, usePopularInsurances } from "@/features/patient/hooks";
 
 interface InsuranceDropdownProps {
   searchTerm: string;
@@ -15,29 +17,46 @@ const InsuranceDropdown = ({
 }: InsuranceDropdownProps) => {
   const { t } = useTranslation("patient");
 
+  // React Query hooks para datos con caché
+  const { data: availableInsurances = [], isLoading: isLoadingInsurances } = useAvailableInsurances();
+  const { data: popularInsurances = [], isLoading: isLoadingPopularInsurances } = usePopularInsurances();
+
   const { popularPlans, allPlans } = useMemo(() => {
     const query = searchTerm.toLowerCase().trim();
 
-    if (!query) {
-      return {
-        popularPlans: insurancePlans.filter((p) => p.popular),
-        allPlans: insurancePlans
-          .filter((p) => !p.popular)
-          .sort((a, b) => a.name.localeCompare(b.name)),
-      };
-    }
+    // Map availableInsurances (Seguro[]) to InsurancePlan shape
+    const mappedPlans: InsurancePlan[] =
+      availableInsurances && availableInsurances.length > 0
+        ? availableInsurances.map((s) => ({
+            id: String(s.id),
+            name: s.nombre,
+            popular: false,
+          }))
+        : insurancePlans;
 
-    const filtered = insurancePlans.filter((p) =>
-      p.name.toLowerCase().includes(query),
+    // Map popularInsurances (if provided) to InsurancePlan
+    const mappedPopularPlans: InsurancePlan[] =
+      popularInsurances && popularInsurances.length > 0
+        ? popularInsurances.map((s) => ({
+            id: String(s.id),
+            name: s.nombre,
+            popular: true,
+          }))
+        : mappedPlans.filter((p) => p.popular);
+
+    const filterByQuery = (plans: InsurancePlan[]) =>
+      query ? plans.filter((p) => p.name.toLowerCase().includes(query)) : plans;
+
+    const popularFiltered = filterByQuery(mappedPopularPlans);
+    const othersFiltered = filterByQuery(mappedPlans.filter((p) => !p.popular)).sort((a, b) =>
+      a.name.localeCompare(b.name),
     );
 
     return {
-      popularPlans: filtered.filter((p) => p.popular),
-      allPlans: filtered
-        .filter((p) => !p.popular)
-        .sort((a, b) => a.name.localeCompare(b.name)),
+      popularPlans: popularFiltered,
+      allPlans: othersFiltered,
     };
-  }, [searchTerm]);
+  }, [searchTerm, availableInsurances, popularInsurances]);
 
   // Agrupar por letra inicial (solo en desktop)
   const groupedPlans = useMemo(() => {
@@ -97,7 +116,11 @@ const InsuranceDropdown = ({
         )}
 
         {/* DESKTOP: Agrupado por letra */}
-        {!isMobile && groupedPlans && Object.keys(groupedPlans).length > 0 && (
+        {isLoadingInsurances || isLoadingPopularInsurances ? (
+          <div className="flex items-center justify-center py-4">
+            <Loader2 className="w-6 h-6 animate-spin text-primary" />
+          </div>
+        ): !isMobile && groupedPlans && Object.keys(groupedPlans).length > 0 && (
           <div className="px-5 mt-4">
             <h3 className="font-semibold text-foreground mb-2">
               {t("searchBar.allPlans")}

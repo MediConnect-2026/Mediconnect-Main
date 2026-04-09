@@ -1,4 +1,4 @@
-import React, { useCallback, useRef } from "react";
+import React, { useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sun, Moon, Monitor } from "lucide-react";
 import { useGlobalUIStore } from "@/stores/useGlobalUIStore";
@@ -50,10 +50,10 @@ export const ThemeToggler: React.FC<ThemeTogglerProps> = ({
     return "light";
   };
 
-  const handleToggle = useCallback(() => {
+  const handleToggle = () => {
     const nextTheme = getNextTheme();
     setTheme(nextTheme);
-  }, [theme, setTheme]);
+  };
 
   const effective = theme === "system" ? "system" : resolvedTheme;
   const animationDir = getAnimationDirection(direction);

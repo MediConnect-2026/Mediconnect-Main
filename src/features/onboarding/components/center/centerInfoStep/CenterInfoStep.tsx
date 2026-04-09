@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { MCModalBase } from "@/shared/components/MCModalBase";
 import CenterInfoStep1 from "@/features/onboarding/components/center/centerInfoStep/CenterInfoStep1";
 import CenterInfoStep2 from "@/features/onboarding/components/center/centerInfoStep/CenterInfoStep2";

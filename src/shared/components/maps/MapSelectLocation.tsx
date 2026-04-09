@@ -1,36 +1,54 @@
 import { useEffect, useRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
+import type { FeatureCollection, Geometry } from "geojson";
+import type { LngLatBoundsLike } from "mapbox-gl";
+import bbox from "@turf/bbox";
+import { point } from "@turf/helpers";
+import booleanPointInPolygon from "@turf/boolean-point-in-polygon";
 import {
   ParseDominicanAddress,
   type ParsedDominicanAddress,
 } from "@/utils/addressParser";
-import { Expand, Minimize, Plus, Minus, Cuboid } from "lucide-react";
+import { Expand, Minimize, Plus, Minus, Cuboid, Loader2 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/tooltip";
 import { AnimatePresence, motion } from "framer-motion";
 import { useGlobalUIStore } from "@/stores/useGlobalUIStore";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
 import { useTranslation } from "react-i18next";
+import { featureCollection } from "@turf/helpers";
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
 
 interface Props {
   value?: { lat: number; lng: number };
-  onChange: (lat: number, lng: number) => void;
+  onChange?: (lat: number, lng: number) => void;
   onLocationDetails?: (details: {
     address: string;
-    neighborhood: string;
+    neighborhood?: string;
     zipCode: string;
     province?: string;
     municipality?: string;
   }) => void;
-  fontSizeVariant?: "xs" | "s" | "m" | "l"; // <-- Añade esto
+  fontSizeVariant?: "xs" | "s" | "m" | "l";
+  neighborhoodGeo?: Geometry | null;
+  onPointSelected?: (
+    lat: number,
+    lng: number,
+    isInsideNeighborhood: boolean,
+  ) => void;
+  readonly?: boolean;
+  disabled?: boolean;
 }
 
 export default function MapSelectLocation({
   value,
   onChange,
   onLocationDetails,
-  fontSizeVariant = "m", // <-- Añade esto
+  fontSizeVariant = "m",
+  neighborhoodGeo,
+  onPointSelected,
+  readonly = false,
+  disabled = false,
 }: Props) {
   const { t } = useTranslation("common");
   const mapRef = useRef<mapboxgl.Map | null>(null);
@@ -43,35 +61,62 @@ export default function MapSelectLocation({
   const isdarkMode = useGlobalUIStore((state) => state.theme);
   const isMobile = useIsMobile();
 
+  const [isMapLoaded, setIsMapLoaded] = useState(false);
+  const [isProcessingPoint, setIsProcessingPoint] = useState(false);
+
   const [address, setAddress] = useState<ParsedDominicanAddress | null>(null);
 
-  // ResizeObserver para que Mapbox recalcule el canvas cuando cambia el contenedor
+  const neighborhoodGeoRef = useRef<Geometry | null>(null);
+
+  // Refs para mantener valores actualizados sin romper closures
+  const onLocationDetailsRef = useRef(onLocationDetails);
+  const onPointSelectedRef = useRef(onPointSelected);
+  const readonlyRef = useRef(readonly);
+  const disabledRef = useRef(disabled);
+
   useEffect(() => {
-    const container = isFullscreen
-      ? fullscreenContainerRef.current
-      : normalContainerRef.current;
-    if (!container || !mapRef.current) return;
-
-    const resizeObserver = new ResizeObserver(() => {
-      mapRef.current?.resize();
-    });
-
-    resizeObserver.observe(container);
-
-    return () => resizeObserver.disconnect();
-  }, [isFullscreen]);
-
-  // Forzar resize cuando cambia el breakpoint o el tamaño del contenedor
+    onLocationDetailsRef.current = onLocationDetails;
+  }, [onLocationDetails]);
   useEffect(() => {
-    // Espera a que termine la animación/layout
-    const timeout = setTimeout(() => {
-      mapRef.current?.resize();
-    }, 250); // Ajusta el tiempo si tu animación dura más
+    onPointSelectedRef.current = onPointSelected;
+  }, [onPointSelected]);
+  useEffect(() => {
+    readonlyRef.current = readonly;
+  }, [readonly]);
+  useEffect(() => {
+    disabledRef.current = disabled;
+  }, [disabled]);
 
-    return () => clearTimeout(timeout);
-  }, [isMobile, isFullscreen]);
+  const [geoDatas, setGeoDatas] = useState<{
+    santoDomingo: FeatureCollection<Geometry> | null;
+    distritoNacional: FeatureCollection<Geometry> | null;
+  }>({
+    santoDomingo: null,
+    distritoNacional: null,
+  });
 
-  // Función para obtener detalles de la ubicación usando Mapbox Geocoding API
+  useEffect(() => {
+    const fetchGeoJSON = async () => {
+      try {
+        const [resSD, resDN] = await Promise.all([
+          fetch("/data/poligonSantoDomingo.geojson"),
+          fetch("/data/poligonDistritoNacional.geojson"),
+        ]);
+        const dataSD = await resSD.json();
+        const dataDN = await resDN.json();
+
+        setGeoDatas({
+          santoDomingo: dataSD,
+          distritoNacional: dataDN,
+        });
+      } catch (error) {
+        console.error("Error cargando el polígono de Santo Domingo:", error);
+      }
+    };
+
+    fetchGeoJSON();
+  }, []);
+
   const getLocationDetails = async (lng: number, lat: number) => {
     try {
       const response = await fetch(
@@ -93,14 +138,11 @@ export default function MapSelectLocation({
         }
 
         const parsedAddress = await ParseDominicanAddress(lat, lng);
-        setAddress(parsedAddress); // <--- Guarda la dirección
+        setAddress(parsedAddress.direccion ? parsedAddress : null);
 
-        onLocationDetails?.({
-          address: parsedAddress.direccion,
-          neighborhood: neighborhood || "",
+        onLocationDetailsRef.current?.({
+          address: parsedAddress.direccion || "",
           zipCode: zipCode || "",
-          province: parsedAddress.provincia,
-          municipality: parsedAddress.municipio,
         });
       }
     } catch (error) {
@@ -109,6 +151,8 @@ export default function MapSelectLocation({
   };
 
   useEffect(() => {
+    if (!geoDatas.santoDomingo || !geoDatas.distritoNacional) return;
+
     const container = isFullscreen
       ? fullscreenContainerRef.current
       : normalContainerRef.current;
@@ -116,7 +160,19 @@ export default function MapSelectLocation({
 
     setisLoading(true);
 
-    // Coordenadas por defecto: Santo Domingo, República Dominicana
+    const todasLasFeatures = [
+      ...geoDatas.santoDomingo.features,
+      ...geoDatas.distritoNacional.features,
+    ];
+
+    const coleccionCombinada = featureCollection(todasLasFeatures);
+
+    const boundsArray = bbox(coleccionCombinada);
+    const limitesGenerales: LngLatBoundsLike = [
+      [boundsArray[0], boundsArray[1]],
+      [boundsArray[2], boundsArray[3]],
+    ];
+
     const defaultCoords = { lat: 18.4861, lng: -69.9312 };
     const center: [number, number] =
       value?.lat && value?.lng && value.lat !== 0 && value.lng !== 0
@@ -128,18 +184,24 @@ export default function MapSelectLocation({
         ? "mapbox://styles/mapbox/dark-v11"
         : "mapbox://styles/mapbox/streets-v12";
 
+    if (mapRef.current && typeof mapRef.current.remove === "function") {
+      mapRef.current.remove();
+      mapRef.current = null;
+      markerRef.current = null;
+    }
+
     mapRef.current = new mapboxgl.Map({
       container,
       style: mapStyle,
       center,
       zoom: isMobile ? 13 : 14,
-      pitch: is3D ? 60 : 0,
-      bearing: is3D ? -17.6 : 0,
+      pitch: 0,
+      bearing: 0,
       antialias: true,
-      dragRotate: is3D,
-      touchPitch: is3D,
-      pitchWithRotate: is3D,
-      maxPitch: is3D ? 85 : 60,
+      dragRotate: true,
+      touchPitch: true,
+      pitchWithRotate: true,
+      maxPitch: 85,
       minPitch: 0,
       scrollZoom: true,
       boxZoom: false,
@@ -147,23 +209,185 @@ export default function MapSelectLocation({
       keyboard: false,
       doubleClickZoom: true,
       touchZoomRotate: true,
+      maxBounds: limitesGenerales,
+      // Si está disabled desde el inicio, bloqueamos la interactividad nativa del mapa
+      interactive: !disabledRef.current,
     });
 
     mapRef.current.on("load", () => {
       setisLoading(false);
+      setIsMapLoaded(true);
 
-      if (is3D) {
-        // Terreno 3D
-        mapRef.current!.addSource("mapbox-dem", {
-          type: "raster-dem",
-          url: "mapbox://mapbox.mapbox-terrain-dem-v1",
-          tileSize: 512,
-          maxzoom: 14,
-        });
-        mapRef.current!.setTerrain({ source: "mapbox-dem", exaggeration: 1.5 });
+      mapRef.current!.addSource("limite-sd", {
+        type: "geojson",
+        data: geoDatas.santoDomingo ?? undefined,
+      });
+      mapRef.current!.addLayer({
+        id: "borde-sd",
+        type: "line",
+        source: "limite-sd",
+        paint: {
+          "line-color": "#e11d48",
+          "line-width": 2,
+          "line-opacity": 0.5,
+        },
+      });
 
-        // Edificios 3D
-        mapRef.current!.addLayer(
+      mapRef.current!.addSource("limite-dn", {
+        type: "geojson",
+        data: geoDatas.distritoNacional ?? undefined,
+      });
+
+      mapRef.current!.addLayer({
+        id: "borde-dn",
+        type: "line",
+        source: "limite-dn",
+        paint: {
+          "line-color": "#3b82f6",
+          "line-width": 2,
+          "line-opacity": 0.5,
+        },
+      });
+
+      mapRef.current!.addSource("mapbox-dem", {
+        type: "raster-dem",
+        url: "mapbox://mapbox.mapbox-terrain-dem-v1",
+        tileSize: 512,
+        maxzoom: 14,
+      });
+
+      requestAnimationFrame(() => {
+        mapRef.current?.resize();
+      });
+    });
+
+    const initialLat =
+      value?.lat && value.lat !== 0 ? value.lat : defaultCoords.lat;
+    const initialLng =
+      value?.lng && value.lng !== 0 ? value.lng : defaultCoords.lng;
+
+    if (markerRef.current) {
+      markerRef.current.remove();
+    }
+
+    // El marcador solo es arrastrable si no es readonly y no está disabled
+    markerRef.current = new mapboxgl.Marker({
+      draggable: !readonlyRef.current && !disabledRef.current,
+      color: "#e11d48",
+      scale: isMobile ? 1.2 : 1.5,
+    })
+      .setLngLat([initialLng, initialLat])
+      .addTo(mapRef.current);
+
+    if ((!value?.lat || value.lat === 0) && (!value?.lng || value.lng === 0)) {
+      onChange?.(defaultCoords.lat, defaultCoords.lng);
+      getLocationDetails(defaultCoords.lng, defaultCoords.lat);
+    }
+
+    const handleMapPoint = async (lat: number, lng: number) => {
+      if (isProcessingPoint || readonlyRef.current || disabledRef.current)
+        return;
+
+      setIsProcessingPoint(true);
+
+      try {
+        onChange?.(lat, lng);
+
+        await getLocationDetails(lng, lat);
+
+        const activeGeo = neighborhoodGeoRef.current;
+        if (
+          activeGeo &&
+          (activeGeo.type === "Polygon" || activeGeo.type === "MultiPolygon")
+        ) {
+          const pt = point([lng, lat]);
+          const geoFeature = {
+            type: "Feature" as const,
+            geometry: activeGeo as
+              | import("geojson").Polygon
+              | import("geojson").MultiPolygon,
+            properties: {},
+          };
+          const isInside = booleanPointInPolygon(pt, geoFeature);
+          if (isInside) {
+            onPointSelectedRef.current?.(lat, lng, true);
+          } else {
+            await onPointSelectedRef.current?.(lat, lng, false);
+          }
+        } else {
+          await onPointSelectedRef.current?.(lat, lng, false);
+        }
+      } catch (error) {
+        console.error("Error procesando punto:", error);
+      } finally {
+        setIsProcessingPoint(false);
+      }
+    };
+
+    markerRef.current.on("dragend", () => {
+      if (readonlyRef.current || disabledRef.current) return;
+      const position = markerRef.current!.getLngLat();
+      handleMapPoint(position.lat, position.lng);
+    });
+
+    mapRef.current.on("click", (e) => {
+      // Bloqueamos clics en el mapa si está cargando, es readonly o está deshabilitado
+      if (isProcessingPoint || readonlyRef.current || disabledRef.current)
+        return;
+
+      const { lng, lat } = e.lngLat;
+      markerRef.current!.setLngLat([lng, lat]);
+      handleMapPoint(lat, lng);
+    });
+
+    return () => {
+      setIsMapLoaded(false);
+      if (markerRef.current) {
+        markerRef.current.remove();
+        markerRef.current = null;
+      }
+      if (mapRef.current && typeof mapRef.current.remove === "function") {
+        mapRef.current.remove();
+        mapRef.current = null;
+      }
+      setisLoading(false);
+    };
+  }, [isFullscreen, isdarkMode, isMobile, geoDatas]);
+
+  // Efecto para actualizar la interactividad dinámica sin necesidad de recargar el mapa
+  useEffect(() => {
+    if (markerRef.current) {
+      markerRef.current.setDraggable(!readonly && !disabled);
+    }
+    const map = mapRef.current;
+    if (map && isMapLoaded) {
+      if (disabled) {
+        map.scrollZoom.disable();
+        map.dragPan.disable();
+        map.dragRotate.disable();
+        map.doubleClickZoom.disable();
+        map.touchZoomRotate.disable();
+      } else {
+        map.scrollZoom.enable();
+        map.dragPan.enable();
+        map.dragRotate.enable();
+        map.doubleClickZoom.enable();
+        map.touchZoomRotate.enable();
+      }
+    }
+  }, [readonly, disabled, isMapLoaded]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !isMapLoaded) return;
+
+    if (is3D) {
+      map.easeTo({ pitch: 60, bearing: -17.6, duration: 1000 });
+      if (!map.getTerrain()) {
+        map.setTerrain({ source: "mapbox-dem", exaggeration: 1.5 });
+      }
+      if (!map.getLayer("3d-buildings")) {
+        map.addLayer(
           {
             id: "3d-buildings",
             source: "composite",
@@ -197,57 +421,55 @@ export default function MapSelectLocation({
           "waterway-label",
         );
       }
-    });
-
-    // Coloca marcador inicial
-    const initialLat =
-      value?.lat && value.lat !== 0 ? value.lat : defaultCoords.lat;
-    const initialLng =
-      value?.lng && value.lng !== 0 ? value.lng : defaultCoords.lng;
-
-    // Limpiar marcador anterior
-    if (markerRef.current) {
-      markerRef.current.remove();
-    }
-
-    // Crear marcador rojo
-    markerRef.current = new mapboxgl.Marker({
-      draggable: true,
-      color: "#e11d48", // Rojo
-      scale: isMobile ? 1.2 : 1.5,
-    })
-      .setLngLat([initialLng, initialLat])
-      .addTo(mapRef.current);
-
-    // Si iniciamos con coordenadas por defecto, obtener detalles
-    if ((!value?.lat || value.lat === 0) && (!value?.lng || value.lng === 0)) {
-      onChange(defaultCoords.lat, defaultCoords.lng);
-      getLocationDetails(defaultCoords.lng, defaultCoords.lat);
-    }
-
-    // Evento cuando se arrastra el marcador
-    markerRef.current.on("dragend", () => {
-      const position = markerRef.current!.getLngLat();
-      onChange(position.lat, position.lng);
-      getLocationDetails(position.lng, position.lat);
-    });
-
-    // Evento cuando se hace clic en el mapa
-    mapRef.current.on("click", (e) => {
-      const { lng, lat } = e.lngLat;
-      markerRef.current!.setLngLat([lng, lat]);
-      onChange(lat, lng);
-      getLocationDetails(lng, lat);
-    });
-
-    return () => {
-      if (markerRef.current) {
-        markerRef.current.remove();
+    } else {
+      map.easeTo({ pitch: 0, bearing: 0, duration: 1000 });
+      if (map.getTerrain()) {
+        map.setTerrain(null);
       }
-      mapRef.current?.remove();
-      setisLoading(false);
-    };
-  }, [value, isFullscreen, isdarkMode, is3D, isMobile]);
+      if (map.getLayer("3d-buildings")) {
+        map.removeLayer("3d-buildings");
+      }
+    }
+  }, [is3D, isMapLoaded]);
+
+  useEffect(() => {
+    if (!mapRef.current || !markerRef.current || !value || !isMapLoaded) return;
+
+    const currentLngLat = markerRef.current.getLngLat();
+    const shouldUpdatePosition =
+      Math.abs(currentLngLat.lng - value.lng) > 0.0001 ||
+      Math.abs(currentLngLat.lat - value.lat) > 0.0001;
+
+    if (shouldUpdatePosition) {
+      if (value.lat !== 0 && value.lng !== 0) {
+        markerRef.current.setLngLat([value.lng, value.lat]);
+
+        // Zoom automático al marcador seleccionado
+        const map = mapRef.current;
+        if (map) {
+          const targetZoom = isMobile ? 15 : 16;
+          try {
+            map.easeTo({
+              center: [value.lng, value.lat],
+              zoom: targetZoom,
+              duration: 800,
+            });
+          } catch {
+            // fallback si easeTo falla por alguna razón
+            map.flyTo({
+              center: [value.lng, value.lat],
+              zoom: targetZoom,
+              speed: 0.8,
+            });
+          }
+        }
+      }
+    }
+  }, [value, isMapLoaded, isMobile]);
+
+  useEffect(() => {
+    neighborhoodGeoRef.current = neighborhoodGeo ?? null;
+  }, [neighborhoodGeo]);
 
   useEffect(() => {
     if (isFullscreen) {
@@ -260,7 +482,77 @@ export default function MapSelectLocation({
     };
   }, [isFullscreen]);
 
-  // Función para mostrar la dirección formateada
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !isMapLoaded) return;
+
+    const SOURCE_ID = "barrio-geo";
+    const FILL_LAYER_ID = "barrio-fill";
+    const LINE_LAYER_ID = "barrio-line";
+
+    const cleanup = () => {
+      if (map.getLayer(FILL_LAYER_ID)) map.removeLayer(FILL_LAYER_ID);
+      if (map.getLayer(LINE_LAYER_ID)) map.removeLayer(LINE_LAYER_ID);
+      if (map.getSource(SOURCE_ID)) map.removeSource(SOURCE_ID);
+    };
+
+    if (!neighborhoodGeo) {
+      cleanup();
+      return;
+    }
+
+    setIsProcessingPoint(true);
+    cleanup();
+
+    const geoFeature: FeatureCollection<Geometry> = {
+      type: "FeatureCollection",
+      features: [
+        { type: "Feature", geometry: neighborhoodGeo, properties: {} },
+      ],
+    };
+
+    map.addSource(SOURCE_ID, { type: "geojson", data: geoFeature });
+
+    map.addLayer({
+      id: FILL_LAYER_ID,
+      type: "fill",
+      source: SOURCE_ID,
+      paint: {
+        "fill-color": "#e11d48",
+        "fill-opacity": 0.12,
+      },
+    });
+
+    map.addLayer({
+      id: LINE_LAYER_ID,
+      type: "line",
+      source: SOURCE_ID,
+      paint: {
+        "line-color": "#e11d48",
+        "line-width": 2,
+        "line-opacity": 0.8,
+      },
+    });
+
+    if (!neighborhoodGeo?.type || !neighborhoodGeo) {
+      setIsProcessingPoint(false);
+      return;
+    }
+
+    const [minLng, minLat, maxLng, maxLat] = bbox(geoFeature);
+    map.fitBounds(
+      [
+        [minLng, minLat],
+        [maxLng, maxLat],
+      ],
+      { padding: 60, maxZoom: 16, duration: 800 },
+    );
+
+    setTimeout(() => {
+      setIsProcessingPoint(false);
+    }, 900);
+  }, [neighborhoodGeo, isMapLoaded]);
+
   const getFormattedAddress = () => {
     if (!address) return "";
     const parts = [
@@ -271,7 +563,6 @@ export default function MapSelectLocation({
     return parts.join(", ");
   };
 
-  // Map fontSizeVariant to Tailwind font size classes
   const fontSizeClass =
     fontSizeVariant === "xs"
       ? "text-xs"
@@ -310,7 +601,14 @@ export default function MapSelectLocation({
                 style={{ background: "#fff" }}
               />
 
-              {/* Dirección en la parte superior */}
+              {isProcessingPoint && (
+                <div className="absolute inset-0 z-[10002] bg-black/20 backdrop-blur-[2px] flex items-center justify-center">
+                  <div className="bg-background/95 rounded-full p-4 shadow-lg border border-primary/20">
+                    <Loader2 className="w-8 h-8 text-primary animate-spin" />
+                  </div>
+                </div>
+              )}
+
               {address && (
                 <div
                   className={`absolute ${
@@ -327,7 +625,6 @@ export default function MapSelectLocation({
                 </div>
               )}
 
-              {/* Botón toggle 3D */}
               <div
                 className={`absolute ${isMobile ? "top-16 left-2" : "top-4 left-4"} z-[10001]`}
               >
@@ -336,11 +633,12 @@ export default function MapSelectLocation({
                     <button
                       type="button"
                       onClick={() => setIs3D((prev) => !prev)}
+                      disabled={isProcessingPoint || disabled}
                       className={`bg-background shadow-lg rounded-full ${isMobile ? "p-2" : "p-3"} border border-primary/75 hover:bg-background/85 transition active:scale-95 flex items-center justify-center ${
                         is3D
                           ? "text-primary bg-primary/10"
                           : "text-muted-foreground"
-                      }`}
+                      } ${isProcessingPoint || disabled ? "opacity-50 cursor-not-allowed" : ""}`}
                       aria-label="Toggle 3D"
                     >
                       <Cuboid size={isMobile ? 20 : 24} />
@@ -352,14 +650,14 @@ export default function MapSelectLocation({
                 </Tooltip>
               </div>
 
-              {/* Controles */}
               <div
                 className={`absolute ${isMobile ? "top-2 right-2" : "top-4 right-4"} z-[10000] flex flex-col items-end gap-2`}
               >
                 <button
                   type="button"
                   onClick={() => setIsFullscreen(false)}
-                  className={`bg-background shadow-lg rounded-full ${isMobile ? "p-2" : "p-3"} border border-primary/75 hover:bg-background/85 transition active:scale-95`}
+                  disabled={isProcessingPoint || disabled}
+                  className={`bg-background shadow-lg rounded-full ${isMobile ? "p-2" : "p-3"} border border-primary/75 hover:bg-background/85 transition active:scale-95 ${isProcessingPoint || disabled ? "opacity-50 cursor-not-allowed" : ""}`}
                   aria-label={t("ui.map.minimizeMap")}
                 >
                   <Minimize size={isMobile ? 20 : 24} />
@@ -370,7 +668,8 @@ export default function MapSelectLocation({
                   <button
                     type="button"
                     onClick={() => mapRef.current?.zoomIn()}
-                    className={`bg-background shadow-lg rounded-full ${isMobile ? "p-2" : "p-3"} border border-primary/75 hover:bg-background/85 transition active:scale-95`}
+                    disabled={isProcessingPoint || disabled}
+                    className={`bg-background shadow-lg rounded-full ${isMobile ? "p-2" : "p-3"} border border-primary/75 hover:bg-background/85 transition active:scale-95 ${isProcessingPoint || disabled ? "opacity-50 cursor-not-allowed" : ""}`}
                     aria-label={t("ui.map.zoomIn")}
                   >
                     <Plus size={isMobile ? 20 : 24} />
@@ -378,7 +677,8 @@ export default function MapSelectLocation({
                   <button
                     type="button"
                     onClick={() => mapRef.current?.zoomOut()}
-                    className={`bg-background shadow-lg rounded-full ${isMobile ? "p-2" : "p-3"} border border-primary/75 hover:bg-background/85 transition active:scale-95`}
+                    disabled={isProcessingPoint || disabled}
+                    className={`bg-background shadow-lg rounded-full ${isMobile ? "p-2" : "p-3"} border border-primary/75 hover:bg-background/85 transition active:scale-95 ${isProcessingPoint || disabled ? "opacity-50 cursor-not-allowed" : ""}`}
                     aria-label={t("ui.map.zoomOut")}
                   >
                     <Minus size={isMobile ? 20 : 24} />
@@ -407,7 +707,14 @@ export default function MapSelectLocation({
               style={{ background: "#fff", minHeight: isMobile ? 250 : 350 }}
             />
 
-            {/* Botón toggle 3D */}
+            {isProcessingPoint && (
+              <div className="absolute inset-0 z-20 bg-black/20 backdrop-blur-[2px] flex items-center justify-center rounded-xl">
+                <div className="bg-background/95 rounded-full p-4 shadow-lg border border-primary/20">
+                  <Loader2 className="w-6 h-6 text-primary animate-spin" />
+                </div>
+              </div>
+            )}
+
             <div
               className={`absolute ${isMobile ? "top-2 left-2" : "top-4 left-4"} z-10`}
             >
@@ -416,11 +723,12 @@ export default function MapSelectLocation({
                   <button
                     type="button"
                     onClick={() => setIs3D((prev) => !prev)}
+                    disabled={isProcessingPoint || disabled}
                     className={`bg-background shadow-lg rounded-full ${isMobile ? "p-2" : "p-3"} border border-primary/75 hover:bg-background/85 transition active:scale-95 flex items-center justify-center ${
                       is3D
                         ? "text-primary bg-primary/10"
                         : "text-muted-foreground"
-                    }`}
+                    } ${isProcessingPoint || disabled ? "opacity-50 cursor-not-allowed" : ""}`}
                     aria-label="Toggle 3D"
                   >
                     <Cuboid size={isMobile ? 16 : 18} />
@@ -432,14 +740,14 @@ export default function MapSelectLocation({
               </Tooltip>
             </div>
 
-            {/* Controles */}
             <div
               className={`absolute ${isMobile ? "top-2 right-2" : "top-4 right-4"} z-10 flex flex-col items-center justify-center gap-2`}
             >
               <button
                 type="button"
                 onClick={() => setIsFullscreen(true)}
-                className={`bg-background shadow-lg rounded-full ${isMobile ? "p-2" : "p-3"} border border-primary/75 hover:bg-background/85 transition active:scale-95`}
+                disabled={isProcessingPoint || disabled}
+                className={`bg-background shadow-lg rounded-full ${isMobile ? "p-2" : "p-3"} border border-primary/75 hover:bg-background/85 transition active:scale-95 ${isProcessingPoint || disabled ? "opacity-50 cursor-not-allowed" : ""}`}
                 aria-label={t("ui.map.expandMap")}
               >
                 <Expand size={isMobile ? 16 : 18} />
@@ -450,7 +758,8 @@ export default function MapSelectLocation({
                 <button
                   type="button"
                   onClick={() => mapRef.current?.zoomIn()}
-                  className={`bg-background shadow-lg rounded-full ${isMobile ? "p-2" : "p-3"} border border-primary/75 hover:bg-background/85 transition active:scale-95`}
+                  disabled={isProcessingPoint || disabled}
+                  className={`bg-background shadow-lg rounded-full ${isMobile ? "p-2" : "p-3"} border border-primary/75 hover:bg-background/85 transition active:scale-95 ${isProcessingPoint || disabled ? "opacity-50 cursor-not-allowed" : ""}`}
                   aria-label={t("ui.map.zoomIn")}
                 >
                   <Plus size={isMobile ? 16 : 18} />
@@ -458,7 +767,8 @@ export default function MapSelectLocation({
                 <button
                   type="button"
                   onClick={() => mapRef.current?.zoomOut()}
-                  className={`bg-background shadow-lg rounded-full ${isMobile ? "p-2" : "p-3"} border border-primary/75 hover:bg-background/85 transition active:scale-95`}
+                  disabled={isProcessingPoint || disabled}
+                  className={`bg-background shadow-lg rounded-full ${isMobile ? "p-2" : "p-3"} border border-primary/75 hover:bg-background/85 transition active:scale-95 ${isProcessingPoint || disabled ? "opacity-50 cursor-not-allowed" : ""}`}
                   aria-label={t("ui.map.zoomOut")}
                 >
                   <Minus size={isMobile ? 16 : 18} />

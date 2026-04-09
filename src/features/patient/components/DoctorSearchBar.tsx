@@ -4,20 +4,92 @@ import { useDebounce } from "@/lib/hooks/useDebounce";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
 import SearchDropdown from "./searchComponent/SearchDropdown";
 import InsuranceDropdown from "@/features/patient/components/searchComponent/InsuranceDropdown";
-import type { Doctor, Specialty, InsurancePlan } from "@/data/searchData";
+import type { InsurancePlan } from "@/data/searchData";
+import { specialties } from "@/data/searchData";
+import { useSearchDoctors } from "@/features/search/hooks/useSearchDoctors";
 import { useTranslation } from "react-i18next";
 
-const DoctorSearchBar = () => {
+interface DoctorSearchBarProps {
+  onSearchChange?: (searchTerm: string) => void;
+  onInsuranceChange?: (insurance: string) => void;
+  onDoctorSelect?: (doctorId: string) => void;
+  onInsuranceSelect?: (insuranceId: string, insuranceName: string) => void;
+}
+
+// Minimum search length to trigger API call
+const MIN_SEARCH_LENGTH = 2;
+
+const DoctorSearchBar = ({ onSearchChange, onInsuranceChange, onDoctorSelect, onInsuranceSelect }: DoctorSearchBarProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [insurance, setInsurance] = useState("");
+  const [selectedInsuranceId, setSelectedInsuranceId] = useState<string | null>(null);
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
   const [showInsuranceDropdown, setShowInsuranceDropdown] = useState(false);
 
-  const debouncedSearch = useDebounce(searchTerm, 150);
+  const debouncedSearch = useDebounce(searchTerm, 300);
+  const debouncedInsurance = useDebounce(insurance, 300);
   const searchRef = useRef<HTMLDivElement>(null);
   const insuranceRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
   const { t } = useTranslation("patient");
+
+  // Use search doctors hook with name filter and/or insurance filter
+  const hasSearchText = debouncedSearch.trim().length >= MIN_SEARCH_LENGTH;
+  const hasInsuranceSelected = selectedInsuranceId !== null;
+  const shouldEnableSearch = hasSearchText || hasInsuranceSelected;
+  
+  console.log("DoctorSearchBar state:", {
+    hasSearchText,
+    hasInsuranceSelected,
+    shouldEnableSearch,
+    selectedInsuranceId,
+    debouncedSearch,
+  });
+  
+  const { 
+    filteredProviders, 
+    isLoading 
+  } = useSearchDoctors({
+    lat: null, // Don't send location for name-only search
+    lng: null, // Don't send location for name-only search
+    radiusKm: undefined, // Don't send radius for name-only search
+    filters: shouldEnableSearch ? {
+      name: debouncedSearch,
+      insuranceAccepted: selectedInsuranceId ? [selectedInsuranceId] : [],
+      providerType: [],
+      modality: "all",
+      specialty: [],
+      gender: "all",
+      yearsOfExperience: null,
+      languages: "all",
+      scheduledAppointments: "all",
+      rating: null,
+      radio: null,
+    } : undefined,
+    enabled: shouldEnableSearch,
+  });
+  
+  console.log("Search results:", {
+    filteredProvidersCount: filteredProviders.length,
+    isLoading,
+  });
+
+  // Update parent with debounced search term
+  useEffect(() => {
+    onSearchChange?.(debouncedSearch);
+  }, [debouncedSearch, onSearchChange]);
+
+  // Update parent with debounced insurance
+  useEffect(() => {
+    onInsuranceChange?.(debouncedInsurance);
+  }, [debouncedInsurance, onInsuranceChange]);
+
+  // Auto-open search dropdown when insurance is selected
+  useEffect(() => {
+    if (hasInsuranceSelected && onInsuranceSelect) {
+      setShowSearchDropdown(true);
+    }
+  }, [hasInsuranceSelected, onInsuranceSelect]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -43,19 +115,32 @@ const DoctorSearchBar = () => {
     console.log("Buscando:", { searchTerm, insurance });
   };
 
-  const handleSelectDoctor = (doctor: Doctor) => {
-    setSearchTerm(doctor.name);
+  const handleSelectDoctor = (doctorId: string, doctorName: string) => {
+    setSearchTerm(doctorName);
     setShowSearchDropdown(false);
+    
+    // If onDoctorSelect callback is provided, navigate to doctor profile
+    if (onDoctorSelect) {
+      onDoctorSelect(doctorId);
+    }
   };
 
-  const handleSelectSpecialty = (specialty: Specialty) => {
+  const handleSelectSpecialty = (specialty: { id: string; name: string }) => {
     setSearchTerm(specialty.name);
     setShowSearchDropdown(false);
   };
 
   const handleSelectInsurance = (plan: InsurancePlan) => {
     setInsurance(plan.name);
+    setSelectedInsuranceId(plan.id);
     setShowInsuranceDropdown(false);
+    
+    console.log("Insurance selected, searching doctors with insurance ID:", plan.id);
+    
+    // If onInsuranceSelect callback is provided, trigger search by insurance
+    if (onInsuranceSelect) {
+      onInsuranceSelect(plan.id, plan.name);
+    }
   };
 
   return (
@@ -81,12 +166,16 @@ const DoctorSearchBar = () => {
             onFocus={() => setShowSearchDropdown(true)}
             className="w-full bg-background text-muted-foreground placeholder:text-muted-foreground/70 text-sm focus:outline-none"
           />
-          {showSearchDropdown && debouncedSearch && (
+          {showSearchDropdown && (hasSearchText || hasInsuranceSelected) && (
             <SearchDropdown
               searchTerm={debouncedSearch}
+              doctors={filteredProviders}
+              specialties={specialties}
               onSelectDoctor={handleSelectDoctor}
               onSelectSpecialty={handleSelectSpecialty}
               isMobile={isMobile}
+              isLoading={isLoading}
+              hasActiveFilter={hasInsuranceSelected}
             />
           )}
         </div>
@@ -108,8 +197,15 @@ const DoctorSearchBar = () => {
             }
             value={insurance}
             onChange={(e) => {
-              setInsurance(e.target.value);
+              const newValue = e.target.value;
+              setInsurance(newValue);
               setShowInsuranceDropdown(true);
+              
+              // If user clears the insurance field, clear the selected insurance ID
+              if (newValue === "") {
+                setSelectedInsuranceId(null);
+                setShowSearchDropdown(false);
+              }
             }}
             onFocus={() => setShowInsuranceDropdown(true)}
             className="w-full bg-transparent text-muted-foreground placeholder:text-muted-foreground/70 text-sm focus:outline-none"

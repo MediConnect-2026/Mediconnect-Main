@@ -69,11 +69,21 @@
   "profilePage": {
     "aboutTitle": "Acerca de",
     "aboutDescription": "Atención integral para toda la familia, enfocada en prevenir, diagnosticar y tratar enfermedades comunes. Nuestro médico de familia acompaña a cada paciente en todas las etapas de la vida, considerando su bienestar físico, emocional y social.",
+    "profileLoadError": "No se pudo cargar la información básica del centro. Intenta nuevamente.",
+    "retry": "Reintentar",
     "insurancesTitle": "Seguros aceptados",
+    "insurancesLoadError": "No se pudieron cargar los seguros aceptados. Intenta nuevamente.",
+    "insurancesUnavailable": "Seguros no disponibles",
+    "insurancesEmptyDescription": "Este centro aún no tiene seguros asociados.",
     "morePlans": "Ver más planes...",
     "locationTitle": "Ubicación",
+    "locationLoadError": "No se pudo cargar la ubicación. Intenta nuevamente.",
+    "locationUnavailable": "Ubicación no disponible",
     "connectedDoctors": "Directorio médico",
+    "publicProfileDoctorsUnavailable": "El directorio médico no está disponible en el perfil público del centro.",
+    "affiliatedDoctorsLoadError": "No se pudo cargar el directorio médico. Intenta nuevamente.",
     "searchPlaceholder": "Buscar por nombre",
+    "noSpecialty": "Sin especialidad",
     "emptyTitle": "No se encontraron doctores",
     "emptyDescription": "Intenta ajustar tus filtros o criterios de búsqueda.",
     "clearFilters": "Limpiar filtros"
@@ -93,6 +103,8 @@
       "settings": "Configuración",
       "privacy": "Privacidad",
       "copyProfile": "Copiar perfil",
+      "profileCopied": "Enlace del perfil copiado al portapapeles.",
+      "copyProfileError": "No se pudo copiar el enlace del perfil.",
       "logout": "Cerrar sesión"
     }
   },
@@ -101,6 +113,16 @@
     "connectMedicalCenter": "Conectar Centro Médico",
     "disconnectMedicalCenterDesc": "¿Estás seguro de que deseas desconectar este centro médico? Esta acción no se puede deshacer.",
     "connectMedicalCenterDesc": "¿Deseas conectar este centro médico?",
+    "allianceMessageLabel": "Mensaje para la solicitud",
+    "allianceMessagePlaceholder": "Me gustaria colaborar en su centro de salud",
+    "allianceMessageMin": "El mensaje debe tener al menos 10 caracteres.",
+    "allianceMessageMax": "El mensaje no puede exceder 255 caracteres.",
+    "allianceRequestSending": "Enviando...",
+    "allianceRequestSent": "Solicitud de alianza enviada correctamente.",
+    "allianceRequestError": "No se pudo enviar la solicitud de alianza.",
+    "allianceDisconnecting": "Desconectando...",
+    "allianceDisconnectSuccess": "Alianza eliminada correctamente.",
+    "allianceDisconnectError": "No se pudo eliminar la alianza con el doctor.",
     "disconnectDoctor": "Desconectar Doctor",
     "connectDoctor": "Conectar Doctor",
     "disconnectDoctorDesc": "¿Estás seguro de que deseas desconectar a este doctor? Esta acción no se puede deshacer.",
@@ -123,6 +145,12 @@
     "chart": {
       "affiliatedDoctorsGrowth": "Crecimiento de Médicos Afiliados",
       "affiliatedDoctorsLabel": "Médicos Afiliados",
+      "loading": "Cargando crecimiento de médicos...",
+      "errorTitle": "No se pudo cargar el gráfico",
+      "errorDescription": "Intenta nuevamente en unos segundos.",
+      "retry": "Reintentar",
+      "emptyTitle": "Sin datos para mostrar",
+      "emptyDescription": "Aún no hay información suficiente para graficar este período.",
       "week": "Semana",
       "month": "Mes",
       "threeMonths": "3 Meses",
@@ -131,7 +159,12 @@
     },
     "specialties": {
       "distributionTitle": "Distribución por Especialidad",
-      "others": "Otros"
+      "others": "Otros",
+      "loading": "Cargando distribución de especialidades...",
+      "error": "No se pudo cargar la distribución de especialidades.",
+      "emptyTitle": "Sin datos para mostrar",
+      "emptyDescription": "Aún no hay datos de especialidades suficientes para mostrar este gráfico.",
+      "noData": "Aún no hay datos de especialidades para mostrar."
     },
     "staffTable": {
       "title": "Tu equipo de atención"
@@ -140,6 +173,12 @@
   "staff": {
     "pageTitle": "Personal Médico",
     "searchPlaceholder": "Buscar médico...",
+    "loading": "Cargando personal médico...",
+    "error": {
+      "title": "No se pudo cargar el personal",
+      "description": "Intenta nuevamente en unos segundos.",
+      "retry": "Reintentar"
+    },
     "viewProfile": "Ver Perfil",
     "disconnect": "Desconectar",
     "inviteDoctor": "Invitar Médico",
@@ -177,6 +216,7 @@
     "filters": {
       "title": "Filtros",
       "specialty": "Especialidad",
+      "loadingSpecialties": "Cargando especialidades...",
       "specialties": "Especialidades Médicas",
       "specialtyPlaceholder": "Todas las especialidades",
       "specialtiesPlaceholder": "Seleccionar especialidades...",

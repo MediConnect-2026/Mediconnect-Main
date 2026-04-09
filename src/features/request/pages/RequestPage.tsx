@@ -1,8 +1,16 @@
-import React, { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import MCDashboardContent from "@/shared/layout/MCDashboardContent";
 import { useAppStore } from "@/stores/useAppStore";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
+import { QUERY_KEYS } from "@/lib/react-query/config";
+import centerService from "@/shared/navigation/userMenu/editProfile/center/services/center.services";
+import { doctorService } from "@/shared/navigation/userMenu/editProfile/doctor/services/doctor.service";
+import type { AllianceRequestRecord } from "@/shared/navigation/userMenu/editProfile/center/services/center.types";
+import { Spinner } from "@/shared/ui/spinner";
+import MCButton from "@/shared/components/forms/MCButton";
+import { toast } from "sonner";
 import { RequestTabs } from "../components/RequestTabs";
 
 interface ConnectionRequest {
@@ -11,109 +19,240 @@ interface ConnectionRequest {
   subtitle: string;
   date: string;
   avatar: string;
+  profileId: string;
+  profileType: "doctor" | "center";
+  status: "Pendiente" | "Aceptada" | "Rechazada";
+  rejectionReason?: string;
+  issuerName?: string;
+  attendedAt?: string;
 }
 
-// Mock data - replace with actual API calls
-const mockDoctorReceivedRequests: ConnectionRequest[] = [
-  {
-    id: "d1",
-    name: "Edith García",
-    subtitle: "Cardiología",
-    date: "Recibida hoy",
-    avatar: "",
-  },
-  {
-    id: "d2",
-    name: "Carlos Mendoza",
-    subtitle: "Neurología",
-    date: "Recibida ayer",
-    avatar: "",
-  },
-  {
-    id: "d3",
-    name: "María López",
-    subtitle: "Pediatría",
-    date: "Recibida hace 2 días",
-    avatar: "",
-  },
-];
-
-const mockDoctorSentRequests: ConnectionRequest[] = [
-  {
-    id: "d4",
-    name: "Roberto Sánchez",
-    subtitle: "Dermatología",
-    date: "Enviada hoy",
-    avatar: "",
-  },
-  {
-    id: "d5",
-    name: "Ana Chen",
-    subtitle: "Oftalmología",
-    date: "Enviada hace 3 días",
-    avatar: "",
-  },
-];
-
-const mockCenterReceivedRequests: ConnectionRequest[] = [
-  {
-    id: "c1",
-    name: "Centro Médico Aurora",
-    subtitle: "Medicina General · Ciudad de México",
-    date: "Recibida hoy",
-    avatar: "",
-  },
-  {
-    id: "c2",
-    name: "Clínica Salud Integral",
-    subtitle: "Especialidades · Guadalajara",
-    date: "Recibida ayer",
-    avatar: "",
-  },
-];
-
-const mockCenterSentRequests: ConnectionRequest[] = [
-  {
-    id: "c3",
-    name: "Hospital Comunitario del Valle",
-    subtitle: "Urgencias y Consulta · Monterrey",
-    date: "Enviada hoy",
-    avatar: "",
-  },
-  {
-    id: "c4",
-    name: "Centro de Salud Esperanza",
-    subtitle: "Atención Primaria · Puebla",
-    date: "Enviada hace 2 días",
-    avatar: "",
-  },
-];
-
 function RequestPage() {
-  const { t } = useTranslation("common");
-  const userRole = useAppStore((state) => state.user?.role);
+  const { t, i18n } = useTranslation("common");
+  const userRole = useAppStore((state) => state.user?.rol);
   const isMobile = useIsMobile();
+  const isCenter = userRole === "CENTER";
+  const isDoctor = userRole === "DOCTOR";
+  const queryClient = useQueryClient();
+  const language = i18n.language === "en" ? "en" : "es";
 
-  // Mock data based on user role
-  const [receivedRequests, setReceivedRequests] = useState<ConnectionRequest[]>(
-    userRole === "DOCTOR"
-      ? mockDoctorReceivedRequests
-      : mockCenterReceivedRequests,
-  );
-  const [sentRequests, setSentRequests] = useState<ConnectionRequest[]>(
-    userRole === "DOCTOR" ? mockDoctorSentRequests : mockCenterSentRequests,
+  const allianceTranslationParams = useMemo(
+    () => ({
+      target: language,
+      source: language === "en" ? "es" : "en",
+      translate_fields:
+        "mensaje,doctor.nombre,doctor.apellido,centroSalud.nombreComercial",
+    }),
+    [language],
   );
 
-  const handleConnect = (id: string) => {
-    setReceivedRequests((prev) => prev.filter((r) => r.id !== id));
+  const allianceQueryKey = isCenter
+    ? QUERY_KEYS.CENTER_ALLIANCE_REQUESTS
+    : QUERY_KEYS.DOCTOR_ALLIANCE_REQUESTS;
+
+  const invalidateAllianceRelatedQueries = async () => {
+    const dashboardRelatedKeys = [
+      QUERY_KEYS.CENTER_STAFF(),
+      QUERY_KEYS.CENTERS_STATS_RESUMEN,
+      ["centers", "stats", "crecimiento-medicos"],
+      ["centers", "stats", "distribucion-especialidades"],
+      ["doctors", "my"],
+    ] as const;
+
+    await Promise.all([
+      queryClient.invalidateQueries({
+        queryKey: QUERY_KEYS.CENTER_ALLIANCE_REQUESTS,
+      }),
+      queryClient.invalidateQueries({
+        queryKey: QUERY_KEYS.DOCTOR_ALLIANCE_REQUESTS,
+      }),
+      queryClient.invalidateQueries({
+        queryKey: ["center", "alliance", "requests"],
+      }),
+      ...dashboardRelatedKeys.map((queryKey) =>
+        queryClient.invalidateQueries({
+          queryKey,
+          refetchType: "all",
+        }),
+      ),
+    ]);
   };
 
-  const handleReject = (id: string) => {
-    setReceivedRequests((prev) => prev.filter((r) => r.id !== id));
+  const {
+    data: allianceResponse,
+    isLoading,
+    isError,
+    refetch,
+  } = useQuery({
+    queryKey: [...allianceQueryKey, language],
+    queryFn: () =>
+      isCenter
+        ? centerService.getCenterAllianceRequests(allianceTranslationParams)
+        : doctorService.getDoctorAllianceRequests(allianceTranslationParams),
+    enabled: isCenter || isDoctor,
+  });
+
+  const updateAllianceRequestMutation = useMutation({
+    mutationFn: ({
+      requestId,
+      estado,
+      motivoRechazo,
+    }: {
+      requestId: string;
+      estado: "Aceptada" | "Rechazada";
+      motivoRechazo?: string;
+    }) =>
+      isCenter
+        ? centerService.updateAllianceRequestStatus(requestId, {
+            estado,
+            motivoRechazo,
+          })
+        : doctorService.updateAllianceRequestStatus(requestId, {
+            estado,
+            motivoRechazo,
+          }),
+    onSuccess: async () => {
+      await invalidateAllianceRelatedQueries();
+      await queryClient.refetchQueries({
+        queryKey: allianceQueryKey,
+        type: "active",
+      });
+    },
+  });
+
+  const deleteAllianceRequestMutation = useMutation({
+    mutationFn: ({ requestId }: { requestId: string }) =>
+      isCenter
+        ? centerService.deleteAllianceRequest(requestId)
+        : doctorService.deleteAllianceRequest(requestId),
+    onSuccess: async () => {
+      await invalidateAllianceRelatedQueries();
+      await queryClient.refetchQueries({
+        queryKey: allianceQueryKey,
+        type: "active",
+      });
+    },
+  });
+
+  const [receivedRequests, setReceivedRequests] = useState<ConnectionRequest[]>([]);
+  const [sentRequests, setSentRequests] = useState<ConnectionRequest[]>([]);
+
+  useEffect(() => {
+    if (!(isCenter || isDoctor) || !allianceResponse?.data) {
+      return;
+    }
+
+    const mappedRequests = mapAllianceRequestsToCards(
+      allianceResponse.data,
+      i18n.language,
+      userRole,
+    );
+
+    const receivedInitiator = userRole === "CENTER" ? "Doctor" : "Centro";
+    const sentInitiator = userRole === "CENTER" ? "Centro" : "Doctor";
+
+    setReceivedRequests(
+      mappedRequests
+        .filter((item) => item.iniciadaPor === receivedInitiator)
+        .map((item) => item.card),
+    );
+
+    setSentRequests(
+      mappedRequests
+        .filter((item) => item.iniciadaPor === sentInitiator)
+        .map((item) => item.card),
+    );
+  }, [isCenter, isDoctor, allianceResponse?.data, i18n.language, userRole]);
+
+  const handleConnect = async (id: string) => {
+    try {
+      await updateAllianceRequestMutation.mutateAsync({
+        requestId: id,
+        estado: "Aceptada",
+      });
+
+      setReceivedRequests((prev) =>
+        prev.map((request) =>
+          request.id === id
+            ? {
+                ...request,
+                status: "Aceptada",
+                attendedAt: new Intl.DateTimeFormat(
+                  i18n.language === "en" ? "en-US" : "es-DO",
+                  {
+                    dateStyle: "medium",
+                    timeStyle: "short",
+                  },
+                ).format(new Date()),
+              }
+            : request,
+        ),
+      );
+      toast.success(
+        t("requests.acceptSuccess"),
+      );
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : t("requests.actionError");
+      toast.error(message);
+      throw error;
+    }
   };
 
-  const handleWithdraw = (id: string) => {
-    setSentRequests((prev) => prev.filter((r) => r.id !== id));
+  const handleReject = async (id: string, reason: string) => {
+    try {
+      await updateAllianceRequestMutation.mutateAsync({
+        requestId: id,
+        estado: "Rechazada",
+        motivoRechazo: reason.trim(),
+      });
+
+      setReceivedRequests((prev) =>
+        prev.map((request) =>
+          request.id === id
+            ? {
+                ...request,
+                status: "Rechazada",
+                rejectionReason: reason.trim(),
+                attendedAt: new Intl.DateTimeFormat(
+                  i18n.language === "en" ? "en-US" : "es-DO",
+                  {
+                    dateStyle: "medium",
+                    timeStyle: "short",
+                  },
+                ).format(new Date()),
+              }
+            : request,
+        ),
+      );
+      toast.success(
+        t("requests.rejectSuccess"),
+      );
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : t("requests.actionError");
+      toast.error(message);
+      throw error;
+    }
+  };
+
+  const handleWithdraw = async (id: string) => {
+    try {
+      await deleteAllianceRequestMutation.mutateAsync({ requestId: id });
+      setSentRequests((prev) => prev.filter((r) => r.id !== id));
+      toast.success(t("requests.withdrawSuccess"));
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : t("requests.actionError");
+      toast.error(message);
+      throw error;
+    }
   };
 
   return (
@@ -140,19 +279,97 @@ function RequestPage() {
         </div>
 
         <div className="w-full">
-          <RequestTabs
-            receivedRequests={receivedRequests}
-            sentRequests={sentRequests}
-            onConnect={handleConnect}
-            onReject={handleReject}
-            onWithdraw={handleWithdraw}
-            setReceivedRequests={setReceivedRequests}
-            setSentRequests={setSentRequests}
-          />
+          {(isCenter || isDoctor) && isLoading ? (
+            <div className="flex flex-col items-center justify-center gap-3 py-10">
+              <Spinner className="size-6" />
+              <p className="text-sm text-muted-foreground">
+                {t("loading")}
+              </p>
+            </div>
+          ) : (isCenter || isDoctor) && isError ? (
+            <div className="flex flex-col items-center justify-center gap-3 py-10 text-center">
+              <p className="text-sm text-muted-foreground">
+                {t("requests.loadError")}
+              </p>
+              <MCButton size="sm" variant="outline" onClick={() => refetch()}>
+                {t("retry")}
+              </MCButton>
+            </div>
+          ) : (
+            <RequestTabs
+              receivedRequests={receivedRequests}
+              sentRequests={sentRequests}
+              onConnect={handleConnect}
+              onReject={handleReject}
+              onWithdraw={handleWithdraw}
+            />
+          )}
         </div>
       </div>
     </MCDashboardContent>
   );
+}
+
+function mapAllianceRequestsToCards(
+  requests: AllianceRequestRecord[],
+  language: string,
+  userRole: string | undefined,
+): Array<{ iniciadaPor: "Doctor" | "Centro"; card: ConnectionRequest }> {
+  const locale = language === "en" ? "en-US" : "es-DO";
+  const isCenterRole = userRole === "CENTER";
+
+  return requests.map((item) => {
+    const createdAt = new Date(item.creadoEn);
+    const updatedAt = item.actualizadoEn ? new Date(item.actualizadoEn) : null;
+    const name = isCenterRole
+      ? `${item.doctor?.nombre ?? ""} ${item.doctor?.apellido ?? ""}`.trim()
+      : (item.centroSalud?.nombreComercial ?? "").trim();
+
+    const issuerName =
+      item.iniciadaPor === "Doctor"
+        ? `${item.doctor?.nombre ?? ""} ${item.doctor?.apellido ?? ""}`.trim()
+        : (item.centroSalud?.nombreComercial ?? "").trim();
+
+    const avatar = isCenterRole
+      ? item.doctor?.usuario?.fotoPerfil ?? ""
+      : item.centroSalud?.foto_perfil ?? "";
+
+    const profileId = isCenterRole
+      ? String(item.doctorId ?? "")
+      : String(item.centroSaludId ?? "");
+
+    const profileType: "doctor" | "center" = isCenterRole
+      ? "doctor"
+      : "center";
+
+    return {
+      iniciadaPor: item.iniciadaPor,
+      card: {
+        id: String(item.id),
+        name: name || "-",
+        subtitle: item.mensaje ?? "",
+        date: Number.isNaN(createdAt.getTime())
+          ? ""
+          : new Intl.DateTimeFormat(locale, {
+              dateStyle: "medium",
+              timeStyle: "short",
+            }).format(createdAt),
+        avatar,
+        profileId,
+        profileType,
+        status: item.estado,
+        rejectionReason: item.motivoRechazo ?? "",
+        issuerName: issuerName || "-",
+        attendedAt:
+          updatedAt && !Number.isNaN(updatedAt.getTime())
+            ? new Intl.DateTimeFormat(locale, {
+                dateStyle: "medium",
+                timeStyle: "short",
+              }).format(updatedAt)
+            : "",
+      },
+    };
+  });
 }
 
 export default RequestPage;

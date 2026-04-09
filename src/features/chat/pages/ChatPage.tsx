@@ -1,130 +1,56 @@
 import { useState, useEffect } from "react";
 import { ChatSidebar } from "../components/ChatSidebar";
 import { ChatPanel } from "../components/ChatPanel";
-import { mockConversations } from "@/data/mockConversations";
-import type { Conversation, Message } from "@/types/ChatTypes";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
-import {
-  Empty,
-  EmptyHeader,
-  EmptyTitle,
-  EmptyDescription,
-  EmptyContent,
-  EmptyMedia,
-} from "@/shared/ui/empty";
+import { useConversations } from "@/lib/hooks/useConversations";
+import { useWebSocket } from "@/lib/hooks/useWebSocket";
+import { useAppStore } from "@/stores/useAppStore";
 import { useParams, useNavigate } from "react-router-dom";
+
 const ChatPage = () => {
-  const [conversations, setConversations] =
-    useState<Conversation[]>(mockConversations);
   const { conversationId } = useParams<{ conversationId: string }>();
   const navigate = useNavigate();
-
-  const [activeConversationId, setActiveConversationId] = useState<
-    string | null
-  >(
-    conversationId || null, // <-- solo null si no hay conversationId
-  );
-
-  useEffect(() => {
-    if (conversationId) {
-      setActiveConversationId(conversationId);
-    }
-  }, [conversationId]);
-
-  const [sidebarOpen, setSidebarOpen] = useState(true);
   const isMobile = useIsMobile();
 
-  const activeConversation =
-    conversations.find((c) => c.id === activeConversationId) || null;
+  // Hooks de datos
+  const { conversations, isLoading } = useConversations();
+  const { isConnected } = useWebSocket();
 
-  const handleSendMessage = (
-    text: string,
-    image?: string | null,
-    file?: { file: File; url: string; type: string } | null,
-    voice?: { duration: number; url: string } | null,
-  ) => {
-    if (!activeConversationId) return;
+  // Estado local de UI
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
-    const currentTime = new Date().toLocaleTimeString("es-ES", {
-      hour: "numeric",
-      minute: "2-digit",
-      hour12: true,
-    });
+  // Estado global de conversación activa
+  const activeConversationId = useAppStore((state) => state.activeConversationId);
+  const setActiveConversation = useAppStore((state) => state.setActiveConversation);
 
-    const newMessages: Message[] = [];
-
-    // Si hay una grabación de voz
-    if (voice) {
-      newMessages.push({
-        id: Date.now().toString(),
-        type: "voice",
-        content: voice.url,
-        sender: "user",
-        time: currentTime,
-        status: "sent",
-        duration: voice.duration,
-      });
+  // Sincronizar conversationId de URL con store
+  useEffect(() => {
+    if (conversationId) {
+      const convId = parseInt(conversationId, 10);
+      if (!isNaN(convId) && convId !== activeConversationId) {
+        setActiveConversation(convId);
+      }
     }
-    // Si hay una imagen
-    else if (image) {
-      newMessages.push({
-        id: Date.now().toString(),
-        type: "image",
-        content: image,
-        sender: "user",
-        time: currentTime,
-        status: "sent",
-        caption: text.trim() || undefined,
-      });
-    }
-    // Si hay un archivo
-    else if (file) {
-      newMessages.push({
-        id: Date.now().toString(),
-        type: "file",
-        content: file.url,
-        sender: "user",
-        time: currentTime,
-        status: "sent",
-        fileName: file.file.name,
-        fileSize: file.file.size,
-        fileType: file.type,
-        caption: text.trim() || undefined,
-      });
-    }
-    // Si solo hay texto
-    else if (text.trim()) {
-      newMessages.push({
-        id: Date.now().toString(),
-        type: "text",
-        content: text,
-        sender: "user",
-        time: currentTime,
-        status: "sent",
-      });
-    }
+  }, [conversationId, activeConversationId, setActiveConversation]);
 
-    // Actualizar las conversaciones con los nuevos mensajes
-    if (newMessages.length > 0) {
-      setConversations((prev) =>
-        prev.map((conv) =>
-          conv.id === activeConversationId
-            ? {
-                ...conv,
-                messages: [...conv.messages, ...newMessages],
-                lastMessage: voice
-                  ? "🎤 Mensaje de voz"
-                  : text.trim() || (image ? "📷 Imagen" : "📎 Archivo"),
-                time: "Ahora",
-              }
-            : conv,
-        ),
-      );
-    }
-  };
+  // Limpiar conversación activa al salir de la página (unmount)
+  useEffect(() => {
+    return () => {
+      setActiveConversation(null);
+    };
+  }, [setActiveConversation]);
 
-  const handleSelectConversation = (id: string) => {
-    setActiveConversationId(id);
+  // Buscar conversación activa
+  const activeConversation = conversations.find(
+    (c) => c.id === activeConversationId
+  ) || null;
+
+  const handleSelectConversation = (id: number) => {
+    setActiveConversation(id);
+
+    // Navegar a la URL de la conversación
+    navigate(`/chat/${id}`);
+
     if (isMobile) {
       setSidebarOpen(false);
     }
@@ -134,11 +60,33 @@ const ChatPage = () => {
     if (isMobile) {
       setSidebarOpen(true);
     }
+    setActiveConversation(null);
     navigate("/chat");
   };
 
+  // Mostrar loading state
+  if (isLoading) {
+    return (
+      <div className="h-full w-full flex items-center justify-center bg-background rounded-2xl md:rounded-4xl">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Cargando conversaciones...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="h-full w-full flex bg-background rounded-2xl md:rounded-4xl overflow-hidden relative">
+      {/* Estado de conexión WebSocket (opcional, para debugging) */}
+      {!isConnected && (
+        <div className="absolute top-2 left-1/2 transform -translate-x-1/2 z-50">
+          <div className="bg-yellow-100 text-yellow-800 text-xs px-3 py-1 rounded-full">
+            Reconectando...
+          </div>
+        </div>
+      )}
+
       <ChatSidebar
         conversations={conversations}
         activeConversationId={activeConversationId}
@@ -147,11 +95,10 @@ const ChatPage = () => {
         onClose={() => setSidebarOpen(false)}
       />
 
-      {/* Si no hay conversación seleccionada, muestra Empty */}
+      {/* Panel de chat o empty state */}
       {!isMobile || (isMobile && activeConversationId && !sidebarOpen) ? (
         <ChatPanel
           conversation={activeConversation}
-          onSendMessage={handleSendMessage}
           onBack={isMobile ? handleBackToList : undefined}
         />
       ) : (

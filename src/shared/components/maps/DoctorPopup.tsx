@@ -1,48 +1,43 @@
 import React from "react";
-import { Star, MapPin, Globe, Shield, Phone } from "lucide-react";
+import { Star, MapPin, Globe, Shield, Phone, Loader2 } from "lucide-react";
 import { type Doctor } from "@/data/providers";
 import { Card, CardContent, CardTitle } from "@/shared/ui/card";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/tooltip";
-import { useAppStore } from "@/stores/useAppStore";
 import MCButton from "../forms/MCButton";
 import { fadeInUp } from "@/lib/animations/commonAnimations";
 import { motion } from "framer-motion";
-import ScheduleAppointmentDialog from "@/features/patient/components/appoiments/ScheduleAppointmentDialog";
-import { useIsMobile } from "@/lib/hooks/useIsMobile";
 import { useTranslation } from "react-i18next";
-import ToogleConfirmConnection from "@/features/request/components/ToogleConfirmConnection";
+import { formatPhone } from "@/utils/phoneFormat";
 
 type DoctorPopupProps = {
   provider: Doctor;
   isConnected?: boolean;
   onConnect?: (id: string) => void;
+  onScheduleAppointment?: (providerId: string) => void;
   navigateFn?: (path: string) => void;
+  userRole?: string | null;
+  isMobile?: boolean;
+  onContact?: (providerId: string) => void;
+  isContactLoading?: boolean;
 };
 
 const DoctorPopup: React.FC<DoctorPopupProps> = ({
   provider,
-  isConnected,
   onConnect,
+  onScheduleAppointment,
   navigateFn,
+  userRole,
+  isMobile = false,
+  onContact,
+  isContactLoading = false,
 }) => {
-  const userRole = useAppStore((state) => state.user?.role);
-  const isMobile = useIsMobile();
   const { t } = useTranslation("common");
-
   // Determinar estado de conexión
-  const connectionStatus =
-    provider.connectionStatus ?? (isConnected ? "connected" : "not_connected");
-  let connectBtnText = t("clinicCard.connect");
-  let connectBtnDisabled = false;
-  let connectVariant: "primary" | "outline" = "outline";
 
-  if (connectionStatus === "connected") {
-    connectBtnText = t("clinicCard.connected");
-    connectVariant = "primary";
-  } else if (connectionStatus === "pending") {
-    connectBtnText = t("clinicCard.pending");
-    connectBtnDisabled = true;
-  }
+  const connectBtnText = t("clinicCard.connect");
+  const viewProfileText = t("clinicCard.viewProfile");
+  const scheduleAppointmentText = t("clinicCard.scheduleAppointment");
+  const contactText = t("clinicCard.contact");
 
   const locations = Array.isArray(provider.address)
     ? provider.address
@@ -58,9 +53,17 @@ const DoctorPopup: React.FC<DoctorPopupProps> = ({
     }
   };
 
-  const handleConfirmConnect = () => {
+  const handleConnect = () => {
     onConnect?.(provider.id);
   };
+
+  const handleSchedule = () => {
+    onScheduleAppointment?.(provider.id);
+  };
+
+  const handleContactClick = () => {
+    onContact?.(provider.id);
+  }
 
   return (
     <motion.div {...fadeInUp}>
@@ -140,7 +143,9 @@ const DoctorPopup: React.FC<DoctorPopupProps> = ({
               className={`flex gap-1 ${textXs} text-secondary`}
             >
               <Phone className="w-3 h-3" />
-              <span className="text-primary">{provider.phone}</span>
+              <span className="text-primary">
+                {formatPhone(provider.phone)}
+              </span>
             </a>
           )}
 
@@ -162,28 +167,38 @@ const DoctorPopup: React.FC<DoctorPopupProps> = ({
           {/* Botones */}
           <div className={`flex gap-2 mt-3 ${isMobile && "flex-col"}`}>
             {userRole === "CENTER" && (
-              <ToogleConfirmConnection
-                status={connectionStatus}
-                id={parseInt(provider.id)}
-                onConfirm={handleConfirmConnect}
+              <MCButton
+                size="xs"
+                variant="outline"
+                className="flex-1 w-full"
+                onClick={handleConnect}
               >
-                <MCButton
-                  size="xs"
-                  variant={connectVariant}
-                  className="flex-1 w-full"
-                  disabled={connectBtnDisabled}
-                >
-                  {connectBtnText}
-                </MCButton>
-              </ToogleConfirmConnection>
+                {connectBtnText}
+              </MCButton>
             )}
 
             {userRole === "PATIENT" && (
-              <ScheduleAppointmentDialog idProvider={provider.id}>
-                <MCButton size="xs" variant="primary" className="w-full">
-                  Agendar cita
+              <>
+                <MCButton
+                  size="xs"
+                  variant="primary"
+                  className="w-full"
+                  onClick={handleSchedule}
+                >
+                  {scheduleAppointmentText}
                 </MCButton>
-              </ScheduleAppointmentDialog>
+                <MCButton
+                  size="xs"
+                  variant="outline"
+                  className="w-full"
+                  onClick={handleContactClick}
+                  disabled={isContactLoading}
+                >
+                  {isContactLoading ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : contactText}
+                </MCButton>
+              </>
             )}
 
             <MCButton
@@ -192,7 +207,7 @@ const DoctorPopup: React.FC<DoctorPopupProps> = ({
               className="flex-1 w-full"
               onClick={handleProfileClick}
             >
-              {t("clinicCard.viewProfile")}
+              {viewProfileText}
             </MCButton>
           </div>
         </CardContent>

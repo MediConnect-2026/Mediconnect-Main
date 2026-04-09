@@ -1,22 +1,12 @@
 import MCButton from "@/shared/components/forms/MCButton";
 import { MapPin, Video } from "lucide-react";
-import { useTranslation } from "react-i18next"; // <-- Agrega esto
+import { useTranslation } from "react-i18next";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/tooltip";
-
-interface Service {
-  id: string;
-  name: string;
-  description: string;
-  price: string;
-  duration: string;
-  modality: "mixta" | "presencial" | "teleconsulta"; // valor fijo
-  modalityLabel: string; // texto traducido
-  location: string;
-  timeSlots: string[];
-}
+import type { ServiceDetail } from "@/shared/navigation/userMenu/editProfile/doctor/services";
+import { getAddressComplete } from "@/utils/addressParser";
 
 interface ServiceCardsProps {
-  services: Service[];
+  services: ServiceDetail[] | any[];
   selectedTimeSlots: Record<string, string>;
   selectedModality: Record<string, "presencial" | "teleconsulta">;
   onTimeSlotSelect: (serviceId: string, time: string) => void;
@@ -33,9 +23,8 @@ function ServiceCards({
   onTimeSlotSelect,
   onModalitySelect,
 }: ServiceCardsProps) {
-  const { t } = useTranslation("patient"); // <-- Agrega esto
+  const { t } = useTranslation("patient");
 
-  // Función para verificar si ya hay una hora seleccionada en otro servicio
   const hasTimeSlotInOtherService = (currentServiceId: string) => {
     return Object.keys(selectedTimeSlots).some(
       (serviceId) =>
@@ -43,108 +32,152 @@ function ServiceCards({
     );
   };
 
-  // Función para manejar la selección de horarios
   const handleTimeSlotSelect = (serviceId: string, time: string) => {
-    // Si ya hay una hora seleccionada en este servicio y es la misma, la deseleccionamos
     if (selectedTimeSlots[serviceId] === time) {
       onTimeSlotSelect(serviceId, "");
       return;
     }
 
-    // Si hay una hora seleccionada en otro servicio, no permitir seleccionar
     if (hasTimeSlotInOtherService(serviceId)) {
       return;
     }
 
-    // Seleccionar la nueva hora
     onTimeSlotSelect(serviceId, time);
   };
 
-  return (
-    <div className="space-y-6">
-      {services.map((service) => {
-        const timeSelected = selectedTimeSlots[service.id];
-        const modalitySelected = selectedModality[service.id];
-        const isMixta = service.modality.toLowerCase().includes("mixta");
-        const isPresencial = service.modality
-          .toLowerCase()
-          .includes("presencial");
-        const isVirtual = service.modality
-          .toLowerCase()
-          .includes("teleconsulta");
+  const to12Hour = (time24: string) => {
+    if (!time24) return time24;
+    const [hoursStr, minutesStr] = time24.split(":");
+    const hours = parseInt(hoursStr, 10);
+    const minutes = minutesStr || "00";
+    const period = hours >= 12 ? "p.m." : "a.m.";
+    let hour12 = hours % 12;
+    if (hour12 === 0) hour12 = 12;
+    return `${hour12}:${minutes} ${period}`;
+  };
 
-        // Verificar si este servicio está bloqueado por selección en otro servicio
-        const isBlocked = hasTimeSlotInOtherService(service.id);
+  const toMinutes = (time24: string) => {
+    const [h = "0", m = "0"] = (time24 || "").split(":");
+    return parseInt(h, 10) * 60 + parseInt(m, 10);
+  };
+
+  const convertTimeFroimMinutesToHours = (minutes: number) => {
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+    return `${hours > 0 ? `${hours}h ` : ""}${remainingMinutes}m`;
+  };
+
+  return (
+    <div className="space-y-4 sm:space-y-6">
+      {services.map((service) => {
+        const timeSelected = selectedTimeSlots[service.id.toString()];
+        const modalitySelected = selectedModality[service.id.toString()] || "";
+
+        const modalidadLower = (service.modalidad || "").toLowerCase();
+
+        const isMixta = modalidadLower.includes("mixta") || modalidadLower.includes("mixed");
+        const isPresencial = modalidadLower.includes("presencial") || modalidadLower.includes("present") || modalidadLower.includes("in-person");
+        const isVirtual = modalidadLower.includes("teleconsulta") || modalidadLower.includes("virtual") || modalidadLower.includes("telehealth") || modalidadLower.includes("remote");
+      
+        const isBlocked = hasTimeSlotInOtherService(service.id.toString());
 
         return (
           <div
             key={service.id}
-            className={`border rounded-3xl border-primary/15 p-4 space-y-3 w-full ${
+            className={`border rounded-2xl sm:rounded-3xl border-primary/15 p-3 sm:p-4 space-y-3 w-full ${
               isBlocked ? "opacity-50" : ""
             }`}
           >
-            <div className="flex justify-between items-start">
-              <div className="w-full">
-                <h4 className="font-semibold text-primary">{service.name}</h4>
-                <div className="space-y-1 w-full ">
-                  <p className="text-sm  text-primary">{service.description}</p>{" "}
-                  <div className="flex  text-sm text-primary/65 gap-2 w-full ">
-                    <span>
-                      {service.price} {t("serviceCards.perPatient")}
-                    </span>
-                    <span>•</span>
-                    <span>{service.duration}</span>
-                    <span>•</span>
-                    <span>{service.modality}</span>
-                    <span>•</span>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <span className="max-w-[290px] truncate inline-block align-middle cursor-pointer">
-                          {service.location}
-                        </span>
-                      </TooltipTrigger>
-                      <TooltipContent>{service.location}</TooltipContent>
-                    </Tooltip>
-                  </div>
-                </div>{" "}
+            {/* Service Header */}
+            <div className="flex flex-col gap-2">
+              <h4 className="font-semibold text-primary text-base sm:text-lg">
+                {service.nombre}
+              </h4>
+              
+              {/* Description */}
+              <p className="text-sm sm:text-base text-primary leading-relaxed">
+                {service.descripcion}
+              </p>
+              
+              {/* Service Details - Responsive Layout */}
+              <div className="flex flex-col sm:flex-row sm:flex-wrap gap-1 sm:gap-2 text-xs sm:text-sm text-primary/65">
+                {/* Price */}
+                <div className="flex items-center gap-2">
+                  <span className="font-medium">
+                    {service.precio} {t("serviceCards.perPatient")}
+                  </span>
+                </div>
+                
+                {/* Duration */}
+                <div className="flex items-center gap-2">
+                  <span className="hidden sm:inline">•</span>
+                  <span>{convertTimeFroimMinutesToHours(service.duracionMinutos)}</span>
+                </div>
+                
+                {/* Modality */}
+                <div className="flex items-center gap-2">
+                  <span className="hidden sm:inline">•</span>
+                  <span>{service.modalidad}</span>
+                </div>
+                
+                {/* Location */}
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="hidden sm:inline">•</span>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className="truncate inline-block align-middle cursor-pointer max-w-[200px] sm:max-w-[250px] md:max-w-[300px]">
+                        {getAddressComplete(service.ubicacion)}
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-[280px] sm:max-w-sm">
+                      {getAddressComplete(service.ubicacion)}
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
               </div>
             </div>
 
-            {/* Time slots grid */}
-            <div className="max-h-[80px] overflow-y-auto scrollbar-hide rounded bg-muted/40 px-1 w-full max-w-[700px]">
-              {service.timeSlots.length === 0 ? (
-                <div className="text-center text-xs text-muted-foreground py-4">
+            {/* Time Slots Grid - Fully Responsive */}
+            <div className="max-h-[120px] sm:max-h-[100px] md:max-h-[80px] overflow-y-auto scrollbar-visible rounded bg-muted/40 p-2 pr-3 sm:px-3 sm:py-2 w-full">
+              {(!service.timeSlots || service.timeSlots.length === 0) ? (
+                <div className="text-center text-xs sm:text-sm text-muted-foreground py-4">
                   {t("serviceCards.noTimeSlots", "No hay horarios disponibles")}
                 </div>
               ) : (
-                <div className="grid grid-cols-6 gap-2">
-                  {service.timeSlots.map((time) => (
-                    <MCButton
-                      key={time}
-                      variant={timeSelected === time ? "primary" : "outline"}
-                      size="sm"
-                      className={`h-7 w-24 md:p-4 md:text-xs ${
-                        isBlocked && timeSelected !== time
-                          ? "cursor-not-allowed opacity-50"
-                          : ""
-                      }`}
-                      onClick={() => handleTimeSlotSelect(service.id, time)}
-                      disabled={isBlocked && timeSelected !== time}
-                    >
-                      {time}
-                    </MCButton>
-                  ))}
+                <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2">
+                  {service.timeSlots
+                    .slice()
+                    .sort((a: string, b: string) => toMinutes(a) - toMinutes(b))
+                    .map((time24: string) => {
+                      const label = to12Hour(time24);
+                      return (
+                        <MCButton
+                          key={time24}
+                          variant={timeSelected === label ? "primary" : "outline"}
+                          size="sm"
+                          className={`h-8 sm:h-7 text-xs px-2 sm:px-3 w-full ${
+                            isBlocked && timeSelected !== label
+                              ? "cursor-not-allowed opacity-50"
+                              : ""
+                          }`}
+                          onClick={() => handleTimeSlotSelect(service.id.toString(), label)}
+                          disabled={isBlocked && timeSelected !== label}
+                        >
+                          {label}
+                        </MCButton>
+                      );
+                    })}
                 </div>
               )}
             </div>
 
-            {/* Modality selection */}
+            {/* Modality Selection - Responsive */}
             {timeSelected && (
-              <div className="mt-4">
-                <div className="text-sm mb-2 text-primary font-medium">
+              <div className="mt-3 sm:mt-4">
+                <div className="text-sm sm:text-base mb-2 text-primary font-medium">
                   {t("serviceCards.howWantAppointment")}
                 </div>
-                <div className="flex gap-2">
+                <div className="flex flex-col xs:flex-row gap-2">
                   {(isMixta || isPresencial) && (
                     <MCButton
                       variant={
@@ -153,11 +186,11 @@ function ServiceCards({
                           : "outline"
                       }
                       size="sm"
-                      className="rounded-full"
-                      onClick={() => onModalitySelect(service.id, "presencial")}
+                      className="rounded-full w-full xs:w-auto"
+                      onClick={() => onModalitySelect(service.id.toString(), "presencial")}
                     >
-                      <MapPin className="w-4 h-4 mr-1" />
-                      {t("serviceCards.inPerson")}
+                      <MapPin className="w-4 h-4 mr-1.5" />
+                      <span className="text-sm">{t("serviceCards.inPerson")}</span>
                     </MCButton>
                   )}
                   {(isMixta || isVirtual) && (
@@ -168,13 +201,13 @@ function ServiceCards({
                           : "outline"
                       }
                       size="sm"
-                      className="rounded-full"
+                      className="rounded-full w-full xs:w-auto"
                       onClick={() =>
-                        onModalitySelect(service.id, "teleconsulta")
+                        onModalitySelect(service.id.toString(), "teleconsulta")
                       }
                     >
-                      <Video className="w-4 h-4 mr-1" />
-                      {t("serviceCards.virtual")}
+                      <Video className="w-4 h-4 mr-1.5" />
+                      <span className="text-sm">{t("serviceCards.virtual")}</span>
                     </MCButton>
                   )}
                 </div>

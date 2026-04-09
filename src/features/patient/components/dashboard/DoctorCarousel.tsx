@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import MCDoctorCard, {
   type DoctorCardVariant,
@@ -12,7 +12,7 @@ import { buttonVariants } from "@/shared/ui/button";
 import { motion } from "framer-motion";
 import { fadeInUp } from "@/lib/animations/commonAnimations";
 import { useTranslation } from "react-i18next";
-import { Stethoscope } from "lucide-react";
+import { Stethoscope, Loader2 } from "lucide-react";
 import {
   Empty,
   EmptyContent,
@@ -22,6 +22,7 @@ import {
   EmptyTitle,
 } from "@/shared/ui/empty";
 import MCButton from "@/shared/components/forms/MCButton";
+import { useMyDoctors } from "@/lib/hooks/useMyDoctors";
 
 interface Doctor {
   id: number;
@@ -31,16 +32,18 @@ interface Doctor {
   yearsOfExperience?: number;
   languages?: string[];
   insuranceAccepted?: string[];
+  insuranceAcceptedIds?: number[];
   isFavorite?: boolean;
   urlImage?: string;
   lastAppointment?: string;
 }
 
 interface DoctorCarouselProps {
-  doctors: Doctor[];
+  doctors?: Doctor[]; // Ahora es opcional
   title?: string;
   variant?: DoctorCardVariant;
   showSearch?: boolean;
+  useMockData?: boolean; // Nueva prop para controlar si usar datos mock o API
 }
 
 // Interfaz para los filtros de doctores
@@ -54,14 +57,15 @@ interface DoctorFilters {
 }
 
 export function DoctorCarousel({
-  doctors,
+  doctors: mockDoctors,
   title,
   variant = "m",
   showSearch = true,
+  useMockData = false,
 }: DoctorCarouselProps) {
   const scrollContainerRef = React.useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
-  const { t } = useTranslation("patient");
+  const { t, i18n } = useTranslation("patient");
 
   // Estados locales con useState
   const [searchTerm, setSearchTerm] = React.useState("");
@@ -74,13 +78,50 @@ export function DoctorCarousel({
     isFavorite: null,
   });
 
-  // Estado local para los doctores
-  const [doctorList, setDoctorList] = React.useState(doctors);
+  // Fetch doctors from API (solo si no usamos mock data)
+  const { data, isLoading, error } = useMyDoctors(
+    useMockData
+      ? undefined
+      : {
+          target: i18n.language,
+          source: 'es',
+          translate_fields: 'especialidadPrincipal.nombre',
+        }
+  );
 
-  // Actualiza doctorList si cambia la prop doctors
+  // Transform API data to the format expected by MCDoctorCard
+  const transformedDoctors = useMemo(() => {
+    // Si usamos mock data, retornar los doctores proporcionados
+    if (useMockData && mockDoctors) {
+      return mockDoctors;
+    }
+
+    // Si no hay datos de la API, retornar array vacío
+    if (!data?.data) return [];
+    
+    console.log("Transforming doctors data:", data.data);
+    return data.data.map((doctor) => ({
+      id: Number(doctor.id),
+      name: `${doctor.nombre} ${doctor.apellido}`,
+      specialty: doctor.especialidadPrincipal?.nombre || t("myDoctors.noSpecialty", "Sin especialidad"),
+      rating: doctor.calificacionPromedio || 0,
+      yearsOfExperience: doctor.anosExperiencia || 0,
+      languages: doctor.idiomas?.map(idioma => idioma.nombre.toLowerCase().substring(0, 2)) || [],
+      insuranceAccepted: doctor.segurosAceptados?.map(seguro => seguro.nombre?.toLowerCase() || '') || [],
+      insuranceAcceptedIds: doctor.segurosAceptados?.map(seguro => seguro.id).filter((id): id is number => id !== null) || [],
+      isFavorite: doctor.esFavorito || false,
+      urlImage: doctor.fotoPerfil || "",
+      lastAppointment: doctor.ultimaCita?.fecha,
+    }));
+  }, [data, t, useMockData, mockDoctors]);
+
+  // Estado local para los doctores (para manejar favoritos localmente)
+  const [doctorList, setDoctorList] = React.useState<Doctor[]>([]);
+
+  // Actualiza doctorList cuando cambian los datos transformados
   React.useEffect(() => {
-    setDoctorList(doctors);
-  }, [doctors]);
+    setDoctorList(transformedDoctors);
+  }, [transformedDoctors]);
 
   // Función para actualizar filtros
   const updateDoctorFilters = (newFilters: Partial<DoctorFilters>) => {
@@ -111,12 +152,12 @@ export function DoctorCarousel({
 
   // Filtrar doctores según los filtros activos y búsqueda
   const filteredDoctors = doctorList.filter((doctor) => {
-    // Filtro por búsqueda
-    if (
-      searchTerm &&
-      !doctor.name.toLowerCase().includes(searchTerm.toLowerCase())
-    ) {
-      return false;
+    // Filtro por búsqueda (nombre o especialidad)
+    if (searchTerm) {
+      const q = searchTerm.toLowerCase();
+      const nameMatch = doctor.name.toLowerCase().includes(q);
+      const specialtyMatch = doctor.specialty?.toLowerCase().includes(q);
+      if (!nameMatch && !specialtyMatch) return false;
     }
 
     // Filtro por especialidad
@@ -135,14 +176,23 @@ export function DoctorCarousel({
     )
       return false;
 
-    // Filtro por seguros
-    if (
-      doctorFilters.acceptingInsurance.length &&
-      !doctorFilters.acceptingInsurance.some((ins) =>
-        doctor.insuranceAccepted?.includes(ins),
-      )
-    )
-      return false;
+    // Filtro por seguros — soporta nombres o IDs
+    if (doctorFilters.acceptingInsurance.length) {
+      const hasMatchingInsurance = doctorFilters.acceptingInsurance.some(
+        (ins) => {
+          // intentar tratar como ID numérico
+          const id = Number(ins);
+          if (!Number.isNaN(id) && doctor.insuranceAcceptedIds?.includes(id))
+            return true;
+          // fallback a comparar por nombre (case-insensitive)
+          return doctor.insuranceAccepted?.some(
+            (name) => name.toLowerCase() === ins.toLowerCase(),
+          );
+        },
+      );
+
+      if (!hasMatchingInsurance) return false;
+    }
 
     // Filtro por años de experiencia
     if (
@@ -221,13 +271,13 @@ export function DoctorCarousel({
       </div>
 
       {/* Carousel Container */}
-      <div className="relative flex items-center gap-1 sm:gap-2">
-        {/* Left Arrow - Hidden on mobile */}
+      <div className="relative">
+        {/* Left Arrow - Fixed position */}
         <button
           onClick={() => scroll("left")}
           className={cn(
             buttonVariants({ variant: buttonVariant }),
-            "hidden sm:flex size-9 sm:size-10 lg:size-11 aria-disabled:opacity-50 p-2 border-none select-none transition-all duration-200 hover:bg-primary/10 dark:hover:bg-primary/20 active:scale-95 rounded-full flex-shrink-0",
+            "hidden sm:flex absolute left-0 top-1/2 -translate-y-1/2 z-10 size-9 sm:size-10 lg:size-11 aria-disabled:opacity-50 p-2 border-none select-none transition-all duration-200 hover:bg-primary/10 dark:hover:bg-primary/20 active:scale-95 rounded-full flex-shrink-0 shadow-lg",
             defaultClassNames.button_previous,
           )}
           aria-label={
@@ -237,63 +287,76 @@ export function DoctorCarousel({
           <ChevronLeft size={20} className="text-foreground" />
         </button>
 
-        {/* Cards Container o Empty */}
-        {filteredDoctors.length === 0 ? (
-          <Empty className="flex-1 my-6">
-            <EmptyHeader>
-              <EmptyMedia variant="icon">
-                <Stethoscope size={32} />
-              </EmptyMedia>
-              <EmptyTitle>
-                {t("doctors.emptyTitle", "No doctors found")}
-              </EmptyTitle>
-              <EmptyDescription>
-                {t(
-                  "doctors.emptyDescription",
-                  "Try adjusting your filters or search criteria.",
-                )}
-              </EmptyDescription>
-            </EmptyHeader>
-            <EmptyContent>
-              <MCButton size="s" variant="outline" onClick={resetDoctorFilters}>
-                {t("filters.popover.clear", "Clear filters")}
-              </MCButton>
-            </EmptyContent>
-          </Empty>
-        ) : (
-          <div
-            ref={scrollContainerRef}
-            className="flex gap-3 sm:gap-4 overflow-x-auto scrollbar-hide py-2 snap-x snap-mandatory"
-            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-          >
-            {filteredDoctors.map((doctor) => (
-              <div
-                key={doctor.id}
-                className="flex-shrink-0 snap-center w-[85vw] sm:w-[calc((100%-32px)/2)] lg:w-[calc((100%-64px)/3)] min-w-[110px] max-w-[300px]"
-              >
-                <MCDoctorCard
-                  name={doctor.name}
-                  specialty={doctor.specialty}
-                  rating={doctor.rating}
-                  yearsOfExperience={doctor.yearsOfExperience}
-                  languages={doctor.languages}
-                  insuranceAccepted={doctor.insuranceAccepted}
-                  isFavorite={doctor.isFavorite}
-                  urlImage={doctor.urlImage}
-                  variant={variant}
-                  lastAppointment={doctor.lastAppointment}
-                  onToggleFavorite={() => handleToggleFavorite(doctor.id)}
-                />
-              </div>
-            ))}
-          </div>
-        )}
+        {/* Cards Container */}
+        <div className="px-0 sm:px-12 lg:px-14">
+          {/* Loading State */}
+          {isLoading && !useMockData ? (
+            <div className="flex-1 flex items-center justify-center py-12">
+              <Loader2 className="w-8 h-8 animate-spin text-primary" />
+              <span className="ml-3 text-muted-foreground">
+                {t("myDoctors.loading", "Cargando doctores...")}
+              </span>
+            </div>
+          ) : /* Cards Container o Empty */
+          filteredDoctors.length === 0 ? (
+            <Empty className="flex-1 my-6">
+              <EmptyHeader>
+                <EmptyMedia variant="icon">
+                  <Stethoscope size={32} />
+                </EmptyMedia>
+                <EmptyTitle>
+                  {t("doctors.emptyTitle", "No doctors found")}
+                </EmptyTitle>
+                <EmptyDescription>
+                  {t(
+                    "doctors.emptyDescription",
+                    "Try adjusting your filters or search criteria.",
+                  )}
+                </EmptyDescription>
+              </EmptyHeader>
+              <EmptyContent>
+                <MCButton size="s" variant="outline" onClick={resetDoctorFilters}>
+                  {t("filters.popover.clear", "Clear filters")}
+                </MCButton>
+              </EmptyContent>
+            </Empty>
+          ) : (
+            <div
+              ref={scrollContainerRef}
+              className="flex gap-3 sm:gap-4 overflow-x-auto scrollbar-hide py-2 snap-x snap-mandatory"
+              style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+            >
+              {filteredDoctors.map((doctor) => (
+                <div
+                  key={doctor.id}
+                  className="flex-shrink-0 snap-center w-[280px] sm:w-[300px] lg:w-[320px]"
+                >
+                  <MCDoctorCard
+                    id={doctor.id}
+                    name={doctor.name}
+                    specialty={doctor.specialty}
+                    rating={doctor.rating}
+                    yearsOfExperience={doctor.yearsOfExperience}
+                    languages={doctor.languages}
+                    insuranceAccepted={doctor.insuranceAccepted}
+                    isFavorite={doctor.isFavorite}
+                    urlImage={doctor.urlImage}
+                    variant={variant}
+                    lastAppointment={doctor.lastAppointment}
+                    onToggleFavorite={() => handleToggleFavorite(doctor.id)}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
 
+        {/* Right Arrow - Fixed position */}
         <button
           onClick={() => scroll("right")}
           className={cn(
             buttonVariants({ variant: buttonVariant }),
-            "hidden sm:flex size-9 sm:size-10 lg:size-11 aria-disabled:opacity-50 p-2 select-none border-none transition-all duration-200 hover:bg-primary/10 dark:hover:bg-primary/20 active:scale-95 rounded-full flex-shrink-0",
+            "hidden sm:flex absolute right-0 top-1/2 -translate-y-1/2 z-10 size-9 sm:size-10 lg:size-11 aria-disabled:opacity-50 p-2 select-none border-none transition-all duration-200 hover:bg-primary/10 dark:hover:bg-primary/20 active:scale-95 rounded-full flex-shrink-0 shadow-lg",
             defaultClassNames.button_next,
           )}
           aria-label={

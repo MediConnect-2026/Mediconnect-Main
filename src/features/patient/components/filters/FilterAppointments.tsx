@@ -1,6 +1,7 @@
 import MCFilterSelect from "@/shared/components/filters/MCFilterSelect";
 import { useTranslation } from "react-i18next";
 import { Star } from "lucide-react";
+import { useEspecialidades } from "@/features/onboarding/services/useEspecialidades";
 interface AppointmentFilters {
   serviceTypes: string[];
   specialties: string[];
@@ -19,63 +20,21 @@ function FilterAppointments({
   onFiltersChange,
 }: FilterAppointmentsProps) {
   const { t } = useTranslation("patient");
-
-  // Opciones de tipos de servicio
-  const serviceTypeOptions = [
-    {
-      value: "consultation",
-      label: t("filters.serviceTypes.consultation", "Consulta General"),
-    },
-    {
-      value: "treatment",
-      label: t("filters.serviceTypes.treatment", "Tratamiento"),
-    },
-    {
-      value: "therapy",
-      label: t("filters.serviceTypes.therapy", "Terapia"),
-    },
-    {
-      value: "exam",
-      label: t("filters.serviceTypes.exam", "Examen"),
-    },
-  ];
-
-  // Opciones de especialidades
-  const specialtyOptions = [
-    {
-      value: "cardiology",
-      label: t("filters.specialties.cardiology", "Cardiología"),
-    },
-    {
-      value: "dermatology",
-      label: t("filters.specialties.dermatology", "Dermatología"),
-    },
-    {
-      value: "psychology",
-      label: t("filters.specialties.psychology", "Psicología"),
-    },
-    {
-      value: "nutrition",
-      label: t("filters.specialties.nutrition", "Nutrición"),
-    },
-    {
-      value: "pediatrics",
-      label: t("filters.specialties.pediatrics", "Pediatría"),
-    },
-  ];
+  
+  const { data: especialidades = [], isLoading: isLoadingEspecialidades } = useEspecialidades();
 
   // Opciones de modalidad
   const modalityOptions = [
     {
-      value: "presencial",
+      value: "Presencial",
       label: t("filters.modalities.inPerson", "Presencial"),
     },
     {
-      value: "teleconsulta",
+      value: "Teleconsulta",
       label: t("filters.modalities.virtual", "Teleconsulta"),
     },
     {
-      value: "mixta",
+      value: "Mixta",
       label: t("filters.modalities.mixed", "Mixta"),
     },
   ];
@@ -130,27 +89,21 @@ function FilterAppointments({
 
   return (
     <div className="grid grid-cols-2 gap-4">
-      {/* Filtro de Tipo de Servicio */}
-      <MCFilterSelect
-        name="serviceTypes"
-        label={t("filters.labels.serviceType", "Tipo de Servicio")}
-        options={serviceTypeOptions}
-        multiple
-        noBadges
-        value={filters.serviceTypes}
-        onChange={(vals) => onFiltersChange({ serviceTypes: vals as string[] })}
-        searchable
-      />
-
       {/* Filtro de Especialidad */}
       <MCFilterSelect
         name="specialties"
-        label={t("filters.labels.specialty", "Especialidad")}
-        options={specialtyOptions}
+        label={isLoadingEspecialidades ? t("filters.labels.specialty", "Especialidad") : t("filters.labels.specialty", "Especialidad")}
+        options={especialidades}
         multiple
         noBadges
         value={filters.specialties}
-        onChange={(vals) => onFiltersChange({ specialties: vals as string[] })}
+        onChange={(vals) => {
+          if (Array.isArray(vals)) {
+            onFiltersChange({ specialties: vals as string[] });
+          } else {
+            onFiltersChange({ specialties: [vals as string] });
+          }
+        }}
         searchable
       />
 

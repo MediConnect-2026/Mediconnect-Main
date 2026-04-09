@@ -64,13 +64,24 @@ function MCTextArea({
     }
   };
 
-  // Estado local para el conteo de caracteres
-  const [charCount, setCharCount] = React.useState(value?.length || 0);
+  const [charCount, setCharCount] = React.useState(value?.length ?? 0);
+
+  // ✅ FIX: Llamar register() directamente, no dentro de un IIFE.
+  // El IIFE crea un nuevo objeto en cada render, rompiendo el tracking de RHF.
+  const registerProps = register(name);
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     if (charLimit && e.target.value.length > charLimit) return;
     setCharCount(e.target.value.length);
+    // ✅ FIX: Notificar a RHF primero, luego al handler externo
+    registerProps.onChange(e);
     if (onChange) onChange(e);
+  };
+
+  const handleBlur = (e: React.FocusEvent<HTMLTextAreaElement>) => {
+    // ✅ FIX: Mergear onBlur de RHF con el onBlur externo — antes se perdía uno u otro
+    registerProps.onBlur(e);
+    if (onBlur) onBlur(e);
   };
 
   return (
@@ -86,6 +97,7 @@ function MCTextArea({
       )}
       <div className="relative w-full">
         <Textarea
+          {...registerProps}
           id={name}
           placeholder={placeholder}
           required={required}
@@ -95,29 +107,23 @@ function MCTextArea({
           onKeyDown={onKeyDown}
           maxLength={charLimit}
           style={{
-            minHeight: `${rows * 2.5}em`, // Garantiza altura mínima basada en rows
-            height: `${rows * 2.5}em`, // Fuerza la altura inicial
+            minHeight: `${rows * 2.5}em`,
+            height: `${rows * 2.5}em`,
             ...(maxRows
               ? { maxHeight: `${maxRows * 2.5}em`, overflowY: "auto" }
               : {}),
             ...style,
           }}
-          {...(() => {
-            const field = register(name);
-            return {
-              ...field,
-              onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-                field.onChange(e);
-                handleChange(e);
-              },
-            };
-          })()}
+          onChange={handleChange}
+          onBlur={handleBlur}
+          // ✅ FIX: Solo pasar value si viene como prop externo — si no, RHF controla
+          // el campo como uncontrolled vía ref (que es como register() funciona internamente)
+          {...(value !== undefined ? { value } : {})}
           className={cn(
             "w-full rounded-3xl border focus:ring-0 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 p-3 resize-none text-primary",
             handleStatusColor(),
             className,
           )}
-          value={value}
         />
         {showCharCount && charLimit && (
           <div
@@ -154,5 +160,4 @@ function MCTextArea({
     </div>
   );
 }
-
 export default MCTextArea;
