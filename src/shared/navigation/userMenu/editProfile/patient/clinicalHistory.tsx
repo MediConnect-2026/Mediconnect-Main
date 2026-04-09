@@ -329,14 +329,6 @@ function ClinicalHistory({ onClinicalHistoryChanged }: ClinicalHistoryProps) {
           )}
         </div>
 
-        <div
-          className={`mb-1 ${
-            isMobile ? "text-base" : "text-lg"
-          } font-medium text-primary`}
-        >
-          {t("clinicalHistory.addCondition")}
-        </div>
-
         {/* Separador */}
         <div className="flex items-center gap-3 mb-4">
           <div className="flex-1 h-px bg-gray-300" />

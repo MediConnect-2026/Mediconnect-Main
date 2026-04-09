@@ -82,6 +82,12 @@ function GeneralInformation({ onOpenChange }: GeneralInformationProps) {
     () => formatDominicanCedula(user?.doctor?.numeroDocumentoIdentificacion),
     [user?.doctor?.numeroDocumentoIdentificacion]
   );
+
+  const formattedLicenseNumber = useMemo(() => {
+    const rawValue = String(user?.doctor?.exequatur || "").replace(/\D/g, "").slice(0, 5);
+    if (rawValue.length <= 3) return rawValue;
+    return `${rawValue.slice(0, 3)}-${rawValue.slice(3)}`;
+  }, [user?.doctor?.exequatur]);
   
   // Mapear los datos del doctor a los valores del formulario
   const defaultValues = useMemo(
@@ -587,10 +593,12 @@ function GeneralInformation({ onOpenChange }: GeneralInformationProps) {
         />
 
         <MCInput
+          key={`license-number-${formattedLicenseNumber}`}
           name="licenseNumber"
           label={t("profileForm.licenseNumber")}
           variant="exequatur"
           placeholder={t("profileForm.licenseNumberPlaceholder")}
+          value={formattedLicenseNumber}
           disabled
         />
 

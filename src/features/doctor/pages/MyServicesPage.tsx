@@ -54,11 +54,16 @@ interface MyServiceFilters {
   estado: string;
 }
 
+const normalizeLanguageCode = (language?: string): "es" | "en" =>
+  language?.toLowerCase().startsWith("en") ? "en" : "es";
+
 function MyServicesPage() {
   const { t } = useTranslation("doctor");
   const { i18n } = useTranslation();
   const isMobile = useIsMobile();
   const navigate = useNavigate();
+  const currentLanguage = normalizeLanguageCode(i18n.resolvedLanguage || i18n.language);
+  const sourceLanguage = currentLanguage === "es" ? "en" : "es";
 
   const user = useAppStore((state) => state.user);
   const [isLoading, setIsLoading] = useState(false);
@@ -68,7 +73,6 @@ function MyServicesPage() {
   const { 
     data: servicesStats, 
     isLoading: isLoadingStats,
-    error: statsError,
   } = useDoctorServicesStats();
 
   // Estados de vista y filtros
@@ -102,8 +106,8 @@ function MyServicesPage() {
         const response = await doctorService.getServicesOfDoctor(
           Number(user.id),
           {
-            target: i18n.language || "es", // Asegura que se envíe el idioma actual
-            source: i18n.language === "es" ? "en" : "es",
+            target: currentLanguage,
+            source: sourceLanguage,
             translate_fields: "nombre,descripcion,modalidad", // Campos que deseas traducir
           }
         );
@@ -121,7 +125,7 @@ function MyServicesPage() {
     };
 
     loadServices();
-  }, [user?.id, i18n.language]);
+  }, [user?.id, currentLanguage, sourceLanguage]);
 
   // Contar filtros activos
   const activeFiltersCount = useMemo(() => {
@@ -346,7 +350,7 @@ function MyServicesPage() {
 
   // Handlers para acciones de servicios
   const handleServiceAction = async (
-    serviceId: number,
+    _serviceId: number,
     action: "activate" | "deactivate" | "delete"
   ) => {
     try {
@@ -354,8 +358,8 @@ function MyServicesPage() {
       // Recargar servicios después de la acción
       if (user?.id) {
         const response = await doctorService.getServicesOfDoctor(Number(user.id), {
-          target: i18n.language || "es", // Asegura que se envíe el idioma actual
-          source: i18n.language === "es" ? "en" : "es",
+          target: currentLanguage,
+          source: sourceLanguage,
           translate_fields: "nombre,descripcion,modalidad", // Campos que deseas traducir
         });
         if (response?.success && Array.isArray(response.data)) {

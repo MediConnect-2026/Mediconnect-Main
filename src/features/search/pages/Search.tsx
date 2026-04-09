@@ -403,8 +403,8 @@ function Search() {
   } = useSearchDoctors({
     lat: coords?.lat ?? null,
     lng: coords?.lng ?? null,
-    // Use the radio filter as radius when present, otherwise default to 15km on mount
-    radiusKm: searchFilters.radio ?? 15,
+    // If radio is "all" it becomes null and radius is omitted from request params
+    radiusKm: searchFilters.radio,
     filters: searchFilters,
     language: i18n.language,
     enabled: true, // Always enabled, will return empty if no coords

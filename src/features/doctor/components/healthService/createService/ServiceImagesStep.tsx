@@ -17,6 +17,8 @@ interface UploadedImage {
   id: string;
   url: string;
   file?: File;
+  type?: string;
+  name?: string;
 }
 
 interface Props {
@@ -50,6 +52,8 @@ function ServiceImagesStep({ isEditMode = false, serviceId }: Props) {
           id: img.id ?? crypto.randomUUID(),
           url: img.url,
           file: img.file,
+          type: img.type,
+          name: img.name,
         })),
       );
     }
@@ -57,7 +61,11 @@ function ServiceImagesStep({ isEditMode = false, serviceId }: Props) {
 
   // Sincronizar el estado local `images` con el store solo cuando haya cambios
   useEffect(() => {
-    const mapped = images.map((img) => ({ id: img.id, url: img.url, file: img.file }));
+    const mapped = images.map((img) => ({
+      url: img.url,
+      type: img.file?.type || img.type || "image/jpeg",
+      name: img.file?.name || img.name,
+    }));
     try {
       const current = Array.isArray(storeImages) ? storeImages : [];
       if (JSON.stringify(current) !== JSON.stringify(mapped)) {
@@ -86,24 +94,25 @@ function ServiceImagesStep({ isEditMode = false, serviceId }: Props) {
     if (available <= 0) return;
     const selectedFiles = Array.from(files).slice(0, available);
 
+    // Validate file sizes in both create and edit modes
+    const oversized = selectedFiles.filter((f) => f.size > MAX_FILE_SIZE_BYTES);
+    if (oversized.length > 0) {
+      const names = oversized.map((f) => f.name).join(", ");
+      setToast({
+        message: t("createService.images.fileTooLarge", {
+          defaultValue: "El archivo {{name}} excede el tamaño máximo de {{max}}MB",
+          name: names,
+          max: 5,
+        }),
+        type: "error",
+        open: true,
+      });
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+
     // If in edit mode and we have a serviceId, upload immediately
     if (isEditMode && serviceId) {
-      // Validate file sizes (multilingual toast message if any exceed max)
-      const oversized = selectedFiles.filter((f) => f.size > MAX_FILE_SIZE_BYTES);
-      if (oversized.length > 0) {
-        const names = oversized.map((f) => f.name).join(", ");
-        setToast({
-          message: t(
-            "createService.images.fileTooLarge",
-            { defaultValue: "El archivo {{name}} excede el tamaño máximo de {{max}}MB", name: names, max: 5 }
-          ),
-          type: "error",
-          open: true,
-        });
-        if (fileInputRef.current) fileInputRef.current.value = "";
-        return;
-      }
-      
       setIsUploading(true);
       try {
         // Convert selected File objects to normalized File via urlToFile
@@ -152,6 +161,8 @@ function ServiceImagesStep({ isEditMode = false, serviceId }: Props) {
       id: crypto.randomUUID(),
       url: URL.createObjectURL(file),
       file,
+      type: file.type,
+      name: file.name,
     }));
 
     setImages((prev) => [...prev, ...newImages]);
