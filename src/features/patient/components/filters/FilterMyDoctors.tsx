@@ -51,7 +51,7 @@ function FilterMyDoctors({ filters, onFiltersChange }: FilterMyDoctorsProps) {
       value: String(insurance.id),
       label: insurance.nombre
     }));
-  }, [availableInsurances, t]);
+  }, [availableInsurances]);
 
   // Memoize experience options
   const experienceOptions: OptionType[] = useMemo(
@@ -125,10 +125,11 @@ function FilterMyDoctors({ filters, onFiltersChange }: FilterMyDoctorsProps) {
         name="specialty"
         label={t("filters.labels.specialty", "Especialidad")}
         options={specialityOptions}
-        placeholder={t(
-          "filters.placeholders.specialty",
-          "Seleccionar especialidad",
-        )}
+        placeholder={
+          isSpecialityLoading
+            ? t("filters.placeholders.loadingSpecialty", "Cargando especialidades...")
+            : t("filters.placeholders.specialty", "Seleccionar especialidad")
+        }
         value={filters.specialty}
         noBadges
         disabled={isSpecialityLoading}
@@ -163,10 +164,11 @@ function FilterMyDoctors({ filters, onFiltersChange }: FilterMyDoctorsProps) {
         searchable
         noBadges
         disabled={isInsurancesLoading}
-        placeholder={t(
-          "filters.placeholders.insurances",
-          "Seleccionar seguros",
-        )}
+        placeholder={
+          isInsurancesLoading
+            ? t("filters.placeholders.loadingInsurances", "Cargando seguros...")
+            : t("filters.placeholders.insurances", "Seleccionar seguros")
+        }
         value={filters.acceptingInsurance}
         onChange={(v) =>
           onFiltersChange({

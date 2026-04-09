@@ -73,6 +73,8 @@
     "errorLoadingConditions": "Error al cargar condiciones médicas",
     "conditionAdded": "Condición médica agregada exitosamente",
     "errorAddingCondition": "Error al agregar condición médica",
+    "conditionUpdated": "Condición médica actualizada exitosamente",
+    "errorUpdatingCondition": "Error al actualizar condición médica",
     "conditionRemoved": "Condición médica eliminada exitosamente",
     "errorRemovingCondition": "Error al eliminar condición médica",
     "notesUpdated": "Notas actualizadas exitosamente",
@@ -194,8 +196,10 @@
     },
     "placeholders": {
       "specialty": "Seleccionar especialidad",
+      "loadingSpecialty": "Cargando especialidades...",
       "languages": "Seleccionar idiomas",
       "insurances": "Seleccionar seguros",
+      "loadingInsurances": "Cargando seguros...",
       "yearsOfExperience": "Seleccionar años de experiencia",
       "ranking": "Seleccionar puntuación",
       "name": "Buscar por nombre"

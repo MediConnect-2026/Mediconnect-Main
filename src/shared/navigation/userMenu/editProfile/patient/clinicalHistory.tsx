@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import MCButton from "@/shared/components/forms/MCButton";
 import MCFormWrapper from "@/shared/components/forms/MCFormWrapper";
 import MCSelect from "@/shared/components/forms/MCSelect";
@@ -10,12 +10,11 @@ import { patientClinicalHistorySchema } from "@/schema/profile.schema";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
 import { 
   useAvailableAllergies, 
-  useAvailableConditions, 
   useMyAllergies, 
   useMyConditions,
   useAddAllergy,
   useRemoveAllergy,
-  useAddCondition,
+  useUpdateCondition,
   useAddPersonalCondition,
   useRemoveCondition,
 } from "./hooks";
@@ -30,14 +29,13 @@ function ClinicalHistory({ onClinicalHistoryChanged }: ClinicalHistoryProps) {
 
   // React Query hooks para datos
   const { data: availableAllergies = [], isLoading: isLoadingAllergies } = useAvailableAllergies();
-  const { data: availableConditions = [], isLoading: isLoadingConditions } = useAvailableConditions();
   const { data: myAllergies = [] } = useMyAllergies();
-  const { data: myConditions = [] } = useMyConditions();
+  const { data: myConditions = [], isLoading: isLoadingConditions } = useMyConditions();
 
   // Mutation hooks
   const addAllergy = useAddAllergy();
   const removeAllergy = useRemoveAllergy();
-  const addCondition = useAddCondition();
+  const updateCondition = useUpdateCondition();
   const addPersonalCondition = useAddPersonalCondition();
   const removeCondition = useRemoveCondition();
 
@@ -49,9 +47,14 @@ function ClinicalHistory({ onClinicalHistoryChanged }: ClinicalHistoryProps) {
   // Estado de carga global (cualquier mutación en progreso)
   const isSubmitting = addAllergy.isPending || 
                        removeAllergy.isPending || 
-                       addCondition.isPending || 
+                       updateCondition.isPending || 
                        addPersonalCondition.isPending || 
                        removeCondition.isPending;
+
+  const availableAllergyOptions = useMemo(
+    () => availableAllergies.filter((allergy) => !myAllergies.some((a) => a.id === allergy.id)),
+    [availableAllergies, myAllergies]
+  );
 
   function handleSubmit(data: any) {
     console.log("Form submitted:", data);
@@ -60,26 +63,6 @@ function ClinicalHistory({ onClinicalHistoryChanged }: ClinicalHistoryProps) {
   async function handleAddAllergy(value: string) {
     const condicionId = parseInt(value);
     await addAllergy.mutateAsync({ condicionId });
-    onClinicalHistoryChanged?.();
-  }
-
-  async function handleAddCondition(value: string) {
-    const condicionId = parseInt(value);
-    
-    // Encontrar la condición seleccionada para obtener su descripción
-    const selectedCondition = availableConditions.find(c => c.id === condicionId);
-    const notasIniciales = selectedCondition?.descripcion || "";
-    
-    await addCondition.mutateAsync({ 
-      condicionId, 
-      notas: notasIniciales 
-    });
-
-    // Activar edición automáticamente con la descripción inicial
-    const currentConditions = myConditions || [];
-    setEditingIndex(currentConditions.length);
-    setEditingValue(notasIniciales);
-    
     onClinicalHistoryChanged?.();
   }
 
@@ -134,9 +117,10 @@ function ClinicalHistory({ onClinicalHistoryChanged }: ClinicalHistoryProps) {
       }
 
       // Actualizar la condición con nuevas notas
-      await addCondition.mutateAsync({ 
+      await updateCondition.mutateAsync({ 
         condicionId: condition.id, 
-        notas: trimmedValue 
+        notas: trimmedValue,
+        estado: "Activo",
       });
 
       setEditingIndex(null);
@@ -236,8 +220,7 @@ function ClinicalHistory({ onClinicalHistoryChanged }: ClinicalHistoryProps) {
           searchable={true}
           className="mb-4"
           placeholder={t("clinicalHistory.selectAllergy")}
-          options={availableAllergies
-            .filter((allergy) => !myAllergies.some(a => a.id === allergy.id))}
+          options={availableAllergyOptions}
           onChange={(value) => {
             if (typeof value === "string") handleAddAllergy(value);
           }}
@@ -353,19 +336,6 @@ function ClinicalHistory({ onClinicalHistoryChanged }: ClinicalHistoryProps) {
         >
           {t("clinicalHistory.addCondition")}
         </div>
-        <MCSelect
-          key={myConditions.length}
-          name="condition"
-          searchable={true}
-          className="mb-4"
-          placeholder={t("clinicalHistory.selectCondition")}
-          options={availableConditions
-            .filter((condition) => !myConditions.some(c => c.id === condition.id))}
-          onChange={(value) => {
-            if (typeof value === "string") handleAddCondition(value);
-          }}
-          disabled={isLoadingConditions || isSubmitting}
-        />
 
         {/* Separador */}
         <div className="flex items-center gap-3 mb-4">

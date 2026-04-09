@@ -422,7 +422,7 @@ function StaffPage() {
           {paginatedStaff.map((staff) => (
             <MCDoctorsCards
               key={staff.id}
-              id={staff.id}
+              id={staff.doctorId}
               name={staff.name}
               specialty={staff.specialty}
               rating={staff.rating}

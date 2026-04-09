@@ -106,6 +106,11 @@ export interface AddConditionRequest {
   notas?: string;
 }
 
+export interface UpdateConditionRequest {
+  notas?: string;
+  estado?: 'Activo' | 'Inactivo';
+}
+
 export interface AddPersonalConditionRequest {
   notas: string;
 }
@@ -117,6 +122,12 @@ export interface AddAllergyResponse {
 }
 
 export interface AddConditionResponse {
+  success: boolean;
+  message: string;
+  data: CondicionMedica;
+}
+
+export interface UpdateConditionResponse {
   success: boolean;
   message: string;
   data: CondicionMedica;

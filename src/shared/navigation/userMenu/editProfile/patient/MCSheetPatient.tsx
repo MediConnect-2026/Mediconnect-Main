@@ -1,6 +1,6 @@
 import { X, User, FileText, Shield } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { patientProfileSchema } from "@/schema/profile.schema";
 import { useTranslation } from "react-i18next";
 import PersonalInformation from "./PersonalInformation";
@@ -21,14 +21,19 @@ function MCSheetPatient({ onOpenChange, whatTab, onInsurancesChanged, onClinical
     tab === "history" ? "historial" : tab === "insurance" ? "seguros" : "general";
 
   const [activeTab, setActiveTab] = useState(getTabFromWhatTab(whatTab));
-  const selectedTab = whatTab ? getTabFromWhatTab(whatTab) : activeTab;
   const isMobile = useIsMobile();
+
+  useEffect(() => {
+    if (whatTab) {
+      setActiveTab(getTabFromWhatTab(whatTab));
+    }
+  }, [whatTab]);
 
   const schema = useMemo(() => patientProfileSchema(t), [t]);
 
   return (
     <Tabs
-      value={selectedTab}
+      value={activeTab}
       onValueChange={setActiveTab}
       className={`w-full h-full min-h-full min-w-full ${
         isMobile ? "flex flex-col" : "grid grid-cols-[35%_65%]"

@@ -82,7 +82,7 @@ const refreshTokens = async (): Promise<{ accessToken: string; refreshToken: str
 // Crear instancia de axios con configuración base
 const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000/api',
-  timeout: Number(import.meta.env.VITE_API_TIMEOUT) || 30000,
+  timeout: Number(import.meta.env.VITE_API_TIMEOUT) || 60000,
   headers: {
     'Content-Type': 'application/json',
   },

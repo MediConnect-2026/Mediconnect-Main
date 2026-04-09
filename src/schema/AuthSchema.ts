@@ -26,7 +26,10 @@ export function OtpSchema(t: (key: string) => string) {
 export function ResetPasswordSchema(t: (key: string) => string) {
   return z
     .object({
-      password: z.string().min(6, t("validation.passwordMin")),
+      password: z
+        .string()
+        .min(6, t("validation.passwordMin"))
+        .regex(/[^A-Za-z0-9]/, t("validation.passwordSpecialChar")),
       confirmPassword: z.string().min(6, t("validation.passwordMin")),
     })
     .superRefine((data, ctx) => {

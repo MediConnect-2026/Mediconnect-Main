@@ -96,7 +96,6 @@ function MCDoctorsCards({
   const [favoriteDialogOpen, setFavoriteDialogOpen] = useState(false);
   const [favoriteLoading, setFavoriteLoading] = useState(false);
 
-
   useEffect(() => {
     if (isFavorite !== undefined) {
       setIsFavoriteLocal(isFavorite);

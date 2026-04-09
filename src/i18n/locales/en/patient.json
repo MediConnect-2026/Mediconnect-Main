@@ -75,6 +75,8 @@
     "errorLoadingConditions": "Error loading medical conditions",
     "conditionAdded": "Medical condition added successfully",
     "errorAddingCondition": "Error adding medical condition",
+    "conditionUpdated": "Medical condition updated successfully",
+    "errorUpdatingCondition": "Error updating medical condition",
     "conditionRemoved": "Medical condition removed successfully",
     "errorRemovingCondition": "Error removing medical condition",
     "notesUpdated": "Notes updated successfully",
@@ -199,8 +201,10 @@
     },
     "placeholders": {
       "specialty": "Select specialty",
+      "loadingSpecialty": "Loading specialties...",
       "languages": "Select languages",
       "insurances": "Select insurances",
+      "loadingInsurances": "Loading insurances...",
       "yearsOfExperience": "Select years of experience",
       "ranking": "Select rating",
       "name": "Search by name"

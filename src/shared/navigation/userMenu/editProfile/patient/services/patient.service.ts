@@ -11,9 +11,11 @@ import type {
   GetAvailableConditionsResponse,
   AddAllergyRequest,
   AddConditionRequest,
+  UpdateConditionRequest,
   AddPersonalConditionRequest,
   AddAllergyResponse,
   AddConditionResponse,
+  UpdateConditionResponse,
   AddPersonalConditionResponse,
   GetMyAllergiesResponse,
   GetMyConditionsResponse,
@@ -223,7 +225,7 @@ export const patientService = {
       }
 
       const response = await apiClient.get<GetAvailableAllergiesResponse>(
-        '/condiciones-medicas',
+        '/condiciones-medicas/alergias/disponibles',
         { params }
       );
 
@@ -437,6 +439,47 @@ export const patientService = {
         errorData?.message ||
         error.message ||
         'Error al agregar condición médica. Intenta nuevamente.'
+      );
+    }
+  },
+
+  /**
+   * Actualiza una condición médica existente del perfil del paciente
+   * @param condicionId - ID de la condición médica del paciente
+   * @param data - Datos a actualizar (notas y estado)
+   * @returns Respuesta con la condición médica actualizada
+   */
+  updateCondition: async (
+    condicionId: number,
+    data: UpdateConditionRequest
+  ): Promise<UpdateConditionResponse> => {
+    try {
+      const response = await apiClient.patch<UpdateConditionResponse>(
+        `/condiciones-medicas/mis-condiciones/${condicionId}`,
+        data
+      );
+
+      return response.data;
+    } catch (error: any) {
+      console.error('❌ [Patient Service] Error al actualizar condición médica:', error);
+
+      const errorData = error.response?.data as MedicalConditionError;
+
+      if (error.response?.status === 400) {
+        throw new Error(
+          errorData?.message ||
+          'Los datos enviados para actualizar la condición médica no son válidos.'
+        );
+      }
+
+      if (error.response?.status === 404) {
+        throw new Error('Condición médica no encontrada.');
+      }
+
+      throw new Error(
+        errorData?.message ||
+        error.message ||
+        'Error al actualizar condición médica. Intenta nuevamente.'
       );
     }
   },

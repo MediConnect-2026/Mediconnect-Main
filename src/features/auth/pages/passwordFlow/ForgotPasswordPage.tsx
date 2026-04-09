@@ -81,7 +81,6 @@ function ForgotPasswordPage() {
             label={t("forgotPassword.emailLabel")}
             placeholder={t("forgotPassword.emailPlaceholder")}
           />
-          <p className="text-center mt-2 w-full">{forgotPasswordData?.email}</p>
         </div>
         <AuthFooterContainer
           backButtonProps={{

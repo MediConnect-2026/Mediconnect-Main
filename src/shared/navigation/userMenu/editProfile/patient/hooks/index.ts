@@ -8,6 +8,7 @@ export { useMyConditions } from './useMyConditions';
 export { useAddAllergy, useRemoveAllergy } from './useAllergyMutations';
 export { 
   useAddCondition, 
+  useUpdateCondition,
   useAddPersonalCondition, 
   useRemoveCondition 
 } from './useConditionMutations';

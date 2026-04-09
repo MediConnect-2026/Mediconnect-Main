@@ -50,6 +50,53 @@ export const useAddCondition = () => {
 };
 
 /**
+ * Hook para actualizar una condición médica existente del historial del paciente
+ * Invalida automáticamente el caché de "mis condiciones"
+ *
+ * @example
+ * const updateCondition = useUpdateCondition();
+ * await updateCondition.mutateAsync({ condicionId: 123, notas: 'Notas actualizadas', estado: 'Activo' });
+ */
+export const useUpdateCondition = () => {
+  const { t, i18n } = useTranslation('patient');
+  const queryClient = useQueryClient();
+  const language = i18n.language || 'es';
+
+  return useMutation({
+    mutationFn: async (data: { condicionId: number; notas: string; estado?: 'Activo' | 'Inactivo' }) => {
+      const response = await patientService.updateCondition(data.condicionId, {
+        notas: data.notas,
+        estado: data.estado ?? 'Activo',
+      });
+      if (!response.success) {
+        throw new Error(response.message || 'Error al actualizar condición médica');
+      }
+      return response.data;
+    },
+    onSuccess: (data) => {
+      // Invalidar el caché de mis condiciones para forzar refetch
+      queryClient.invalidateQueries({
+        queryKey: QUERY_KEYS.MY_CONDITIONS(language),
+      });
+
+      // Emitir evento para notificar a otros componentes
+      emitConditionsChanged();
+
+      toast.success(
+        t('clinicalHistory.conditionUpdated', 'Condición médica actualizada exitosamente')
+      );
+
+      return data;
+    },
+    onError: (error: Error) => {
+      toast.error(
+        error.message || t('clinicalHistory.errorUpdatingCondition', 'Error al actualizar condición médica')
+      );
+    },
+  });
+};
+
+/**
  * Hook para agregar una condición médica personal al historial del paciente
  * Invalida automáticamente el caché de "mis condiciones"
  * 
