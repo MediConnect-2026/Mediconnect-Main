@@ -215,7 +215,7 @@ export const hasClientSideFilters = (filters: SearchProviderFilters): boolean =>
 export const createFilterCacheKey = (
   lat: number | null,
   lng: number | null,
-  radiusKm: number,
+  radiusKm: number | null | undefined,
   filters: SearchProviderFilters,
   language: string
 ): unknown[] => {

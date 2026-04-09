@@ -212,6 +212,13 @@ export default function DocumentCard({
         ? "text-status-rejected"
         : "text-status-pending";
 
+  const feedbackContainerClass =
+    currentStatus === "REJECTED"
+      ? "mt-1.5 rounded-xl border border-red-300/70 bg-red-50/80 px-3 py-2 shadow-sm"
+      : currentStatus === "APPROVED"
+        ? "mt-1.5 rounded-xl border border-emerald-300/60 bg-emerald-50/70 px-3 py-2"
+        : "mt-1.5 rounded-xl border border-amber-300/60 bg-amber-50/70 px-3 py-2";
+
   const imageDocuments = isArray
     ? documents.filter((doc) => doc.type.startsWith("image/"))
     : document && document.type.startsWith("image/")
@@ -250,9 +257,14 @@ export default function DocumentCard({
                 })}
               </p>
               {arrayParentFeedback && (
-                <p className={`text-sm mt-1.5 ${feedbackColorClass}`}>
-                  {arrayParentFeedback}
-                </p>
+                <div className={feedbackContainerClass}>
+                  <p className={`text-sm leading-relaxed ${feedbackColorClass} flex items-start gap-2`}>
+                    {currentStatus === "REJECTED" && (
+                      <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0 text-red-500" />
+                    )}
+                    <span>{arrayParentFeedback}</span>
+                  </p>
+                </div>
               )}
             </>
           ) : (
@@ -268,9 +280,14 @@ export default function DocumentCard({
                   })}
               </p>
               {currentDocument?.feedback && (
-                <p className={`text-sm mt-1.5 ${feedbackColorClass}`}>
-                  {currentDocument.feedback}
-                </p>
+                <div className={feedbackContainerClass}>
+                  <p className={`text-sm leading-relaxed ${feedbackColorClass} flex items-start gap-2`}>
+                    {currentStatus === "REJECTED" && (
+                      <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0 text-red-500" />
+                    )}
+                    <span>{currentDocument.feedback}</span>
+                  </p>
+                </div>
               )}
             </>
           )}

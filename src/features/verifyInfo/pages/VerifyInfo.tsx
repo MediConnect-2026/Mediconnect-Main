@@ -156,6 +156,39 @@ function VerifyInfo() {
     // ✅ Validar que exista al menos un documento de identidad
     if (!identityDocs || identityDocs.length === 0) return null;
 
+    const mapRevisionStatus = (estadoRevision?: string): "PENDING" | "APPROVED" | "REJECTED" =>
+      estadoRevision === "Pendiente"
+        ? "PENDING"
+        : estadoRevision === "Aprobado"
+          ? "APPROVED"
+          : "REJECTED";
+
+    const getDocumentFeedback = (doc: any): string | undefined =>
+      doc?.comentarioAdmin || doc?.feedback || undefined;
+
+    const certificationStatuses = certificationDoc.map((cert: any) =>
+      mapRevisionStatus(cert.estadoRevision)
+    );
+    const certificationsStatus = certificationStatuses.length
+      ? certificationStatuses.some((status) => status === "REJECTED")
+        ? "REJECTED"
+        : certificationStatuses.some((status) => status === "PENDING")
+          ? "PENDING"
+          : "APPROVED"
+      : undefined;
+
+    const rejectedCertification = certificationDoc.find(
+      (cert) => mapRevisionStatus((cert as any).estadoRevision) === "REJECTED"
+    );
+    const certificationWithFeedback = certificationDoc.find((cert) =>
+      Boolean(getDocumentFeedback(cert as any))
+    );
+    const certificationsFeedback =
+      getDocumentFeedback(rejectedCertification as any) ||
+      getDocumentFeedback(certificationWithFeedback as any) ||
+      undefined;
+
+    console.log("Transforming doctor documents:", { identityDocs, academicDoc, certificationDoc });
     return {
       // ✅ Mapear todos los documentos de identidad encontrados
       identityDocumentFiles: identityDocs.map((identityDoc: any) => ({
@@ -165,12 +198,8 @@ function VerifyInfo() {
         type: identityDoc.tipoMime,
         size: identityDoc.tamanio_bytes || 0,
         uploadedAt: identityDoc.creadoEn,
-        verificationStatus: identityDoc.estadoRevision === "Pendiente"
-          ? "PENDING"
-          : identityDoc.estadoRevision === "Aprobado"
-            ? "APPROVED"
-            : "REJECTED",
-        feedback: identityDoc.feedback || undefined,
+        verificationStatus: mapRevisionStatus(identityDoc.estadoRevision),
+        feedback: getDocumentFeedback(identityDoc),
       })),
       academicTitle: academicDoc
         ? {
@@ -180,11 +209,8 @@ function VerifyInfo() {
             type: academicDoc.tipoMime,
             size: academicDoc.tamanio_bytes || 0,
             uploadedAt: academicDoc.creadoEn,
-            verificationStatus: academicDoc.estadoRevision === "Pendiente"
-              ? "PENDING"
-              : academicDoc.estadoRevision === "Aprobado"
-                ? "APPROVED"
-                : "REJECTED",
+            verificationStatus: mapRevisionStatus(academicDoc.estadoRevision),
+            feedback: getDocumentFeedback(academicDoc),
           }
         : undefined,
       certifications: certificationDoc.map((cert: any) => ({
@@ -194,12 +220,9 @@ function VerifyInfo() {
         type: cert.tipoMime,
         size: cert.tamanio_bytes || 0,
         uploadedAt: cert.creadoEn,
-        verificationStatus: cert.estadoRevision === "Pendiente"
-          ? "PENDING"
-          : cert.estadoRevision === "Aprobado"
-            ? "APPROVED"
-            : "REJECTED",
-      }))
+      })),
+      certificationsStatus,
+      certificationsFeedback,
     };
   };
 
@@ -315,7 +338,7 @@ function VerifyInfo() {
         size: cert.tamanio_bytes || 0,
         uploadedAt: cert.creadoEn,
         verificationStatus: verificationStatus as any,
-        feedback: cert.feedback || undefined,
+        feedback: cert.comentarioAdmin || cert.feedback || undefined,
       },
     };
   };

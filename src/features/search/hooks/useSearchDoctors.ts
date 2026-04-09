@@ -21,7 +21,7 @@ const normalizeText = (value?: string) =>
 export interface UseSearchDoctorsParams {
   lat: number | null;
   lng: number | null;
-  radiusKm?: number;
+  radiusKm?: number | null;
   filters?: SearchProviderFilters;
   language: string;
   enabled?: boolean;
@@ -100,7 +100,7 @@ export interface UseSearchDoctorsResult {
 export function useSearchDoctors({
   lat,
   lng,
-  radiusKm = 15,
+  radiusKm,
   filters,
   language,
   enabled = true,
