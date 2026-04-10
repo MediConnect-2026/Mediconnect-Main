@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Star, MapPin, Globe, Shield, Phone, Loader2 } from "lucide-react";
 import { type Doctor } from "@/data/providers";
 import { Card, CardContent, CardTitle } from "@/shared/ui/card";
@@ -32,6 +32,13 @@ const DoctorPopup: React.FC<DoctorPopupProps> = ({
   isContactLoading = false,
 }) => {
   const { t } = useTranslation("common");
+  const [imageError, setImageError] = useState(false);
+  const hasValidImage = typeof provider.image === "string" && provider.image.trim().length > 0;
+
+  useEffect(() => {
+    setImageError(false);
+  }, [provider.image, provider.id]);
+
   // Determinar estado de conexión
 
   const connectBtnText = t("clinicCard.connect");
@@ -74,11 +81,26 @@ const DoctorPopup: React.FC<DoctorPopupProps> = ({
         <div
           className={`overflow-hidden rounded-xl border border-primary/5 ${imgHeight}`}
         >
-          <img
-            src={provider.image}
-            alt={provider.name}
-            className="w-full h-full object-cover transition-transform hover:scale-105"
-          />
+          {hasValidImage && !imageError ? (
+            <img
+              src={provider.image}
+              alt={provider.name}
+              className="w-full h-full object-cover transition-transform hover:scale-105"
+              onError={() => setImageError(true)}
+            />
+          ) : (
+            <div className="w-full h-full bg-[#c8d4bf] flex items-center justify-center">
+              <svg
+                viewBox="0 0 200 120"
+                className="w-full h-full"
+                role="img"
+                aria-label={t("doctorCard.defaultProfileImage", "Foto de perfil por defecto")}
+              >
+                <circle cx="100" cy="44" r="28" fill="#8cad7f" />
+                <ellipse cx="100" cy="124" rx="58" ry="44" fill="#8cad7f" />
+              </svg>
+            </div>
+          )}
         </div>
 
         {/* Nombre + rating */}

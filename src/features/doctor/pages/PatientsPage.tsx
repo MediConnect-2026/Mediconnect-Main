@@ -337,9 +337,11 @@ function PatientsPage() {
       },
       {
         title: t("patients.metrics.avgAge"),
-        value: patientsStats
-          ? `${patientsStats.edadPromedio.toFixed(1)} ${t("patients.metrics.years")}`
-          : "—",
+        value:
+          typeof patientsStats?.edadPromedio === "number" &&
+          Number.isFinite(patientsStats.edadPromedio)
+            ? `${patientsStats.edadPromedio.toFixed(1)} ${t("patients.metrics.years")}`
+            : "—",
         subtitle: t("patients.metrics.avgAgeSubtitle"),
         icon: <BarChart2 />,
       },

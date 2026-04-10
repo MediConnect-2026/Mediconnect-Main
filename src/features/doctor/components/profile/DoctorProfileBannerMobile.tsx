@@ -37,6 +37,7 @@ import { MCUserAvatar } from "@/shared/navigation/userMenu/MCUserAvatar";
 import { MCUserBanner } from "@/shared/navigation/userMenu/MCUserBanner";
 import { useTranslation } from "react-i18next";
 import { getDoctorRating, getUserFullName } from "@/services/auth/auth.types";
+import { useAppStore } from "@/stores/useAppStore";
 
 interface Props {
   doctor: any;
@@ -68,7 +69,11 @@ function DoctorProfileBannerMobile({
   isMyProfile,
 }: Props) {
   const { t, i18n } = useTranslation("doctor");
+  const currentUser = useAppStore((s) => s.user);
   const [languages, setLanguages] = useState<Idioma[]>([]);
+  const isDoctorViewerOtherProfile =
+    !isMyProfile &&
+    (currentUser?.rol === "DOCTOR" || currentUser?.rol === "Doctor");
 
   const fetchLanguages = async () => {
     if (!isMyProfile) return; // Solo cargar si es mi perfil
@@ -177,51 +182,53 @@ function DoctorProfileBannerMobile({
           </div>
 
           {/* Menu */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button size="icon" variant="outline" className="rounded-full">
-                <Ellipsis />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {isMyProfile ? (
-                <>
-                  <DropdownMenuItem>
-                    <Settings className="w-4 h-4 mr-2" />
-                    {t("profileForm.menu.settings")}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <Shield className="w-4 h-4 mr-2" />
-                    {t("profileForm.menu.privacy")}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <Copy className="w-4 h-4 mr-2" />
-                    {t("profileForm.menu.copyProfile")}
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem className="text-red-500">
-                    <LogOut className="w-4 h-4 mr-2" />
-                    {t("profileForm.menu.logout")}
-                  </DropdownMenuItem>
-                </>
-              ) : (
-                <>
-                  <DropdownMenuItem>
-                    <Share2 className="w-4 h-4 mr-2" />
-                    {t("profileForm.menu.shareProfile")}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <VolumeX className="w-4 h-4 mr-2" />
-                    {t("profileForm.menu.mute")}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem className="text-red-500">
-                    <Ban className="w-4 h-4 mr-2" />
-                    {t("profileForm.menu.block")}
-                  </DropdownMenuItem>
-                </>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
+          {(isMyProfile || !isDoctorViewerOtherProfile) ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="icon" variant="outline" className="rounded-full">
+                  <Ellipsis />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {isMyProfile ? (
+                  <>
+                    <DropdownMenuItem>
+                      <Settings className="w-4 h-4 mr-2" />
+                      {t("profileForm.menu.settings")}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <Shield className="w-4 h-4 mr-2" />
+                      {t("profileForm.menu.privacy")}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <Copy className="w-4 h-4 mr-2" />
+                      {t("profileForm.menu.copyProfile")}
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem className="text-red-500">
+                      <LogOut className="w-4 h-4 mr-2" />
+                      {t("profileForm.menu.logout")}
+                    </DropdownMenuItem>
+                  </>
+                ) : (
+                  <>
+                    <DropdownMenuItem>
+                      <Share2 className="w-4 h-4 mr-2" />
+                      {t("profileForm.menu.shareProfile")}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <VolumeX className="w-4 h-4 mr-2" />
+                      {t("profileForm.menu.mute")}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem className="text-red-500">
+                      <Ban className="w-4 h-4 mr-2" />
+                      {t("profileForm.menu.block")}
+                    </DropdownMenuItem>
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : null}
         </div>
 
         {/* Action Buttons */}
@@ -246,18 +253,20 @@ function DoctorProfileBannerMobile({
                 <MessageCircle className="w-4 h-4 mr-2" />
                 {t("profileForm.sendMessage")}
               </MCButton>
-              <MCButton
-                variant={doctor.isFavorite ? "secondary" : "outline"}
-                size="m"
-                className="rounded-full px-3"
-                onClick={onToggleFavorite}
-              >
-                {doctor.isFavorite ? (
-                  <HeartOff className="w-4 h-4 text-red-500" />
-                ) : (
-                  <Heart fill="red" className="w-4 h-4 text-red-500" />
-                )}
-              </MCButton>
+              {!isDoctorViewerOtherProfile ? (
+                <MCButton
+                  variant={doctor.isFavorite ? "secondary" : "outline"}
+                  size="m"
+                  className="rounded-full px-3"
+                  onClick={onToggleFavorite}
+                >
+                  {doctor.isFavorite ? (
+                    <HeartOff className="w-4 h-4 text-red-500" />
+                  ) : (
+                    <Heart fill="red" className="w-4 h-4 text-red-500" />
+                  )}
+                </MCButton>
+              ) : null}
             </>
           )}
         </div>

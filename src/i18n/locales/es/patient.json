@@ -175,6 +175,7 @@
     "error": "Error al programar la cita. Por favor, intenta nuevamente.",
     "rescheduleSuccess": "Cita reagendada exitosamente",
     "noInsurance": "Sin seguro",
+    "withoutInsurance": "Sin seguro",
     "ongoing": "En progreso",
     "withInsurance": "Con seguro",
     "submitting": "Procesando...",
@@ -502,6 +503,8 @@
       "insuranceAccepted": "Seguros aceptados"
     },
     "empty": {
+      "title": "No tienes doctores aún",
+      "description": "Cuando agregues doctores a favoritos, aparecerán aquí para que puedas acceder rápidamente.",
       "noResults": "No se encontraron doctores",
       "noResultsDescription": "No tienes doctores favoritos que coincidan con los filtros aplicados. Intenta ajustar tus criterios de búsqueda o agrega doctores a tu lista de favoritos.",
       "clearFilters": "Limpiar Filtros"

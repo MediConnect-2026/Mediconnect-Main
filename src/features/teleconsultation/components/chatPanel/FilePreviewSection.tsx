@@ -23,6 +23,7 @@ export const FilePreviewSection = ({
   const { t } = useTranslation("common");
   const [videoDurations, setVideoDurations] = useState<Record<string, number>>({});
   const safeQueue = attachmentQueue ?? [];
+  const LARGE_FILE_WARNING_BYTES = 20 * 1024 * 1024; // 20MB
 
   // Render badge based on status
   const renderStatusBadge = (item: AttachmentQueueItem) => {
@@ -45,6 +46,7 @@ export const FilePreviewSection = ({
           <div className="absolute top-2 right-2 bg-blue-500 text-white text-xs px-2 py-0.5 rounded-full font-medium flex items-center gap-1">
             <Loader2 size={12} className="animate-spin" />
             {t("filePreview.uploading", "Subiendo...")}
+            {typeof item.progress === "number" ? ` ${Math.round(item.progress)}%` : ""}
           </div>
         );
       case AttachmentStatus.SUCCESS:
@@ -159,7 +161,12 @@ export const FilePreviewSection = ({
                 {item.status !== AttachmentStatus.UPLOADING && item.status !== AttachmentStatus.SUCCESS && (
                   <button
                     onClick={() => onRemoveAttachment?.(item.id)}
-                    className="absolute top-1 left-1 bg-destructive/90 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity shadow-lg hover:bg-destructive"
+                    className={`absolute top-1 left-1 z-20 bg-destructive/90 text-white rounded-full p-1 transition-opacity shadow-lg hover:bg-destructive ${
+                      item.status === AttachmentStatus.ERROR
+                        ? "opacity-100"
+                        : "opacity-0 group-hover:opacity-100"
+                    }`}
+                    aria-label={t("filePreview.removeAttachment", "Eliminar archivo")}
                   >
                     <X size={14} />
                   </button>
@@ -167,7 +174,7 @@ export const FilePreviewSection = ({
 
                 {/* Overlay for disabled state */}
                 {item.status === AttachmentStatus.ERROR && (
-                  <div className="absolute inset-0 bg-red-500/20 backdrop-blur-[1px]" />
+                  <div className="absolute inset-0 bg-red-500/20 pointer-events-none" />
                 )}
               </div>
 
@@ -187,7 +194,14 @@ export const FilePreviewSection = ({
 
                 {/* Progress Bar */}
                 {item.status === AttachmentStatus.UPLOADING && typeof item.progress === "number" && (
-                  <Progress value={item.progress} className="h-1" />
+                  <>
+                    <Progress value={item.progress} className="h-1" />
+                    {item.file.size >= LARGE_FILE_WARNING_BYTES ? (
+                      <p className="text-[10px] text-amber-600 mt-0.5">
+                        {t("filePreview.largeUploadWarning", { size: "20MB" })}
+                      </p>
+                    ) : null}
+                  </>
                 )}
               </div>
             </motion.div>

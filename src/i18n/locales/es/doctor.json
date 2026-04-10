@@ -774,7 +774,8 @@
     },
     "reviews": {
       "title": "Reseñas",
-      "titleForOne": "Reseña"
+      "titleForOne": "Reseña",
+      "empty": "Aun no se han agregado reseñas para este servicio."
     }
   },
   "filters": {

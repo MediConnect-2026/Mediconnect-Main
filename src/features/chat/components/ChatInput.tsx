@@ -1,6 +1,6 @@
 import { useRef, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Send, Mic, ImageIcon, Paperclip } from "lucide-react";
+import { Send, Mic, ImageIcon, Paperclip, X } from "lucide-react";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
 import { useTranslation } from "react-i18next";
 
@@ -10,11 +10,13 @@ interface ChatInputProps {
   isRecording: boolean;
   recordingTime: number;
   hasAttachments: boolean;
+  disableSend?: boolean;
   onSendMessage: () => void;
   onImageSelect: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onFileSelect: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onStartRecording: () => void;
   onStopRecording: () => void;
+  onCancelRecording: () => void;
   formatDuration: (seconds: number) => string;
 }
 
@@ -24,11 +26,13 @@ export const ChatInput = ({
   isRecording,
   recordingTime,
   hasAttachments,
+  disableSend = false,
   onSendMessage,
   onImageSelect,
   onFileSelect,
   onStartRecording,
   onStopRecording,
+  onCancelRecording,
   formatDuration,
 }: ChatInputProps) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -53,6 +57,7 @@ export const ChatInput = ({
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
+      if (disableSend) return;
       onSendMessage();
     }
   };
@@ -74,6 +79,13 @@ export const ChatInput = ({
           <span className="flex-1 font-medium text-destructive text-xs md:text-sm truncate">
             {t("chatInput.recording")} {formatDuration(recordingTime)}
           </span>
+          <button
+            onClick={onCancelRecording}
+            className="bg-muted text-destructive rounded-full p-1.5 md:p-2 hover:bg-muted/80 transition-all shadow-lg flex-shrink-0"
+            title={t("chatInput.cancelRecording", "Cancelar grabación")}
+          >
+            <X size={isMobile ? 16 : 18} />
+          </button>
           <button
             onClick={onStopRecording}
             className="bg-destructive text-white rounded-full p-1.5 md:p-2 hover:bg-destructive/90 transition-all shadow-lg flex-shrink-0"
@@ -148,8 +160,9 @@ export const ChatInput = ({
               animate={{ scale: 1 }}
               whileTap={{ scale: 0.9 }}
               onClick={onSendMessage}
-              className="bg-primary text-primary-foreground rounded-full p-1.5 md:p-2 hover:bg-primary/90 transition-all flex-shrink-0 shadow-md"
-              title="Enviar mensaje"
+              disabled={disableSend}
+              className="bg-primary text-primary-foreground rounded-full p-1.5 md:p-2 hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-primary transition-all flex-shrink-0 shadow-md"
+              title={disableSend ? t("chatPanel.removeInvalidAttachmentFirst", "Elimina los archivos con error antes de enviar.") : "Enviar mensaje"}
             >
               <Send size={isMobile ? 16 : 18} />
             </motion.button>

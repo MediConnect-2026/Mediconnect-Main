@@ -110,6 +110,7 @@ function ServicesPage() {
   const { startConversation, isLoading: isStartingConversation } = useStartConversation();
 
   const isOwner = user?.id === serviceData?.doctorId;
+  const isDoctorUser = user?.rol === "DOCTOR" || user?.rol === "Doctor";
 
   const handleShare = () => {
     navigator.clipboard.writeText(window.location.href).then(() => {
@@ -369,7 +370,7 @@ function ServicesPage() {
                       </MCButton>
                     </Link>
                     {
-                      !isOwner && (
+                      !isOwner && !isDoctorUser && (
                         <MCButton
                           size="sm"
                           className="font-body text-xs w-full flex-1 sm:flex-none"
@@ -432,8 +433,9 @@ function ServicesPage() {
               )}
 
               {/* Reviews */}
-              {serviceData.resenas.length > 0 && (
-                <div>
+              <div>
+                {serviceData.resenas.length > 0 ? (
+                  <>
                   <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-4">
                     <h2 className="text-lg sm:text-xl font-heading font-semibold text-foreground">
                       {t("service.reviews.title", "Reseñas")}
@@ -455,6 +457,15 @@ function ServicesPage() {
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                     {displayedReviews.map((review) => (
+                      (() => {
+                        const patientFirstName = review.paciente?.usuario?.nombre ?? "";
+                        const patientLastName = review.paciente?.usuario?.apellido ?? "";
+                        const patientDisplayName =
+                          `${patientFirstName} ${patientLastName}`.trim() || "Usuario";
+                        const patientInitials =
+                          `${patientFirstName?.[0] ?? "U"}${patientLastName?.[0] ?? ""}`;
+
+                        return (
                       <div
                         key={review.id}
                         className="space-y-2 p-4 sm:p-0 bg-muted/30 sm:bg-transparent rounded-lg sm:rounded-none"
@@ -465,16 +476,16 @@ function ServicesPage() {
                               <Avatar className="w-10 h-10">
                                 <AvatarImage
                                   src={review.paciente.usuario.fotoPerfil}
-                                  alt={`${review.paciente.usuario.nombre} ${review.paciente.usuario.apellido}`}
+                                  alt={patientDisplayName}
                                   className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
                                 />
                                 <AvatarFallback className="bg-muted text-muted-foreground font-body text-sm">
-                                  {review.paciente.usuario.nombre[0]}{review.paciente.usuario.apellido[0]}
+                                  {patientInitials}
                                 </AvatarFallback>
                               </Avatar>
                             ) : (
                               <MCUserAvatar
-                                name={review.paciente ? `${review.paciente.usuario.nombre} ${review.paciente.usuario.apellido}` : "Usuario"}
+                                name={patientDisplayName}
                                 square
                                 size={40}
                                 className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
@@ -489,7 +500,7 @@ function ServicesPage() {
                               )}
                               className="font-medium text-sm text-foreground font-body hover:underline block truncate"
                             >
-                              {review.paciente ? `${review.paciente.usuario.nombre} ${review.paciente.usuario.apellido}` : "Usuario"}
+                              {patientDisplayName}
                             </Link>
                             <div className="flex items-center gap-2 flex-wrap">
                               <StarRating rating={review.calificacion} />
@@ -503,6 +514,8 @@ function ServicesPage() {
                           {review.comentario}
                         </p>
                       </div>
+                        );
+                      })()
                     ))}
                   </div>
                   {!showAllReviews && serviceData.resenas.length > 4 && (
@@ -514,8 +527,21 @@ function ServicesPage() {
                       {t("service.showAllReviews", "Mostrar todas las reseñas")}
                     </MCButton>
                   )}
-                </div>
-              )}
+                  </>
+                ) : (
+                  <div className="rounded-xl border border-border bg-muted/20 p-5 sm:p-6">
+                    <h2 className="text-lg sm:text-xl font-heading font-semibold text-foreground mb-2">
+                      {t("service.reviews.title", "Reseñas")}
+                    </h2>
+                    <p className="text-sm sm:text-base text-muted-foreground font-body">
+                      {t(
+                        "service.reviews.empty",
+                        "Aun no se han agregado reseñas para este servicio.",
+                      )}
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Right column - Booking card */}
@@ -530,7 +556,7 @@ function ServicesPage() {
                       {t("service.perPatient", "por paciente")}
                     </span>
                   </div>
-                  {!isOwner && (
+                  {!isOwner && !isDoctorUser && (
                     <ScheduleAppointmentDialog
                       idProvider={serviceData.doctor.usuarioId.toString()}
                       idService={serviceId || ""}

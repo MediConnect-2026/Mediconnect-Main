@@ -10,7 +10,7 @@ const FILE_SIZE_LIMITS = {
   IMAGE: 10 * 1024 * 1024, // 10 MB
   AUDIO: 5 * 1024 * 1024, // 5 MB
   VIDEO: 50 * 1024 * 1024, // 50 MB
-  FILE: 20 * 1024 * 1024, // 20 MB
+  FILE: 50 * 1024 * 1024, // 50 MB
 } as const;
 
 /**

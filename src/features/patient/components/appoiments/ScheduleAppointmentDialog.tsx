@@ -20,6 +20,7 @@ import {
   Plus,
   BadgeCheck,
   ChevronRight,
+  UserRound,
 } from "lucide-react";
 import MCButton from "@/shared/components/forms/MCButton";
 import { cn } from "@/lib/utils";
@@ -52,6 +53,7 @@ import type {
 import { useRescheduleAppointment } from "@/lib/hooks/useAppointmentMutations";
 
 import { toast } from "sonner";
+import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/avatar";
 
 interface AppointmentFilters {
   serviceTypes: string[];
@@ -117,7 +119,7 @@ function ScheduleAppointmentForm({
 
   const { data: myInsurances = [], isLoading: isLoadingInsurances } =
     useMyInsurances({
-      enabled: !isDoctorView,
+      enabled: !isDoctorView && formValues.useInsurance === true,
     });
 
   const availableInsurances = useMemo(() => {
@@ -630,12 +632,29 @@ function ScheduleAppointmentForm({
     doctor?: ServiceDetailDoctor;
     especialidad?: string;
   }) => {
+    const [avatarError, setAvatarError] = useState(false);
+    const profileImage = doctor?.usuario?.fotoPerfil?.trim() ?? "";
+    const showFallback = !profileImage || avatarError;
+
+    useEffect(() => {
+      setAvatarError(false);
+    }, [profileImage]);
+
     return (
       <div className="flex items-center gap-3 sm:gap-4">
-        <img
-          src={doctor?.usuario.fotoPerfil || "/default-avatar.png"}
-          className="w-16 h-16 sm:w-20 sm:h-20 rounded-full object-cover flex-shrink-0"
-        />
+        <Avatar className="w-16 h-16 sm:w-20 sm:h-20 flex-shrink-0">
+          {!showFallback ? (
+            <AvatarImage
+              src={profileImage}
+              alt={getUserFullName(doctor) || t("doctors.profile")}
+              className="object-cover"
+              onError={() => setAvatarError(true)}
+            />
+          ) : null}
+          <AvatarFallback className="bg-[#c8d4bf]">
+            <UserRound className="w-7 h-7 sm:w-9 sm:h-9 text-[#8cad7f]" aria-hidden="true" />
+          </AvatarFallback>
+        </Avatar>
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <h3 className="text-base sm:text-lg font-semibold text-primary truncate">
@@ -735,19 +754,6 @@ function ScheduleAppointmentForm({
                 type="radio"
                 name="use-insurance-radio"
                 className="w-4 h-4 text-primary focus:ring-primary accent-primary cursor-pointer"
-                checked={formValues.useInsurance === true}
-                onChange={() => {
-                  setValue("useInsurance", true);
-                }}
-                disabled={isDoctorView && isRescheduling}
-              />
-              {t("appointments.withInsurance", "Con seguro")}
-            </label>
-            <label className="flex items-center gap-2 cursor-pointer text-sm sm:text-base text-primary">
-              <input
-                type="radio"
-                name="use-insurance-radio"
-                className="w-4 h-4 text-primary focus:ring-primary accent-primary cursor-pointer"
                 checked={formValues.useInsurance === false}
                 onChange={() => {
                   setValue("useInsurance", false);
@@ -761,6 +767,19 @@ function ScheduleAppointmentForm({
                 disabled={isDoctorView && isRescheduling}
               />
               {t("appointments.withoutInsurance", "Sin seguro")}
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer text-sm sm:text-base text-primary">
+              <input
+                type="radio"
+                name="use-insurance-radio"
+                className="w-4 h-4 text-primary focus:ring-primary accent-primary cursor-pointer"
+                checked={formValues.useInsurance === true}
+                onChange={() => {
+                  setValue("useInsurance", true);
+                }}
+                disabled={isDoctorView && isRescheduling}
+              />
+              {t("appointments.withInsurance", "Con seguro")}
             </label>
           </div>
         </div>
@@ -901,6 +920,7 @@ function ScheduleAppointmentForm({
           services={filteredServices}
           selectedTimeSlots={selectedTimeSlots}
           selectedModality={selectedModalityByService}
+          selectedDate={selectedDate}
           onTimeSlotSelect={handleTimeSlotSelect}
           onModalitySelect={handleModalitySelect}
         />
@@ -1062,7 +1082,7 @@ function ScheduleAppointmentDialog({
           usuario: {
             id: doctorData.usuario?.id || Number(idProvider),
             email: doctorData.usuario?.email || "",
-            fotoPerfil: doctorData.usuario?.fotoPerfil || "/default-avatar.png",
+            fotoPerfil: doctorData.usuario?.fotoPerfil || "",
           },
         },
         especialidad: firstService.especialidad || { id: 0, nombre: "" },
@@ -1216,7 +1236,7 @@ function ScheduleAppointmentDialog({
           numberOfSessions: 1,
           reason: "",
           insuranceProvider: "",
-          useInsurance: true,
+          useInsurance: false,
           serviceId: "",
           doctorId: idProvider,
           appointmentId: undefined,
@@ -1232,7 +1252,7 @@ function ScheduleAppointmentDialog({
           numberOfSessions: 1,
           reason: "",
           insuranceProvider: "",
-          useInsurance: true,
+          useInsurance: false,
           serviceId: "",
           appointmentId: undefined,
           horarioId: undefined,
@@ -1351,7 +1371,7 @@ function ScheduleAppointmentDialog({
       selectedModality: "presencial" as const,
       numberOfSessions: 1,
       reason: "",
-      useInsurance: true,
+      useInsurance: false,
       insuranceProvider: "",
       serviceId: "",
       doctorId: idProvider,

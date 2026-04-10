@@ -297,7 +297,7 @@ export function MessageBubble({
 
         {/* Mensaje de audio */}
         {message.tipo === MessageType.AUDIO && (
-          <div className="min-w-[160px] md:min-w-[180px]">
+          <div className="min-w-[250px] md:min-w-[320px] max-w-[min(80vw,420px)]">
             {isOptimistic && !mediaUrl ? (
               <div className="flex items-center gap-2 md:gap-3 p-2 bg-muted rounded-lg">
                 <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary"></div>
@@ -305,7 +305,7 @@ export function MessageBubble({
               </div>
             ) : mediaUrl && (
               <div className="flex items-center gap-2 md:gap-3">
-                <audio controls className="w-full">
+                <audio controls className="w-full chat-audio-player">
                   <source src={mediaUrl} type="audio/webm" />
                   <source src={mediaUrl} type="audio/mp4" />
                   <source src={mediaUrl} type="audio/ogg" />

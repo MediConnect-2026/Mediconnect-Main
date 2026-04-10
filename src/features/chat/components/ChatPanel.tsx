@@ -1,5 +1,5 @@
 import type { ConversationWithDetails, AttachmentQueueItem, AllowedMediaTypes } from "@/types/ChatTypes";
-import { AttachmentStatus, MediaValidationError, MessageType } from "@/types/ChatTypes";
+import { AttachmentStatus, MessageType } from "@/types/ChatTypes";
 import { ChatAvatar } from "./ChatAvatar";
 import { MessageBubble } from "./MessageBubble";
 import { useQueryClient } from "@tanstack/react-query";
@@ -19,7 +19,7 @@ import { useWebSocket } from "@/lib/hooks/useWebSocket";
 import { useAppStore } from "@/stores/useAppStore";
 import { getFileIcon, generateUniqueId } from "@/lib/utils";
 import { compressImage } from "@/utils/imageCompression";
-import { mediaService } from "@/services/chat/media.service";
+import { mediaService, MediaValidationError } from "@/services/chat/media.service";
 import { useGlobalUIStore } from "@/stores/useGlobalUIStore";
 
 interface ChatPanelProps {
@@ -68,13 +68,17 @@ export function ChatPanel({
   });
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
+  const hasInvalidAttachments = attachmentQueue.some((item) => item.status === AttachmentStatus.ERROR);
 
   // Constants
   const MAX_ATTACHMENTS_PER_MESSAGE = 5;
+  const LARGE_FILE_WARNING_BYTES = 20 * 1024 * 1024; // 20MB
+  const MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024; // 50MB
 
   const recordingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
+  const cancelRecordingRef = useRef(false);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const bottomSentinelRef = useRef<HTMLDivElement | null>(null);
   const topSentinelRef = useRef<HTMLDivElement | null>(null);
@@ -346,8 +350,10 @@ export function ChatPanel({
       setAttachmentQueue((prev) => [...prev, newItem]);
     } catch (error) {
       if (error instanceof MediaValidationError) {
+        const isLargeButAllowed =
+          file.size > LARGE_FILE_WARNING_BYTES && file.size <= MAX_FILE_SIZE_BYTES;
         setToast({
-          type: "error",
+          type: isLargeButAllowed ? "warning" : "error",
           message: error.message,
           open: true,
         });
@@ -356,6 +362,11 @@ export function ChatPanel({
         return;
       }
       console.error("Error validating file:", error);
+      setToast({
+        type: "error",
+        message: t("chatPanel.fileValidationError", "No se pudo validar el archivo seleccionado."),
+        open: true,
+      });
       return;
     }
 
@@ -415,6 +426,7 @@ export function ChatPanel({
   const processUploadQueue = async (): Promise<void> => {
     for (let idx = 0; idx < attachmentQueue.length; idx++) {
       const item = attachmentQueue[idx];
+      let progressInterval: ReturnType<typeof setInterval> | null = null;
 
       // Skip items with errors
       if (item.status === AttachmentStatus.ERROR) continue;
@@ -422,11 +434,30 @@ export function ChatPanel({
       try {
         // Update status to uploading
         setAttachmentQueue((prev) =>
-          prev.map((i) => (i.id === item.id ? { ...i, status: AttachmentStatus.UPLOADING, progress: 0 } : i))
+          prev.map((i) => (i.id === item.id ? { ...i, status: AttachmentStatus.UPLOADING, progress: 2 } : i))
         );
+
+        const shouldAnimateProgress = item.file.size >= LARGE_FILE_WARNING_BYTES;
+        if (shouldAnimateProgress) {
+          progressInterval = setInterval(() => {
+            setAttachmentQueue((prev) =>
+              prev.map((i) => {
+                if (i.id !== item.id || i.status !== AttachmentStatus.UPLOADING) return i;
+                const current = typeof i.progress === "number" ? i.progress : 2;
+                const next = Math.min(90, current + Math.max(2, Math.floor(Math.random() * 8)));
+                return { ...i, progress: next };
+              })
+            );
+          }, 350);
+        }
 
         // Upload file
         const uploadResponse = await uploadMedia({ file: item.file, tipo: item.type });
+
+        if (progressInterval) {
+          clearInterval(progressInterval);
+          progressInterval = null;
+        }
 
         // Update status to success
         setAttachmentQueue((prev) =>
@@ -475,6 +506,11 @@ export function ChatPanel({
               : i
           )
         );
+      } finally {
+        if (progressInterval) {
+          clearInterval(progressInterval);
+          progressInterval = null;
+        }
       }
     }
   };
@@ -498,11 +534,38 @@ export function ChatPanel({
       return;
     }
 
+    if (hasInvalidAttachments) {
+      setToast({
+        message: t(
+          "chatPanel.removeInvalidAttachmentFirst",
+          "Elimina los archivos con error antes de enviar el mensaje.",
+        ),
+        type: "warning",
+        open: true,
+      });
+      return;
+    }
+
     if (!inputValue.trim() && attachmentQueue.length === 0) return;
 
     try {
       // If we have attachments, upload and send them (one message per uploaded file)
       if (attachmentQueue.length > 0) {
+        const largeFiles = attachmentQueue.filter(
+          (item) => item.file.size >= LARGE_FILE_WARNING_BYTES,
+        );
+
+        if (largeFiles.length > 0) {
+          setToast({
+            message: t("chatPanel.largeUploadWarning", {
+              count: largeFiles.length,
+              size: "20MB",
+            }),
+            type: "warning",
+            open: true,
+          });
+        }
+
         flagOwnMessage();
         await processUploadQueue();
 
@@ -562,6 +625,7 @@ export function ChatPanel({
 
   const handleStartRecording = async () => {
     try {
+      cancelRecordingRef.current = false;
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const mediaRecorder = new MediaRecorder(stream);
       mediaRecorderRef.current = mediaRecorder;
@@ -574,6 +638,13 @@ export function ChatPanel({
       };
 
       mediaRecorder.onstop = async () => {
+        if (cancelRecordingRef.current) {
+          stream.getTracks().forEach((track) => track.stop());
+          setRecordingTime(0);
+          cancelRecordingRef.current = false;
+          return;
+        }
+
         const audioBlob = new Blob(audioChunksRef.current, {
           type: "audio/webm",
         });
@@ -618,6 +689,19 @@ export function ChatPanel({
 
   const handleStopRecording = () => {
     if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+
+      if (recordingIntervalRef.current) {
+        clearInterval(recordingIntervalRef.current);
+        recordingIntervalRef.current = null;
+      }
+    }
+  };
+
+  const handleCancelRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      cancelRecordingRef.current = true;
       mediaRecorderRef.current.stop();
       setIsRecording(false);
 
@@ -836,11 +920,13 @@ export function ChatPanel({
           isRecording={isRecording}
           recordingTime={recordingTime}
           hasAttachments={attachmentQueue.length > 0}
+          disableSend={hasInvalidAttachments}
           onSendMessage={handleSendMessage}
           onImageSelect={handleImageSelect}
           onFileSelect={handleFileSelect}
           onStartRecording={handleStartRecording}
           onStopRecording={handleStopRecording}
+          onCancelRecording={handleCancelRecording}
           formatDuration={formatDuration}
         />
       </div>

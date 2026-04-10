@@ -60,6 +60,15 @@ function MyServicesPage() {
   const navigate = useNavigate();
 
   const user = useAppStore((state) => state.user);
+  const isDoctorVerified = useMemo(() => {
+    const rawStatus = user?.doctor?.estadoVerificacion;
+    if (typeof rawStatus !== "string") return false;
+
+    return ["verificado", "aprobado", "approved", "aproved"].includes(
+      rawStatus.toLowerCase().trim(),
+    );
+  }, [user?.doctor?.estadoVerificacion]);
+
   const {
     data: services = [],
     isLoading,
@@ -451,6 +460,7 @@ function MyServicesPage() {
             <MCButton
               variant="primary"
               onClick={() => navigate(ROUTES.DOCTOR.CREATE_SERVICE)}
+              disabled={!isDoctorVerified}
               className={isMobile ? "px-4 py-2" : "px-6 py-2"}
               size="sm"
             >
@@ -552,6 +562,7 @@ function MyServicesPage() {
     <MCNewButton
       text={t("services.management.newService")}
       onClick={() => navigate(ROUTES.DOCTOR.CREATE_SERVICE)}
+      disabled={!isDoctorVerified}
     />
   );
 

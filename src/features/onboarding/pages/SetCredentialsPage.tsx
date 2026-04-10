@@ -45,7 +45,7 @@ function SetCredentialsPage() {
   const login = useAppStore((state) => state.login);
   const clearOnboarding = useAppStore((state) => state.clearOnboarding);
   const clearAuthFlow = useAppStore((state) => state.clearAuthFlow);
-  const setAccessPage = useGlobalUIStore((state) => state.setAccessPage);
+  
   const setToast = useGlobalUIStore((state) => state.setToast);
   const isAuthenticated = useAppStore((state) => state.isAuthenticated);
 
@@ -389,7 +389,7 @@ function SetCredentialsPage() {
             disabled: isSubmitting,
             children: isSubmitting ? (
               <span className="flex items-center gap-2">
-                <Spinner className="size-4" />
+                <Spinner className="size-4 text-white" />
                 {t('setCredentialsPage.processing')}
               </span>
             ) : undefined,

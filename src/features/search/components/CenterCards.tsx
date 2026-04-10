@@ -28,10 +28,20 @@ const CenterCardsComponent = ({
   onDisconnect,
   isConnecting = false,
 }: ClinicCardProps) => {
-  const userRole = useAppStore((state) => state.user?.rol);
+  const user = useAppStore((state) => state.user);
+  const userRole = user?.rol;
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const { t } = useTranslation("common");
+
+  const doctorVerificationStatus = user?.doctor?.estadoVerificacion;
+  const isDoctorVerified =
+    typeof doctorVerificationStatus === "string" &&
+    ["verificado", "aprobado", "approved", "aproved"].includes(
+      doctorVerificationStatus.toLowerCase().trim(),
+    );
+  const isDoctorRole = userRole === "DOCTOR" || userRole === "Doctor";
+  const disableConnectForUnverifiedDoctor = isDoctorRole && !isDoctorVerified;
 
   const handleProfile = () => {
     navigate(`/center/profile/${clinic.id}`);
@@ -56,6 +66,10 @@ const CenterCardsComponent = ({
     connectVariant = "outline";
   } else if (isConnected === "pending") {
     connectBtnText = t("clinicCard.pending");
+    connectBtnDisabled = true;
+  }
+
+  if (disableConnectForUnverifiedDoctor) {
     connectBtnDisabled = true;
   }
 
@@ -234,7 +248,7 @@ const CenterCardsComponent = ({
           <div
             className={cn("flex gap-2 sm:gap-3", isMobile ? "mt-3" : "mt-4")}
           >
-            {userRole === "DOCTOR" ? (
+            {isDoctorRole ? (
               <>
                 {isConnected === "not_connected" ? (
                   <ToogleConfirmConnection

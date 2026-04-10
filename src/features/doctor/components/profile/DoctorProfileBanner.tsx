@@ -2,15 +2,12 @@ import { useEffect, useState } from "react";
 import MCButton from "@/shared/components/forms/MCButton";
 import {
   Settings,
-  Shield,
   Copy,
   LogOut,
   Ellipsis,
   BadgeCheck,
   Star,
   Share2,
-  VolumeX,
-  Ban,
   MessageCircle,
   Heart,
   HeartOff,
@@ -92,6 +89,16 @@ function DoctorProfileBanner({
 
   // Solo los pacientes pueden iniciar conversaciones con doctores
   const canMessage = !isMyProfile && currentUser?.rol === 'PATIENT' && !!doctorUserId;
+  const isDoctorViewerOtherProfile =
+    !isMyProfile &&
+    (currentUser?.rol === "DOCTOR" || currentUser?.rol === "Doctor");
+  const verificationStatusRaw =
+    doctor?.doctor?.estadoVerificacion ?? doctor?.estadoVerificacion;
+  const isDoctorVerified =
+    typeof verificationStatusRaw === "string" &&
+    ["aprobado", "aproved", "approved"].includes(
+      verificationStatusRaw.toLowerCase().trim()
+    );
 
   const fetchLanguages = async () => {
     if (!isMyProfile) return; // Solo cargar si es mi perfil
@@ -256,10 +263,12 @@ function DoctorProfileBanner({
               <div className="flex flex-col gap-1">
                 <h3 className="text-primary font-semibold text-2xl flex items-center gap-2">
                   {getUserFullName(doctor) || "Ilia Topuria"}
-                  <BadgeCheck
-                    className="w-6 h-6 text-background"
-                    fill="#8bb1ca"
-                  />
+                  {isDoctorVerified ? (
+                    <BadgeCheck
+                      className="w-6 h-6 text-background"
+                      fill="#8bb1ca"
+                    />
+                  ) : null}
                 </h3>
                 <p className="text-primary">{getDoctorSpecialty(doctor?.doctor?.especialidades ?? doctor.especialidades)}</p>
                 <div>
@@ -313,10 +322,10 @@ function DoctorProfileBanner({
                           <Settings className="w-4 h-4 mr-2" />
                           {t("profileForm.menu.settings")}
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => navigate(ROUTES.PRIVACY.ROOT)}>
+                        {/* <DropdownMenuItem onClick={() => navigate(ROUTES.PRIVACY.ROOT)}>
                           <Shield className="w-4 h-4 mr-2" />
                           {t("profileForm.menu.privacy")}
-                        </DropdownMenuItem>
+                        </DropdownMenuItem> */}
                         <DropdownMenuItem onClick={handleCopyProfile}>
                           <Copy className="w-4 h-4 mr-2" />
                           {t("profileForm.menu.copyProfile")}
@@ -348,58 +357,62 @@ function DoctorProfileBanner({
                       </MCButton>
                     )}
 
-                    <MCModalBase
-                      id={`fav-${doctor?.id}`}
-                      title={t('doctorCard.confirmFavoriteTitle', { ns: 'common' })}
-                      trigger={
-                        <MCButton
-                          variant={doctor.isFavorite ? "secondary" : "outline"}
-                          size="m"
-                          className="font-medium rounded-full transition-colors transition-opacity transition-transform duration-200 focus:outline-none px-6 py-3 text-base md:px-8 md:py-6 md:text-lg bg-transparent border border-primary text-primary hover:bg-primary/10 hover:opacity-90 active:bg-primary/20 active:opacity-80 active:scale-95 active:shadow-inner"
+                    {!isDoctorViewerOtherProfile ? (
+                      <>
+                        <MCModalBase
+                          id={`fav-${doctor?.id}`}
+                          title={t('doctorCard.confirmFavoriteTitle', { ns: 'common' })}
+                          trigger={
+                            <MCButton
+                              variant={doctor.isFavorite ? "secondary" : "outline"}
+                              size="m"
+                              className="font-medium rounded-full transition-colors transition-opacity transition-transform duration-200 focus:outline-none px-6 py-3 text-base md:px-8 md:py-6 md:text-lg bg-transparent border border-primary text-primary hover:bg-primary/10 hover:opacity-90 active:bg-primary/20 active:opacity-80 active:scale-95 active:shadow-inner"
+                            >
+                              { (isAddingFavorite || isRemovingFavorite) ? (
+                                <Spinner className="text-red-500" />
+                              ) : doctor.isFavorite ? (
+                                <HeartOff className=" text-red-500" />
+                              ) : (
+                                <Heart fill="red" className="text-red-500" />
+                              )}
+                            </MCButton>
+                          }
+                          size="sm"
+                          variant="confirm"
+                          confirmText={t('confirm', { ns: 'common' })}
+                          secondaryText={t('back', { ns: 'patient' })}
+                          onConfirm={() => handleAddToFavorites()}
+                          disabledConfirm={isAddingFavorite || isRemovingFavorite}
                         >
-                          { (isAddingFavorite || isRemovingFavorite) ? (
-                            <Spinner className="text-red-500" />
-                          ) : doctor.isFavorite ? (
-                            <HeartOff className=" text-red-500" />
-                          ) : (
-                            <Heart fill="red" className="text-red-500" />
-                          )}
-                        </MCButton>
-                      }
-                      size="sm"
-                      variant="confirm"
-                      confirmText={t('confirm', { ns: 'common' })}
-                      secondaryText={t('back', { ns: 'patient' })}
-                      onConfirm={() => handleAddToFavorites()}
-                      disabledConfirm={isAddingFavorite || isRemovingFavorite}
-                    >
-                      <div className="py-4 px-2">
-                        <p className="text-sm text-muted-foreground">
-                          {t('doctorCard.confirmFavoriteDescription', { name: getUserFullName(doctor), ns: 'common' })}
-                        </p>
-                      </div>
-                    </MCModalBase>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button className="font-medium rounded-full transition-colors transition-opacity transition-transform duration-200 focus:outline-none px-6 py-3 text-base md:px-8 md:py-6 md:text-lg bg-transparent border border-primary text-primary hover:bg-primary/10 hover:opacity-90 active:bg-primary/20 active:opacity-80 active:scale-95 active:shadow-inner">
-                          <Ellipsis />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem>
-                          <Share2 className="w-4 h-4 mr-2" />
-                          {t("profileForm.menu.shareProfile")}
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <VolumeX className="w-4 h-4 mr-2" />
-                          {t("profileForm.menu.mute")}
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <Ban className="w-4 h-4 mr-2 text-red-500" />
-                          <span className="text-red-500">{t("profileForm.menu.block")}</span>
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                          <div className="py-4 px-2">
+                            <p className="text-sm text-muted-foreground">
+                              {t('doctorCard.confirmFavoriteDescription', { name: getUserFullName(doctor), ns: 'common' })}
+                            </p>
+                          </div>
+                        </MCModalBase>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button className="font-medium rounded-full transition-colors transition-opacity transition-transform duration-200 focus:outline-none px-6 py-3 text-base md:px-8 md:py-6 md:text-lg bg-transparent border border-primary text-primary hover:bg-primary/10 hover:opacity-90 active:bg-primary/20 active:opacity-80 active:scale-95 active:shadow-inner">
+                              <Ellipsis />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem>
+                              <Share2 className="w-4 h-4 mr-2" />
+                              {t("profileForm.menu.shareProfile")}
+                            </DropdownMenuItem>
+                            {/* <DropdownMenuItem>
+                              <VolumeX className="w-4 h-4 mr-2" />
+                              {t("profileForm.menu.mute")}
+                            </DropdownMenuItem> */}
+                            {/* <DropdownMenuItem>
+                              <Ban className="w-4 h-4 mr-2 text-red-500" />
+                              <span className="text-red-500">{t("profileForm.menu.block")}</span>
+                            </DropdownMenuItem> */}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </>
+                    ) : null}
                   </>
                 )}
               </div>

@@ -180,6 +180,7 @@
     "error": "Error scheduling appointment. Please try again.",
     "rescheduleSuccess": "Appointment rescheduled successfully",
     "noInsurance": "Without insurance",
+    "withoutInsurance": "Without insurance",
     "ongoing": "Ongoing",
     "withInsurance": "With insurance",
     "submitting": "Processing...",
@@ -417,6 +418,8 @@
       "insuranceAccepted": "Accepted insurances"
     },
     "empty": {
+      "title": "You have no doctors yet",
+      "description": "When you add doctors to favorites, they will appear here for quick access.",
       "noResults": "No doctors found",
       "noResultsDescription": "No consultations found with the applied filters. Try adjusting the filters to see more results.",
       "clearFilters": "Clear Filters"
