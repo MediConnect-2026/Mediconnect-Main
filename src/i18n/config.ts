@@ -12,13 +12,24 @@ import centeres from "@/i18n/locales/es/center.json";
 import commonen from "@/i18n/locales/en/common.json";
 import comunes from "@/i18n/locales/es/common.json";
 
+const normalizeLanguageCode = (language?: string): "en" | "es" =>
+  language?.toLowerCase().startsWith("es") ? "es" : "en";
+
 i18n
   .use(LanguageDetector)
   .use(initReactI18next)
   .init({
     fallbackLng: "en",
+    supportedLngs: ["en", "es"],
+    nonExplicitSupportedLngs: true,
+    load: "languageOnly",
+    cleanCode: true,
+    lowerCaseLng: true,
     ns: ["auth", "patient", "doctor", "center", "common"],
     defaultNS: "auth",
+    detection: {
+      convertDetectedLanguage: (lng: string) => normalizeLanguageCode(lng),
+    },
     resources: {
       en: {
         auth: authen,
@@ -35,6 +46,19 @@ i18n
         common: comunes,
       },
     },
+  })
+  .then(() => {
+    const normalized = normalizeLanguageCode(i18n.language);
+    if (i18n.language !== normalized) {
+      void i18n.changeLanguage(normalized);
+    }
   });
+
+i18n.on("languageChanged", (lng) => {
+  const normalized = normalizeLanguageCode(lng);
+  if (lng !== normalized) {
+    void i18n.changeLanguage(normalized);
+  }
+});
 
 export default i18n;

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
 import { useDoctorServicesStats } from "@/lib/hooks/useDoctorStats";
+import { useDoctorServicesByDoctor } from "@/lib/hooks/useDoctorServicesByDoctor";
 import MyServicesTable from "../components/healthService/MyServicesTable";
 import MCTablesLayouts from "@/shared/components/tables/MCTablesLayouts";
 import MCPDFButton from "@/shared/components/forms/MCPDFButton";
@@ -38,9 +39,7 @@ import MCServiceCards from "@/shared/components/MCServiceCards";
 import FilterMyServices from "../components/filters/FilterMyServices";
 import MCNewButton from "@/shared/components/forms/MCNewButton";
 import { ROUTES } from "@/router/routes";
-import { doctorService } from "@/shared/navigation/userMenu/editProfile/doctor/services";
 import { useAppStore } from "@/stores/useAppStore";
-import type { GetServicesOfDoctor } from "@/shared/navigation/userMenu/editProfile/doctor/services";
 const ITEMS_PER_PAGE = 8;
 const TABLE_PAGE_SIZE = 15;
 
@@ -54,20 +53,21 @@ interface MyServiceFilters {
   estado: string;
 }
 
-const normalizeLanguageCode = (language?: string): "es" | "en" =>
-  language?.toLowerCase().startsWith("en") ? "en" : "es";
-
 function MyServicesPage() {
   const { t } = useTranslation("doctor");
   const { i18n } = useTranslation();
   const isMobile = useIsMobile();
   const navigate = useNavigate();
-  const currentLanguage = normalizeLanguageCode(i18n.resolvedLanguage || i18n.language);
-  const sourceLanguage = currentLanguage === "es" ? "en" : "es";
 
   const user = useAppStore((state) => state.user);
-  const [isLoading, setIsLoading] = useState(false);
-  const [services, setServices] = useState<GetServicesOfDoctor[]>([]);
+  const {
+    data: services = [],
+    isLoading,
+    refetch,
+  } = useDoctorServicesByDoctor({
+    doctorId: user?.id,
+    enabled: Boolean(user?.id),
+  });
 
   // Hook para obtener estadísticas de servicios desde la API
   const { 
@@ -94,38 +94,6 @@ function MyServicesPage() {
   // Estado de paginación independiente para cards y tabla
   const [cardsPage, setCardsPage] = useState(1);
   const [tablePage, setTablePage] = useState(1);
-
-  // Cargar servicios desde la API
-  useEffect(() => {
-    const loadServices = async () => {
-      try {
-        if (!user?.id) return;
-
-        setIsLoading(true);
-
-        const response = await doctorService.getServicesOfDoctor(
-          Number(user.id),
-          {
-            target: currentLanguage,
-            source: sourceLanguage,
-            translate_fields: "nombre,descripcion,modalidad", // Campos que deseas traducir
-          }
-        );
-        if (response && response.success && Array.isArray(response.data)) {
-          setServices(response.data);
-        } else {
-          setServices([]);
-        }
-      } catch (error) {
-        console.error("Error al cargar los servicios del doctor:", error);
-        setServices([]);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadServices();
-  }, [user?.id, currentLanguage, sourceLanguage]);
 
   // Contar filtros activos
   const activeFiltersCount = useMemo(() => {
@@ -354,18 +322,8 @@ function MyServicesPage() {
     action: "activate" | "deactivate" | "delete"
   ) => {
     try {
-      
       // Recargar servicios después de la acción
-      if (user?.id) {
-        const response = await doctorService.getServicesOfDoctor(Number(user.id), {
-          target: currentLanguage,
-          source: sourceLanguage,
-          translate_fields: "nombre,descripcion,modalidad", // Campos que deseas traducir
-        });
-        if (response?.success && Array.isArray(response.data)) {
-          setServices(response.data);
-        }
-      }
+      await refetch();
     } catch (error) {
       console.error(`Error al ${action} servicio:`, error);
     }

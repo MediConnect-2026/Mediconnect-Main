@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Card, CardContent, CardHeader } from "@/shared/ui/card";
 import { useTranslation } from "react-i18next";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
+import { useDoctorServicesByDoctor } from "@/lib/hooks/useDoctorServicesByDoctor";
 import MCServiceCards from "@/shared/components/MCServiceCards";
 import FiltersServices from "../filters/FiltersServices";
 import { MCFilterPopover } from "@/shared/components/filters/MCFilterPopover";
@@ -16,10 +17,8 @@ import {
 import { Filter, CalendarX } from "lucide-react";
 import MCButton from "@/shared//components/forms/MCButton";
 import { doctorService } from "@/shared/navigation/userMenu/editProfile/doctor/services";
-import type { GetServicesOfDoctor } from "@/shared/navigation/userMenu/editProfile/doctor/services";
 import { onDoctorServicesChanged } from "@/lib/events/doctorServicesEvents";
 import { useAppStore } from "@/stores/useAppStore";
-import i18n from "@/i18n/config";
 
 interface ServiceFilters {
   modalidad: string;
@@ -35,18 +34,58 @@ interface Props {
   isMyProfile?: boolean;
 }
 
+const getCanonicalModality = (value: string): "presencial" | "virtual" | "mixta" | "unknown" => {
+  const normalized = value.toLowerCase().trim();
+
+  if (
+    normalized.includes("mixta") ||
+    normalized.includes("mixto") ||
+    normalized.includes("ambos") ||
+    normalized.includes("both") ||
+    normalized.includes("mixed")
+  ) {
+    return "mixta";
+  }
+
+  if (
+    normalized.includes("teleconsulta") ||
+    normalized.includes("telemedicina") ||
+    normalized.includes("virtual") ||
+    normalized.includes("online") ||
+    normalized.includes("remote")
+  ) {
+    return "virtual";
+  }
+
+  if (
+    normalized.includes("presencial") ||
+    normalized.includes("in-person") ||
+    normalized.includes("in person")
+  ) {
+    return "presencial";
+  }
+
+  return "unknown";
+};
+
 function DoctorServicesSection({ doctorId, isMyProfile = false }: Props) {
   const { t } = useTranslation("doctor");
   const [searchTerm, setSearchTerm] = useState("");
   const isMobile = useIsMobile();
   const user = useAppStore((state) => state.user);
+  const resolvedDoctorId = doctorId ?? user?.id;
 
   console.log("DoctorServicesSection renderizado con doctorId:", doctorId, "isMyProfile:", isMyProfile);
 
-  // Estados para servicios
-  const [services, setServices] = useState<GetServicesOfDoctor[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const {
+    data: services = [],
+    isLoading,
+    error,
+    refetch,
+  } = useDoctorServicesByDoctor({
+    doctorId: resolvedDoctorId,
+    enabled: Boolean(resolvedDoctorId),
+  });
 
   // Filtros iniciales
   const [filters, setFilters] = useState<ServiceFilters>({
@@ -58,53 +97,14 @@ function DoctorServicesSection({ doctorId, isMyProfile = false }: Props) {
     isOwner: null,
   });
 
-  // Función para cargar servicios desde la API
-  const fetchServices = async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      
-      const idToFetch = doctorId || user?.id;
-      if (!idToFetch) {
-        throw new Error("No se pudo obtener el ID del doctor");
-      }
-
-      const response = await doctorService.getServicesOfDoctor(
-        Number(idToFetch),
-        {
-          target: i18n.language || "es", // Asegura que se envíe el idioma actual
-          source: i18n.language === "es" ? "en" : "es",
-          translate_fields: "nombre,descripcion,modalidad", // Campos que deseas traducir
-        }
-      );
-      
-      if (response && response.success && Array.isArray(response.data)) {
-        setServices(response.data);
-      } else {
-        setServices([]);
-      }
-    } catch (err) {
-      console.error("Error al obtener servicios del doctor:", err);
-      setError("Error al cargar los servicios");
-      setServices([]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Cargar servicios inicialmente y cuando cambie el doctorId
-  useEffect(() => {
-    fetchServices();
-  }, [doctorId, user?.id]);
-
   // Escuchar eventos de cambio en servicios del doctor
   useEffect(() => {
     const unsubscribe = onDoctorServicesChanged(() => {
-      fetchServices();
+      void refetch();
     });
 
     return unsubscribe;
-  }, []);
+  }, [refetch]);
 
   // Handlers para acciones de servicios
   const handleEdit = (serviceId: string) => {
@@ -117,7 +117,7 @@ function DoctorServicesSection({ doctorId, isMyProfile = false }: Props) {
     try {
       console.log("Activar servicio:", serviceId);
       await doctorService.updateStatusOfService(Number(serviceId), "Activo");
-      fetchServices(); // Recargar servicios
+      await refetch();
     } catch (error) {
       console.error("Error al activar servicio:", error);
     }
@@ -127,7 +127,7 @@ function DoctorServicesSection({ doctorId, isMyProfile = false }: Props) {
     try {
       console.log("Desactivar servicio:", serviceId);
       await doctorService.updateStatusOfService(Number(serviceId), "Inactivo");
-      fetchServices(); // Recargar servicios
+      await refetch();
     } catch (error) {
       console.error("Error al desactivar servicio:", error);
     }
@@ -138,7 +138,7 @@ function DoctorServicesSection({ doctorId, isMyProfile = false }: Props) {
       console.log("Eliminar servicio:", serviceId);
       if (window.confirm(t("profile.services.confirmDelete", "¿Estás seguro de que deseas eliminar este servicio?"))) {
         await doctorService.deleteService(Number(serviceId));
-        fetchServices(); // Recargar servicios
+        await refetch();
       }
     } catch (error) {
       console.error("Error al eliminar servicio:", error);
@@ -152,96 +152,104 @@ function DoctorServicesSection({ doctorId, isMyProfile = false }: Props) {
   };
 
 
+  const activeFiltersCount = useMemo(
+    () =>
+      Object.values(filters).filter(
+        (v) =>
+          (typeof v === "string" && v !== "") ||
+          (typeof v === "number" && v !== null),
+      ).length,
+    [filters],
+  );
+
   // Lógica de filtrado
-  const filteredServices = services.filter((service) => {
-    // Filtro por búsqueda
-    const matchesSearch =
-      service.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (service.descripcion?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
-      (service.especialidad?.nombre?.toLowerCase() || "").includes(searchTerm.toLowerCase());
+  const filteredServices = useMemo(() => {
+    const searchLower = searchTerm.toLowerCase();
 
-    if (!matchesSearch) return false;
+    return services.filter((service) => {
+      // Filtro por búsqueda
+      const matchesSearch =
+        service.nombre.toLowerCase().includes(searchLower) ||
+        (service.descripcion?.toLowerCase() || "").includes(searchLower) ||
+        (service.especialidad?.nombre?.toLowerCase() || "").includes(searchLower);
 
-    // Filtro por modalidad (tipo)
-    if (filters.modalidad) {
-      const modalidadLower = service.modalidad.toLowerCase();
-      const filterLower = filters.modalidad.toLowerCase();
-      
-      if (filterLower === "presencial" && !modalidadLower.includes("presencial")) return false;
-      if (filterLower === "virtual" && !(modalidadLower.includes("virtual") || modalidadLower.includes("telemedicina"))) return false;
-      if (filterLower === "mixta" && !(modalidadLower.includes("mixta") || modalidadLower.includes("ambos"))) return false;
-    }
+      if (!matchesSearch) return false;
 
-    // Filtro por duración (rango)
-    if (filters.duration) {
-      const duracion = service.duracionMinutos;
-      switch (filters.duration) {
-        case "corta":
-          if (!(duracion >= 15 && duracion <= 30)) return false;
-          break;
-        case "media":
-          if (!(duracion > 30 && duracion <= 45)) return false;
-          break;
-        case "larga":
-          if (!(duracion > 45 && duracion <= 60)) return false;
-          break;
-        case "extendida":
-          if (!(duracion > 60)) return false;
-          break;
-        default:
-          break;
+      // Filtro por modalidad (tipo)
+      if (filters.modalidad) {
+        const selectedModality = getCanonicalModality(filters.modalidad);
+        const serviceModality = getCanonicalModality(service.modalidad);
+
+        if (selectedModality !== "unknown" && serviceModality !== selectedModality) {
+          return false;
+        }
       }
-    }
 
-    // Filtro por rango de precio
-    if (filters.priceRange) {
-      const priceValue = Number(service.precio);
-      switch (filters.priceRange) {
-        case "0-1000":
-          if (!(priceValue >= 0 && priceValue <= 1000)) return false;
-          break;
-        case "1000-3000":
-          if (!(priceValue > 1000 && priceValue <= 3000)) return false;
-          break;
-        case "3000-5000":
-          if (!(priceValue > 3000 && priceValue <= 5000)) return false;
-          break;
-        case "5000+":
-          if (!(priceValue > 5000)) return false;
-          break;
-        default:
-          break;
+      // Filtro por duración (rango)
+      if (filters.duration) {
+        const duracion = service.duracionMinutos;
+        switch (filters.duration) {
+          case "corta":
+            if (!(duracion >= 15 && duracion <= 30)) return false;
+            break;
+          case "media":
+            if (!(duracion > 30 && duracion <= 45)) return false;
+            break;
+          case "larga":
+            if (!(duracion > 45 && duracion <= 60)) return false;
+            break;
+          case "extendida":
+            if (!(duracion > 60)) return false;
+            break;
+          default:
+            break;
+        }
       }
-    }
 
-    // Filtro por rating
-    if (filters.rating !== null && service.calificacionPromedio < filters.rating)
-      return false;
+      // Filtro por rango de precio
+      if (filters.priceRange) {
+        const priceValue = Number(service.precio);
+        switch (filters.priceRange) {
+          case "0-1000":
+            if (!(priceValue >= 0 && priceValue <= 1000)) return false;
+            break;
+          case "1000-3000":
+            if (!(priceValue > 1000 && priceValue <= 3000)) return false;
+            break;
+          case "3000-5000":
+            if (!(priceValue > 3000 && priceValue <= 5000)) return false;
+            break;
+          case "5000+":
+            if (!(priceValue > 5000)) return false;
+            break;
+          default:
+            break;
+        }
+      }
 
-    // Filtro por status (solo si eres owner)
-    const estadoLower = service.estado.toLowerCase();
-    if (filters.status && filters.status !== "all") {
-      const filterStatusLower = filters.status.toLowerCase();
-      if (filterStatusLower === "active" && estadoLower !== "activo") return false;
-      if (filterStatusLower === "inactive" && estadoLower !== "inactivo") return false;
-    }
+      // Filtro por rating
+      if (filters.rating !== null && service.calificacionPromedio < filters.rating)
+        return false;
 
-    // Ocultar servicios inactivos a no owners
-    if (estadoLower === "inactivo" && !isMyProfile) return false;
+      // Filtro por status (solo si eres owner)
+      const estadoLower = service.estado.toLowerCase();
+      if (filters.status && filters.status !== "all") {
+        const filterStatusLower = filters.status.toLowerCase();
+        if (filterStatusLower === "active" && estadoLower !== "activo") return false;
+        if (filterStatusLower === "inactive" && estadoLower !== "inactivo") return false;
+      }
 
-    return true;
-  });
+      // Ocultar servicios inactivos a no owners
+      if (estadoLower === "inactivo" && !isMyProfile) return false;
+
+      return true;
+    });
+  }, [filters, isMyProfile, searchTerm, services]);
 
   // Componente de filtros
   const filterComponent = (
     <MCFilterPopover
-      activeFiltersCount={
-        Object.values(filters).filter(
-          (v) =>
-            (typeof v === "string" && v !== "") ||
-            (typeof v === "number" && v !== null),
-        ).length
-      }
+      activeFiltersCount={activeFiltersCount}
       onClearFilters={() =>
         setFilters({
           modalidad: "",
@@ -272,12 +280,7 @@ function DoctorServicesSection({ doctorId, isMyProfile = false }: Props) {
     />
   );
 
-  const hasActiveFilters =
-    Object.values(filters).filter(
-      (v) =>
-        (typeof v === "string" && v !== "") ||
-        (typeof v === "number" && v !== null),
-    ).length > 0;
+  const hasActiveFilters = activeFiltersCount > 0;
 
   const resetFilters = () =>
     setFilters({
@@ -316,7 +319,9 @@ function DoctorServicesSection({ doctorId, isMyProfile = false }: Props) {
           </div>
         ) : error ? (
           <div className="flex items-center justify-center py-8">
-            <p className="text-destructive">{error}</p>
+            <p className="text-destructive">
+              {error.message || t("profile.services.loadError", "Error al cargar los servicios")}
+            </p>
           </div>
         ) : filteredServices.length === 0 ? (
           <Empty>
