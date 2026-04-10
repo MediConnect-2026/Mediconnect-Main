@@ -32,16 +32,19 @@ const DoctorPopup: React.FC<DoctorPopupProps> = ({
   isContactLoading = false,
 }) => {
   const { t } = useTranslation("common");
-  // Determinar estado de conexión
+
+  // Helpers
+  const locations = (
+    Array.isArray(provider.address) ? provider.address : [provider.address]
+  ).filter(Boolean) as string[];
+  const languages = provider.languages?.filter(Boolean) ?? [];
+  const hasPhone = !!provider.phone?.trim();
+  const insurances = provider.insurances?.filter(Boolean) ?? [];
 
   const connectBtnText = t("clinicCard.connect");
   const viewProfileText = t("clinicCard.viewProfile");
   const scheduleAppointmentText = t("clinicCard.scheduleAppointment");
   const contactText = t("clinicCard.contact");
-
-  const locations = Array.isArray(provider.address)
-    ? provider.address
-    : [provider.address];
 
   const cardSize = isMobile ? "w-[260px] rounded-2xl" : "w-[480px] rounded-3xl";
   const imgHeight = isMobile ? "h-28" : "h-36";
@@ -63,7 +66,7 @@ const DoctorPopup: React.FC<DoctorPopupProps> = ({
 
   const handleContactClick = () => {
     onContact?.(provider.id);
-  }
+  };
 
   return (
     <motion.div {...fadeInUp}>
@@ -101,43 +104,47 @@ const DoctorPopup: React.FC<DoctorPopupProps> = ({
             {provider.specialty}
           </div>
 
-          {/* Ubicaciones */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div
-                className={`flex gap-1.5 cursor-pointer ${textXs} text-muted-foreground`}
-              >
-                <MapPin className="w-3 h-3 mt-0.5 text-secondary" />
-                <span className="truncate">{locations[0]}</span>
-                {locations.length > 1 && (
-                  <span className="text-secondary">
-                    +{locations.length - 1}
+          {/* Ubicaciones — oculto si vacío */}
+          {locations.length > 0 && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div
+                  className={`flex gap-1.5 cursor-pointer ${textXs} text-muted-foreground`}
+                >
+                  <MapPin className="w-3 h-3 mt-0.5 text-secondary" />
+                  <span className="truncate">{locations[0]}</span>
+                  {locations.length > 1 && (
+                    <span className="text-secondary">
+                      +{locations.length - 1}
+                    </span>
+                  )}
+                </div>
+              </TooltipTrigger>
+              <TooltipContent className="max-w-xs">
+                {locations.join(" • ")}
+              </TooltipContent>
+            </Tooltip>
+          )}
+
+          {/* Idiomas — oculto si array vacío */}
+          {languages.length > 0 && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div
+                  className={`flex gap-1 cursor-pointer ${textXs} text-muted-foreground`}
+                >
+                  <Globe className="w-3 h-3 text-secondary" />
+                  <span className="truncate max-w-[150px]">
+                    {languages.join(", ")}
                   </span>
-                )}
-              </div>
-            </TooltipTrigger>
-            <TooltipContent className="max-w-xs">
-              {locations.join(" • ")}
-            </TooltipContent>
-          </Tooltip>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>{languages.join(", ")}</TooltipContent>
+            </Tooltip>
+          )}
 
-          {/* Idiomas */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div
-                className={`flex gap-1 cursor-pointer ${textXs} text-muted-foreground`}
-              >
-                <Globe className="w-3 h-3 text-secondary" />
-                <span className="truncate max-w-[150px]">
-                  {provider.languages.join(", ")}
-                </span>
-              </div>
-            </TooltipTrigger>
-            <TooltipContent>{provider.languages.join(", ")}</TooltipContent>
-          </Tooltip>
-
-          {/* Teléfono */}
-          {provider.phone && (
+          {/* Teléfono — oculto si vacío */}
+          {hasPhone && (
             <a
               href={`tel:${provider.phone}`}
               className={`flex gap-1 ${textXs} text-secondary`}
@@ -149,20 +156,22 @@ const DoctorPopup: React.FC<DoctorPopupProps> = ({
             </a>
           )}
 
-          {/* Seguros */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div
-                className={`flex gap-1 cursor-pointer pt-1 border-t ${textXs}`}
-              >
-                <Shield className="w-3 h-3 text-secondary" />
-                <span className="truncate max-w-[150px]">
-                  {provider.insurances.join(", ")}
-                </span>
-              </div>
-            </TooltipTrigger>
-            <TooltipContent>{provider.insurances.join(", ")}</TooltipContent>
-          </Tooltip>
+          {/* Seguros — oculto si array vacío */}
+          {insurances.length > 0 && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div
+                  className={`flex gap-1 cursor-pointer pt-1 border-t ${textXs}`}
+                >
+                  <Shield className="w-3 h-3 text-secondary" />
+                  <span className="truncate max-w-[150px]">
+                    {insurances.join(", ")}
+                  </span>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>{insurances.join(", ")}</TooltipContent>
+            </Tooltip>
+          )}
 
           {/* Botones */}
           <div className={`flex gap-2 mt-3 ${isMobile && "flex-col"}`}>
@@ -182,7 +191,7 @@ const DoctorPopup: React.FC<DoctorPopupProps> = ({
                 <MCButton
                   size="xs"
                   variant="primary"
-                  className="w-full"
+                  className="flex-1 w-full"
                   onClick={handleSchedule}
                 >
                   {scheduleAppointmentText}
@@ -190,13 +199,15 @@ const DoctorPopup: React.FC<DoctorPopupProps> = ({
                 <MCButton
                   size="xs"
                   variant="outline"
-                  className="w-full"
+                  className="flex-1 w-full"
                   onClick={handleContactClick}
                   disabled={isContactLoading}
                 >
                   {isContactLoading ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : contactText}
+                  ) : (
+                    contactText
+                  )}
                 </MCButton>
               </>
             )}

@@ -37,10 +37,18 @@ const CenterPopup: React.FC<CenterPopupProps> = ({
     viewProfile: "Ver perfil",
   },
 }) => {
-  // Usar connectionStatus real si existe, si no, fallback a isConnected
   const connectionStatus =
     provider.connectionStatus ??
     (isConnected === true ? "connected" : "not_connected");
+
+  // Helpers
+  const addressText = Array.isArray(provider.address)
+    ? provider.address.filter(Boolean).join(", ").trim()
+    : (provider.address ?? "").trim();
+  const hasAddress = addressText.length > 0;
+  const languages = provider.languages?.filter(Boolean) ?? [];
+  const hasPhone = !!provider.phone?.trim();
+  const insurances = provider.insurances?.filter(Boolean) ?? [];
 
   let connectBtnText = translations.connect;
   let connectBtnDisabled = false;
@@ -102,59 +110,69 @@ const CenterPopup: React.FC<CenterPopupProps> = ({
         </div>
 
         <CardContent className="p-2 space-y-2">
-          {/* Dirección */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div
-                className={`flex gap-1.5 cursor-pointer ${textXs} text-muted-foreground`}
-              >
-                <MapPin className="w-3 h-3 mt-0.5 text-secondary" />
-                <span className="line-clamp-2">{provider.address}</span>
-              </div>
-            </TooltipTrigger>
-            <TooltipContent className="max-w-xs">
-              {provider.address}
-            </TooltipContent>
-          </Tooltip>
+          {/* Dirección — oculto si vacío */}
+          {hasAddress && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div
+                  className={`flex gap-1.5 cursor-pointer ${textXs} text-muted-foreground`}
+                >
+                  <MapPin className="w-3 h-3 mt-0.5 text-secondary" />
+                  <span className="line-clamp-2">{addressText}</span>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent className="max-w-xs">
+                {addressText}
+              </TooltipContent>
+            </Tooltip>
+          )}
 
-          {/* Idiomas */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div
-                className={`flex gap-1 cursor-pointer ${textXs} text-muted-foreground`}
-              >
-                <Globe className="w-3 h-3 text-secondary" />
-                <span className="truncate max-w-[150px]">
-                  {provider.languages.join(", ")}
-                </span>
-              </div>
-            </TooltipTrigger>
-            <TooltipContent>{provider.languages.join(", ")}</TooltipContent>
-          </Tooltip>
+          {/* Idiomas — oculto si array vacío */}
+          {languages.length > 0 && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div
+                  className={`flex gap-1 cursor-pointer ${textXs} text-muted-foreground`}
+                >
+                  <Globe className="w-3 h-3 text-secondary" />
+                  <span className="truncate max-w-[150px]">
+                    {languages.join(", ")}
+                  </span>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>{languages.join(", ")}</TooltipContent>
+            </Tooltip>
+          )}
 
-          {/* Teléfono */}
-          <a
-            href={`tel:${provider.phone}`}
-            className={`flex gap-1 ${textXs} text-secondary hover:opacity-80`}
-          >
-            <Phone className="w-3 h-3" />
-            <span className="text-primary">{formatPhone(provider.phone)}</span>
-          </a>
+          {/* Teléfono — oculto si vacío */}
+          {hasPhone && (
+            <a
+              href={`tel:${provider.phone}`}
+              className={`flex gap-1 ${textXs} text-secondary hover:opacity-80`}
+            >
+              <Phone className="w-3 h-3" />
+              <span className="text-primary">
+                {formatPhone(provider.phone)}
+              </span>
+            </a>
+          )}
 
-          {/* Seguros */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div
-                className={`flex gap-1 cursor-pointer pt-1 border-t ${textXs}`}
-              >
-                <Shield className="w-3 h-3 text-secondary" />
-                <span className="truncate max-w-[150px]">
-                  {provider.insurances.join(", ")}
-                </span>
-              </div>
-            </TooltipTrigger>
-            <TooltipContent>{provider.insurances.join(", ")}</TooltipContent>
-          </Tooltip>
+          {/* Seguros — oculto si array vacío */}
+          {insurances.length > 0 && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div
+                  className={`flex gap-1 cursor-pointer pt-1 border-t ${textXs}`}
+                >
+                  <Shield className="w-3 h-3 text-secondary" />
+                  <span className="truncate max-w-[150px]">
+                    {insurances.join(", ")}
+                  </span>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>{insurances.join(", ")}</TooltipContent>
+            </Tooltip>
+          )}
 
           {/* Botones */}
           <div className={`flex gap-2 mt-3 ${isMobile && "flex-col"}`}>
@@ -180,7 +198,6 @@ const CenterPopup: React.FC<CenterPopupProps> = ({
                 {connectBtnText}
               </MCButton>
             )}
-
             <MCButton
               size="xs"
               variant="outline"
