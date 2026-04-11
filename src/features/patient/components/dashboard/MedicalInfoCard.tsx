@@ -82,7 +82,7 @@ const MedicalInfoCard = ({
               </p>
             </div>
           </div>
-          <div className="border-t border-muted my-4"></div>
+          <div className="border-t border-primary/75 my-4"></div>
           <div className="mb-4">
             <p className="text-xs text-muted-foreground">
               {t("profileForm.bloodType")}
@@ -93,7 +93,7 @@ const MedicalInfoCard = ({
               {bloodType}
             </p>
           </div>
-          <div className="border-t border-muted my-4"></div>
+          <div className="border-t border-primary/75 my-4"></div>
           <div
             className={`${isMobile ? "max-h-64" : "max-h-48"} overflow-y-auto pr-2`}
           >
@@ -120,7 +120,7 @@ const MedicalInfoCard = ({
                 </p>
               )}
             </div>
-            <div className="border-t border-muted my-4"></div>
+            <div className="border-t border-primary/75 my-4"></div>
             <div>
               <div className="flex items-center gap-2 text-orange-600">
                 <AlertTriangle className="h-4 w-4" />
@@ -135,8 +135,11 @@ const MedicalInfoCard = ({
               ) : conditions.length > 0 ? (
                 conditions.map((condition, idx) => (
                   <p key={idx} className="mt-1 text-sm text-muted-foreground">
-                    {condition.startsWith("Condición Personal") || condition.startsWith("Personal status") ? (
-                      <span className="text-red-600">{t("clinicalHistory.personalConditionTitle")}</span>
+                    {condition.startsWith("Condición Personal") ||
+                    condition.startsWith("Personal status") ? (
+                      <span className="text-red-600">
+                        {t("clinicalHistory.personalConditionTitle")}
+                      </span>
                     ) : (
                       condition
                     )}

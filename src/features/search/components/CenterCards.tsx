@@ -48,12 +48,12 @@ const CenterCardsComponent = ({
   // Helpers: filtramos valores vacíos para no mostrar bloques vacíos
   const addressText = Array.isArray(clinic.address)
     ? clinic.address.filter(Boolean).join(", ")
-    : clinic.address ?? "";
+    : (clinic.address ?? "");
   const hasAddress = addressText.trim().length > 0;
   const languages = clinic.languages?.filter(Boolean) ?? [];
   const phoneText = Array.isArray(clinic.phone)
-    ? clinic.phone.find((p) => !!p?.trim()) ?? ""
-    : clinic.phone ?? "";
+    ? (clinic.phone.find((p) => !!p?.trim()) ?? "")
+    : (clinic.phone ?? "");
   const hasPhone = phoneText.trim().length > 0;
   const insurances = clinic.insurances?.filter(Boolean) ?? [];
 
