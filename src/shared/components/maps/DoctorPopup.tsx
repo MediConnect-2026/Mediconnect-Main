@@ -75,7 +75,7 @@ const DoctorPopup: React.FC<DoctorPopupProps> = ({
       >
         {/* Imagen */}
         <div
-          className={`overflow-hidden rounded-xl border border-primary/5 ${imgHeight}`}
+          className={`overflow-hidden rounded-xl border border-primary/15 ${imgHeight}`}
         >
           <img
             src={provider.image}
@@ -104,77 +104,85 @@ const DoctorPopup: React.FC<DoctorPopupProps> = ({
             {provider.specialty}
           </div>
 
-          {/* Ubicaciones — oculto si vacío */}
-          {locations.length > 0 && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div
-                  className={`flex gap-1.5 cursor-pointer ${textXs} text-muted-foreground`}
-                >
-                  <MapPin className="w-3 h-3 mt-0.5 text-secondary" />
-                  <span className="truncate">{locations[0]}</span>
-                  {locations.length > 1 && (
-                    <span className="text-secondary">
-                      +{locations.length - 1}
+          <div
+            className={
+              isMobile ? "space-y-2" : "grid grid-cols-2 gap-x-3 gap-y-2"
+            }
+          >
+            {/* Ubicaciones — oculto si vacío */}
+            {locations.length > 0 && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div
+                    className={`flex gap-1.5 cursor-pointer ${textXs} text-muted-foreground`}
+                  >
+                    <MapPin className="w-3 h-3 mt-0.5 text-secondary" />
+                    <span className="truncate">{locations[0]}</span>
+                    {locations.length > 1 && (
+                      <span className="text-secondary">
+                        +{locations.length - 1}
+                      </span>
+                    )}
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent className="max-w-xs">
+                  {locations.join(" • ")}
+                </TooltipContent>
+              </Tooltip>
+            )}
+
+            {/* Idiomas — oculto si array vacío */}
+            {languages.length > 0 && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div
+                    className={`flex gap-1 cursor-pointer ${textXs} text-muted-foreground`}
+                  >
+                    <Globe className="w-3 h-3 text-secondary" />
+                    <span className="truncate max-w-[150px]">
+                      {languages.join(", ")}
                     </span>
-                  )}
-                </div>
-              </TooltipTrigger>
-              <TooltipContent className="max-w-xs">
-                {locations.join(" • ")}
-              </TooltipContent>
-            </Tooltip>
-          )}
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>{languages.join(", ")}</TooltipContent>
+              </Tooltip>
+            )}
 
-          {/* Idiomas — oculto si array vacío */}
-          {languages.length > 0 && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div
-                  className={`flex gap-1 cursor-pointer ${textXs} text-muted-foreground`}
-                >
-                  <Globe className="w-3 h-3 text-secondary" />
-                  <span className="truncate max-w-[150px]">
-                    {languages.join(", ")}
-                  </span>
-                </div>
-              </TooltipTrigger>
-              <TooltipContent>{languages.join(", ")}</TooltipContent>
-            </Tooltip>
-          )}
+            {/* Teléfono — oculto si vacío */}
+            {hasPhone && (
+              <a
+                href={`tel:${provider.phone}`}
+                className={`flex gap-1 ${textXs} text-secondary`}
+              >
+                <Phone className="w-3 h-3" />
+                <span className="text-primary">
+                  {formatPhone(provider.phone)}
+                </span>
+              </a>
+            )}
 
-          {/* Teléfono — oculto si vacío */}
-          {hasPhone && (
-            <a
-              href={`tel:${provider.phone}`}
-              className={`flex gap-1 ${textXs} text-secondary`}
-            >
-              <Phone className="w-3 h-3" />
-              <span className="text-primary">
-                {formatPhone(provider.phone)}
-              </span>
-            </a>
-          )}
+            {/* Seguros — oculto si array vacío */}
+            {insurances.length > 0 && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className={`flex gap-1 cursor-pointer ${textXs}`}>
+                    <Shield className="w-3 h-3 text-secondary" />
+                    <span className="truncate max-w-[150px]">
+                      {insurances.join(", ")}
+                    </span>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>{insurances.join(", ")}</TooltipContent>
+              </Tooltip>
+            )}
+          </div>
 
-          {/* Seguros — oculto si array vacío */}
-          {insurances.length > 0 && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div
-                  className={`flex gap-1 cursor-pointer pt-1 border-t ${textXs}`}
-                >
-                  <Shield className="w-3 h-3 text-secondary" />
-                  <span className="truncate max-w-[150px]">
-                    {insurances.join(", ")}
-                  </span>
-                </div>
-              </TooltipTrigger>
-              <TooltipContent>{insurances.join(", ")}</TooltipContent>
-            </Tooltip>
-          )}
+          <div className="my-3 h-[1px] w-full rounded-full bg-gradient-to-r from-primary/5 via-primary/30 to-primary/5" />
 
           {/* Botones */}
-          <div className={`flex gap-2 mt-3 ${isMobile && "flex-col"}`}>
+          <div
+            className={`flex gap-2 mt-3 ${isMobile ? "flex-col" : "flex-row"}`}
+          >
             {userRole === "CENTER" && (
               <MCButton
                 size="xs"

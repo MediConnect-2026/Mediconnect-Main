@@ -3,11 +3,7 @@ import DoctorSearchBar from "@/features/patient/components/DoctorSearchBar";
 import MCFilterSelect from "@/shared/components/filters/MCFilterSelect";
 import { DoctorCards } from "../components/DoctorCards";
 import { CenterCards } from "../components/CenterCards";
-import {
-  type Provider,
-  type Doctor,
-  type Clinic,
-} from "@/data/providers";
+import { type Provider, type Doctor, type Clinic } from "@/data/providers";
 import {
   Empty,
   EmptyContent,
@@ -30,6 +26,7 @@ import { useSearchDoctors } from "../hooks/useSearchDoctors";
 import { useDoctorAllianceRequest } from "../hooks/useDoctorAllianceRequest";
 import { useDoctorAllianceDelete } from "../hooks/useDoctorAllianceDelete";
 import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
 
 interface SearchProviderFilters {
   name: string;
@@ -44,7 +41,6 @@ interface SearchProviderFilters {
   rating: number | null;
   radio: number | null;
 }
-
 
 const EmptyState = memo(() => {
   const { t } = useTranslation("common");
@@ -84,7 +80,6 @@ const ProviderCard = memo(
     onViewProfile: (id: string) => void;
     isConnecting?: boolean;
   }) => {
-
     if (provider.type === "doctor") {
       return (
         <DoctorCards
@@ -95,7 +90,7 @@ const ProviderCard = memo(
           connectionStatus={
             (provider as Doctor).connectionStatus ?? "not_connected"
           }
-          onConnect={onConnect || (() => { })}
+          onConnect={onConnect || (() => {})}
         />
       );
     } else {
@@ -103,7 +98,7 @@ const ProviderCard = memo(
         <CenterCards
           clinic={provider as Clinic}
           isConnected={(provider as Clinic).connectionStatus ?? "not_connected"}
-          onConnect={onConnect || (() => { })}
+          onConnect={onConnect || (() => {})}
           onDisconnect={onDisconnect}
           onViewProfile={onViewProfile}
           isConnecting={isConnecting}
@@ -166,7 +161,7 @@ const DesktopFilters = memo(
     isLoadingCentro,
     tiposCentroOptions,
     isLoadingEspecialidades,
-    especialidadesOptions
+    especialidadesOptions,
   }: {
     searchFilters: SearchProviderFilters;
     onFilterChange: (key: string, values: string[]) => void;
@@ -177,7 +172,6 @@ const DesktopFilters = memo(
     isLoadingEspecialidades: boolean;
     especialidadesOptions: { value: string; label: string }[];
   }) => {
-
     const IDIOMAS_OPTIONS = [
       { value: "all", label: t("search.options.all", "Todos") },
       { value: "Español", label: t("search.options.languages.spanish") },
@@ -196,7 +190,7 @@ const DesktopFilters = memo(
       { value: "all", label: t("search.options.all", "Todos") },
       { value: "M", label: t("search.options.gender.masculino") },
       { value: "F", label: t("search.options.gender.femenino") },
-      { value: "O", label: t("search.options.gender.other") }
+      { value: "O", label: t("search.options.gender.other") },
     ];
 
     const HORARIO_OPTIONS = [
@@ -236,8 +230,15 @@ const DesktopFilters = memo(
       <div className="flex gap-2 w-full justify-end max-w-6xl">
         <MCFilterSelect
           name="providerType"
-          placeholder={isLoadingCentro ? t("search.loadingProviderTypes") : t("search.providerType", "Tipo")}
-          options={[{ value: "all", label: t("search.options.all", "Todos") }, ...tiposCentroOptions]}
+          placeholder={
+            isLoadingCentro
+              ? t("search.loadingProviderTypes")
+              : t("search.providerType", "Tipo")
+          }
+          options={[
+            { value: "all", label: t("search.options.all", "Todos") },
+            ...tiposCentroOptions,
+          ]}
           multiple
           noBadges
           disabled={isLoadingCentro}
@@ -251,8 +252,15 @@ const DesktopFilters = memo(
         />
         <MCFilterSelect
           name="specialty"
-          placeholder={isLoadingEspecialidades ? t("search.loadingSpecialties") : t("search.specialty", "Especialidad")}
-          options={[{ value: "all", label: t("search.options.all", "Todos") }, ...especialidadesOptions]}
+          placeholder={
+            isLoadingEspecialidades
+              ? t("search.loadingSpecialties")
+              : t("search.specialty", "Especialidad")
+          }
+          options={[
+            { value: "all", label: t("search.options.all", "Todos") },
+            ...especialidadesOptions,
+          ]}
           multiple
           noBadges
           disabled={isLoadingEspecialidades}
@@ -351,9 +359,7 @@ const DesktopFilters = memo(
           multiple={false}
           noBadges
           value={
-            searchFilters.radio !== null
-              ? String(searchFilters.radio)
-              : ""
+            searchFilters.radio !== null ? String(searchFilters.radio) : ""
           }
           onChange={(values) => {
             const val = Array.isArray(values) ? values[0] : values;
@@ -370,8 +376,12 @@ function Search() {
   const { t } = useTranslation("common");
   const { i18n } = useTranslation();
   const isMobile = useIsMobile();
-  const [locationPermission, setLocationPermission] = useState<'unknown' | 'granted' | 'denied'>('unknown');
-  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [locationPermission, setLocationPermission] = useState<
+    "unknown" | "granted" | "denied"
+  >("unknown");
+  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(
+    null,
+  );
   const [showMap, setShowMap] = useState(false);
   const [selectedProviders, setSelectedProviders] = useState<string[]>([]);
   const [optimisticCenterStatuses, setOptimisticCenterStatuses] = useState<
@@ -388,19 +398,20 @@ function Search() {
     languages: "",
     scheduledAppointments: "",
     rating: null,
-    radio: null
+    radio: null,
   });
 
-  const { data: tiposCentroOptions = [], isLoading: isLoadingCentro } = useTiposCentros();
-  const { data: especialidadesOptions = [], isLoading: isLoadingEspecialidades } = useEspecialidades();
+  const { data: tiposCentroOptions = [], isLoading: isLoadingCentro } =
+    useTiposCentros();
+  const {
+    data: especialidadesOptions = [],
+    isLoading: isLoadingEspecialidades,
+  } = useEspecialidades();
   const allianceMutation = useDoctorAllianceRequest();
   const deleteAllianceMutation = useDoctorAllianceDelete();
 
   // Use the search doctors hook with real API integration
-  const {
-    filteredProviders,
-    isLoading: isLoadingDoctors,
-  } = useSearchDoctors({
+  const { filteredProviders, isLoading: isLoadingDoctors } = useSearchDoctors({
     lat: coords?.lat ?? null,
     lng: coords?.lng ?? null,
     // If radio is "all" it becomes null and radius is omitted from request params
@@ -409,28 +420,31 @@ function Search() {
     language: i18n.language,
     enabled: true, // Always enabled, will return empty if no coords
     especialidadesOptions,
-    tiposCentroOptions
+    tiposCentroOptions,
   });
 
   // Handle geolocation
   useEffect(() => {
-    if (!('geolocation' in navigator)) {
-      setLocationPermission('denied');
+    if (!("geolocation" in navigator)) {
+      setLocationPermission("denied");
       console.warn("Geolocalización no soportada por el navegador.");
       return;
     }
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        const p = { lat: position.coords.latitude, lng: position.coords.longitude };
+        const p = {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        };
         setCoords(p);
-        setLocationPermission('granted');
+        setLocationPermission("granted");
       },
       (error) => {
         if (error.code === error.PERMISSION_DENIED) {
-          setLocationPermission('denied');
+          setLocationPermission("denied");
         } else {
-          setLocationPermission('denied');
+          setLocationPermission("denied");
         }
         console.warn("Error obteniendo ubicación:", error);
       },
@@ -443,7 +457,12 @@ function Search() {
     Object.entries(searchFilters).forEach(([_key, value]) => {
       if (Array.isArray(value) && value.length > 0 && !value.includes("all"))
         count++;
-      else if (typeof value === "string" && value.trim() !== "" && value !== "all") count++;
+      else if (
+        typeof value === "string" &&
+        value.trim() !== "" &&
+        value !== "all"
+      )
+        count++;
       else if (typeof value === "number" && value !== null) count++;
     });
     return count;
@@ -461,7 +480,7 @@ function Search() {
       languages: "",
       scheduledAppointments: "",
       rating: null,
-      radio: null
+      radio: null,
     });
   }, []);
 
@@ -493,8 +512,16 @@ function Search() {
   const handleFilterChange = useCallback(
     (filterKey: string, values: string[]) => {
       // Para filtros de selección única, extraer el primer valor
-      const singleSelectFilters = ["modality", "gender", "languages", "scheduledAppointments", "radio"];
-      const rawValue = singleSelectFilters.includes(filterKey) ? values[0] : values;
+      const singleSelectFilters = [
+        "modality",
+        "gender",
+        "languages",
+        "scheduledAppointments",
+        "radio",
+      ];
+      const rawValue = singleSelectFilters.includes(filterKey)
+        ? values[0]
+        : values;
 
       // Convertir radio a number | null (si se selecciona 'all' o valor inválido, guardar null)
       if (filterKey === "radio") {
@@ -503,7 +530,9 @@ function Search() {
           updateSearchFilters({ radio: null });
         } else {
           const parsed = Number(v);
-          updateSearchFilters({ radio: Number.isFinite(parsed) && parsed > 0 ? parsed : null });
+          updateSearchFilters({
+            radio: Number.isFinite(parsed) && parsed > 0 ? parsed : null,
+          });
         }
         return;
       }
@@ -580,7 +609,9 @@ function Search() {
     async (id: string) => {
       const clinicProvider = filteredProviders.find(
         (provider) => provider.type === "clinic" && provider.id === id,
-      ) as (Clinic & { _rawCenter?: { solicitudAlianzaId?: number } }) | undefined;
+      ) as
+        | (Clinic & { _rawCenter?: { solicitudAlianzaId?: number } })
+        | undefined;
 
       const allianceRequestId = clinicProvider?._rawCenter?.solicitudAlianzaId;
 
@@ -699,8 +730,9 @@ function Search() {
         <div className="grid grid-cols-1 lg:grid-cols-[4fr_6fr] gap-4 lg:h-[calc(100vh-200px)]">
           <motion.div
             {...fadeInUp}
-            className={`space-y-3 sm:space-y-4 overflow-y-auto ${isMobile && showMap ? "hidden" : "block"
-              }`}
+            className={`space-y-3 sm:space-y-4 overflow-y-auto ${
+              isMobile && showMap ? "hidden" : "block"
+            }`}
             style={{
               scrollbarWidth: "none",
               msOverflowStyle: "none",
@@ -716,9 +748,9 @@ function Search() {
             </div>
             <div className="space-y-3 sm:space-y-4">
               {isLoadingDoctors ? (
-                <div className="flex flex-col items-center justify-center py-12">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-                  <p className="mt-4 text-sm text-muted-foreground">
+                <div className="flex flex-col items-center justify-center py-12 space-y-4">
+                  <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                  <p className="text-sm text-muted-foreground">
                     {t("search.loading", "Buscando doctores...")}
                   </p>
                 </div>
@@ -733,12 +765,19 @@ function Search() {
                     onSelect={handleProviderSelect}
                     onViewProfile={handleViewProfile}
                     onConnect={
-                      provider.type === "clinic" ? handleConnectCenter : undefined
+                      provider.type === "clinic"
+                        ? handleConnectCenter
+                        : undefined
                     }
                     onDisconnect={
-                      provider.type === "clinic" ? handleDisconnectCenter : undefined
+                      provider.type === "clinic"
+                        ? handleDisconnectCenter
+                        : undefined
                     }
-                    isConnecting={allianceMutation.isPending || deleteAllianceMutation.isPending}
+                    isConnecting={
+                      allianceMutation.isPending ||
+                      deleteAllianceMutation.isPending
+                    }
                   />
                 ))
               )}
@@ -746,8 +785,9 @@ function Search() {
           </motion.div>
           <motion.div
             {...fadeInUp}
-            className={`bg-card rounded-xl border border-border h-[500px] sm:h-[600px] lg:h-full ${isMobile && !showMap ? "hidden" : "block"
-              }`}
+            className={`bg-card rounded-xl border border-border h-[500px] sm:h-[600px] lg:h-full ${
+              isMobile && !showMap ? "hidden" : "block"
+            }`}
           >
             <div className="h-full rounded-xl overflow-hidden relative">
               <MapSearchProviders
@@ -755,12 +795,12 @@ function Search() {
                 selectedProviders={selectedProviders}
                 onProviderSelect={handleProviderSelect}
               />
-              {locationPermission === 'denied' && (
+              {locationPermission === "denied" && (
                 <div className="absolute inset-0 z-40 flex items-center justify-center pointer-events-none">
                   <div className="pointer-events-auto bg-yellow-50 border border-yellow-400 text-yellow-900 px-4 py-2 rounded max-w-lg mx-4 text-center">
                     {t(
-                      'search.locationWarning',
-                      'Debe permitir el acceso a la ubicación para listar los servicios por cercanía.',
+                      "search.locationWarning",
+                      "Debe permitir el acceso a la ubicación para listar los servicios por cercanía.",
                     )}
                   </div>
                 </div>

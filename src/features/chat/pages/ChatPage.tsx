@@ -6,6 +6,7 @@ import { useConversations } from "@/lib/hooks/useConversations";
 import { useWebSocket } from "@/lib/hooks/useWebSocket";
 import { useAppStore } from "@/stores/useAppStore";
 import { useParams, useNavigate } from "react-router-dom";
+import { Loader2 } from "lucide-react";
 
 const ChatPage = () => {
   const { conversationId } = useParams<{ conversationId: string }>();
@@ -20,8 +21,12 @@ const ChatPage = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   // Estado global de conversación activa
-  const activeConversationId = useAppStore((state) => state.activeConversationId);
-  const setActiveConversation = useAppStore((state) => state.setActiveConversation);
+  const activeConversationId = useAppStore(
+    (state) => state.activeConversationId,
+  );
+  const setActiveConversation = useAppStore(
+    (state) => state.setActiveConversation,
+  );
 
   // Sincronizar conversationId de URL con store
   useEffect(() => {
@@ -41,9 +46,8 @@ const ChatPage = () => {
   }, [setActiveConversation]);
 
   // Buscar conversación activa
-  const activeConversation = conversations.find(
-    (c) => c.id === activeConversationId
-  ) || null;
+  const activeConversation =
+    conversations.find((c) => c.id === activeConversationId) || null;
 
   const handleSelectConversation = (id: number) => {
     setActiveConversation(id);
@@ -69,7 +73,7 @@ const ChatPage = () => {
     return (
       <div className="h-full w-full flex items-center justify-center bg-background rounded-2xl md:rounded-4xl">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-4" />
           <p className="text-muted-foreground">Cargando conversaciones...</p>
         </div>
       </div>
