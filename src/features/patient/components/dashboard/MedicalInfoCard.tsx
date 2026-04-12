@@ -82,7 +82,7 @@ const MedicalInfoCard = ({
               </p>
             </div>
           </div>
-          <div className="border-t border-primary/75 my-4"></div>
+          <div className="border-t border-primary/15 my-4"></div>
           <div className="mb-4">
             <p className="text-xs text-muted-foreground">
               {t("profileForm.bloodType")}
@@ -93,7 +93,7 @@ const MedicalInfoCard = ({
               {bloodType}
             </p>
           </div>
-          <div className="border-t border-primary/75 my-4"></div>
+          <div className="border-t border-primary/15 my-4"></div>
           <div
             className={`${isMobile ? "max-h-64" : "max-h-48"} overflow-y-auto pr-2`}
           >
@@ -120,7 +120,7 @@ const MedicalInfoCard = ({
                 </p>
               )}
             </div>
-            <div className="border-t border-primary/75 my-4"></div>
+            <div className="border-t border-primary/15 my-4"></div>
             <div>
               <div className="flex items-center gap-2 text-orange-600">
                 <AlertTriangle className="h-4 w-4" />

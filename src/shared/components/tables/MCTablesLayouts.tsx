@@ -48,7 +48,10 @@ function MCTablesLayouts({
         isDashboard ? "p-10" : isMobile ? "py-6 px-6" : "p-10"
       }`}
     >
-      <motion.main {...fadeInUp} className="w-full flex flex-col flex-1 min-h-0">
+      <motion.main
+        {...fadeInUp}
+        className="w-full flex flex-col flex-1 min-h-0"
+      >
         {/* Header con título y acciones */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <h1
@@ -80,14 +83,14 @@ function MCTablesLayouts({
                 isMobile ? "w-full" : "max-w-lg"
               }`}
             >
-              {searchComponent}
               <div
                 className={`flex ${
                   isMobile
-                    ? "grid grid-cols-2 grid-rows-2 gap-3 items-center w-full"
+                    ? "grid grid-cols-2 grid-rows-2 auto-rows-[48px] gap-3 items-center w-full"
                     : "flex-row gap-3"
                 }`}
               >
+                {searchComponent}
                 {filterComponent}
                 {toogleView}
                 {pdfGeneratorComponent}
@@ -102,7 +105,7 @@ function MCTablesLayouts({
           <div
             className={`grid gap-4 mt-6 ${
               isMobile
-                ? "grid-cols-1"
+                ? "grid-cols-1 auto-rows-[160px]"
                 : metrics.length === 4
                   ? "grid-cols-2 sm:grid-cols-2 lg:grid-cols-4"
                   : metrics.length === 3
@@ -113,21 +116,20 @@ function MCTablesLayouts({
             }`}
           >
             {metrics.map((metric, index) => (
-              <MCMetricCard
-                key={index}
-                title={metric.title}
-                value={metric.value}
-                icon={metric.icon}
-                subtitle={metric.subtitle}
-              />
+              <div key={index} className="h-full">
+                <MCMetricCard
+                  title={metric.title}
+                  value={metric.value}
+                  icon={metric.icon}
+                  subtitle={metric.subtitle}
+                />
+              </div>
             ))}
           </div>
         )}
 
         {/* Tabla/Contenido - con flex-1 para ocupar espacio disponible */}
-        <div className="flex-1 overflow-auto mt-6">
-          {tableComponent}
-        </div>
+        <div className="flex-1 overflow-auto mt-6">{tableComponent}</div>
 
         {/* Paginación fija en la parte inferior */}
         {paginationComponent && (
