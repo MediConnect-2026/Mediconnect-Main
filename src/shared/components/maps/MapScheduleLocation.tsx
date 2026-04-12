@@ -46,6 +46,7 @@ function MapScheduleLocation({
     useState<ParsedDominicanAddress | null>(null);
   const isMobile = useIsMobile();
   const { t } = useTranslation("common");
+  const hasMultipleLocations = (multipleLocations?.length ?? 0) > 0;
 
   // Coordenadas por defecto (Santo Domingo, RD)
   const defaultLocation = { lat: 18.48, lng: -69.93 };
@@ -262,6 +263,9 @@ function MapScheduleLocation({
   useEffect(() => {
     if (!mapRef.current) return;
 
+    // En modo ubicación única, este efecto no debe manipular marcadores.
+    if (!hasMultipleLocations) return;
+
     // Limpiar marcadores anteriores
     if (markerRef.current) {
       markerRef.current.remove();
@@ -346,7 +350,7 @@ function MapScheduleLocation({
           });
           mapRef.current!.fitBounds(bounds, { padding: 50, duration: 1000 });
         }
-      } 
+      }
     };
 
     if (mapRef.current.loaded()) {
@@ -354,12 +358,12 @@ function MapScheduleLocation({
     } else {
       mapRef.current.on("load", updateMarkers);
     }
-  }, [location, multipleLocations, isMobile]);
+  }, [hasMultipleLocations, multipleLocations, isMobile]);
 
 
   // Actualizar centro y marcador cuando cambia initialLocation (sin reinicializar)
   useEffect(() => {
-    if (!mapRef.current || !initialLocation || multipleLocations) return;
+    if (!mapRef.current || !initialLocation || hasMultipleLocations) return;
     if (
       !isNaN(initialLocation.lat) &&
       !isNaN(initialLocation.lng) &&
@@ -393,13 +397,13 @@ function MapScheduleLocation({
         mapRef.current.once("load", update);
       }
     }
-  }, [initialLocation?.lat, initialLocation?.lng, multipleLocations, isMobile]);
+  }, [initialLocation?.lat, initialLocation?.lng, hasMultipleLocations, isMobile]);
 
   // Parsear dirección cuando cambia la ubicación (solo para ubicación única)
   useEffect(() => {
     if (
       initialLocation &&
-      !multipleLocations &&
+      !hasMultipleLocations &&
       showAddressInfo &&
       !isNaN(location.lat) &&
       !isNaN(location.lng) &&
@@ -414,7 +418,12 @@ function MapScheduleLocation({
         console.error("Error parsing address:", error);
       });
     }
-  }, [location, initialLocation, multipleLocations, showAddressInfo]);
+  }, [
+    initialLocation?.lat,
+    initialLocation?.lng,
+    hasMultipleLocations,
+    showAddressInfo,
+  ]);
 
   useEffect(() => {
     if (isFullscreen) {

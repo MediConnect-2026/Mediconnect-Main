@@ -1,4 +1,3 @@
-// Imports necesarios que debes asegurarte de tener al inicio
 import MapScheduleLocation from "@/shared/components/maps/MapScheduleLocation";
 import { useCreateServicesStore } from "@/stores/useCreateServicesStore";
 import ServicesLayoutsSteps from "./ServicesLayoutsSteps";
@@ -51,6 +50,10 @@ function ServiceLocationStep() {
   const isMobile = useIsMobile();
 
   const locationSelected = useCreateServicesStore((s) => s.createServiceData.location);
+  const parsedSelectedLocationId = Number(locationSelected);
+  const selectedLocationId = Number.isFinite(parsedSelectedLocationId)
+    ? parsedSelectedLocationId
+    : null;
   const setLocationData = useCreateServicesStore((s) => s.setCreateServiceField);
   const setLocationDataInStore = useCreateServicesStore((s) => s.setLocationData);
   const goToNextStep = useCreateServicesStore((s) => s.goToNextStep);
@@ -76,8 +79,8 @@ function ServiceLocationStep() {
       .filter((loc) => 
         loc.puntoGeografico?.coordinates && 
         loc.puntoGeografico.coordinates.length === 2 &&
-        typeof loc.puntoGeografico.coordinates[0] === 'number' &&
-        typeof loc.puntoGeografico.coordinates[1] === 'number' &&
+        typeof loc.puntoGeografico.coordinates[0] === "number" &&
+        typeof loc.puntoGeografico.coordinates[1] === "number" &&
         !isNaN(loc.puntoGeografico.coordinates[0]) &&
         !isNaN(loc.puntoGeografico.coordinates[1]) &&
         isFinite(loc.puntoGeografico.coordinates[0]) &&
@@ -87,9 +90,9 @@ function ServiceLocationStep() {
         lat: loc.puntoGeografico.coordinates[1],
         lng: loc.puntoGeografico.coordinates[0],
         label: loc.nombre,
-        color: locationSelected === loc.id ? "#10b981" : "#e11d48",
+        color: Number(loc.id) === selectedLocationId ? "#dc2626" : "#6b7280",
       }));
-  }, [doctorLocations, locationSelected]);
+  }, [doctorLocations, selectedLocationId]);
 
   function TruncatableTooltip({ text, className }: { text: string; className: string }) {
     const textRef = useRef<HTMLParagraphElement>(null);
@@ -177,11 +180,13 @@ function ServiceLocationStep() {
             </div>
           ) : doctorLocations.length > 0 ? (
             <div className={`grid ${isMobile ? "grid-cols-1" : "grid-cols-2"} gap-4`}>
-              {doctorLocations.map((loc: DoctorLocation) => (
+              {doctorLocations.map((loc: DoctorLocation) => {
+                const normalizedLocationId = Number(loc.id);
+                return (
                 <div
                   key={loc.id}
                   className={`border w-full border-primary/15 p-3 rounded-2xl flex items-center justify-between cursor-pointer transition hover:shadow-md
-                    ${locationSelected === loc.id ? "bg-accent/50 border-primary/50 ring-2 ring-primary/20" : "hover:border-primary/30"}`}
+                    ${selectedLocationId === normalizedLocationId ? "bg-accent/50 border-primary/50 ring-2 ring-primary/20" : "hover:border-primary/30"}`}
                   onClick={() => {
                     // Seleccionar la ubicación
                     setLocationDataInStore({
@@ -190,11 +195,11 @@ function ServiceLocationStep() {
                       coordinates: { latitude: loc.puntoGeografico.coordinates[1], longitude: loc.puntoGeografico.coordinates[0] },
                       neighborhood: loc.barrio ? String(loc.barrio.id) : undefined,
                     });
-                    setLocationData("location", locationSelected === loc.id ? null : loc.id);
+                    setLocationData("location", normalizedLocationId);
                     
                     // Abrir modal en modo edición si la ubicación está siendo seleccionada
-                    if (locationSelected !== loc.id) {
-                      setEditMode({ locationId: loc.id, isEditing: true });
+                    if (selectedLocationId !== normalizedLocationId) {
+                      setEditMode({ locationId: normalizedLocationId, isEditing: true });
                       setTimeout(() => hiddenEditTriggerRef.current?.click(), 0);
                     }
                   }}
@@ -222,7 +227,8 @@ function ServiceLocationStep() {
                     </Button>
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center gap-4 py-8 text-center">
@@ -263,7 +269,7 @@ function ServiceLocationStep() {
         </ManageLocation>
 
         <AuthFooterContainer
-          continueButtonProps={{ disabled: !locationSelected, onClick: () => goToNextStep() }}
+          continueButtonProps={{ disabled: selectedLocationId === null, onClick: () => goToNextStep() }}
           backButtonProps={{ onClick: () => goToPreviousStep() }}
         />
       </div>

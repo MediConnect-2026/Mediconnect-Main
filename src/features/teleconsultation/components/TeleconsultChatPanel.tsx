@@ -13,10 +13,12 @@ import Prescription from "./chatPanel/Prescription";
 import { useTranslation } from "react-i18next";
 
 type PanelView = "chat" | "notas";
+type TeleconsultPanelMode = "default" | "chat-only" | "notes-only";
 
 interface TeleconsultChatPanelProps {
   appointmentId: string;
   onEndCall?: () => void;
+  panelMode?: TeleconsultPanelMode;
 }
 
 /** Construye ChatUser para el otro participante desde la cita (evita undefined .nombre) */
@@ -53,7 +55,11 @@ function buildOtroUsuarioFromAppointment(
  * doctor-paciente de la cita y muestra el chat real (mensajes, WebSocket, etc.).
  * Usa pacienteId/doctorId del backend y asegura otroUsuario con nombre para evitar crashes.
  */
-export function TeleconsultChatPanel({ appointmentId, onEndCall }: TeleconsultChatPanelProps) {
+export function TeleconsultChatPanel({
+  appointmentId,
+  onEndCall,
+  panelMode = "default",
+}: TeleconsultChatPanelProps) {
   const { t } = useTranslation("common");
   const queryClient = useQueryClient();
   const user = useAppStore((s) => s.user);
@@ -65,7 +71,26 @@ export function TeleconsultChatPanel({ appointmentId, onEndCall }: TeleconsultCh
   const { appointment, loading: loadingCita } = useCitaDetails(
     appointmentId || undefined
   );
-  const [panelView, setPanelView] = useState<PanelView>("chat");
+  const isChatOnlyMode = panelMode === "chat-only";
+  const isNotesOnlyMode = panelMode === "notes-only";
+  const showToggleBar = panelMode === "default";
+
+  const [panelView, setPanelView] = useState<PanelView>(
+    isNotesOnlyMode ? "notas" : "chat"
+  );
+
+  useEffect(() => {
+    if (isNotesOnlyMode) {
+      setPanelView("notas");
+      return;
+    }
+
+    if (isChatOnlyMode) {
+      setPanelView("chat");
+    }
+  }, [isChatOnlyMode, isNotesOnlyMode]);
+
+  const needsConversation = !isNotesOnlyMode;
 
   const otherUserId =
     role === "DOCTOR"
@@ -89,7 +114,12 @@ export function TeleconsultChatPanel({ appointmentId, onEndCall }: TeleconsultCh
       const res = await chatService.getOrCreateConversation(otherUserId);
       return chatService.getConversationById(res.data.id);
     },
-    enabled: !!appointmentId && otherUserId != null && otherUserId !== 0 && !loadingCita,
+    enabled:
+      needsConversation &&
+      !!appointmentId &&
+      otherUserId != null &&
+      otherUserId !== 0 &&
+      !loadingCita,
     staleTime: 1000 * 60 * 2,
   });
 
@@ -140,7 +170,7 @@ export function TeleconsultChatPanel({ appointmentId, onEndCall }: TeleconsultCh
     };
   }, [safeConversation?.id, setActiveConversation]);
 
-  if (loadingCita || (otherUserId != null && loadingConversation)) {
+  if (loadingCita || (needsConversation && otherUserId != null && loadingConversation)) {
     return (
       <div className="flex flex-col h-full bg-background rounded-2xl border border-primary/15 items-center justify-center gap-3 p-4">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -149,7 +179,10 @@ export function TeleconsultChatPanel({ appointmentId, onEndCall }: TeleconsultCh
     );
   }
 
-  if (isError || (otherUserId == null && !loadingCita && appointment != null)) {
+  if (
+    needsConversation &&
+    (isError || (otherUserId == null && !loadingCita && appointment != null))
+  ) {
     return (
       <div className="flex flex-col h-full bg-background rounded-2xl border border-primary/15 items-center justify-center gap-2 p-4 text-center">
         <p className="text-sm text-muted-foreground">
@@ -159,7 +192,7 @@ export function TeleconsultChatPanel({ appointmentId, onEndCall }: TeleconsultCh
     );
   }
 
-  if (!safeConversation || !safeConversation.id) {
+  if (needsConversation && (!safeConversation || !safeConversation.id)) {
     return (
       <div className="flex flex-col h-full bg-background rounded-2xl border border-primary/15 items-center justify-center gap-2 p-4 text-center">
         <Loader2 className="w-6 h-6 animate-spin text-primary" />
@@ -171,54 +204,58 @@ export function TeleconsultChatPanel({ appointmentId, onEndCall }: TeleconsultCh
   return (
     <div className="h-full flex flex-col rounded-2xl overflow-hidden border border-primary/15 bg-background">
       {/* Toggle bar */}
-      <div className="flex items-center gap-2 px-3 pt-3 pb-2 border-b border-primary/10 bg-background flex-shrink-0">
-        {/* Chat button */}
-        <button
-          onClick={() => setPanelView("chat")}
-          className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200 ${
-            panelView === "chat"
-              ? "bg-primary text-primary-foreground shadow-sm"
-              : "border border-border text-foreground hover:bg-accent/60"
-          }`}
-        >
-          <MessageCircle size={15} />
-          {t("teleconsultChatPanel.tabs.chat")}
-        </button>
-
-        {/* Notas button */}
-        {/* Solo se muestra el botón de Notas para el doctor, que es quien puede escribir la receta. El paciente solo ve el chat. */}
-        {!isPatientRole && (
-          <button
-            onClick={() => setPanelView("notas")}
-            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200 ${
-              panelView === "notas"
-                ? "bg-primary text-primary-foreground shadow-sm"
-              : "border border-border text-foreground hover:bg-accent/60"
-            }`}
-            > 
-            <ClipboardList size={15} />
-            {t("teleconsultChatPanel.tabs.notes")}
-          </button>
-        )}
-
-        {/* Spacer + X */}
-        <div className="ml-auto">
+      {showToggleBar && (
+        <div className="flex items-center gap-2 px-3 pt-3 pb-2 border-b border-primary/10 bg-background flex-shrink-0">
+          {/* Chat button */}
           <button
             onClick={() => setPanelView("chat")}
-            className="p-1.5 rounded-full text-muted-foreground hover:bg-accent/60 hover:text-foreground transition-colors"
-            aria-label={t("teleconsultChatPanel.close")}
+            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200 ${
+              panelView === "chat"
+                ? "bg-primary text-primary-foreground shadow-sm"
+                : "border border-border text-foreground hover:bg-accent/60"
+            }`}
           >
-            <X size={16} />
+            <MessageCircle size={15} />
+            {t("teleconsultChatPanel.tabs.chat")}
           </button>
+
+          {/* Notas button */}
+          {/* Solo se muestra el botón de Notas para el doctor, que es quien puede escribir la receta. El paciente solo ve el chat. */}
+          {!isPatientRole && (
+            <button
+              onClick={() => setPanelView("notas")}
+              className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200 ${
+                panelView === "notas"
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "border border-border text-foreground hover:bg-accent/60"
+              }`}
+            >
+              <ClipboardList size={15} />
+              {t("teleconsultChatPanel.tabs.notes")}
+            </button>
+          )}
+
+          {/* Spacer + X */}
+          <div className="ml-auto">
+            <button
+              onClick={() => setPanelView("chat")}
+              className="p-1.5 rounded-full text-muted-foreground hover:bg-accent/60 hover:text-foreground transition-colors"
+              aria-label={t("teleconsultChatPanel.close")}
+            >
+              <X size={16} />
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Panel content */}
       <div className="flex-1 min-h-0 overflow-hidden">
-        {panelView === "chat" ? (
-          <RealChatPanel conversation={safeConversation} layoutMode="teleconsult" />
-        ) : (
+        {isNotesOnlyMode || panelView === "notas" ? (
           <Prescription onSuccess={onEndCall} />
+        ) : (
+          safeConversation && (
+            <RealChatPanel conversation={safeConversation} layoutMode="teleconsult" />
+          )
         )}
       </div>
     </div>

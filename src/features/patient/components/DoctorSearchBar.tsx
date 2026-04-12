@@ -31,7 +31,7 @@ const DoctorSearchBar = ({ onSearchChange, onInsuranceChange, onDoctorSelect, on
   const searchRef = useRef<HTMLDivElement>(null);
   const insuranceRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
-  const { t } = useTranslation("patient");
+  const { t, i18n } = useTranslation("patient");
 
   // Use search doctors hook with name filter and/or insurance filter
   const hasSearchText = debouncedSearch.trim().length >= MIN_SEARCH_LENGTH;
@@ -66,6 +66,7 @@ const DoctorSearchBar = ({ onSearchChange, onInsuranceChange, onDoctorSelect, on
       rating: null,
       radio: null,
     } : undefined,
+    language: i18n.language,
     enabled: shouldEnableSearch,
   });
   

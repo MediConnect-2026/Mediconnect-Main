@@ -884,10 +884,11 @@ export interface ServiceDetailResena {
   estado: string;
   creadoEn: string;
   paciente?: {
-    usuario: {
-      id: number;
-      nombre: string;
-      apellido: string;
+    id: number;
+    nombre: string;
+    apellido: string;
+    fotoPerfil?: string;
+    usuario?: {
       fotoPerfil?: string;
     };
   };

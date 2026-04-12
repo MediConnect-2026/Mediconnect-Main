@@ -33,6 +33,7 @@ import { formatCurrency } from "@/utils/formatCurrency";
 
 const PATIENT_PROFILE_PUBLIC = "/patient/profile/:patientId";
 const DOCTOR_PROFILE = "/doctor/profile/:doctorId";
+const REVIEWS_TIME_ZONE = "America/Santo_Domingo";
 
 const StarRating = ({ rating }: { rating: number }) => (
   <div className="flex gap-0.5">
@@ -152,10 +153,71 @@ function ServicesPage() {
 
   // Helper function for relative time
   const getRelativeTime = (dateString: string): string => {
-    const date = new Date(dateString);
+    const getYmdInTimeZone = (date: Date, timeZone: string) => {
+      const parts = new Intl.DateTimeFormat("en-CA", {
+        timeZone,
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      }).formatToParts(date);
+
+      const year = Number(parts.find((p) => p.type === "year")?.value ?? 0);
+      const month = Number(parts.find((p) => p.type === "month")?.value ?? 0);
+      const day = Number(parts.find((p) => p.type === "day")?.value ?? 0);
+
+      return { year, month, day };
+    };
+
+    const dayDiffInTimeZone = (from: Date, to: Date, timeZone: string) => {
+      const fromYmd = getYmdInTimeZone(from, timeZone);
+      const toYmd = getYmdInTimeZone(to, timeZone);
+
+      const fromUtcMidday = Date.UTC(fromYmd.year, fromYmd.month - 1, fromYmd.day, 12, 0, 0);
+      const toUtcMidday = Date.UTC(toYmd.year, toYmd.month - 1, toYmd.day, 12, 0, 0);
+
+      return Math.floor((toUtcMidday - fromUtcMidday) / (1000 * 60 * 60 * 24));
+    };
+
+    const parseReviewDate = (value: string): Date => {
+      // Date-only strings (YYYY-MM-DD) are parsed as UTC by JS Date,
+      // which can shift to the previous day in negative timezones.
+      const dateOnlyMatch = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+      if (dateOnlyMatch) {
+        const year = Number(dateOnlyMatch[1]);
+        const month = Number(dateOnlyMatch[2]) - 1;
+        const day = Number(dateOnlyMatch[3]);
+        return new Date(year, month, day, 12, 0, 0);
+      }
+
+      const utcParsed = new Date(value);
+
+      // Some backends send local wall-clock timestamps with a trailing "Z".
+      // If so, also parse as local and choose the interpretation closer to "now"
+      // in calendar-day terms for our target timezone.
+      if (value.endsWith("Z")) {
+        const localLikeValue = value.replace(/Z$/, "");
+        const localParsed = new Date(localLikeValue);
+
+        if (!Number.isNaN(localParsed.getTime()) && !Number.isNaN(utcParsed.getTime())) {
+          const now = new Date();
+          const utcDiff = Math.abs(dayDiffInTimeZone(utcParsed, now, REVIEWS_TIME_ZONE));
+          const localDiff = Math.abs(dayDiffInTimeZone(localParsed, now, REVIEWS_TIME_ZONE));
+          return localDiff <= utcDiff ? localParsed : utcParsed;
+        }
+
+        if (!Number.isNaN(localParsed.getTime())) {
+          return localParsed;
+        }
+      }
+
+      return utcParsed;
+    };
+
+    const date = parseReviewDate(dateString);
+    if (Number.isNaN(date.getTime())) return t("service.reviews.today", "Hoy");
+
     const now = new Date();
-    const diffInMs = now.getTime() - date.getTime();
-    const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
+    const diffInDays = dayDiffInTimeZone(date, now, REVIEWS_TIME_ZONE);
     
     if (diffInDays === 0) return t("service.reviews.today", "Hoy");
     if (diffInDays === 1) return t("service.reviews.yesterday", "Ayer");
@@ -458,8 +520,8 @@ function ServicesPage() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                     {displayedReviews.map((review) => (
                       (() => {
-                        const patientFirstName = review.paciente?.usuario?.nombre ?? "";
-                        const patientLastName = review.paciente?.usuario?.apellido ?? "";
+                        const patientFirstName = review.paciente?.nombre ?? "";
+                        const patientLastName = review.paciente?.apellido ?? "";
                         const patientDisplayName =
                           `${patientFirstName} ${patientLastName}`.trim() || "Usuario";
                         const patientInitials =

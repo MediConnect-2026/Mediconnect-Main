@@ -754,6 +754,8 @@ function Search() {
                 providers={providersWithOptimisticStatus}
                 selectedProviders={selectedProviders}
                 onProviderSelect={handleProviderSelect}
+                userCoords={coords}
+                locationPermission={locationPermission}
               />
               {locationPermission === 'denied' && (
                 <div className="absolute inset-0 z-40 flex items-center justify-center pointer-events-none">
