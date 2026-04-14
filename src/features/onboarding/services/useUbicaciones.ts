@@ -84,8 +84,17 @@ export function useUbicaciones(
 				return ubicacionesService.getMunicipios(currentLanguage, Number(params?.idProvincia));
 			case 'distritos':
 				return ubicacionesService.getDistritos(currentLanguage, Number(params?.idMunicipio));
-			case 'secciones':
-				return ubicacionesService.getSecciones(currentLanguage, params);
+			case 'secciones': {
+				const seccionesParams = isPositiveNumericId(params?.idDistrito)
+					? { idDistrito: String(params?.idDistrito) }
+					: isPositiveNumericId(params?.idMunicipio)
+						? { idMunicipio: String(params?.idMunicipio) }
+						: null;
+
+				return seccionesParams
+					? ubicacionesService.getSecciones(currentLanguage, seccionesParams)
+					: Promise.resolve([]);
+			}
 			case 'barrios':
 				return ubicacionesService.getBarrios(currentLanguage, Number(params?.idSeccion));
 			case 'subbarrios':

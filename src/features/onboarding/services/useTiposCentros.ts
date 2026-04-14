@@ -1,9 +1,9 @@
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useTranslation } from 'react-i18next';
-import { useEffect } from 'react';
-import { QUERY_KEYS } from '@/lib/react-query/config';
-import tiposCentrosService from './tipo-centro.service';
-import type { SelectOption, TipoCentroParams } from './tipos-centro.types';
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
+import { useEffect } from "react";
+import { QUERY_KEYS } from "@/lib/react-query/config";
+import tiposCentrosService from "./tipo-centro.service";
+import type { SelectOption, TipoCentroParams } from "./tipos-centro.types";
 
 /**
  * Hook personalizado para obtener tipos de centros de salud
@@ -32,61 +32,65 @@ import type { SelectOption, TipoCentroParams } from './tipos-centro.types';
  * @returns Query con los tipos de centros formateados para MCSelect
  */
 export const useTiposCentros = (
-	params?: Partial<TipoCentroParams>,
-	options?: { enabled?: boolean; refetchOnMount?: boolean }
+  params?: Partial<TipoCentroParams>,
+  options?: { enabled?: boolean; refetchOnMount?: boolean },
 ) => {
-	const { i18n } = useTranslation();
-	const currentLanguage = i18n.language;
-	const queryClient = useQueryClient();
+  const { i18n } = useTranslation();
+  const currentLanguage = i18n.language;
+  const queryClient = useQueryClient();
 
-	const query = useQuery<SelectOption[], Error>({
-		queryKey: QUERY_KEYS.TIPOS_CENTROS(currentLanguage, params),
-		queryFn: () => tiposCentrosService.getAllActiveTiposCentros(currentLanguage),
-		staleTime: 1000 * 60 * 30,
-		gcTime: 1000 * 60 * 60 * 24,
-		refetchOnWindowFocus: false,
-		refetchOnReconnect: false,
-		refetchOnMount: options?.refetchOnMount ?? false,
-		enabled: options?.enabled ?? true,
-		placeholderData: (previousData) => previousData,
-	});
+  const query = useQuery<SelectOption[], Error>({
+    queryKey: QUERY_KEYS.TIPOS_CENTROS(currentLanguage, params),
+    queryFn: () =>
+      tiposCentrosService.getAllActiveTiposCentros(currentLanguage),
+    staleTime: 1000 * 60 * 30,
+    gcTime: 1000 * 60 * 60 * 24,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    refetchOnMount: options?.refetchOnMount ?? false,
+    enabled: options?.enabled ?? true,
+    placeholderData: (previousData) => previousData,
+  });
 
-	useEffect(() => {
-		if (query.data && query.data.length > 0) {
-			try {
-				const cacheKey = `tiposCentros_${currentLanguage}`;
-				localStorage.setItem(cacheKey, JSON.stringify({
-					data: query.data,
-					timestamp: Date.now(),
-				}));
-			} catch (error) {
-				console.warn('Error saving tiposCentros to localStorage:', error);
-			}
-		}
-	}, [query.data, currentLanguage]);
+  useEffect(() => {
+    if (query.data && query.data.length > 0) {
+      try {
+        const cacheKey = `tiposCentros_${currentLanguage}`;
+        localStorage.setItem(
+          cacheKey,
+          JSON.stringify({
+            data: query.data,
+            timestamp: Date.now(),
+          }),
+        );
+      } catch (error) {
+        console.warn("Error saving tiposCentros to localStorage:", error);
+      }
+    }
+  }, [query.data, currentLanguage]);
 
-	useEffect(() => {
-		if (!query.data) {
-			try {
-				const cacheKey = `tiposCentros_${currentLanguage}`;
-				const cached = localStorage.getItem(cacheKey);
-				if (cached) {
-					const { data, timestamp } = JSON.parse(cached);
-					const isValid = Date.now() - timestamp < 1000 * 60 * 60 * 24 * 7;
-					if (isValid && data) {
-						queryClient.setQueryData(
-							QUERY_KEYS.TIPOS_CENTROS(currentLanguage, params),
-							data
-						);
-					}
-				}
-			} catch (error) {
-				console.warn('Error loading tiposCentros from localStorage:', error);
-			}
-		}
-	}, [currentLanguage, params, queryClient, query.data]);
+  useEffect(() => {
+    if (!query.data) {
+      try {
+        const cacheKey = `tiposCentros_${currentLanguage}`;
+        const cached = localStorage.getItem(cacheKey);
+        if (cached) {
+          const { data, timestamp } = JSON.parse(cached);
+          const isValid = Date.now() - timestamp < 1000 * 60 * 60 * 24 * 7;
+          if (isValid && data) {
+            queryClient.setQueryData(
+              QUERY_KEYS.TIPOS_CENTROS(currentLanguage, params),
+              data,
+            );
+          }
+        }
+      } catch (error) {
+        console.warn("Error loading tiposCentros from localStorage:", error);
+      }
+    }
+  }, [currentLanguage, params, queryClient, query.data]);
 
-	return query;
+  return query;
 };
 
 /**
@@ -97,20 +101,22 @@ export const useTiposCentros = (
  * @param enabled - Si la query debe ejecutarse automáticamente
  */
 export const useTiposCentrosCustom = (
-	params?: TipoCentroParams,
-	enabled: boolean = true
+  params?: TipoCentroParams,
+  enabled: boolean = true,
 ) => {
-	return useQuery<SelectOption[], Error>({
-		queryKey: QUERY_KEYS.TIPOS_CENTRO_CUSTOM(params),
-		queryFn: () => tiposCentrosService.getTiposCentroForSelect(params),
-		staleTime: 1000 * 60 * 30,
-		gcTime: 1000 * 60 * 60 * 24,
-		refetchOnWindowFocus: false,
-		refetchOnReconnect: false,
-		refetchOnMount: false,
-		enabled,
-		placeholderData: (previousData) => previousData,
-	});
+  const queryKeyParams = params as Record<string, unknown> | undefined;
+
+  return useQuery<SelectOption[], Error>({
+    queryKey: QUERY_KEYS.TIPOS_CENTRO_CUSTOM(queryKeyParams),
+    queryFn: () => tiposCentrosService.getTiposCentroForSelect(params),
+    staleTime: 1000 * 60 * 30,
+    gcTime: 1000 * 60 * 60 * 24,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    refetchOnMount: false,
+    enabled,
+    placeholderData: (previousData) => previousData,
+  });
 };
 
 export default useTiposCentros;
