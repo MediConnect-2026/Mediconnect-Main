@@ -13,7 +13,6 @@ import type { Appointment } from "@/types/CalendarTypes";
 import { AppointmentBadge } from "./AppointmentBadge";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "react-i18next";
-import { useIsMobile } from "@/lib/hooks/useIsMobile";
 
 interface WeekViewProps {
   currentDate: Date;
@@ -33,7 +32,6 @@ export const WeekView = ({
   selectedDate,
 }: WeekViewProps) => {
   const { t } = useTranslation("common");
-  const isMobile = useIsMobile();
 
   const weekDays = useMemo(() => {
     const weekStart = startOfWeek(currentDate);
@@ -57,7 +55,7 @@ export const WeekView = ({
           <div className="p-2 sm:p-3 text-center text-xs sm:text-sm text-muted-foreground rounded-tl-3xl">
             {t("calendar.today")}
           </div>
-          {weekDays.map((day, idx) => {
+          {weekDays.map((day) => {
             const isWeekendDay = isWeekend(day);
             const isDayToday = isToday(day);
             const isSaturday = day.getDay() === 6;

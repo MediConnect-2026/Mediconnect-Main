@@ -31,14 +31,7 @@ interface AreaChartProps {
   dateRange?: "week" | "month" | "3months" | "year" | "all";
 }
 
-
-
-function AreaChart({
-  data,
-  showFooter = false,
-  height = 250,
-  dateRange = "week",
-}: AreaChartProps) {
+function AreaChart({ data, showFooter = false, height = 250 }: AreaChartProps) {
   // Usar datos personalizados o datos según el período seleccionado
   const chartData = data;
 

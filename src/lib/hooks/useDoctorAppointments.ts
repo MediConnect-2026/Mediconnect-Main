@@ -28,8 +28,12 @@ export const useDoctorAppointments = (
   filters?: CitasFilters,
   options?: Omit<UseQueryOptions<CitasListResponse>, 'queryKey' | 'queryFn'>
 ) => {
+  const keyFilters: Record<string, unknown> | undefined = filters
+    ? ({ ...filters } as Record<string, unknown>)
+    : undefined;
+
   return useQuery<CitasListResponse>({
-    queryKey: QUERY_KEYS.CITAS(filters),
+    queryKey: QUERY_KEYS.CITAS(keyFilters),
     queryFn: () => getCitasToDoctors(filters),
     // Tiempo de cache específico para citas: 2 minutos
     staleTime: 1000 * 60 * 2,

@@ -35,7 +35,7 @@ function useMorphingDialog() {
   const context = useContext(MorphingDialogContext);
   if (!context) {
     throw new Error(
-      "useMorphingDialog must be used within a MorphingDialogProvider"
+      "useMorphingDialog must be used within a MorphingDialogProvider",
     );
   }
   return context;
@@ -61,7 +61,7 @@ function MorphingDialogProvider({
       uniqueId,
       triggerRef,
     }),
-    [isOpen, uniqueId]
+    [isOpen, uniqueId],
   );
 
   return (
@@ -110,7 +110,7 @@ function MorphingDialogTrigger({
         setIsOpen(!isOpen);
       }
     },
-    [isOpen, setIsOpen]
+    [isOpen, setIsOpen],
   );
 
   return (
@@ -176,18 +176,19 @@ function MorphingDialogContent({
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [setIsOpen, firstFocusableElement, lastFocusableElement]);
+  }, [setIsOpen]);
 
   useEffect(() => {
     if (isOpen) {
       document.body.classList.add("overflow-hidden");
       const focusableElements = containerRef.current?.querySelectorAll(
-        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
       );
       if (focusableElements && focusableElements.length > 0) {
         firstFocusableElementRef.current = focusableElements[0] as HTMLElement;
-        lastFocusableElementRef.current =
-          focusableElements[focusableElements.length - 1] as HTMLElement;
+        lastFocusableElementRef.current = focusableElements[
+          focusableElements.length - 1
+        ] as HTMLElement;
         (focusableElements[0] as HTMLElement).focus();
       }
     } else {
@@ -257,7 +258,7 @@ function MorphingDialogContainer({ children }: MorphingDialogContainerProps) {
         </>
       )}
     </AnimatePresence>,
-    document.body
+    document.body,
   );
 }
 

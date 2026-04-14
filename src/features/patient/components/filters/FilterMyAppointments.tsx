@@ -21,11 +21,11 @@ interface FilterMyAppointmentsProps {
 function FilterMyAppointments({
   filters,
   onFiltersChange,
-  resetTrigger = 0,
 }: FilterMyAppointmentsProps) {
   const { t } = useTranslation("patient");
 
-  const { data: specialtyOptions, isLoading: isLoadingSpecialties } = useEspecialidades();
+  const { data: specialtyOptions, isLoading: isLoadingSpecialties } =
+    useEspecialidades();
 
   // Opciones para estado de cita
   const statusOptions = [

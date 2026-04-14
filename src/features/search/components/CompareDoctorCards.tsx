@@ -16,7 +16,7 @@ import { useAppStore } from "@/stores/useAppStore";
 import ScheduleAppointmentDialog from "@/features/patient/components/appoiments/ScheduleAppointmentDialog";
 import { MCUserAvatar } from "@/shared/navigation/userMenu/MCUserAvatar";
 import ToogleConfirmConnection from "@/features/request/components/ToogleConfirmConnection";
-import { useState } from "react";
+
 import { ROUTES } from "@/router/routes";
 import { useNavigate } from "react-router";
 
@@ -32,7 +32,6 @@ function CompareDoctorCards({
   const { t } = useTranslation("patient");
   const isMobile = useIsMobile();
   const userRole = useAppStore((state) => state.user?.rol);
-  const [modalOpenId, setModalOpenId] = useState<string | null>(null);
 
   const navigate = useNavigate();
 
@@ -55,9 +54,7 @@ function CompareDoctorCards({
   }
 
   // Mock function to check connection status (replace with real logic)
-  const getConnectionStatus = (
-    doctorId: string,
-  ): "connected" | "not_connected" | "pending" => {
+  const getConnectionStatus = (): "connected" | "not_connected" | "pending" => {
     // TODO: Replace with actual logic
     return "not_connected";
   };
@@ -69,7 +66,7 @@ function CompareDoctorCards({
     >
       <div className="flex flex-row flex-nowrap gap-3 md:gap-4 lg:gap-4 px-4 min-w-max h-full">
         {doctors.map((doctor) => {
-          const connectionStatus = getConnectionStatus(doctor.id);
+          const connectionStatus = getConnectionStatus();
 
           // Botón texto y estado
           let connectBtnText = t("compare.connect", "Conectar");
@@ -290,16 +287,15 @@ function CompareDoctorCards({
                           : "Conectar con:",
                         doctor.name,
                       );
-                      setModalOpenId(null);
                     }}
-                    onCancel={() => setModalOpenId(null)}
+                    onCancel={() => {}}
                   >
                     <MCButton
                       size={isMobile ? "m" : "ml"}
                       variant={
                         connectionStatus === "connected" ? "outline" : "primary"
                       }
-                      onClick={() => setModalOpenId(doctor.id)}
+                      onClick={() => {}}
                       disabled={connectBtnDisabled}
                       className="w-full"
                     >
@@ -311,7 +307,14 @@ function CompareDoctorCards({
                 <MCButton
                   size={isMobile ? "m" : "ml"}
                   variant="secondary"
-                  onClick={() => navigate(ROUTES.DOCTOR.DOCTOR_PROFILE_PUBLIC.replace(":doctorId", doctor.id))}
+                  onClick={() =>
+                    navigate(
+                      ROUTES.DOCTOR.DOCTOR_PROFILE_PUBLIC.replace(
+                        ":doctorId",
+                        doctor.id,
+                      ),
+                    )
+                  }
                 >
                   {t("compare.viewProfile", "Ver perfil")}
                 </MCButton>

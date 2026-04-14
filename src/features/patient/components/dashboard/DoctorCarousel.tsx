@@ -79,7 +79,7 @@ export function DoctorCarousel({
   });
 
   // Fetch doctors from API (solo si no usamos mock data)
-  const { data, isLoading, error } = useMyDoctors(
+  const { data, isLoading } = useMyDoctors(
     useMockData
       ? undefined
       : {

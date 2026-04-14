@@ -12,7 +12,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { useIsMobile } from "@/lib/hooks/useIsMobile";
+
 import { useAppStore } from "@/stores/useAppStore";
 import { useGlobalUIStore } from "@/stores/useGlobalUIStore";
 import chatService from "@/services/chat/chat.service";
@@ -46,7 +46,7 @@ export function MessageBubble({
   onImageModalChange,
 }: MessageBubbleProps) {
   const { t } = useTranslation("common");
-  const isMobile = useIsMobile();
+
   const currentUserId = useAppStore((state) => state.user?.id);
   const [mediaUrl, setMediaUrl] = useState<string | null>(null);
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);

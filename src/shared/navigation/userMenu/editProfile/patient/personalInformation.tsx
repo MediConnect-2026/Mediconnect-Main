@@ -40,9 +40,7 @@ function PersonalInformation({
   const [cropType, setCropType] = useState<CropType>("profile");
   const [tempImage, setTempImage] = useState<string>("");
 
-  const [bannerImage, setBannerImage] = useState<string>(
-    user?.banner || "",
-  );
+  const [bannerImage, setBannerImage] = useState<string>(user?.banner || "");
   const [profileImage, setProfileImage] = useState<string>(
     getUserAvatar(user) || "",
   );
@@ -84,7 +82,7 @@ function PersonalInformation({
       // Si es un string de otro formato o un timestamp, intentar convertir
       const dateObj = new Date(fecha);
       if (!isNaN(dateObj.getTime())) {
-        birthDateValue = dateObj.toISOString().split('T')[0];
+        birthDateValue = dateObj.toISOString().split("T")[0];
       }
     }
   }
@@ -102,7 +100,7 @@ function PersonalInformation({
   };
 
   const formattedIdentityDocument = formatDominicanCedula(
-    user?.paciente?.numero_documento_identificacion
+    user?.paciente?.numero_documento_identificacion,
   );
 
   const handleImageChange = (
@@ -158,36 +156,45 @@ function PersonalInformation({
     try {
       // 1. Si la foto de perfil cambió, actualizarla primero
       let newProfilePhotoUrl = originalProfileImage;
-      const profileImageChanged = profileImage !== originalProfileImage && profileImage;
+      const profileImageChanged =
+        profileImage !== originalProfileImage && profileImage;
 
       if (profileImageChanged) {
         try {
           // Convertir la imagen base64 a File
           const photoFile = base64ToFile(
             profileImage,
-            'profile-photo.jpg',
-            'image/jpeg'
+            "profile-photo.jpg",
+            "image/jpeg",
           );
 
           // Llamar al servicio para actualizar la foto de perfil
-          const photoResponse = await patientService.updateProfilePhoto(photoFile);
+          const photoResponse =
+            await patientService.updateProfilePhoto(photoFile);
 
           if (photoResponse.success && photoResponse.data.fotoPerfilUrl) {
             // Agregar timestamp para evitar caché del navegador
             newProfilePhotoUrl = `${photoResponse.data.fotoPerfilUrl}?t=${Date.now()}`;
-            
+
             // Actualizar también el estado local para preview inmediata
             setProfileImage(newProfilePhotoUrl);
-            
+
             toast.success(
-              t("profileForm.photoUpdated", "Foto de perfil actualizada exitosamente")
+              t(
+                "profileForm.photoUpdated",
+                "Foto de perfil actualizada exitosamente",
+              ),
             );
           }
         } catch (photoError) {
           console.error("Error al actualizar foto de perfil:", photoError);
-          const photoErrorMessage = photoError instanceof Error 
-            ? photoError.message 
-            : t("profileForm.errorPhotoUpdate", "Error al actualizar la foto de perfil");
+          const photoErrorMessage =
+            photoError instanceof Error
+              ? photoError.message
+              : t(
+                  "profileForm.errorPhotoUpdate",
+                  "Error al actualizar la foto de perfil",
+                );
           toast.error(photoErrorMessage);
           // Continuar con la actualización de datos personales aunque falle la foto
         }
@@ -195,15 +202,16 @@ function PersonalInformation({
 
       // 2. Si el banner cambió, actualizarlo
       let newBannerUrl = originalBannerImage;
-      const bannerImageChanged = bannerImage !== originalBannerImage && bannerImage;
+      const bannerImageChanged =
+        bannerImage !== originalBannerImage && bannerImage;
 
       if (bannerImageChanged) {
         try {
           // Convertir la imagen base64 a File
           const bannerFile = base64ToFile(
             bannerImage,
-            'banner.jpg',
-            'image/jpeg'
+            "banner.jpg",
+            "image/jpeg",
           );
 
           // Llamar al servicio para actualizar el banner
@@ -212,19 +220,23 @@ function PersonalInformation({
           if (bannerResponse.success && bannerResponse.data.bannerUrl) {
             // Agregar timestamp para evitar caché del navegador
             newBannerUrl = `${bannerResponse.data.bannerUrl}?t=${Date.now()}`;
-            
+
             // Actualizar también el estado local para preview inmediata
             setBannerImage(newBannerUrl);
-            
+
             toast.success(
-              t("profileForm.bannerUpdated", "Banner actualizado exitosamente")
+              t("profileForm.bannerUpdated", "Banner actualizado exitosamente"),
             );
           }
         } catch (bannerError) {
           console.error("Error al actualizar banner:", bannerError);
-          const bannerErrorMessage = bannerError instanceof Error 
-            ? bannerError.message 
-            : t("profileForm.errorBannerUpdate", "Error al actualizar el banner");
+          const bannerErrorMessage =
+            bannerError instanceof Error
+              ? bannerError.message
+              : t(
+                  "profileForm.errorBannerUpdate",
+                  "Error al actualizar el banner",
+                );
           toast.error(bannerErrorMessage);
           // Continuar con la actualización de datos personales aunque falle el banner
         }
@@ -243,12 +255,12 @@ function PersonalInformation({
 
       if (response.success) {
         // Agregar timestamp para evitar caché del navegador
-        const photoUrlWithCacheBust = newProfilePhotoUrl 
-          ? `${newProfilePhotoUrl}?t=${Date.now()}` 
+        const photoUrlWithCacheBust = newProfilePhotoUrl
+          ? `${newProfilePhotoUrl}?t=${Date.now()}`
           : newProfilePhotoUrl;
 
-        const bannerUrlWithCacheBust = newBannerUrl 
-          ? `${newBannerUrl}?t=${Date.now()}` 
+        const bannerUrlWithCacheBust = newBannerUrl
+          ? `${newBannerUrl}?t=${Date.now()}`
           : newBannerUrl;
 
         // Actualizar el usuario en el store con los nuevos datos
@@ -256,11 +268,13 @@ function PersonalInformation({
           ...user,
           fotoPerfil: photoUrlWithCacheBust,
           banner: bannerUrlWithCacheBust ? bannerUrlWithCacheBust : null,
-          paciente: user.paciente ? {
-            ...user.paciente,
-            ...response.data,
-            fotoPerfil: photoUrlWithCacheBust, // Actualizar también en paciente
-          } : null,
+          paciente: user.paciente
+            ? {
+                ...user.paciente,
+                ...response.data,
+                fotoPerfil: photoUrlWithCacheBust, // Actualizar también en paciente
+              }
+            : null,
         });
 
         // Guardar avatar y banner en el store de perfil (cache local)
@@ -278,15 +292,17 @@ function PersonalInformation({
         }
 
         toast.success(
-          response.message || t("profileForm.successUpdate", "Perfil actualizado exitosamente")
+          response.message ||
+            t("profileForm.successUpdate", "Perfil actualizado exitosamente"),
         );
         onOpenChange(false);
       }
     } catch (error) {
       console.error("Error al actualizar perfil:", error);
-      const errorMessage = error instanceof Error 
-        ? error.message 
-        : t("profileForm.errorUpdate", "Error al actualizar el perfil");
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : t("profileForm.errorUpdate", "Error al actualizar el perfil");
       toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);

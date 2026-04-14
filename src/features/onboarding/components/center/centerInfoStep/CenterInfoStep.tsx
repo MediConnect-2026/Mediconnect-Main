@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { MCModalBase } from "@/shared/components/MCModalBase";
 import CenterInfoStep1 from "@/features/onboarding/components/center/centerInfoStep/CenterInfoStep1";
 import CenterInfoStep2 from "@/features/onboarding/components/center/centerInfoStep/CenterInfoStep2";
@@ -26,8 +26,9 @@ function CenterInfoStep({ children }: CenterInfoDialogProps) {
 
   const current = useGlobalUIStore((s) => s.onboardingStep);
   const setCurrent = useGlobalUIStore((s) => s.setOnboardingStep);
-  const [step1Valid, setStep1Valid] = useState(false);
+
   const centerSteps = useAppStore((state) => state.centerOnboardingData);
+  const [, setStep1Valid] = React.useState(false);
 
   const centerStep1 =
     centerSteps?.name &&

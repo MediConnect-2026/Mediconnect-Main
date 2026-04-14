@@ -8,7 +8,7 @@ import MediButton from "@/shared/components/landing/MediButton";
 import MCTextArea from "@/shared/components/forms/MCTextArea";
 import MCFormWrapper from "@/shared/components/forms/MCFormWrapper";
 import { contactSchema } from "@/schema/landingSchema";
-import { useAppStore } from "@/stores/useAppStore";
+
 import { useTranslation } from "react-i18next";
 import { useLandingStore } from "@/stores/useLandingPage";
 

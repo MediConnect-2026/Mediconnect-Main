@@ -55,9 +55,8 @@ const truncate = (text: string, maxLength: number = 25): string => {
 export function MyAppointmentsCards({
   appointment,
   onViewDetails,
-  onReschedule,
+
   onCancel,
-  onJoin,
 }: MyAppointmentsCardsProps) {
   const { t } = useTranslation("patient");
   const navigate = useNavigate();

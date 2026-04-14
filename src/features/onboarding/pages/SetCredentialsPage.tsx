@@ -15,10 +15,15 @@ import { mapDoctorOnboardingToRequest } from "@/features/onboarding/services/doc
 import { authService } from "@/services/auth/auth.service";
 import { normalizeLoginResponse } from "@/services/auth/auth.types";
 import { ROUTES } from "@/router/routes";
-import centerRegistrationService, { mapCenterOnboardingToRequest } from "../services/centro-registration.services";
+import centerRegistrationService, {
+  mapCenterOnboardingToRequest,
+} from "../services/centro-registration.services";
 import { doctorService } from "@/shared/navigation/userMenu/editProfile/doctor/services/doctor.service";
 import ubicacionesService from "@/features/onboarding/services/ubicaciones.services";
-import { AVAILABLE_LANGUAGES, PROFICIENCY_LEVELS } from "@/features/onboarding/constants/languages.constants";
+import {
+  AVAILABLE_LANGUAGES,
+  PROFICIENCY_LEVELS,
+} from "@/features/onboarding/constants/languages.constants";
 import type { createLocationRequest } from "../services/ubicaciones.types";
 
 function SetCredentialsPage() {
@@ -30,22 +35,22 @@ function SetCredentialsPage() {
   const selectedRole = useAppStore((state) => state.selectedRole);
   const basicInfo = useAppStore((state) => state.patientOnboardingData);
   const setPatientOnboardingData = useAppStore(
-    (state) => state.setPatientOnboardingData
+    (state) => state.setPatientOnboardingData,
   );
   const doctorBasicInfo = useAppStore((state) => state.doctorOnboardingData);
   const setDoctorOnboardingData = useAppStore(
-    (state) => state.setDoctorOnboardingData
+    (state) => state.setDoctorOnboardingData,
   );
   const centerBasicInfo = useAppStore((state) => state.centerOnboardingData);
   const setCenterOnboardingData = useAppStore(
-    (state) => state.setCenterOnboardingData
+    (state) => state.setCenterOnboardingData,
   );
   const verifyEmail = useAppStore((state) => state.verifyEmail);
   const registrationToken = useAppStore((state) => state.registrationToken);
   const login = useAppStore((state) => state.login);
   const clearOnboarding = useAppStore((state) => state.clearOnboarding);
   const clearAuthFlow = useAppStore((state) => state.clearAuthFlow);
-  const setAccessPage = useGlobalUIStore((state) => state.setAccessPage);
+
   const setToast = useGlobalUIStore((state) => state.setToast);
   const isAuthenticated = useAppStore((state) => state.isAuthenticated);
 
@@ -151,13 +156,13 @@ function SetCredentialsPage() {
         setDoctorOnboardingData(updatedDoctorData);
 
         if (!registrationToken) {
-          throw new Error(t('setCredentialsPage.errors.noRegistrationToken'));
+          throw new Error(t("setCredentialsPage.errors.noRegistrationToken"));
         }
 
         // Mapear y enviar los datos al backend
         const request = await mapDoctorOnboardingToRequest(
           updatedDoctorData,
-          registrationToken
+          registrationToken,
         );
 
         await doctorRegistrationService.registerDoctor(request);
@@ -169,7 +174,8 @@ function SetCredentialsPage() {
         });
 
         // Normalizar la respuesta para convertir el rol al formato correcto
-        const { accessToken, refreshToken, user } = normalizeLoginResponse(loginResponse);
+        const { accessToken, refreshToken, user } =
+          normalizeLoginResponse(loginResponse);
 
         // Guardar los tokens y datos del usuario en el store
         login(accessToken, refreshToken, user);
@@ -179,12 +185,12 @@ function SetCredentialsPage() {
           try {
             // Convertir el ID del idioma a nombre
             const selectedLanguage = AVAILABLE_LANGUAGES.find(
-              lang => lang.value === updatedDoctorData.language
+              (lang) => lang.value === updatedDoctorData.language,
             );
 
             // Convertir el ID del nivel de dominio a nombre
             const selectedProficiency = PROFICIENCY_LEVELS.find(
-              level => level.value === updatedDoctorData.proficiencyLevel
+              (level) => level.value === updatedDoctorData.proficiencyLevel,
             );
 
             if (selectedLanguage && selectedProficiency) {
@@ -193,19 +199,23 @@ function SetCredentialsPage() {
                 nombre: selectedLanguage.label,
                 nivel: selectedProficiency.label,
               });
-
             }
           } catch (languageError) {
             // No fallar el registro si hay error al agregar el idioma
             // El doctor puede agregarlo después desde su perfil
-            console.error('Error al agregar idioma durante el registro:', languageError);
+            console.error(
+              "Error al agregar idioma durante el registro:",
+              languageError,
+            );
           }
         }
 
         // Mostrar mensaje de éxito
         setToast({
-          message: t('setCredentialsPage.messages.registrationAndLoginSuccess') || '¡Registro exitoso! Bienvenido a Mediconnect',
-          type: 'success',
+          message:
+            t("setCredentialsPage.messages.registrationAndLoginSuccess") ||
+            "¡Registro exitoso! Bienvenido a Mediconnect",
+          type: "success",
           open: true,
         });
 
@@ -247,7 +257,7 @@ function SetCredentialsPage() {
         setCenterOnboardingData(updatedCenterData);
 
         if (!registrationToken) {
-          throw new Error(t('setCredentialsPage.errors.noRegistrationToken'));
+          throw new Error(t("setCredentialsPage.errors.noRegistrationToken"));
         }
 
         const locationPayload: createLocationRequest = {
@@ -257,17 +267,29 @@ function SetCredentialsPage() {
           codigoPostal: "",
           puntoGeografico: {
             type: "Point",
-            coordinates: [updatedCenterData.coordinates?.longitude || 0, updatedCenterData.coordinates?.latitude || 0],
+            coordinates: [
+              updatedCenterData.coordinates?.longitude || 0,
+              updatedCenterData.coordinates?.latitude || 0,
+            ],
           },
         };
-        const ubicacionResponse = await ubicacionesService.createLocationForHealthCenter(locationPayload);
+        const ubicacionResponse =
+          await ubicacionesService.createLocationForHealthCenter(
+            locationPayload,
+          );
         const ubicacionId = ubicacionResponse?.data?.id;
 
         if (!ubicacionId) {
-          throw new Error(t('setCredentialsPage.errors.locationCreationFailed'));
+          throw new Error(
+            t("setCredentialsPage.errors.locationCreationFailed"),
+          );
         }
 
-        const request = await mapCenterOnboardingToRequest(updatedCenterData, registrationToken, ubicacionId);
+        const request = await mapCenterOnboardingToRequest(
+          updatedCenterData,
+          registrationToken,
+          ubicacionId,
+        );
 
         await centerRegistrationService.registerCenter(request);
 
@@ -276,13 +298,16 @@ function SetCredentialsPage() {
           password: updatedCenterData.password,
         });
 
-        const { accessToken, refreshToken, user } = normalizeLoginResponse(loginResponse);
+        const { accessToken, refreshToken, user } =
+          normalizeLoginResponse(loginResponse);
 
         login(accessToken, refreshToken, user);
 
         setToast({
-          message: t('setCredentialsPage.messages.registrationAndLoginSuccess') || '¡Registro exitoso! Bienvenido a Mediconnect',
-          type: 'success',
+          message:
+            t("setCredentialsPage.messages.registrationAndLoginSuccess") ||
+            "¡Registro exitoso! Bienvenido a Mediconnect",
+          type: "success",
           open: true,
         });
 
@@ -292,24 +317,23 @@ function SetCredentialsPage() {
           clearOnboarding();
           clearAuthFlow();
         }, 0);
-
       }
     } catch (error: any) {
-      console.error('Error al procesar el registro:', error);
+      console.error("Error al procesar el registro:", error);
 
       // Determinar el mensaje de error apropiado
-      let errorMsg = t('setCredentialsPage.errors.registrationFailed');
+      let errorMsg = t("setCredentialsPage.errors.registrationFailed");
 
       if (error.response?.data?.message) {
         // Error del servidor
         errorMsg = error.response.data.message;
       } else if (error.message) {
         // Error local (validación, conversión, etc.)
-        if (error.message.includes('documento')) {
-          errorMsg = t('setCredentialsPage.errors.documentRequired');
-        } else if (error.message.includes('Título académico')) {
-          errorMsg = t('setCredentialsPage.errors.academicTitleRequired');
-        } else if (error.message.includes('token')) {
+        if (error.message.includes("documento")) {
+          errorMsg = t("setCredentialsPage.errors.documentRequired");
+        } else if (error.message.includes("Título académico")) {
+          errorMsg = t("setCredentialsPage.errors.academicTitleRequired");
+        } else if (error.message.includes("token")) {
           errorMsg = error.message; // Ya está traducido
         } else {
           errorMsg = error.message;
@@ -390,7 +414,7 @@ function SetCredentialsPage() {
             children: isSubmitting ? (
               <span className="flex items-center gap-2">
                 <Spinner className="size-4" />
-                {t('setCredentialsPage.processing')}
+                {t("setCredentialsPage.processing")}
               </span>
             ) : undefined,
           }}

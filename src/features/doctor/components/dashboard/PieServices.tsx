@@ -1,11 +1,5 @@
 import { Pie, PieChart as RechartsPieChart, Cell } from "recharts";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/shared/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import {
   ChartContainer,
   ChartTooltip,
@@ -28,7 +22,7 @@ function PieServices({
   data = [],
   config,
   title,
-  description,
+
   width = 220, // Valor por defecto
   height = 220, // Valor por defecto
 }: PieServicesProps) {

@@ -35,11 +35,11 @@ function CenterForm() {
   // El mismo patrón que usa el componente Location con el store:
   // leer el valor ya disponible en getValues() en el primer render, sin esperar
   // al useEffect asíncrono, para que los selects nunca aparezcan vacíos.
-  const [selectedProvince, setSelectedProvince] = useState<string>(
-    () => String(getValues("province") || "").trim()
+  const [selectedProvince, setSelectedProvince] = useState<string>(() =>
+    String(getValues("province") || "").trim(),
   );
-  const [selectedMunicipality, setSelectedMunicipality] = useState<string>(
-    () => String(getValues("municipality") || "").trim()
+  const [selectedMunicipality, setSelectedMunicipality] = useState<string>(() =>
+    String(getValues("municipality") || "").trim(),
   );
   const [selectedDistrict, setSelectedDistrict] = useState<string>(() => {
     const v = String(getValues("district") || "").trim();
@@ -49,10 +49,12 @@ function CenterForm() {
     const v = String(getValues("section") || "").trim();
     return isNumericId(v) ? v : "";
   });
-  const [selectedNeighborhood, setSelectedNeighborhood] = useState<string>(() => {
-    const v = String(getValues("barrioId") || "").trim();
-    return isNumericId(v) ? v : "";
-  });
+  const [selectedNeighborhood, setSelectedNeighborhood] = useState<string>(
+    () => {
+      const v = String(getValues("barrioId") || "").trim();
+      return isNumericId(v) ? v : "";
+    },
+  );
   const [neighborhoodGeo, setNeighborhoodGeo] = useState<Geometry | null>(null);
 
   /**
@@ -81,14 +83,15 @@ function CenterForm() {
 
   const municipiosParams = useMemo(
     () => (selectedProvince ? { idProvincia: selectedProvince } : undefined),
-    [selectedProvince]
+    [selectedProvince],
   );
   const { data: municipiosFromQuery = [], isLoading: isLoadingMunicipios } =
     useUbicaciones("municipios", municipiosParams);
 
   const distritosParams = useMemo(
-    () => (selectedMunicipality ? { idMunicipio: selectedMunicipality } : undefined),
-    [selectedMunicipality]
+    () =>
+      selectedMunicipality ? { idMunicipio: selectedMunicipality } : undefined,
+    [selectedMunicipality],
   );
   const { data: distritosFromQuery = [], isLoading: isLoadingDistritos } =
     useUbicaciones("distritos", distritosParams);
@@ -103,13 +106,14 @@ function CenterForm() {
 
   const barriosParams = useMemo(
     () => (selectedSection ? { idSeccion: selectedSection } : undefined),
-    [selectedSection]
+    [selectedSection],
   );
   const { data: barriosFromQuery = [], isLoading: isLoadingBarrios } =
     useUbicaciones("barrios", barriosParams);
 
   // Prefer on-demand options; fall back to React Query results
-  const municipiosOptions = autocompleteOptions.municipios ?? municipiosFromQuery;
+  const municipiosOptions =
+    autocompleteOptions.municipios ?? municipiosFromQuery;
   const distritosOptions = autocompleteOptions.distritos ?? distritosFromQuery;
   const seccionesOptions = autocompleteOptions.secciones ?? seccionesFromQuery;
   const barriosOptions = autocompleteOptions.barrios ?? barriosFromQuery;
@@ -136,13 +140,19 @@ function CenterForm() {
       setSelectedSection(section);
       setSelectedNeighborhood(barrioId);
 
-      setValue("province", province, { shouldDirty: true, shouldValidate: true });
-      setValue("municipality", municipality, { shouldDirty: true, shouldValidate: true });
+      setValue("province", province, {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+      setValue("municipality", municipality, {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
       setValue("district", district, { shouldDirty: false });
       setValue("section", section, { shouldDirty: false });
       setValue("barrioId", barrioId, { shouldDirty: false });
     },
-    [setValue]
+    [setValue],
   );
 
   // ─── Core helper: fetch all option lists and populate React Query cache ───
@@ -151,7 +161,7 @@ function CenterForm() {
       provId: string,
       munId: string,
       distId: string,
-      secId: string
+      secId: string,
     ): Promise<{
       municipiosData: SelectOption[];
       distritosData: SelectOption[];
@@ -167,9 +177,13 @@ function CenterForm() {
             ? ubicacionesService.getDistritos(currentLanguage, Number(munId))
             : Promise.resolve([] as SelectOption[]),
           distId
-            ? ubicacionesService.getSecciones(currentLanguage, { idDistrito: distId })
+            ? ubicacionesService.getSecciones(currentLanguage, {
+                idDistrito: distId,
+              })
             : munId
-              ? ubicacionesService.getSecciones(currentLanguage, { idMunicipio: munId })
+              ? ubicacionesService.getSecciones(currentLanguage, {
+                  idMunicipio: munId,
+                })
               : Promise.resolve([] as SelectOption[]),
           secId
             ? ubicacionesService.getBarrios(currentLanguage, Number(secId))
@@ -180,32 +194,32 @@ function CenterForm() {
       if (provId) {
         queryClient.setQueryData(
           QUERY_KEYS.UBICACIONES("municipios", { idProvincia: provId }),
-          municipiosData
+          municipiosData,
         );
       }
       if (munId) {
         queryClient.setQueryData(
           QUERY_KEYS.UBICACIONES("distritos", { idMunicipio: munId }),
-          distritosData
+          distritosData,
         );
         queryClient.setQueryData(
           QUERY_KEYS.UBICACIONES(
             "secciones",
-            distId ? { idDistrito: distId } : { idMunicipio: munId }
+            distId ? { idDistrito: distId } : { idMunicipio: munId },
           ),
-          seccionesData
+          seccionesData,
         );
       }
       if (secId) {
         queryClient.setQueryData(
           QUERY_KEYS.UBICACIONES("barrios", { idSeccion: secId }),
-          barriosData
+          barriosData,
         );
       }
 
       return { municipiosData, distritosData, seccionesData, barriosData };
     },
-    [currentLanguage, queryClient]
+    [currentLanguage, queryClient],
   );
 
   // ─── ONE-TIME INIT ────────────────────────────────────────────────────────
@@ -244,8 +258,12 @@ function CenterForm() {
 
       // Ensure the map always has a valid marker position
       if (!lat || !lng) {
-        setValue("coordinates.latitude", DEFAULT_COORDS.latitude, { shouldDirty: false });
-        setValue("coordinates.longitude", DEFAULT_COORDS.longitude, { shouldDirty: false });
+        setValue("coordinates.latitude", DEFAULT_COORDS.latitude, {
+          shouldDirty: false,
+        });
+        setValue("coordinates.longitude", DEFAULT_COORDS.longitude, {
+          shouldDirty: false,
+        });
       }
 
       const safeDistId = isNumericId(distId) ? distId : "";
@@ -284,7 +302,9 @@ function CenterForm() {
         if (isNumericId(barrioId)) {
           const geoReqId = ++neighborhoodGeoRequestIdRef.current;
           try {
-            const geo = await ubicacionesService.getGeoPointsByBarrios(Number(barrioId));
+            const geo = await ubicacionesService.getGeoPointsByBarrios(
+              Number(barrioId),
+            );
             if (geoReqId === neighborhoodGeoRequestIdRef.current) {
               setNeighborhoodGeo(geo.geom ?? null);
             }
@@ -311,22 +331,32 @@ function CenterForm() {
 
   // ─── Sync hierarchy from a geo-point (map click / drag) ──────────────────
   const syncHierarchyFromPoint = useCallback(
-    async (lat: number, lng: number, markDirty: boolean): Promise<boolean> => {
+    async (
+      lat: number,
+      lng: number,
+      isInsideNeighborhood?: boolean,
+    ): Promise<boolean> => {
+      void isInsideNeighborhood;
       // Capture ID BEFORE the first await — critical for correct cancellation
       const requestId = ++activeRequestIdRef.current;
 
-      let data: Awaited<ReturnType<typeof ubicacionesService.getDataBarrioFromGeoPoint>>;
+      let data: Awaited<
+        ReturnType<typeof ubicacionesService.getDataBarrioFromGeoPoint>
+      >;
       try {
         data = await ubicacionesService.getDataBarrioFromGeoPoint(lng, lat);
       } catch {
         return false;
       }
 
-      if (requestId !== activeRequestIdRef.current || !data?.municipio?.id) return false;
+      if (requestId !== activeRequestIdRef.current || !data?.municipio?.id)
+        return false;
 
       const provId = String(data.provincia?.id ?? "");
       const munId = String(data.municipio.id);
-      const distId = data.distritoMunicipal?.id ? String(data.distritoMunicipal.id) : "";
+      const distId = data.distritoMunicipal?.id
+        ? String(data.distritoMunicipal.id)
+        : "";
       const secId = data.seccion?.id ? String(data.seccion.id) : "";
       const barrioId = data.id ? String(data.id) : "";
 
@@ -365,24 +395,33 @@ function CenterForm() {
 
       return true;
     },
-    [fetchAndCacheHierarchy, applyHierarchy]
+    [fetchAndCacheHierarchy, applyHierarchy],
   );
 
   // ─── Map event handlers ────────────────────────────────────────────────────
   const handleLocationChange = useCallback(
     (lat: number, lng: number) => {
-      setValue("coordinates.latitude", lat, { shouldDirty: true, shouldValidate: true });
-      setValue("coordinates.longitude", lng, { shouldDirty: true, shouldValidate: true });
+      setValue("coordinates.latitude", lat, {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+      setValue("coordinates.longitude", lng, {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
     },
-    [setValue]
+    [setValue],
   );
 
   const handleLocationDetails = useCallback(
     (details: { address: string; neighborhood?: string; zipCode: string }) => {
-      setValue("address", details.address, { shouldDirty: true, shouldValidate: true });
+      setValue("address", details.address, {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
       setValue("codigoPostal", details.zipCode || "", { shouldDirty: true });
     },
-    [setValue]
+    [setValue],
   );
 
   const handlePointSelected = useCallback(
@@ -408,7 +447,7 @@ function CenterForm() {
         console.error("Error al sincronizar jerarquía desde el mapa:", err);
       }
     },
-    [getValues, syncHierarchyFromPoint]
+    [getValues, syncHierarchyFromPoint],
   );
 
   // ─── Manual select change handlers ────────────────────────────────────────
@@ -424,7 +463,12 @@ function CenterForm() {
       setSelectedSection("");
       setSelectedNeighborhood("");
       setNeighborhoodGeo(null);
-      setAutocompleteOptions({ municipios: null, distritos: null, secciones: null, barrios: null });
+      setAutocompleteOptions({
+        municipios: null,
+        distritos: null,
+        secciones: null,
+        barrios: null,
+      });
 
       setValue("municipality", "", { shouldDirty: true });
       setValue("district", "");
@@ -432,9 +476,12 @@ function CenterForm() {
       setValue("barrioId", "");
 
       setSelectedProvince(province);
-      setValue("province", province, { shouldDirty: true, shouldValidate: true });
+      setValue("province", province, {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
     },
-    [setValue]
+    [setValue],
   );
 
   const handleMunicipalityChange = useCallback(
@@ -460,9 +507,12 @@ function CenterForm() {
       setValue("barrioId", "");
 
       setSelectedMunicipality(municipality);
-      setValue("municipality", municipality, { shouldDirty: true, shouldValidate: true });
+      setValue("municipality", municipality, {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
     },
-    [setValue]
+    [setValue],
   );
 
   const handleDistrictChange = useCallback(
@@ -475,7 +525,11 @@ function CenterForm() {
       setSelectedSection("");
       setSelectedNeighborhood("");
       setNeighborhoodGeo(null);
-      setAutocompleteOptions((prev) => ({ ...prev, secciones: null, barrios: null }));
+      setAutocompleteOptions((prev) => ({
+        ...prev,
+        secciones: null,
+        barrios: null,
+      }));
 
       setValue("section", "");
       setValue("barrioId", "");
@@ -483,7 +537,7 @@ function CenterForm() {
       setSelectedDistrict(district);
       setValue("district", district);
     },
-    [setValue]
+    [setValue],
   );
 
   const handleSectionChange = useCallback(
@@ -502,7 +556,7 @@ function CenterForm() {
       setSelectedSection(section);
       setValue("section", section);
     },
-    [setValue]
+    [setValue],
   );
 
   const handleNeighborhoodChange = useCallback(
@@ -519,7 +573,9 @@ function CenterForm() {
       }
 
       try {
-        const geo = await ubicacionesService.getGeoPointsByBarrios(Number(neighborhood));
+        const geo = await ubicacionesService.getGeoPointsByBarrios(
+          Number(neighborhood),
+        );
         if (geoReqId === neighborhoodGeoRequestIdRef.current) {
           setNeighborhoodGeo(geo.geom ?? null);
         }
@@ -530,7 +586,7 @@ function CenterForm() {
         }
       }
     },
-    [setValue]
+    [setValue],
   );
 
   // ─── Render ────────────────────────────────────────────────────────────────
@@ -624,8 +680,14 @@ function CenterForm() {
           label={t("verification.forms.province")}
           placeholder={
             isLoadingProvincias
-              ? t("verification.forms.loadingProvinces", "Cargando provincias...")
-              : t("verification.forms.provincePlaceholder", "Seleccione provincia")
+              ? t(
+                  "verification.forms.loadingProvinces",
+                  "Cargando provincias...",
+                )
+              : t(
+                  "verification.forms.provincePlaceholder",
+                  "Seleccione provincia",
+                )
           }
           value={selectedProvince}
           options={provinciasOptions}
@@ -638,12 +700,18 @@ function CenterForm() {
           label={t("verification.forms.municipality")}
           placeholder={
             isLoadingMunicipios && !autocompleteOptions.municipios
-              ? t("verification.forms.loadingMunicipalities", "Cargando municipios...")
+              ? t(
+                  "verification.forms.loadingMunicipalities",
+                  "Cargando municipios...",
+                )
               : selectedProvince
-                ? t("verification.forms.municipalityPlaceholder", "Seleccione municipio")
+                ? t(
+                    "verification.forms.municipalityPlaceholder",
+                    "Seleccione municipio",
+                  )
                 : t(
                     "verification.forms.municipalityPlaceholderRequiredPrevValue",
-                    "Selecciona una provincia"
+                    "Selecciona una provincia",
                   )
           }
           value={selectedMunicipality}
@@ -651,7 +719,8 @@ function CenterForm() {
           searchable={true}
           size="small"
           disabled={
-            (isLoadingMunicipios && !autocompleteOptions.municipios) || !selectedProvince
+            (isLoadingMunicipios && !autocompleteOptions.municipios) ||
+            !selectedProvince
           }
           onChange={handleMunicipalityChange}
         />
@@ -663,12 +732,18 @@ function CenterForm() {
           label={t("verification.forms.district", "Distrito")}
           placeholder={
             isLoadingDistritos && !autocompleteOptions.distritos
-              ? t("verification.forms.loadingDistricts", "Cargando distritos...")
+              ? t(
+                  "verification.forms.loadingDistricts",
+                  "Cargando distritos...",
+                )
               : selectedMunicipality
-                ? t("verification.forms.districtPlaceholder", "Seleccione distrito")
+                ? t(
+                    "verification.forms.districtPlaceholder",
+                    "Seleccione distrito",
+                  )
                 : t(
                     "verification.forms.districtPlaceholderRequiredPrevValue",
-                    "Selecciona un municipio"
+                    "Selecciona un municipio",
                   )
           }
           value={selectedDistrict}
@@ -676,7 +751,8 @@ function CenterForm() {
           searchable={true}
           size="small"
           disabled={
-            (isLoadingDistritos && !autocompleteOptions.distritos) || !selectedMunicipality
+            (isLoadingDistritos && !autocompleteOptions.distritos) ||
+            !selectedMunicipality
           }
           onChange={handleDistrictChange}
         />
@@ -687,10 +763,13 @@ function CenterForm() {
             isLoadingSecciones && !autocompleteOptions.secciones
               ? t("verification.forms.loadingSections", "Cargando secciones...")
               : selectedMunicipality
-                ? t("verification.forms.sectionPlaceholder", "Seleccione sección")
+                ? t(
+                    "verification.forms.sectionPlaceholder",
+                    "Seleccione sección",
+                  )
                 : t(
                     "verification.forms.sectionPlaceholderRequiredPrevValue",
-                    "Selecciona municipio o distrito"
+                    "Selecciona municipio o distrito",
                   )
           }
           value={selectedSection}
@@ -698,7 +777,8 @@ function CenterForm() {
           searchable={true}
           size="small"
           disabled={
-            (isLoadingSecciones && !autocompleteOptions.secciones) || !seccionesParams
+            (isLoadingSecciones && !autocompleteOptions.secciones) ||
+            !seccionesParams
           }
           onChange={handleSectionChange}
         />
@@ -710,12 +790,18 @@ function CenterForm() {
           label={t("verification.forms.neighborhood", "Barrio")}
           placeholder={
             isLoadingBarrios && !autocompleteOptions.barrios
-              ? t("verification.forms.loadingNeighborhoods", "Cargando barrios...")
+              ? t(
+                  "verification.forms.loadingNeighborhoods",
+                  "Cargando barrios...",
+                )
               : selectedSection
-                ? t("verification.forms.neighborhoodPlaceholder", "Seleccione barrio")
+                ? t(
+                    "verification.forms.neighborhoodPlaceholder",
+                    "Seleccione barrio",
+                  )
                 : t(
                     "verification.forms.neighborhoodPlaceholderRequiredPrevValue",
-                    "Selecciona una sección"
+                    "Selecciona una sección",
                   )
           }
           value={selectedNeighborhood}
@@ -723,7 +809,8 @@ function CenterForm() {
           searchable={true}
           size="small"
           disabled={
-            (isLoadingBarrios && !autocompleteOptions.barrios) || !selectedSection
+            (isLoadingBarrios && !autocompleteOptions.barrios) ||
+            !selectedSection
           }
           onChange={handleNeighborhoodChange}
         />
@@ -737,8 +824,20 @@ function CenterForm() {
 
       {/* Hidden coordinate inputs */}
       <div className="hidden">
-        <MCInput name="coordinates.latitude" label="" type="number" size="small" disabled />
-        <MCInput name="coordinates.longitude" label="" type="number" size="small" disabled />
+        <MCInput
+          name="coordinates.latitude"
+          label=""
+          type="number"
+          size="small"
+          disabled
+        />
+        <MCInput
+          name="coordinates.longitude"
+          label=""
+          type="number"
+          size="small"
+          disabled
+        />
       </div>
     </div>
   );

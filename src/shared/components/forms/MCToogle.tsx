@@ -1,4 +1,3 @@
-import React from "react";
 import { ToggleGroup, ToggleGroupItem } from "@/shared/ui/toggle-group";
 import { List, LayoutGrid } from "lucide-react";
 import { useTranslation } from "react-i18next";

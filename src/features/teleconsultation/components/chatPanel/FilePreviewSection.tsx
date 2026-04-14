@@ -1,11 +1,16 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { X, CheckCircle, AlertCircle, Loader2, FileIcon } from "lucide-react";
+import { X, CheckCircle, AlertCircle, Loader2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { AttachmentQueueItem } from "@/types/ChatTypes";
 import { AttachmentStatus } from "@/types/ChatTypes";
 import { formatFileSize, getFileIcon } from "@/lib/utils";
 import { calculateCompressionRatio } from "@/utils/imageCompression";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/shared/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/shared/ui/tooltip";
 import { Progress } from "@/shared/ui/progress";
 import { useState } from "react";
 
@@ -18,10 +23,11 @@ interface FilePreviewSectionProps {
 export const FilePreviewSection = ({
   attachmentQueue = [],
   onRemoveAttachment,
-  isUploading = false,
 }: FilePreviewSectionProps) => {
   const { t } = useTranslation("common");
-  const [videoDurations, setVideoDurations] = useState<Record<string, number>>({});
+  const [videoDurations, setVideoDurations] = useState<Record<string, number>>(
+    {},
+  );
   const safeQueue = attachmentQueue ?? [];
 
   // Render badge based on status
@@ -93,7 +99,10 @@ export const FilePreviewSection = ({
           muted
           onLoadedMetadata={(e) => {
             const videoElement = e.target as HTMLVideoElement;
-            setVideoDurations((prev) => ({ ...prev, [item.id]: videoElement.duration }));
+            setVideoDurations((prev) => ({
+              ...prev,
+              [item.id]: videoElement.duration,
+            }));
           }}
         />
       );
@@ -125,7 +134,8 @@ export const FilePreviewSection = ({
     <div className="px-4 py-3 bg-muted/30 border-t border-primary/10">
       <div className="flex items-center justify-between mb-2">
         <h3 className="text-sm font-medium text-foreground">
-          {t("filePreview.attachments", "Archivos adjuntos")} ({safeQueue.length})
+          {t("filePreview.attachments", "Archivos adjuntos")} (
+          {safeQueue.length})
         </h3>
       </div>
 
@@ -156,14 +166,15 @@ export const FilePreviewSection = ({
                 )}
 
                 {/* Remove Button */}
-                {item.status !== AttachmentStatus.UPLOADING && item.status !== AttachmentStatus.SUCCESS && (
-                  <button
-                    onClick={() => onRemoveAttachment?.(item.id)}
-                    className="absolute top-1 left-1 bg-destructive/90 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity shadow-lg hover:bg-destructive"
-                  >
-                    <X size={14} />
-                  </button>
-                )}
+                {item.status !== AttachmentStatus.UPLOADING &&
+                  item.status !== AttachmentStatus.SUCCESS && (
+                    <button
+                      onClick={() => onRemoveAttachment?.(item.id)}
+                      className="absolute top-1 left-1 bg-destructive/90 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity shadow-lg hover:bg-destructive"
+                    >
+                      <X size={14} />
+                    </button>
+                  )}
 
                 {/* Overlay for disabled state */}
                 {item.status === AttachmentStatus.ERROR && (
@@ -173,22 +184,33 @@ export const FilePreviewSection = ({
 
               {/* File Info */}
               <div className="mt-1 space-y-0.5">
-                <p className="text-xs font-medium text-foreground truncate" title={item.file.name}>
+                <p
+                  className="text-xs font-medium text-foreground truncate"
+                  title={item.file.name}
+                >
                   {item.file.name}
                 </p>
                 <p className="text-xs text-muted-foreground">
                   {formatFileSize(item.compressedSize || item.file.size)}
-                  {item.compressedSize && item.originalSize && item.compressedSize < item.originalSize && (
-                    <span className="text-green-600 ml-1">
-                      ↓{calculateCompressionRatio(item.originalSize, item.compressedSize)}%
-                    </span>
-                  )}
+                  {item.compressedSize &&
+                    item.originalSize &&
+                    item.compressedSize < item.originalSize && (
+                      <span className="text-green-600 ml-1">
+                        ↓
+                        {calculateCompressionRatio(
+                          item.originalSize,
+                          item.compressedSize,
+                        )}
+                        %
+                      </span>
+                    )}
                 </p>
 
                 {/* Progress Bar */}
-                {item.status === AttachmentStatus.UPLOADING && typeof item.progress === "number" && (
-                  <Progress value={item.progress} className="h-1" />
-                )}
+                {item.status === AttachmentStatus.UPLOADING &&
+                  typeof item.progress === "number" && (
+                    <Progress value={item.progress} className="h-1" />
+                  )}
               </div>
             </motion.div>
           ))}

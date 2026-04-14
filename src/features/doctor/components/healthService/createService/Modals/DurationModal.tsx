@@ -5,14 +5,12 @@ import { serviceSchema } from "@/schema/createService.schema";
 import { useTranslation } from "react-i18next";
 import { useCreateServicesStore } from "@/stores/useCreateServicesStore";
 import { useRef, useState } from "react";
-import { useIsMobile } from "@/lib/hooks/useIsMobile";
 
 interface DurationModalProps {
   children?: React.ReactNode;
 }
 
 function DurationModal({ children }: DurationModalProps) {
-  const isMobile = useIsMobile();
   const { t } = useTranslation("doctor");
 
   const setCreateServiceField = useCreateServicesStore(

@@ -28,7 +28,9 @@ type CenterInfoStep2Props = {
 function FormBridge({
   formSetValueRef,
 }: {
-  formSetValueRef: React.MutableRefObject<((name: string, value: any) => void) | null>;
+  formSetValueRef: React.MutableRefObject<
+    ((name: string, value: any) => void) | null
+  >;
 }) {
   const { setValue } = useFormContext();
   useEffect(() => {
@@ -40,13 +42,21 @@ function FormBridge({
 
 // ─── Componente ──────────────────────────────────────────────────────────────
 
-function CenterInfoStep2({ children, onValidationChange, onNext }: CenterInfoStep2Props) {
+function CenterInfoStep2({
+  children,
+  onValidationChange,
+  onNext,
+}: CenterInfoStep2Props) {
   const { t } = useTranslation("auth");
   const { i18n } = useTranslation();
   const currentLanguage = i18n.language;
 
-  const centerOnboardingData = useAppStore((state) => state.centerOnboardingData);
-  const setOnboardingStep = useGlobalUIStore((state) => state.setOnboardingStep);
+  const centerOnboardingData = useAppStore(
+    (state) => state.centerOnboardingData,
+  );
+  const setOnboardingStep = useGlobalUIStore(
+    (state) => state.setOnboardingStep,
+  );
   const setCenterField = useAppStore((state) => state.setCenterField);
   const queryClient = useQueryClient();
 
@@ -71,7 +81,9 @@ function CenterInfoStep2({ children, onValidationChange, onNext }: CenterInfoSte
   }>({ municipios: null, distritos: null, secciones: null, barrios: null });
 
   // Ref para acceder a setValue del form desde fuera del MCFormWrapper
-  const formSetValueRef = useRef<((name: string, value: any) => void) | null>(null);
+  const formSetValueRef = useRef<((name: string, value: any) => void) | null>(
+    null,
+  );
 
   // ─── Hooks de ubicaciones (para interacción manual) ───────────────────────
 
@@ -80,14 +92,15 @@ function CenterInfoStep2({ children, onValidationChange, onNext }: CenterInfoSte
 
   const municipiosParams = useMemo(
     () => (selectedProvince ? { idProvincia: selectedProvince } : undefined),
-    [selectedProvince]
+    [selectedProvince],
   );
   const { data: municipiosFromQuery = [], isLoading: isLoadingMunicipios } =
     useUbicaciones("municipios", municipiosParams);
 
   const distritosParams = useMemo(
-    () => (selectedMunicipality ? { idMunicipio: selectedMunicipality } : undefined),
-    [selectedMunicipality]
+    () =>
+      selectedMunicipality ? { idMunicipio: selectedMunicipality } : undefined,
+    [selectedMunicipality],
   );
   const { data: distritosFromQuery = [], isLoading: isLoadingDistritos } =
     useUbicaciones("distritos", distritosParams);
@@ -103,7 +116,7 @@ function CenterInfoStep2({ children, onValidationChange, onNext }: CenterInfoSte
 
   const barriosParams = useMemo(
     () => (selectedSection ? { idSeccion: selectedSection } : undefined),
-    [selectedSection]
+    [selectedSection],
   );
   const { data: barriosFromQuery = [], isLoading: isLoadingBarrios } =
     useUbicaciones("barrios", barriosParams);
@@ -112,10 +125,11 @@ function CenterInfoStep2({ children, onValidationChange, onNext }: CenterInfoSte
   // Cuando el autocompletado setea opciones locales, los selects las usan
   // inmediatamente sin esperar el ciclo de React Query. La interacción manual
   // limpia autocompleteOptions y vuelve a usar las del hook.
-  const municipiosOptions = autocompleteOptions.municipios ?? municipiosFromQuery;
-  const distritosOptions  = autocompleteOptions.distritos  ?? distritosFromQuery;
-  const seccionesOptions  = autocompleteOptions.secciones  ?? seccionesFromQuery;
-  const barriosOptions    = autocompleteOptions.barrios    ?? barriosFromQuery;
+  const municipiosOptions =
+    autocompleteOptions.municipios ?? municipiosFromQuery;
+  const distritosOptions = autocompleteOptions.distritos ?? distritosFromQuery;
+  const seccionesOptions = autocompleteOptions.secciones ?? seccionesFromQuery;
+  const barriosOptions = autocompleteOptions.barrios ?? barriosFromQuery;
 
   // ─── Inicializar valores desde el store al montar ────────────────────────
   useEffect(() => {
@@ -134,18 +148,25 @@ function CenterInfoStep2({ children, onValidationChange, onNext }: CenterInfoSte
 
       try {
         // 1. OBTENER DATOS PRIMERO (Sin tocar el estado local aún)
-        const [municipiosData, distritosData, seccionesData, barriosData] = await Promise.all([
-          ubicacionesService.getMunicipios(currentLanguage, Number(provId)),
-          munId ? ubicacionesService.getDistritos(currentLanguage, Number(munId)) : Promise.resolve([]),
-          distId
-            ? ubicacionesService.getSecciones(currentLanguage, { idDistrito: distId })
-            : munId
-              ? ubicacionesService.getSecciones(currentLanguage, { idMunicipio: munId })
+        const [municipiosData, distritosData, seccionesData, barriosData] =
+          await Promise.all([
+            ubicacionesService.getMunicipios(currentLanguage, Number(provId)),
+            munId
+              ? ubicacionesService.getDistritos(currentLanguage, Number(munId))
               : Promise.resolve([]),
-          secId
-            ? ubicacionesService.getBarrios(currentLanguage, Number(secId))
-            : Promise.resolve([]),
-        ]);
+            distId
+              ? ubicacionesService.getSecciones(currentLanguage, {
+                  idDistrito: distId,
+                })
+              : munId
+                ? ubicacionesService.getSecciones(currentLanguage, {
+                    idMunicipio: munId,
+                  })
+                : Promise.resolve([]),
+            secId
+              ? ubicacionesService.getBarrios(currentLanguage, Number(secId))
+              : Promise.resolve([]),
+          ]);
 
         // 2. POBLAR CACHÉ DE REACT QUERY Y AUTOCOMPLETE
         setAutocompleteOptions({
@@ -157,32 +178,32 @@ function CenterInfoStep2({ children, onValidationChange, onNext }: CenterInfoSte
 
         queryClient.setQueryData(
           QUERY_KEYS.UBICACIONES("municipios", { idProvincia: provId }),
-          municipiosData
+          municipiosData,
         );
 
         if (munId) {
           queryClient.setQueryData(
             QUERY_KEYS.UBICACIONES("distritos", { idMunicipio: munId }),
-            distritosData
+            distritosData,
           );
         }
 
         if (distId) {
           queryClient.setQueryData(
             QUERY_KEYS.UBICACIONES("secciones", { idDistrito: distId }),
-            seccionesData
+            seccionesData,
           );
         } else if (munId) {
           queryClient.setQueryData(
             QUERY_KEYS.UBICACIONES("secciones", { idMunicipio: munId }),
-            seccionesData
+            seccionesData,
           );
         }
 
         if (secId) {
           queryClient.setQueryData(
             QUERY_KEYS.UBICACIONES("barrios", { idSeccion: secId }),
-            barriosData
+            barriosData,
           );
         }
 
@@ -194,7 +215,9 @@ function CenterInfoStep2({ children, onValidationChange, onNext }: CenterInfoSte
         if (barrioId) setSelectedNeighborhood(barrioId);
 
         if (barrioId) {
-          const geo = await ubicacionesService.getGeoPointsByBarrios(Number(barrioId));
+          const geo = await ubicacionesService.getGeoPointsByBarrios(
+            Number(barrioId),
+          );
           setNeighborhoodGeo(geo.geom ?? null);
         }
 
@@ -225,7 +248,7 @@ function CenterInfoStep2({ children, onValidationChange, onNext }: CenterInfoSte
 
   // ─── Submit ───────────────────────────────────────────────────────────────
 
-  const handleSubmit = (data: any) => {
+  const handleSubmit = () => {
     setOnboardingStep?.(0);
     onValidationChange?.(true);
     onNext?.();
@@ -237,7 +260,7 @@ function CenterInfoStep2({ children, onValidationChange, onNext }: CenterInfoSte
       setCenterField?.("address", details.address);
       formSetValueRef.current?.("address", details.address);
     },
-    [setCenterField]
+    [setCenterField],
   );
 
   // ─── Helper: sincronizar estado + store + form ────────────────────────────
@@ -245,13 +268,13 @@ function CenterInfoStep2({ children, onValidationChange, onNext }: CenterInfoSte
     (
       field: string,
       value: string,
-      stateSetter: React.Dispatch<React.SetStateAction<string>>
+      stateSetter: React.Dispatch<React.SetStateAction<string>>,
     ) => {
       stateSetter(value);
       setCenterField?.(field as any, value);
       formSetValueRef.current?.(field, value);
     },
-    [setCenterField]
+    [setCenterField],
   );
 
   // ─── Handlers manuales con reset en cascada ───────────────────────────────
@@ -267,7 +290,12 @@ function CenterInfoStep2({ children, onValidationChange, onNext }: CenterInfoSte
       setSelectedNeighborhood("");
       setNeighborhoodGeo(null);
       // Limpiar todas las opciones del autocompletado al cambiar provincia
-      setAutocompleteOptions({ municipios: null, distritos: null, secciones: null, barrios: null });
+      setAutocompleteOptions({
+        municipios: null,
+        distritos: null,
+        secciones: null,
+        barrios: null,
+      });
       setCenterField?.("municipality", "");
       setCenterField?.("district", "");
       setCenterField?.("section", "");
@@ -275,7 +303,7 @@ function CenterInfoStep2({ children, onValidationChange, onNext }: CenterInfoSte
       setCenterField?.("subNeighborhood", "");
       applyField("province", province, setSelectedProvince);
     },
-    [applyField, setCenterField]
+    [applyField, setCenterField],
   );
 
   const handleMunicipalityChange = useCallback(
@@ -285,14 +313,19 @@ function CenterInfoStep2({ children, onValidationChange, onNext }: CenterInfoSte
       setSelectedSection("");
       setSelectedNeighborhood("");
       setNeighborhoodGeo(null);
-      setAutocompleteOptions((prev) => ({ ...prev, distritos: null, secciones: null, barrios: null }));
+      setAutocompleteOptions((prev) => ({
+        ...prev,
+        distritos: null,
+        secciones: null,
+        barrios: null,
+      }));
       setCenterField?.("district", "");
       setCenterField?.("section", "");
       setCenterField?.("neighborhood", "");
       setCenterField?.("subNeighborhood", "");
       applyField("municipality", municipality, setSelectedMunicipality);
     },
-    [applyField, setCenterField]
+    [applyField, setCenterField],
   );
 
   const handleDistrictChange = useCallback(
@@ -301,13 +334,17 @@ function CenterInfoStep2({ children, onValidationChange, onNext }: CenterInfoSte
       setSelectedSection("");
       setSelectedNeighborhood("");
       setNeighborhoodGeo(null);
-      setAutocompleteOptions((prev) => ({ ...prev, secciones: null, barrios: null }));
+      setAutocompleteOptions((prev) => ({
+        ...prev,
+        secciones: null,
+        barrios: null,
+      }));
       setCenterField?.("section", "");
       setCenterField?.("neighborhood", "");
       setCenterField?.("subNeighborhood", "");
       applyField("district", district, setSelectedDistrict);
     },
-    [applyField, setCenterField]
+    [applyField, setCenterField],
   );
 
   const handleSectionChange = useCallback(
@@ -320,7 +357,7 @@ function CenterInfoStep2({ children, onValidationChange, onNext }: CenterInfoSte
       setCenterField?.("subNeighborhood", "");
       applyField("section", section, setSelectedSection);
     },
-    [applyField, setCenterField]
+    [applyField, setCenterField],
   );
 
   const handleNeighborhoodChange = useCallback(
@@ -334,14 +371,16 @@ function CenterInfoStep2({ children, onValidationChange, onNext }: CenterInfoSte
       }
 
       try {
-        const geo = await ubicacionesService.getGeoPointsByBarrios(Number(neighborhood));
+        const geo = await ubicacionesService.getGeoPointsByBarrios(
+          Number(neighborhood),
+        );
         setNeighborhoodGeo(geo.geom ?? null);
       } catch (err) {
         console.error("Error obteniendo geometría del barrio:", err);
         setNeighborhoodGeo(null);
       }
     },
-    [applyField, setCenterField]
+    [applyField, setCenterField],
   );
 
   // ─── Handler: punto seleccionado en el mapa ───────────────────────────────
@@ -359,45 +398,68 @@ function CenterInfoStep2({ children, onValidationChange, onNext }: CenterInfoSte
       if (isInsideNeighborhood) return;
 
       try {
-        const data = await ubicacionesService.getDataBarrioFromGeoPoint(lng, lat);
+        const data = await ubicacionesService.getDataBarrioFromGeoPoint(
+          lng,
+          lat,
+        );
         if (!data?.municipio?.id) return;
 
-        const provId   = String(data.provincia?.id ?? "");
-        const munId    = String(data.municipio.id);
-        const distId   = data.distritoMunicipal?.id ? String(data.distritoMunicipal.id) : "";
-        const secId    = data.seccion?.id ? String(data.seccion.id) : "";
+        const provId = String(data.provincia?.id ?? "");
+        const munId = String(data.municipio.id);
+        const distId = data.distritoMunicipal?.id
+          ? String(data.distritoMunicipal.id)
+          : "";
+        const secId = data.seccion?.id ? String(data.seccion.id) : "";
         const barrioId = data.id ? String(data.id) : "";
 
         const newMunicipiosParams = { idProvincia: provId };
-        const newDistritosParams  = { idMunicipio: munId };
-        const newSeccionesParams  = distId ? { idDistrito: distId } : { idMunicipio: munId };
-        const newBarriosParams    = secId ? { idSeccion: secId } : null;
+        const newDistritosParams = { idMunicipio: munId };
+        const newSeccionesParams = distId
+          ? { idDistrito: distId }
+          : { idMunicipio: munId };
+        const newBarriosParams = secId ? { idSeccion: secId } : null;
 
         // Fetch paralelo de todos los niveles
-        const [municipiosData, distritosData, seccionesData, barriosData] = await Promise.all([
-          ubicacionesService.getMunicipios(currentLanguage, Number(provId)),
-          ubicacionesService.getDistritos(currentLanguage, Number(munId)),
-          ubicacionesService.getSecciones(currentLanguage, newSeccionesParams),
-          newBarriosParams
-            ? ubicacionesService.getBarrios(currentLanguage, Number(secId))
-            : Promise.resolve([]),
-        ]);
+        const [municipiosData, distritosData, seccionesData, barriosData] =
+          await Promise.all([
+            ubicacionesService.getMunicipios(currentLanguage, Number(provId)),
+            ubicacionesService.getDistritos(currentLanguage, Number(munId)),
+            ubicacionesService.getSecciones(
+              currentLanguage,
+              newSeccionesParams,
+            ),
+            newBarriosParams
+              ? ubicacionesService.getBarrios(currentLanguage, Number(secId))
+              : Promise.resolve([]),
+          ]);
 
         // Inyectar en cache de React Query (para navegación futura y selects manuales)
-        queryClient.setQueryData(QUERY_KEYS.UBICACIONES("municipios", newMunicipiosParams), municipiosData);
-        queryClient.setQueryData(QUERY_KEYS.UBICACIONES("distritos", newDistritosParams), distritosData);
-        queryClient.setQueryData(QUERY_KEYS.UBICACIONES("secciones", newSeccionesParams), seccionesData);
+        queryClient.setQueryData(
+          QUERY_KEYS.UBICACIONES("municipios", newMunicipiosParams),
+          municipiosData,
+        );
+        queryClient.setQueryData(
+          QUERY_KEYS.UBICACIONES("distritos", newDistritosParams),
+          distritosData,
+        );
+        queryClient.setQueryData(
+          QUERY_KEYS.UBICACIONES("secciones", newSeccionesParams),
+          seccionesData,
+        );
         if (newBarriosParams) {
-          queryClient.setQueryData(QUERY_KEYS.UBICACIONES("barrios", newBarriosParams), barriosData);
+          queryClient.setQueryData(
+            QUERY_KEYS.UBICACIONES("barrios", newBarriosParams),
+            barriosData,
+          );
         }
 
         // Inyectar en estado local → los selects tienen las opciones disponibles
         // en el MISMO render en que reciben el valor seleccionado.
         setAutocompleteOptions({
           municipios: municipiosData,
-          distritos:  distritosData,
-          secciones:  seccionesData,
-          barrios:    newBarriosParams ? barriosData : [],
+          distritos: distritosData,
+          secciones: seccionesData,
+          barrios: newBarriosParams ? barriosData : [],
         });
 
         // Setear valores en estado local
@@ -430,7 +492,7 @@ function CenterInfoStep2({ children, onValidationChange, onNext }: CenterInfoSte
         console.error("Error obteniendo barrio por punto:", err);
       }
     },
-    [setCenterField, queryClient, currentLanguage]
+    [setCenterField, queryClient, currentLanguage],
   );
 
   // ─── Render ───────────────────────────────────────────────────────────────
@@ -472,7 +534,10 @@ function CenterInfoStep2({ children, onValidationChange, onNext }: CenterInfoSte
           district: centerOnboardingData?.district || "",
           section: centerOnboardingData?.section || "",
           neighborhood: centerOnboardingData?.neighborhood || "",
-          coordinates: centerOnboardingData?.coordinates || { latitude: 0, longitude: 0 },
+          coordinates: centerOnboardingData?.coordinates || {
+            latitude: 0,
+            longitude: 0,
+          },
         }}
       >
         <FormBridge formSetValueRef={formSetValueRef} />
@@ -510,12 +575,17 @@ function CenterInfoStep2({ children, onValidationChange, onNext }: CenterInfoSte
                   ? t("centerInfoStep.loadingMunicipios")
                   : selectedProvince
                     ? t("centerInfoStep.municipalityPlaceholder")
-                    : t("centerInfoStep.municipalityPlaceholderRequiredPrevValue")
+                    : t(
+                        "centerInfoStep.municipalityPlaceholderRequiredPrevValue",
+                      )
               }
               value={selectedMunicipality}
               options={municipiosOptions}
               searchable={true}
-              disabled={(isLoadingMunicipios && !autocompleteOptions.municipios) || !selectedProvince}
+              disabled={
+                (isLoadingMunicipios && !autocompleteOptions.municipios) ||
+                !selectedProvince
+              }
               onChange={handleMunicipalityChange}
             />
 
@@ -531,7 +601,10 @@ function CenterInfoStep2({ children, onValidationChange, onNext }: CenterInfoSte
               }
               value={selectedDistrict}
               options={distritosOptions}
-              disabled={(isLoadingDistritos && !autocompleteOptions.distritos) || !selectedMunicipality}
+              disabled={
+                (isLoadingDistritos && !autocompleteOptions.distritos) ||
+                !selectedMunicipality
+              }
               searchable={true}
               onChange={handleDistrictChange}
             />
@@ -551,7 +624,10 @@ function CenterInfoStep2({ children, onValidationChange, onNext }: CenterInfoSte
               value={selectedSection}
               options={seccionesOptions}
               searchable={true}
-              disabled={(isLoadingSecciones && !autocompleteOptions.secciones) || !seccionesParams}
+              disabled={
+                (isLoadingSecciones && !autocompleteOptions.secciones) ||
+                !seccionesParams
+              }
               onChange={handleSectionChange}
             />
 
@@ -563,11 +639,16 @@ function CenterInfoStep2({ children, onValidationChange, onNext }: CenterInfoSte
                   ? t("centerInfoStep.loadingBarrios")
                   : selectedSection
                     ? t("centerInfoStep.neighborhoodPlaceholder")
-                    : t("centerInfoStep.neighborhoodPlaceholderRequiredPrevValue")
+                    : t(
+                        "centerInfoStep.neighborhoodPlaceholderRequiredPrevValue",
+                      )
               }
               value={selectedNeighborhood}
               options={barriosOptions}
-              disabled={(isLoadingBarrios && !autocompleteOptions.barrios) || !selectedSection}
+              disabled={
+                (isLoadingBarrios && !autocompleteOptions.barrios) ||
+                !selectedSection
+              }
               searchable={true}
               onChange={handleNeighborhoodChange}
             />

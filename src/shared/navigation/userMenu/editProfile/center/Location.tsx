@@ -55,19 +55,19 @@ function Location({ onOpenChange, locationId }: LocationProps) {
   });
 
   const [selectedProvince, setSelectedProvince] = useState<string>(
-    centerLocation?.province || ""
+    centerLocation?.province || "",
   );
   const [selectedMunicipality, setSelectedMunicipality] = useState<string>(
-    centerLocation?.municipality || ""
+    centerLocation?.municipality || "",
   );
   const [selectedDistrict, setSelectedDistrict] = useState<string>(
-    centerLocation?.district || ""
+    centerLocation?.district || "",
   );
   const [selectedSection, setSelectedSection] = useState<string>(
-    centerLocation?.section || ""
+    centerLocation?.section || "",
   );
   const [selectedNeighborhood, setSelectedNeighborhood] = useState<string>(
-    centerLocation?.neighborhood || ""
+    centerLocation?.neighborhood || "",
   );
   const [neighborhoodGeo, setNeighborhoodGeo] = useState<Geometry | null>(null);
 
@@ -79,7 +79,7 @@ function Location({ onOpenChange, locationId }: LocationProps) {
   }>({ municipios: null, distritos: null, secciones: null, barrios: null });
 
   const formSetValueRef = useRef<((name: string, value: any) => void) | null>(
-    null
+    null,
   );
 
   const updateStoreField = useCallback(
@@ -99,7 +99,7 @@ function Location({ onOpenChange, locationId }: LocationProps) {
         [field]: value,
       });
     },
-    [centerLocation, setCenterLocation]
+    [centerLocation, setCenterLocation],
   );
 
   const { data: provinciasOptions = [], isLoading: isLoadingProvincias } =
@@ -107,7 +107,7 @@ function Location({ onOpenChange, locationId }: LocationProps) {
 
   const municipiosParams = useMemo(
     () => (selectedProvince ? { idProvincia: selectedProvince } : undefined),
-    [selectedProvince]
+    [selectedProvince],
   );
   const { data: municipiosFromQuery = [], isLoading: isLoadingMunicipios } =
     useUbicaciones("municipios", municipiosParams);
@@ -115,7 +115,7 @@ function Location({ onOpenChange, locationId }: LocationProps) {
   const distritosParams = useMemo(
     () =>
       selectedMunicipality ? { idMunicipio: selectedMunicipality } : undefined,
-    [selectedMunicipality]
+    [selectedMunicipality],
   );
   const { data: distritosFromQuery = [], isLoading: isLoadingDistritos } =
     useUbicaciones("distritos", distritosParams);
@@ -131,7 +131,7 @@ function Location({ onOpenChange, locationId }: LocationProps) {
 
   const barriosParams = useMemo(
     () => (selectedSection ? { idSeccion: selectedSection } : undefined),
-    [selectedSection]
+    [selectedSection],
   );
   const { data: barriosFromQuery = [], isLoading: isLoadingBarrios } =
     useUbicaciones("barrios", barriosParams);
@@ -152,7 +152,7 @@ function Location({ onOpenChange, locationId }: LocationProps) {
       try {
         const data = await ubicacionesService.getDataBarrioFromGeoPoint(
           lng,
-          lat
+          lat,
         );
 
         if (!data?.municipio?.id) return;
@@ -174,32 +174,35 @@ function Location({ onOpenChange, locationId }: LocationProps) {
           await Promise.all([
             ubicacionesService.getMunicipios(currentLanguage, Number(provId)),
             ubicacionesService.getDistritos(currentLanguage, Number(munId)),
-            ubicacionesService.getSecciones(currentLanguage, newSeccionesParams),
+            ubicacionesService.getSecciones(
+              currentLanguage,
+              newSeccionesParams,
+            ),
             ubicacionesService.getBarrios(currentLanguage, Number(secId)),
           ]);
 
         queryClient.setQueryData(
           QUERY_KEYS.UBICACIONES("municipios", { idProvincia: provId }),
-          municipiosData
+          municipiosData,
         );
         queryClient.setQueryData(
           QUERY_KEYS.UBICACIONES("distritos", { idMunicipio: munId }),
-          distritosData
+          distritosData,
         );
         if (distId) {
           queryClient.setQueryData(
             QUERY_KEYS.UBICACIONES("secciones", { idDistrito: distId }),
-            seccionesData
+            seccionesData,
           );
         } else {
           queryClient.setQueryData(
             QUERY_KEYS.UBICACIONES("secciones", { idMunicipio: munId }),
-            seccionesData
+            seccionesData,
           );
         }
         queryClient.setQueryData(
           QUERY_KEYS.UBICACIONES("barrios", newBarriosParams),
-          barriosData
+          barriosData,
         );
 
         setAutocompleteOptions({
@@ -239,7 +242,13 @@ function Location({ onOpenChange, locationId }: LocationProps) {
         console.error("Error obteniendo barrio por punto:", err);
       }
     },
-    [updateStoreField, queryClient, currentLanguage, centerLocation, setCenterLocation]
+    [
+      updateStoreField,
+      queryClient,
+      currentLanguage,
+      centerLocation,
+      setCenterLocation,
+    ],
   );
 
   // ─── EFECTO MODO EDICIÓN: Cargar datos si existe locationId ────────────
@@ -250,7 +259,8 @@ function Location({ onOpenChange, locationId }: LocationProps) {
       loadedLocationIdRef.current = locationId;
       const loadLocationForEdit = async () => {
         try {
-          const locationData = await ubicacionesService.getLocationById(locationId);
+          const locationData =
+            await ubicacionesService.getLocationById(locationId);
           if (locationData?.data || locationData?.id) {
             const location = locationData.data || locationData;
             const lng = location.puntoGeografico.coordinates[0];
@@ -313,7 +323,7 @@ function Location({ onOpenChange, locationId }: LocationProps) {
         formSetValueRef.current("neighborhood", "");
       }
     },
-    [setCenterLocation, centerLocation]
+    [setCenterLocation, centerLocation],
   );
 
   const handleMunicipalityChange = useCallback(
@@ -351,7 +361,7 @@ function Location({ onOpenChange, locationId }: LocationProps) {
         formSetValueRef.current("neighborhood", "");
       }
     },
-    [setCenterLocation, centerLocation]
+    [setCenterLocation, centerLocation],
   );
 
   const handleDistrictChange = useCallback(
@@ -386,7 +396,7 @@ function Location({ onOpenChange, locationId }: LocationProps) {
         formSetValueRef.current("neighborhood", "");
       }
     },
-    [setCenterLocation, centerLocation]
+    [setCenterLocation, centerLocation],
   );
 
   const handleSectionChange = useCallback(
@@ -415,7 +425,7 @@ function Location({ onOpenChange, locationId }: LocationProps) {
         formSetValueRef.current("neighborhood", "");
       }
     },
-    [setCenterLocation, centerLocation]
+    [setCenterLocation, centerLocation],
   );
 
   const handleNeighborhoodChange = useCallback(
@@ -429,12 +439,12 @@ function Location({ onOpenChange, locationId }: LocationProps) {
       }
 
       const selectedBarrio = barriosOptions.find(
-        (b) => (b as SelectOption).value === neighborhoodValue
+        (b) => (b as SelectOption).value === neighborhoodValue,
       );
       if (selectedBarrio) {
         try {
           const geo = await ubicacionesService.getGeoPointsByBarrios(
-            Number((selectedBarrio as SelectOption).value)
+            Number((selectedBarrio as SelectOption).value),
           );
           setNeighborhoodGeo(geo.geom ?? null);
         } catch (error) {
@@ -443,7 +453,7 @@ function Location({ onOpenChange, locationId }: LocationProps) {
         }
       }
     },
-    [updateStoreField, barriosOptions]
+    [updateStoreField, barriosOptions],
   );
 
   const handleMapChange = (lat: number, lng: number) => {
@@ -475,7 +485,10 @@ function Location({ onOpenChange, locationId }: LocationProps) {
 
     if (!barrioIdToUse || !locationId) {
       setToast({
-        message: t("locationForm.errors.selectNeighborhood", "Por favor, selecciona un barrio."),
+        message: t(
+          "locationForm.errors.selectNeighborhood",
+          "Por favor, selecciona un barrio.",
+        ),
         type: "error",
         open: true,
       });
@@ -504,7 +517,10 @@ function Location({ onOpenChange, locationId }: LocationProps) {
       });
 
       setToast({
-        message: t("locationForm.success", "Ubicación actualizada correctamente"),
+        message: t(
+          "locationForm.success",
+          "Ubicación actualizada correctamente",
+        ),
         type: "success",
         open: true,
       });
@@ -512,9 +528,14 @@ function Location({ onOpenChange, locationId }: LocationProps) {
       // Invalidate location cache and center profile so pages reflect the update
       try {
         queryClient.invalidateQueries({
-          queryKey: QUERY_KEYS.UBICACIONES("location", { id: locationId, lang: currentLanguage }),
+          queryKey: QUERY_KEYS.UBICACIONES("location", {
+            id: locationId,
+            lang: currentLanguage,
+          }),
         });
-        queryClient.invalidateQueries({ queryKey: ["center-profile", currentLanguage] });
+        queryClient.invalidateQueries({
+          queryKey: ["center-profile", currentLanguage],
+        });
       } catch (err) {
         console.error("Error invalidating queries after location update:", err);
       }
@@ -522,7 +543,10 @@ function Location({ onOpenChange, locationId }: LocationProps) {
       if (onOpenChange) onOpenChange(false);
     } catch {
       setToast({
-        message: t("locationForm.errors.updateFailed", "Error al actualizar la ubicación."),
+        message: t(
+          "locationForm.errors.updateFailed",
+          "Error al actualizar la ubicación.",
+        ),
         type: "error",
         open: true,
       });
@@ -540,7 +564,7 @@ function Location({ onOpenChange, locationId }: LocationProps) {
         <p className="text-primary/60 text-sm sm:text-base">
           {t(
             "locationForm.subtitle",
-            "Select the exact location and fill in the address details."
+            "Select the exact location and fill in the address details.",
           )}
         </p>
       </div>
@@ -583,7 +607,7 @@ function Location({ onOpenChange, locationId }: LocationProps) {
             label={t("locationForm.addressLabel", "Address")}
             placeholder={t(
               "locationForm.addressPlaceholder",
-              "Street, number, etc."
+              "Street, number, etc.",
             )}
             onChange={(e) => updateStoreField("address", e.target.value)}
           />
@@ -608,10 +632,16 @@ function Location({ onOpenChange, locationId }: LocationProps) {
             label={t("locationForm.municipalityLabel", "Municipality")}
             placeholder={
               isLoadingMunicipios
-                ? t("locationForm.loadingMunicipalities", "Cargando municipios...")
+                ? t(
+                    "locationForm.loadingMunicipalities",
+                    "Cargando municipios...",
+                  )
                 : selectedProvince
                   ? t("locationForm.municipalityPlaceholder", "Municipality")
-                  : t("locationForm.selectProvinceFirst", "Select a province first")
+                  : t(
+                      "locationForm.selectProvinceFirst",
+                      "Select a province first",
+                    )
             }
             value={selectedMunicipality}
             options={municipiosOptions}
@@ -630,7 +660,10 @@ function Location({ onOpenChange, locationId }: LocationProps) {
                 ? t("locationForm.loadingDistricts", "Cargando distritos...")
                 : selectedMunicipality
                   ? t("locationForm.districtPlaceholder", "District")
-                  : t("locationForm.selectMunicipalityFirst", "Select a municipality first")
+                  : t(
+                      "locationForm.selectMunicipalityFirst",
+                      "Select a municipality first",
+                    )
             }
             value={selectedDistrict}
             options={distritosOptions}
@@ -652,7 +685,10 @@ function Location({ onOpenChange, locationId }: LocationProps) {
                 ? t("locationForm.loadingSections", "Cargando secciones...")
                 : selectedMunicipality
                   ? t("locationForm.sectionPlaceholder", "Section")
-                  : t("locationForm.selectMunicipalityFirst", "Select a municipality first")
+                  : t(
+                      "locationForm.selectMunicipalityFirst",
+                      "Select a municipality first",
+                    )
             }
             value={selectedSection}
             options={seccionesOptions}
@@ -671,7 +707,10 @@ function Location({ onOpenChange, locationId }: LocationProps) {
                 ? t("locationForm.loadingNeighborhoods", "Cargando barrios...")
                 : selectedSection
                   ? t("locationForm.neighborhoodPlaceholder", "Neighborhood")
-                  : t("locationForm.selectSectionFirst", "Select a section first")
+                  : t(
+                      "locationForm.selectSectionFirst",
+                      "Select a section first",
+                    )
             }
             value={selectedNeighborhood}
             options={barriosOptions}
@@ -694,7 +733,9 @@ function Location({ onOpenChange, locationId }: LocationProps) {
             className={isMobile ? "w-full" : ""}
             disabled={isSubmitting}
           >
-            {isSubmitting ? t("profileForm.loading", "Guardando...") : t("profileForm.saveChanges", "Save Changes")}
+            {isSubmitting
+              ? t("profileForm.loading", "Guardando...")
+              : t("profileForm.saveChanges", "Save Changes")}
           </MCButton>
           {onOpenChange && (
             <MCButton

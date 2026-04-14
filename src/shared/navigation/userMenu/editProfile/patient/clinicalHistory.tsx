@@ -8,9 +8,9 @@ import { X, BookHeart, Heart, Loader2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { patientClinicalHistorySchema } from "@/schema/profile.schema";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
-import { 
-  useAvailableAllergies, 
-  useMyAllergies, 
+import {
+  useAvailableAllergies,
+  useMyAllergies,
   useMyConditions,
   useAddAllergy,
   useRemoveAllergy,
@@ -28,9 +28,11 @@ function ClinicalHistory({ onClinicalHistoryChanged }: ClinicalHistoryProps) {
   const isMobile = useIsMobile();
 
   // React Query hooks para datos
-  const { data: availableAllergies = [], isLoading: isLoadingAllergies } = useAvailableAllergies();
+  const { data: availableAllergies = [], isLoading: isLoadingAllergies } =
+    useAvailableAllergies();
   const { data: myAllergies = [] } = useMyAllergies();
-  const { data: myConditions = [], isLoading: isLoadingConditions } = useMyConditions();
+  const { data: myConditions = [], isLoading: isLoadingConditions } =
+    useMyConditions();
 
   // Mutation hooks
   const addAllergy = useAddAllergy();
@@ -45,15 +47,19 @@ function ClinicalHistory({ onClinicalHistoryChanged }: ClinicalHistoryProps) {
   const [personalCondition, setPersonalCondition] = useState<string>("");
 
   // Estado de carga global (cualquier mutación en progreso)
-  const isSubmitting = addAllergy.isPending || 
-                       removeAllergy.isPending || 
-                       updateCondition.isPending || 
-                       addPersonalCondition.isPending || 
-                       removeCondition.isPending;
+  const isSubmitting =
+    addAllergy.isPending ||
+    removeAllergy.isPending ||
+    updateCondition.isPending ||
+    addPersonalCondition.isPending ||
+    removeCondition.isPending;
 
   const availableAllergyOptions = useMemo(
-    () => availableAllergies.filter((allergy) => !myAllergies.some((a) => a.id === allergy.id)),
-    [availableAllergies, myAllergies]
+    () =>
+      availableAllergies.filter(
+        (allergy) => !myAllergies.some((a) => a.id === allergy.id),
+      ),
+    [availableAllergies, myAllergies],
   );
 
   function handleSubmit(data: any) {
@@ -68,11 +74,11 @@ function ClinicalHistory({ onClinicalHistoryChanged }: ClinicalHistoryProps) {
 
   async function handleAddPersonalCondition() {
     const trimmedValue = personalCondition.trim();
-    
+
     if (!trimmedValue) {
       return;
     }
-    
+
     await addPersonalCondition.mutateAsync({ notas: trimmedValue });
     setPersonalCondition("");
     onClinicalHistoryChanged?.();
@@ -86,12 +92,12 @@ function ClinicalHistory({ onClinicalHistoryChanged }: ClinicalHistoryProps) {
   async function handleRemoveCondition(idx: number) {
     const condition = myConditions[idx];
     await removeCondition.mutateAsync(condition.id);
-    
+
     if (editingIndex === idx) {
       setEditingIndex(null);
       setEditingValue("");
     }
-    
+
     onClinicalHistoryChanged?.();
   }
 
@@ -117,8 +123,8 @@ function ClinicalHistory({ onClinicalHistoryChanged }: ClinicalHistoryProps) {
       }
 
       // Actualizar la condición con nuevas notas
-      await updateCondition.mutateAsync({ 
-        condicionId: condition.id, 
+      await updateCondition.mutateAsync({
+        condicionId: condition.id,
         notas: trimmedValue,
         estado: "Activo",
       });
@@ -290,10 +296,14 @@ function ClinicalHistory({ onClinicalHistoryChanged }: ClinicalHistoryProps) {
                 >
                   <div className="flex-1 flex flex-col gap-1">
                     {/* Mostrar título "Condición Personal" o "Personal status" con las notas */}
-                    {condition.nombre.startsWith("Condición Personal") || condition.nombre.startsWith("Personal status") ? (
+                    {condition.nombre.startsWith("Condición Personal") ||
+                    condition.nombre.startsWith("Personal status") ? (
                       <>
                         <span className="font-semibold">
-                          {t("clinicalHistory.personalConditionTitle", "Condición Personal")}
+                          {t(
+                            "clinicalHistory.personalConditionTitle",
+                            "Condición Personal",
+                          )}
                         </span>
                         {condition.notas && (
                           <span className="text-sm text-muted-foreground">
@@ -303,7 +313,9 @@ function ClinicalHistory({ onClinicalHistoryChanged }: ClinicalHistoryProps) {
                       </>
                     ) : (
                       <>
-                        <span className="font-semibold">{condition.nombre}</span>
+                        <span className="font-semibold">
+                          {condition.nombre}
+                        </span>
                         {condition.notas && (
                           <span className="text-sm text-muted-foreground">
                             {condition.notas}
@@ -332,7 +344,9 @@ function ClinicalHistory({ onClinicalHistoryChanged }: ClinicalHistoryProps) {
         {/* Separador */}
         <div className="flex items-center gap-3 mb-4">
           <div className="flex-1 h-px bg-gray-300" />
-          <span className={`text-gray-500 ${isMobile ? "text-sm" : "text-base"}`}>
+          <span
+            className={`text-gray-500 ${isMobile ? "text-sm" : "text-base"}`}
+          >
             {t("clinicalHistory.or", "o")}
           </span>
           <div className="flex-1 h-px bg-gray-300" />
@@ -344,13 +358,19 @@ function ClinicalHistory({ onClinicalHistoryChanged }: ClinicalHistoryProps) {
             isMobile ? "text-base" : "text-lg"
           } font-medium text-primary`}
         >
-          {t("clinicalHistory.addPersonalCondition", "Agregar condición médica personal")}
+          {t(
+            "clinicalHistory.addPersonalCondition",
+            "Agregar condición médica personal",
+          )}
         </div>
         <div className="flex items-center gap-2">
           <MCInput
             name="personalCondition"
             standalone={true}
-            placeholder={t("clinicalHistory.personalConditionPlaceholder", "Escribe tu condición médica")}
+            placeholder={t(
+              "clinicalHistory.personalConditionPlaceholder",
+              "Escribe tu condición médica",
+            )}
             value={personalCondition}
             onChange={(e) => setPersonalCondition(e.target.value)}
             disabled={isSubmitting}

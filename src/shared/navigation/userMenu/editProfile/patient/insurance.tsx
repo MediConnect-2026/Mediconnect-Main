@@ -8,12 +8,12 @@ import { useProfileStore } from "@/stores/useProfileStore";
 import { patientInsuranceSchema } from "@/schema/profile.schema";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
 import { toast } from "sonner";
-import { 
+import {
   useAvailableInsurances,
   useAvailableInsuranceTypes,
   useMyInsurances,
   useAddInsurance,
-  useRemoveInsurance
+  useRemoveInsurance,
 } from "@/features/patient/hooks";
 
 interface InsuranceProps {
@@ -31,9 +31,15 @@ function Insurance({ onInsurancesChanged }: InsuranceProps = {}) {
   const patientInsurance = useProfileStore((state) => state.patientInsurance);
 
   // React Query hooks para datos con caché
-  const { data: availableInsurances = [], isLoading: isLoadingInsurances } = useAvailableInsurances();
-  const [selectedInsuranceId, setSelectedInsuranceId] = useState<number | null>(null);
-  const { data: availableInsuranceTypes = [], isLoading: isLoadingInsuranceTypes } = useAvailableInsuranceTypes({
+  const { data: availableInsurances = [], isLoading: isLoadingInsurances } =
+    useAvailableInsurances();
+  const [selectedInsuranceId, setSelectedInsuranceId] = useState<number | null>(
+    null,
+  );
+  const {
+    data: availableInsuranceTypes = [],
+    isLoading: isLoadingInsuranceTypes,
+  } = useAvailableInsuranceTypes({
     insuranceId: selectedInsuranceId ?? undefined,
   });
   const { data: myInsurances = [] } = useMyInsurances();
@@ -50,7 +56,7 @@ function Insurance({ onInsurancesChanged }: InsuranceProps = {}) {
     if (myInsurances.length > 0) {
       setPatientInsurance({
         ...patientInsurance,
-        insuranceProvider: myInsurances.map(i => i.id.toString()),
+        insuranceProvider: myInsurances.map((i) => i.id.toString()),
       });
     }
   }, [myInsurances]);
@@ -61,31 +67,38 @@ function Insurance({ onInsurancesChanged }: InsuranceProps = {}) {
 
   async function handleAddInsurance(selectedTypeId: number) {
     if (!selectedInsuranceId) {
-      toast.error(t("insurance.selectInsuranceFirst", "Por favor selecciona un seguro primero"));
+      toast.error(
+        t(
+          "insurance.selectInsuranceFirst",
+          "Por favor selecciona un seguro primero",
+        ),
+      );
       return;
     }
-    
+
     // Validar límite de 3 seguros
     if (myInsurances.length >= 3) {
-      toast.error(t("insurance.maxLimit", "Solo puedes tener un máximo de 3 seguros"));
+      toast.error(
+        t("insurance.maxLimit", "Solo puedes tener un máximo de 3 seguros"),
+      );
       return;
     }
-    
-    await addInsurance.mutateAsync({ 
+
+    await addInsurance.mutateAsync({
       idSeguro: selectedInsuranceId,
       idTipoSeguro: selectedTypeId,
     });
-    
+
     // Resetear selección después de agregar
     setSelectedInsuranceId(null);
-    
+
     // Notificar al componente padre que los seguros cambiaron
     onInsurancesChanged?.();
   }
 
   async function handleRemoveInsurance(id: number) {
     await removeInsurance.mutateAsync(id);
-    
+
     // Notificar al componente padre que los seguros cambiaron
     onInsurancesChanged?.();
   }
@@ -137,10 +150,12 @@ function Insurance({ onInsurancesChanged }: InsuranceProps = {}) {
               className={`flex flex-wrap ${isMobile ? "gap-1.5" : "gap-2"} mb-3`}
             >
               {myInsurances.map((insurance) => {
-                const tipoSeguroNombre = typeof insurance.tipoSeguro === 'object' && insurance.tipoSeguro !== null
-                  ? insurance.tipoSeguro.nombre
-                  : insurance.tipoSeguro;
-                
+                const tipoSeguroNombre =
+                  typeof insurance.tipoSeguro === "object" &&
+                  insurance.tipoSeguro !== null
+                    ? insurance.tipoSeguro.nombre
+                    : insurance.tipoSeguro;
+
                 return (
                   <span
                     key={insurance.id}
@@ -156,7 +171,9 @@ function Insurance({ onInsurancesChanged }: InsuranceProps = {}) {
                       />
                       {insurance.nombre}
                       {tipoSeguroNombre && (
-                        <span className="text-xs opacity-70">({tipoSeguroNombre})</span>
+                        <span className="text-xs opacity-70">
+                          ({tipoSeguroNombre})
+                        </span>
                       )}
                     </span>
                     <MCButton
@@ -174,7 +191,7 @@ function Insurance({ onInsurancesChanged }: InsuranceProps = {}) {
             </div>
           )}
         </div>
-        
+
         {/* Seguro */}
         <div
           className={`mb-1 ${
@@ -190,12 +207,16 @@ function Insurance({ onInsurancesChanged }: InsuranceProps = {}) {
           searchable={true}
           placeholder={t("insurance.select", "Selecciona un seguro")}
           options={availableInsurances
-            .filter((insurance) => !myInsurances.some(i => i.id === insurance.id))
+            .filter(
+              (insurance) => !myInsurances.some((i) => i.id === insurance.id),
+            )
             .map((insurance) => ({
               value: insurance.id.toString(),
               label: insurance.nombre,
             }))}
-          disabled={isLoadingInsurances || isSubmitting || myInsurances.length >= 3}
+          disabled={
+            isLoadingInsurances || isSubmitting || myInsurances.length >= 3
+          }
           onChange={(value) => {
             if (typeof value === "string") {
               setSelectedInsuranceId(parseInt(value));
@@ -233,10 +254,15 @@ function Insurance({ onInsurancesChanged }: InsuranceProps = {}) {
             !selectedInsuranceId
           }
         />
-        
+
         {myInsurances.length >= 3 && (
-          <div className={`text-orange-500 ${isMobile ? "text-sm" : "text-base"} font-medium`}>
-            {t("insurance.maxReached", "Has alcanzado el límite máximo de 3 seguros")}
+          <div
+            className={`text-orange-500 ${isMobile ? "text-sm" : "text-base"} font-medium`}
+          >
+            {t(
+              "insurance.maxReached",
+              "Has alcanzado el límite máximo de 3 seguros",
+            )}
           </div>
         )}
       </div>

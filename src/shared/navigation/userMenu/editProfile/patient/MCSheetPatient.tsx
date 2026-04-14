@@ -10,15 +10,31 @@ import { useIsMobile } from "@/lib/hooks/useIsMobile";
 
 interface MCSheetPatientProps {
   onOpenChange: (open: boolean) => void;
-  whatTab?: "general" | "history" | "insurance" | "education" | "experience" | "language" | string;
+  whatTab?:
+    | "general"
+    | "history"
+    | "insurance"
+    | "education"
+    | "experience"
+    | "language"
+    | string;
   onInsurancesChanged?: () => void;
   onClinicalHistoryChanged?: () => void;
 }
 
-function MCSheetPatient({ onOpenChange, whatTab, onInsurancesChanged, onClinicalHistoryChanged }: MCSheetPatientProps) {
+function MCSheetPatient({
+  onOpenChange,
+  whatTab,
+  onInsurancesChanged,
+  onClinicalHistoryChanged,
+}: MCSheetPatientProps) {
   const { t } = useTranslation("patient");
   const getTabFromWhatTab = (tab?: string) =>
-    tab === "history" ? "historial" : tab === "insurance" ? "seguros" : "general";
+    tab === "history"
+      ? "historial"
+      : tab === "insurance"
+        ? "seguros"
+        : "general";
 
   const [activeTab, setActiveTab] = useState(getTabFromWhatTab(whatTab));
   const isMobile = useIsMobile();
@@ -175,7 +191,9 @@ function MCSheetPatient({ onOpenChange, whatTab, onInsurancesChanged, onClinical
           </TabsContent>
 
           <TabsContent value="historial" className="m-0 p-0">
-            <ClinicalHistory onClinicalHistoryChanged={onClinicalHistoryChanged} />
+            <ClinicalHistory
+              onClinicalHistoryChanged={onClinicalHistoryChanged}
+            />
           </TabsContent>
 
           <TabsContent value="seguros" className="m-0 p-0">

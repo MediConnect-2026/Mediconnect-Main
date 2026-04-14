@@ -5,7 +5,7 @@ import MCAnimatedInput from "@/shared/components/forms/MCAnimatedInput";
 import ServicesLayoutsSteps from "./ServicesLayoutsSteps";
 import { useTranslation } from "react-i18next";
 import AuthFooterContainer from "@/features/auth/components/AuthFooterContainer";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
 
@@ -17,7 +17,6 @@ function ServiceTittleStep() {
   const setName = useCreateServicesStore((s) => s.setCreateServiceField);
   const name = useCreateServicesStore((s) => s.createServiceData.name);
   const setIsTitleSeted = useCreateServicesStore((s) => s.setIsTitleSeted);
-  const [isFormValid, setIsFormValid] = useState(false);
 
   const handleSubmit = (data: { name: string }) => {
     setName("name", data.name);
@@ -37,13 +36,12 @@ function ServiceTittleStep() {
   return (
     <ServicesLayoutsSteps title={t("createService.title.title")}>
       <MCFormWrapper
-          schema={nameSchema}
-          defaultValues={{ name }}
-          formRef={formRef}
-          onSubmit={handleSubmit}
-          onValidationChange={setIsFormValid}
-          className={`w-full ${isMobile ? "px-2" : ""}`}
-        >
+        schema={nameSchema}
+        defaultValues={{ name }}
+        formRef={formRef}
+        onSubmit={handleSubmit}
+        className={`w-full ${isMobile ? "px-2" : ""}`}
+      >
         <MCAnimatedInput
           name="name"
           label={t("createService.title.serviceName")}

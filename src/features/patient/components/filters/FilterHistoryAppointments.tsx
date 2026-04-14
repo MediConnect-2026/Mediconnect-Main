@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import { useMemo } from "react";
 import MCFilterSelect from "@/shared/components/filters/MCFilterSelect";
 import MCFilterDates from "@/shared/components/filters/MCFilterDates";
 import { useTranslation } from "react-i18next";
@@ -25,22 +25,21 @@ function FilterHistoryAppointments({
 }: FilterHistoryAppointmentsProps) {
   const { t } = useTranslation("patient");
 
-  const {
-    data: patientServicesResp,
-    isLoading: isLoadingServices,
-  } = usePatientServices(pacienteId);
+  const { data: patientServicesResp, isLoading: isLoadingServices } =
+    usePatientServices(pacienteId);
 
-  const {
-    data: doctorLocations = [],
-    isLoading: isLoadingLocations,
-    isError: locationsError,
-  } = useUbicaciones("doctor", {});
+  const { data: doctorLocations = [], isLoading: isLoadingLocations } =
+    useUbicaciones("doctor", {});
 
   // Opciones para servicios del historial
   const serviceOptions = useMemo(() => {
     if (pacienteId && isLoadingServices) return [];
 
-    if (patientServicesResp?.success && Array.isArray(patientServicesResp.data) && patientServicesResp.data.length > 0) {
+    if (
+      patientServicesResp?.success &&
+      Array.isArray(patientServicesResp.data) &&
+      patientServicesResp.data.length > 0
+    ) {
       return patientServicesResp.data.map((service: any) => ({
         value: service.nombre,
         label: service.nombre,
@@ -74,14 +73,13 @@ function FilterHistoryAppointments({
     [t],
   );
 
-
   const locationOptions = useMemo(
     () =>
       doctorLocations.map((loc) => ({
         value: loc.id.toString(),
         label: loc.nombre,
       })),
-    [doctorLocations]
+    [doctorLocations],
   );
 
   return (

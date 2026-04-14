@@ -1,5 +1,5 @@
 import { CircleCheck, Loader, CircleSlash } from "lucide-react";
-import { STATUS, type VerificationStatus } from "./Verificationconstants";
+import { type VerificationStatus } from "./Verificationconstants";
 
 const ICON_CONFIG: Record<
   VerificationStatus,

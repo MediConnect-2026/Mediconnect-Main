@@ -50,8 +50,12 @@ export const useCalendarCitas = (
   } = options;
 
   console.debug('useCalendarCitas - params:', params);
+  const queryKeyParams = params
+    ? (params as unknown as Record<string, unknown>)
+    : undefined;
+
   return useQuery({
-    queryKey: QUERY_KEYS.CALENDARIO(params),
+    queryKey: QUERY_KEYS.CALENDARIO(queryKeyParams),
     queryFn: () => getCalendarioCitas(params),
     enabled,
     staleTime,

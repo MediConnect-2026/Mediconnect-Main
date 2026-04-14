@@ -1,4 +1,3 @@
-import React from "react";
 import { Calendar } from "@/shared/ui/calendar";
 import { Button } from "@/shared/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/shared/ui/popover";

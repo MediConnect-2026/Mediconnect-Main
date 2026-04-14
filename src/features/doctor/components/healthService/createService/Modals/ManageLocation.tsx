@@ -13,7 +13,10 @@ import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { QUERY_KEYS } from "@/lib/react-query/config";
 import { useFormContext } from "react-hook-form";
 import type { Geometry } from "geojson";
-import type { SelectOption, createLocationRequest } from "@/features/onboarding/services/ubicaciones.types";
+import type {
+  SelectOption,
+  createLocationRequest,
+} from "@/features/onboarding/services/ubicaciones.types";
 import ubicacionesService from "@/features/onboarding/services/ubicaciones.services";
 import { toast } from "sonner";
 
@@ -21,7 +24,7 @@ interface manageLocationProps {
   children: React.ReactNode;
   triggerClassName?: string;
   // Props para modo lectura (view-only)
-  locationToView?: any; 
+  locationToView?: any;
   isReadOnly?: boolean;
   onCloseModal?: () => void;
   // Props para modo edición
@@ -33,7 +36,9 @@ interface manageLocationProps {
 function FormBridge({
   formSetValueRef,
 }: {
-  formSetValueRef: React.MutableRefObject<((name: string, value: any) => void) | null>;
+  formSetValueRef: React.MutableRefObject<
+    ((name: string, value: any) => void) | null
+  >;
 }) {
   const { setValue } = useFormContext();
   useEffect(() => {
@@ -86,7 +91,9 @@ function ManageLocation({
   }>({ municipios: null, distritos: null, secciones: null, barrios: null });
 
   // Ref para acceder a setValue del form desde fuera del MCFormWrapper
-  const formSetValueRef = useRef<((name: string, value: any) => void) | null>(null);
+  const formSetValueRef = useRef<((name: string, value: any) => void) | null>(
+    null,
+  );
 
   // ─── Estado para controlar si el botón de confirmar está habilitado ───────
   const [isFormValid, setIsFormValid] = useState(false);
@@ -108,9 +115,14 @@ function ManageLocation({
       return ubicacionesService.updateLocation(locationId, updatePayload);
     },
     onSuccess: () => {
-      toast.success(t("createService.location.locationUpdatedSuccess", "Ubicación actualizada correctamente"));
-      queryClient.invalidateQueries({ 
-        queryKey: QUERY_KEYS.UBICACIONES("doctor", {}) 
+      toast.success(
+        t(
+          "createService.location.locationUpdatedSuccess",
+          "Ubicación actualizada correctamente",
+        ),
+      );
+      queryClient.invalidateQueries({
+        queryKey: QUERY_KEYS.UBICACIONES("doctor", {}),
       });
       if (onLocationUpdated) onLocationUpdated();
       handleClose();
@@ -118,8 +130,11 @@ function ManageLocation({
     onError: (error: any) => {
       console.error("Error actualizando ubicación:", error);
       toast.error(
-        error?.response?.data?.message || 
-        t("createService.location.locationUpdatedError", "Error al actualizar la ubicación")
+        error?.response?.data?.message ||
+          t(
+            "createService.location.locationUpdatedError",
+            "Error al actualizar la ubicación",
+          ),
       );
     },
   });
@@ -129,16 +144,16 @@ function ManageLocation({
     mutationFn: (data: any) => ubicacionesService.createLocation(data),
     onSuccess: () => {
       toast.success(t("createService.location.locationCreatedSuccess"));
-      queryClient.invalidateQueries({ 
-        queryKey: QUERY_KEYS.UBICACIONES("doctor", {}) 
+      queryClient.invalidateQueries({
+        queryKey: QUERY_KEYS.UBICACIONES("doctor", {}),
       });
       handleClose();
     },
     onError: (error: any) => {
       console.error("Error creando ubicación:", error);
       toast.error(
-        error?.response?.data?.message || 
-        t("createService.location.locationCreatedError")
+        error?.response?.data?.message ||
+          t("createService.location.locationCreatedError"),
       );
     },
   });
@@ -150,14 +165,15 @@ function ManageLocation({
 
   const municipiosParams = useMemo(
     () => (selectedProvince ? { idProvincia: selectedProvince } : undefined),
-    [selectedProvince]
+    [selectedProvince],
   );
   const { data: municipiosFromQuery = [], isLoading: isLoadingMunicipios } =
     useUbicaciones("municipios", municipiosParams);
 
   const distritosParams = useMemo(
-    () => (selectedMunicipality ? { idMunicipio: selectedMunicipality } : undefined),
-    [selectedMunicipality]
+    () =>
+      selectedMunicipality ? { idMunicipio: selectedMunicipality } : undefined,
+    [selectedMunicipality],
   );
   const { data: distritosFromQuery = [], isLoading: isLoadingDistritos } =
     useUbicaciones("distritos", distritosParams);
@@ -173,38 +189,43 @@ function ManageLocation({
 
   const barriosParams = useMemo(
     () => (selectedSection ? { idSeccion: selectedSection } : undefined),
-    [selectedSection]
+    [selectedSection],
   );
   const { data: barriosFromQuery = [], isLoading: isLoadingBarrios } =
     useUbicaciones("barrios", barriosParams);
 
-  const municipiosOptions = autocompleteOptions.municipios ?? municipiosFromQuery;
+  const municipiosOptions =
+    autocompleteOptions.municipios ?? municipiosFromQuery;
   const distritosOptions = autocompleteOptions.distritos ?? distritosFromQuery;
   const seccionesOptions = autocompleteOptions.secciones ?? seccionesFromQuery;
   const barriosOptions = autocompleteOptions.barrios ?? barriosFromQuery;
 
   // ─── Handlers de ubicación ────────────────────────────────────────────────
-  
+
   const handlePointSelected = useCallback(
     async (lat: number, lng: number, isInsideNeighborhood: boolean) => {
-      
       setCoordinates({ lat, lng });
       setlocationField("coordinates", { latitude: lat, longitude: lng });
-        
-      if(isInsideNeighborhood) return;
+
+      if (isInsideNeighborhood) return;
 
       try {
-        const data = await ubicacionesService.getDataBarrioFromGeoPoint(lng, lat);
+        const data = await ubicacionesService.getDataBarrioFromGeoPoint(
+          lng,
+          lat,
+        );
 
         if (!data?.municipio?.id) {
           console.warn("Punto sin datos completos de ubicación");
           return;
         }
 
-        const provId   = String(data.provincia?.id ?? "");
-        const munId    = String(data.municipio.id);
-        const distId   = data.distritoMunicipal?.id ? String(data.distritoMunicipal.id) : "";
-        const secId    = data.seccion?.id ? String(data.seccion.id) : "";
+        const provId = String(data.provincia?.id ?? "");
+        const munId = String(data.municipio.id);
+        const distId = data.distritoMunicipal?.id
+          ? String(data.distritoMunicipal.id)
+          : "";
+        const secId = data.seccion?.id ? String(data.seccion.id) : "";
         const barrioId = data.id ? String(data.id) : "";
 
         const newSeccionesParams = distId
@@ -212,21 +233,40 @@ function ManageLocation({
           : { idMunicipio: munId };
         const newBarriosParams = { idSeccion: secId };
 
-        const [municipiosData, distritosData, seccionesData, barriosData] = await Promise.all([
-          ubicacionesService.getMunicipios(currentLanguage, Number(provId)),
-          ubicacionesService.getDistritos(currentLanguage, Number(munId)),
-          ubicacionesService.getSecciones(currentLanguage, newSeccionesParams),
-          ubicacionesService.getBarrios(currentLanguage, Number(secId)),
-        ]);
+        const [municipiosData, distritosData, seccionesData, barriosData] =
+          await Promise.all([
+            ubicacionesService.getMunicipios(currentLanguage, Number(provId)),
+            ubicacionesService.getDistritos(currentLanguage, Number(munId)),
+            ubicacionesService.getSecciones(
+              currentLanguage,
+              newSeccionesParams,
+            ),
+            ubicacionesService.getBarrios(currentLanguage, Number(secId)),
+          ]);
 
-        queryClient.setQueryData(QUERY_KEYS.UBICACIONES("municipios", { idProvincia: provId }), municipiosData);
-        queryClient.setQueryData(QUERY_KEYS.UBICACIONES("distritos", { idMunicipio: munId }), distritosData);
+        queryClient.setQueryData(
+          QUERY_KEYS.UBICACIONES("municipios", { idProvincia: provId }),
+          municipiosData,
+        );
+        queryClient.setQueryData(
+          QUERY_KEYS.UBICACIONES("distritos", { idMunicipio: munId }),
+          distritosData,
+        );
         if (distId) {
-          queryClient.setQueryData(QUERY_KEYS.UBICACIONES("secciones", { idDistrito: distId }), seccionesData);
+          queryClient.setQueryData(
+            QUERY_KEYS.UBICACIONES("secciones", { idDistrito: distId }),
+            seccionesData,
+          );
         } else {
-          queryClient.setQueryData(QUERY_KEYS.UBICACIONES("secciones", { idMunicipio: munId }), seccionesData);
+          queryClient.setQueryData(
+            QUERY_KEYS.UBICACIONES("secciones", { idMunicipio: munId }),
+            seccionesData,
+          );
         }
-        queryClient.setQueryData(QUERY_KEYS.UBICACIONES("barrios", newBarriosParams), barriosData);
+        queryClient.setQueryData(
+          QUERY_KEYS.UBICACIONES("barrios", newBarriosParams),
+          barriosData,
+        );
 
         setAutocompleteOptions({
           municipios: municipiosData,
@@ -261,7 +301,7 @@ function ManageLocation({
         console.error("Error obteniendo barrio por punto:", err);
       }
     },
-    [setlocationField, queryClient, currentLanguage]
+    [setlocationField, queryClient, currentLanguage],
   );
 
   // ─── EFECTO MODO LECTURA: Poblar datos si existe locationToView ───────────
@@ -290,7 +330,8 @@ function ManageLocation({
     if (locationId && !isReadOnly) {
       const loadLocationForEdit = async () => {
         try {
-          const locationData = await ubicacionesService.getLocationById(locationId);
+          const locationData =
+            await ubicacionesService.getLocationById(locationId);
           if (locationData?.data || locationData?.id) {
             const location = locationData.data || locationData;
             const lng = location.puntoGeografico.coordinates[0];
@@ -311,7 +352,12 @@ function ManageLocation({
           }
         } catch (error) {
           console.error("Error cargando ubicación para editar:", error);
-          toast.error(t("createService.location.errorLoadingLocation", "Error al cargar la ubicación"));
+          toast.error(
+            t(
+              "createService.location.errorLoadingLocation",
+              "Error al cargar la ubicación",
+            ),
+          );
         }
       };
 
@@ -321,22 +367,34 @@ function ManageLocation({
 
   // ─── Validar formulario para habilitar/deshabilitar botón de confirmar ────
   useEffect(() => {
-    const isValid = 
+    const isValid =
       !!locationData.name?.trim() &&
       !!locationData.address?.trim() &&
       !!selectedProvince &&
       !!selectedMunicipality &&
       !!selectedSection &&
       !!selectedNeighborhood;
-    
+
     setIsFormValid(isValid);
-  }, [locationData.name, locationData.address, selectedProvince, selectedMunicipality, selectedSection, selectedNeighborhood]);
+  }, [
+    locationData.name,
+    locationData.address,
+    selectedProvince,
+    selectedMunicipality,
+    selectedSection,
+    selectedNeighborhood,
+  ]);
 
   // ─── Handlers de cambio de selects (interacción manual) ───────────────────
 
   const handleProvinceChange = useCallback(
     (value: string | string[]) => {
-      setAutocompleteOptions({ municipios: null, distritos: null, secciones: null, barrios: null });
+      setAutocompleteOptions({
+        municipios: null,
+        distritos: null,
+        secciones: null,
+        barrios: null,
+      });
       const provinceValue = Array.isArray(value) ? value[0] : value;
       setSelectedProvince(provinceValue);
       setSelectedMunicipality("");
@@ -357,13 +415,18 @@ function ManageLocation({
         formSetValueRef.current("neighborhood", "");
       }
     },
-    [setlocationField]
+    [setlocationField],
   );
 
   const handleMunicipalityChange = useCallback(
     (value: string | string[]) => {
       const municipalityValue = Array.isArray(value) ? value[0] : value;
-      setAutocompleteOptions((prev) => ({ ...prev, distritos: null, secciones: null, barrios: null }));
+      setAutocompleteOptions((prev) => ({
+        ...prev,
+        distritos: null,
+        secciones: null,
+        barrios: null,
+      }));
       setSelectedMunicipality(municipalityValue);
       setSelectedDistrict("");
       setSelectedSection("");
@@ -380,13 +443,17 @@ function ManageLocation({
         formSetValueRef.current("neighborhood", "");
       }
     },
-    [setlocationField]
+    [setlocationField],
   );
 
   const handleDistrictChange = useCallback(
     (value: string | string[]) => {
       const districtValue = Array.isArray(value) ? value[0] : value;
-      setAutocompleteOptions((prev) => ({ ...prev, secciones: null, barrios: null }));
+      setAutocompleteOptions((prev) => ({
+        ...prev,
+        secciones: null,
+        barrios: null,
+      }));
       setSelectedDistrict(districtValue);
       setSelectedSection("");
       setSelectedNeighborhood("");
@@ -400,7 +467,7 @@ function ManageLocation({
         formSetValueRef.current("neighborhood", "");
       }
     },
-    [setlocationField]
+    [setlocationField],
   );
 
   const handleSectionChange = useCallback(
@@ -417,7 +484,7 @@ function ManageLocation({
         formSetValueRef.current("neighborhood", "");
       }
     },
-    [setlocationField]
+    [setlocationField],
   );
 
   const handleNeighborhoodChange = useCallback(
@@ -430,18 +497,22 @@ function ManageLocation({
         formSetValueRef.current("neighborhood", neighborhoodValue);
       }
 
-      const selectedBarrio = barriosOptions.find((b) => (b as SelectOption).value === neighborhoodValue);
+      const selectedBarrio = barriosOptions.find(
+        (b) => (b as SelectOption).value === neighborhoodValue,
+      );
       if (selectedBarrio) {
         try {
-        const geo = await ubicacionesService.getGeoPointsByBarrios(Number((selectedBarrio as SelectOption).value));
-        setNeighborhoodGeo(geo.geom ?? null);
+          const geo = await ubicacionesService.getGeoPointsByBarrios(
+            Number((selectedBarrio as SelectOption).value),
+          );
+          setNeighborhoodGeo(geo.geom ?? null);
         } catch (error) {
           console.error("Error obteniendo geometría del barrio:", error);
           setNeighborhoodGeo(null);
         }
       }
     },
-    [setlocationField, barriosOptions]
+    [setlocationField, barriosOptions],
   );
 
   // ─── Handler de cambio de mapa ─────────────────────────────────────────────
@@ -493,10 +564,10 @@ function ManageLocation({
         barrioId: Number(selectedNeighborhood),
         direccion: data.address,
         nombre: data.name,
-        codigoPostal: data.codigoPostal || "", 
+        codigoPostal: data.codigoPostal || "",
         puntoGeografico: {
           type: "Point",
-          coordinates: [coordinates.lng, coordinates.lat], 
+          coordinates: [coordinates.lng, coordinates.lat],
         },
       };
       createLocationMutation.mutate(locationPayload);
@@ -527,7 +598,7 @@ function ManageLocation({
       barrios: null,
     });
     setCoordinates({ lat: 18.4861, lng: -69.9312 });
-    
+
     // Notificar al padre que se cerró (importante para limpiar el estado de visualización)
     if (onCloseModal) onCloseModal();
   };
@@ -549,17 +620,25 @@ function ManageLocation({
         },
       });
     }
-  }, [locationData, coordinates, selectedProvince, selectedMunicipality, selectedDistrict, selectedSection, selectedNeighborhood]);
+  }, [
+    locationData,
+    coordinates,
+    selectedProvince,
+    selectedMunicipality,
+    selectedDistrict,
+    selectedSection,
+    selectedNeighborhood,
+  ]);
 
   return (
     <MCModalBase
       id="manage-location-modal"
       title={
-        isReadOnly 
-          ? t("createService.location.viewLocation", "Detalles de Ubicación") 
+        isReadOnly
+          ? t("createService.location.viewLocation", "Detalles de Ubicación")
           : locationId
-          ? t("createService.location.editLocation", "Editar Ubicación")
-          : t("createService.location.manageLocation")
+            ? t("createService.location.editLocation", "Editar Ubicación")
+            : t("createService.location.manageLocation")
       }
       size="lgAuto"
       variant="decide"
@@ -567,7 +646,12 @@ function ManageLocation({
       onClose={handleClose}
       trigger={children}
       triggerClassName={triggerClassName}
-      disabledConfirm={!isFormValid || createLocationMutation.isPending || updateLocationMutation.isPending || isReadOnly}
+      disabledConfirm={
+        !isFormValid ||
+        createLocationMutation.isPending ||
+        updateLocationMutation.isPending ||
+        isReadOnly
+      }
       hideConfirm={isReadOnly}
       showConfirm={!isReadOnly}
       secondaryText={isReadOnly ? t("common.close", "Cerrar") : undefined}
@@ -646,7 +730,11 @@ function ManageLocation({
               value={selectedMunicipality}
               options={municipiosOptions}
               searchable={true}
-              disabled={isReadOnly || (isLoadingMunicipios && !autocompleteOptions.municipios) || !selectedProvince}
+              disabled={
+                isReadOnly ||
+                (isLoadingMunicipios && !autocompleteOptions.municipios) ||
+                !selectedProvince
+              }
               onChange={handleMunicipalityChange}
             />
             <MCSelect
@@ -661,7 +749,11 @@ function ManageLocation({
               }
               value={selectedDistrict}
               options={distritosOptions}
-              disabled={isReadOnly || (isLoadingDistritos && !autocompleteOptions.distritos) || !selectedMunicipality}
+              disabled={
+                isReadOnly ||
+                (isLoadingDistritos && !autocompleteOptions.distritos) ||
+                !selectedMunicipality
+              }
               searchable={true}
               onChange={handleDistrictChange}
             />
@@ -678,7 +770,11 @@ function ManageLocation({
               value={selectedSection}
               options={seccionesOptions}
               searchable={true}
-              disabled={isReadOnly || (isLoadingSecciones && !autocompleteOptions.secciones) || !seccionesParams}
+              disabled={
+                isReadOnly ||
+                (isLoadingSecciones && !autocompleteOptions.secciones) ||
+                !seccionesParams
+              }
               onChange={handleSectionChange}
             />
             <MCSelect
@@ -693,7 +789,11 @@ function ManageLocation({
               }
               value={selectedNeighborhood}
               options={barriosOptions}
-              disabled={isReadOnly || (isLoadingBarrios && !autocompleteOptions.barrios) || !selectedSection}
+              disabled={
+                isReadOnly ||
+                (isLoadingBarrios && !autocompleteOptions.barrios) ||
+                !selectedSection
+              }
               searchable={true}
               onChange={handleNeighborhoodChange}
             />

@@ -25,15 +25,15 @@ function CenterInfoStep1({
     (state) => state.centerOnboardingData,
   );
   const setCenterField = useAppStore((state) => state.setCenterField);
-  const { data: tiposCentroOptions = [], isLoading: isLoadingCentro } = useTiposCentros();
+  const { data: tiposCentroOptions = [], isLoading: isLoadingCentro } =
+    useTiposCentros();
 
-  const handleSubmit = (data: any) => {
+  const handleSubmit = () => {
     onValidationChange?.(true);
     onNext?.();
   };
 
-  useEffect(() => {
-  }, [centerOnboardingData]);
+  useEffect(() => {}, [centerOnboardingData]);
 
   return (
     <div className="w-full">
@@ -64,7 +64,11 @@ function CenterInfoStep1({
             <MCSelect
               name="centerType"
               label={t("centerInfoStep.centerTypeLabel")}
-              placeholder={isLoadingCentro ? t("centerInfoStep.loadingCenterTypes") : t("centerInfoStep.centerTypePlaceholder")}
+              placeholder={
+                isLoadingCentro
+                  ? t("centerInfoStep.loadingCenterTypes")
+                  : t("centerInfoStep.centerTypePlaceholder")
+              }
               options={tiposCentroOptions}
               disabled={isLoadingCentro}
               onChange={(value) => {

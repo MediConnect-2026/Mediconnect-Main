@@ -3,7 +3,7 @@ import { ToggleGroup, ToggleGroupItem } from "@/shared/ui/toggle-group";
 import { useAppStore } from "@/stores/useAppStore";
 import { MessageCircle, FileText } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { useIsMobile } from "@/lib/hooks/useIsMobile";
+
 import { MCUserAvatar } from "@/shared/navigation/userMenu/MCUserAvatar";
 interface ChatHeaderProps {
   isTyping: boolean;
@@ -18,19 +18,23 @@ export const ChatHeader = ({
   currentView,
   onViewChange,
 }: ChatHeaderProps) => {
-  const isDoctor = useAppStore((state) => state.user?.role === "DOCTOR");
+  const user = useAppStore((state) => state.user);
+  const isDoctor = user?.rol === "DOCTOR";
   const { t } = useTranslation("common");
-  const isMobile = useIsMobile();
+
+  const userAvatar =
+    (user as { fotoPerfil?: string; avatar?: string } | null)?.fotoPerfil ??
+    (user as { fotoPerfil?: string; avatar?: string } | null)?.avatar ??
+    "";
 
   return (
     <div className="p-3 md:p-4 border-b border-primary/10 flex items-center justify-between gap-2">
       <div className="flex items-center gap-2 md:gap-3 min-w-0 flex-1">
         <div className="w-10 h-10 md:w-12 md:h-12 relative overflow-hidden rounded-full border border-primary/10 bg-muted flex items-center justify-center">
-          {/* Replace with dynamic avatar logic */}
-          {isDoctor && useAppStore((state) => state.user?.avatar) ? (
+          {userAvatar ? (
             <Avatar className="w-full h-full rounded-full overflow-hidden">
               <AvatarImage
-                src={useAppStore((state) => state.user?.avatar)!}
+                src={userAvatar}
                 alt={t("chatHeader.doctorName")}
                 className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
               />
