@@ -83,13 +83,6 @@ const ChatPage = () => {
   return (
     <div className="h-full w-full flex bg-background rounded-2xl md:rounded-4xl overflow-hidden relative">
       {/* Estado de conexión WebSocket (opcional, para debugging) */}
-      {!isConnected && (
-        <div className="absolute top-2 left-1/2 transform -translate-x-1/2 z-50">
-          <div className="bg-yellow-100 text-yellow-800 text-xs px-3 py-1 rounded-full">
-            Reconectando...
-          </div>
-        </div>
-      )}
 
       <ChatSidebar
         conversations={conversations}
