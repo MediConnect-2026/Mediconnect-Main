@@ -138,30 +138,19 @@ function LoginPage() {
           isMobile ? "" : "grid grid-cols-[45%_55%]"
         }`}
       >
-        {/* SOLO DESKTOP: main vacío para el grid */}
-        {!isMobile && (
-          <main className="relative flex flex-col justify-center items-center px-8">
-            <div className="absolute top-6 left-6 z-20">
-              {backButtonContent}
-            </div>
-            <div className="absolute top-6 right-6 z-20">
-              {languageSelectorContent}
-            </div>
-          </main>
-        )}
-
-        {/* MAIN PRINCIPAL: cambia clases según mobile/desktop */}
+        {/* MAIN PRINCIPAL */}
         <main
           ref={containerRef}
-          className={`relative flex flex-col justify-center items-center px-4 sm:px-8 z-10 bg-white
-          ${
-            isMobile
-              ? "min-h-screen w-full pt-14 pb-4"
-              : "absolute top-0 bottom-0 w-[50%] rounded-r-4xl"
-          }`}
+          className={`relative flex flex-col justify-center items-center z-10 bg-white
+          ${isMobile ? "min-h-screen w-full pt-14 pb-4" : "h-full px-8"}`}
         >
-          {isMobile && (
+          {isMobile ? (
             <div className="absolute top-3 left-3 right-3 z-20 flex items-center justify-between">
+              {backButtonContent}
+              {languageSelectorContent}
+            </div>
+          ) : (
+            <div className="absolute top-6 left-6 right-6 z-20 flex items-center justify-between">
               {backButtonContent}
               {languageSelectorContent}
             </div>
@@ -219,7 +208,7 @@ function LoginPage() {
               </div>
               <MCButton
                 type="submit"
-                className="w-full h-[50px] rounded-full text-lg font-medium"
+                className="w-full h-12.5 rounded-full text-lg font-medium"
                 variant="primary"
                 size="xl"
                 disabled={isPending || isGoogleAuthenticating}
@@ -230,9 +219,9 @@ function LoginPage() {
               </MCButton>
 
               <div className="flex items-center my-3">
-                <hr className="flex-grow border-t border-gray-300" />
+                <hr className="grow border-t border-gray-300" />
                 <span className="mx-2 text-gray-400">o</span>
-                <hr className="flex-grow border-t border-gray-300" />
+                <hr className="grow border-t border-gray-300" />
               </div>
 
               <OAuthProvider onAuthStateChange={setIsGoogleAuthenticating} />
