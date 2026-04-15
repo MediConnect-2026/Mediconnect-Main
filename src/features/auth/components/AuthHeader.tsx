@@ -82,17 +82,6 @@ function AuthHeader() {
               aria-label="Language selector"
             >
               <ToggleGroupItem
-                value="en"
-                aria-label="English"
-                className={currentLanguage !== "en" ? "opacity-70" : ""}
-              >
-                <img
-                  src="https://res.cloudinary.com/dy2wtanhl/image/upload/v1771637851/flag-usa_ubewc7.png"
-                  alt="English"
-                  className="w-6 h-6"
-                />
-              </ToggleGroupItem>
-              <ToggleGroupItem
                 value="es"
                 aria-label="Español"
                 className={currentLanguage !== "es" ? "opacity-70" : ""}
@@ -100,6 +89,17 @@ function AuthHeader() {
                 <img
                   src="https://res.cloudinary.com/dy2wtanhl/image/upload/v1771637850/flag-spain_u9cses.png"
                   alt="Español"
+                  className="w-6 h-6"
+                />
+              </ToggleGroupItem>
+              <ToggleGroupItem
+                value="en"
+                aria-label="English"
+                className={currentLanguage !== "en" ? "opacity-70" : ""}
+              >
+                <img
+                  src="https://res.cloudinary.com/dy2wtanhl/image/upload/v1771637851/flag-usa_ubewc7.png"
+                  alt="English"
                   className="w-6 h-6"
                 />
               </ToggleGroupItem>

@@ -178,7 +178,45 @@
   },
   "testimonials": {
     "title": "Testimonios",
-    "subtitle": "Únete a quienes cuidan su salud"
+    "subtitle": "Únete a quienes cuidan su salud",
+    "cards": [
+      {
+        "name": "Dr. Alejandro Gómez",
+        "service": "Consulta Médica Integral",
+        "testimonial": "Agendar teleconsultas fue muy conveniente y se adaptó perfectamente a mi rutina. El equipo médico fue atento y toda la experiencia fue fluida y sin estrés.",
+        "avatar": "https://randomuser.me/api/portraits/men/32.jpg"
+      },
+      {
+        "name": "Laura Fernández",
+        "service": "Telemedicina",
+        "testimonial": "Pude consultar con un especialista de forma rápida y segura. La experiencia fue clara, humana y muy profesional.",
+        "avatar": "https://randomuser.me/api/portraits/women/44.jpg"
+      },
+      {
+        "name": "Miguel Hernández",
+        "service": "Gestión de Citas",
+        "testimonial": "La organización de citas es sencilla y eficiente. Ahora tengo control total de mis consultas médicas.",
+        "avatar": "https://randomuser.me/api/portraits/men/65.jpg"
+      },
+      {
+        "name": "Dra. Patricia Ruiz",
+        "service": "Diagnósticos Clínicos",
+        "testimonial": "Los reportes médicos y diagnósticos son claros, precisos y fáciles de compartir con los pacientes.",
+        "avatar": "https://randomuser.me/api/portraits/women/68.jpg"
+      },
+      {
+        "name": "José Martínez",
+        "service": "Seguimiento Médico",
+        "testimonial": "El seguimiento continuo me dio confianza y tranquilidad durante todo mi tratamiento.",
+        "avatar": "https://randomuser.me/api/portraits/men/41.jpg"
+      },
+      {
+        "name": "Andrea López",
+        "service": "Consulta Especializada",
+        "testimonial": "La atención fue personalizada y el equipo médico mostró un alto nivel de profesionalismo.",
+        "avatar": "https://randomuser.me/api/portraits/women/29.jpg"
+      }
+    ]
   },
   "faq": {
     "title": "FAQ",

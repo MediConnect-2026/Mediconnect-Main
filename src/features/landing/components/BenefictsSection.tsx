@@ -194,12 +194,16 @@ export const IndustryCarousel = ({
       const sectionHeight = window.innerHeight;
       containerRef.current.style.height = `${sectionHeight * totalSections}px`;
 
-      const photos = gsap.utils.toArray<HTMLElement>(
-        ".ic-photo:not(:first-child)",
-      );
       const allPhotos = gsap.utils.toArray<HTMLElement>(".ic-photo");
+      const photos = allPhotos.slice(1); // evita problema con :first-child en mobile
 
       gsap.set(photos, { clipPath: "inset(100% 0% 0% 0%)", autoAlpha: 1 });
+      if (allPhotos[0]) {
+        gsap.set(allPhotos[0], {
+          clipPath: "inset(0% 0% 0% 0%)",
+          autoAlpha: 1,
+        });
+      }
 
       ScrollTrigger.create({
         trigger: containerRef.current,

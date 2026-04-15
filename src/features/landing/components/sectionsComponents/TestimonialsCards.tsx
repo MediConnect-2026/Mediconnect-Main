@@ -3,59 +3,27 @@ import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
+import { useTranslation } from "react-i18next";
 
 gsap.registerPlugin(ScrollTrigger);
 
-const testimonialsData = [
-  {
-    name: "Dr. Alejandro Gómez",
-    service: "Consulta Médica Integral",
-    testimonial:
-      "Scheduling telehealth appointments was incredibly convenient and fit perfectly into my busy lifestyle. The care team was attentive and made the whole experience smooth and stress-free.",
-    avatar: "https://randomuser.me/api/portraits/men/32.jpg",
-  },
-  {
-    name: "Laura Fernández",
-    service: "Telemedicina",
-    testimonial:
-      "Pude consultar con un especialista de forma rápida y segura. La experiencia fue clara, humana y muy profesional.",
-    avatar: "https://randomuser.me/api/portraits/women/44.jpg",
-  },
-  {
-    name: "Miguel Hernández",
-    service: "Gestión de Citas",
-    testimonial:
-      "La organización de citas es sencilla y eficiente. Ahora tengo control total de mis consultas médicas.",
-    avatar: "https://randomuser.me/api/portraits/men/65.jpg",
-  },
-  {
-    name: "Dra. Patricia Ruiz",
-    service: "Diagnósticos Clínicos",
-    testimonial:
-      "Los reportes médicos y diagnósticos son claros, precisos y fáciles de compartir con los pacientes.",
-    avatar: "https://randomuser.me/api/portraits/women/68.jpg",
-  },
-  {
-    name: "José Martínez",
-    service: "Seguimiento Médico",
-    testimonial:
-      "El seguimiento continuo me dio confianza y tranquilidad durante todo mi tratamiento.",
-    avatar: "https://randomuser.me/api/portraits/men/41.jpg",
-  },
-  {
-    name: "Andrea López",
-    service: "Consulta Especializada",
-    testimonial:
-      "La atención fue personalizada y el equipo médico mostró un alto nivel de profesionalismo.",
-    avatar: "https://randomuser.me/api/portraits/women/29.jpg",
-  },
-];
+type TestimonialItem = {
+  name: string;
+  service: string;
+  testimonial: string;
+  avatar: string;
+};
 
 function TestimonialsCards() {
   const isMobile = useIsMobile();
+  const { t } = useTranslation("landing");
   const containerRef = useRef<HTMLDivElement | null>(null);
   const sliderRef = useRef<HTMLDivElement | null>(null);
   const infiniteTimeline = useRef<gsap.core.Timeline | null>(null);
+
+  const testimonialsData = t("testimonials.cards", {
+    returnObjects: true,
+  }) as TestimonialItem[];
 
   // Triple testimonials for seamless infinite loop
   const tripleTestimonials = [
@@ -65,7 +33,7 @@ function TestimonialsCards() {
   ];
 
   useGSAP(() => {
-    if (!sliderRef.current) return;
+    if (!sliderRef.current || !testimonialsData.length) return;
 
     const cardWidth = isMobile ? 320 : 520;
     const originalSetWidth = cardWidth * testimonialsData.length;
@@ -82,7 +50,6 @@ function TestimonialsCards() {
       modifiers: {
         x: (x) => {
           const currentX = parseFloat(x);
-          // When we reach the end of the second set, jump back to the beginning of the second set
           if (currentX <= -originalSetWidth * 2) {
             gsap.set(sliderRef.current, { x: -originalSetWidth });
             return (-originalSetWidth).toString() + "px";
@@ -92,7 +59,6 @@ function TestimonialsCards() {
       },
     });
 
-    // Initial entrance animation
     gsap.fromTo(
       containerRef.current,
       { opacity: 0, y: 50 },
@@ -107,11 +73,10 @@ function TestimonialsCards() {
         },
       },
     );
-  }, [isMobile]);
+  }, [isMobile, testimonialsData]);
 
   return (
     <div ref={containerRef} className="w-full relative py-4 overflow-hidden">
-      {/* Infinite Slider */}
       <div className="relative">
         <div
           ref={sliderRef}
@@ -127,16 +92,8 @@ function TestimonialsCards() {
                 isMobile ? " w-[70vw] h-[260px] mx-auto" : "w-[500px] h-[225px]"
               }`}
               style={isMobile ? { minWidth: "70vw" } : {}}
-              onMouseEnter={() => {
-                if (infiniteTimeline.current) {
-                  infiniteTimeline.current.timeScale(0.2);
-                }
-              }}
-              onMouseLeave={() => {
-                if (infiniteTimeline.current) {
-                  infiniteTimeline.current.timeScale(1);
-                }
-              }}
+              onMouseEnter={() => infiniteTimeline.current?.timeScale(0.2)}
+              onMouseLeave={() => infiniteTimeline.current?.timeScale(1)}
             >
               <div className="flex items-start gap-4 mb-6">
                 <img

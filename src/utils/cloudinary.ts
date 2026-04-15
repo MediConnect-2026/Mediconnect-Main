@@ -10,7 +10,7 @@ export type CloudinaryOptions = {
   width?: number;
   height?: number;
   quality?: "auto" | "auto:best" | "auto:good" | "auto:eco" | number;
-  format?: "auto" | "webp" | "avif";
+  format?: "auto" | "webp" | "avif" | "original";
   fit?: "fill" | "scale" | "crop" | "thumb" | "pad";
   /**
    * Sharpening is opt-in — it runs CPU on Cloudinary's side per request.
@@ -40,8 +40,8 @@ export function cl(url: string, options: CloudinaryOptions = {}): string {
   const {
     width,
     height,
-    quality = "auto:good",
-    format = "auto",
+    quality = 100,
+    format = "original",
     fit = "fill",
     sharpen,
     progressive = true,
@@ -49,24 +49,14 @@ export function cl(url: string, options: CloudinaryOptions = {}): string {
   } = options;
 
   const transforms: string[] = [
-    `f_${format}`,
+    format !== "original" ? `f_${format}` : null,
     `q_${quality}`,
-    // Progressive JPEG: browser renders a blurry preview immediately,
-    // then sharpens as data arrives — perceived load feels faster.
     progressive ? "fl_progressive" : null,
-    // Immutable cache: tells the CDN the asset never changes.
-    // Use only with content-hashed / versioned Cloudinary URLs.
     immutable ? "fl_immutable_cache" : null,
-    // Sharpen is opt-in: set explicitly per preset that needs it.
     sharpen != null && sharpen > 0 ? `e_sharpen:${sharpen}` : null,
     width ? `w_${width}` : null,
     height ? `h_${height}` : null,
     width || height ? `c_${fit}` : null,
-    // ↓ Removed `dpr_auto` — it only works with Cloudinary's JS SDK
-    //   (it reads a cookie set by cloudinary-core). Without the SDK it
-    //   silently falls back to DPR 1. For retina support, either:
-    //   a) use clSrcSet() below, or
-    //   b) explicitly pass dpr: 2 for critical above-the-fold images.
   ].filter(Boolean) as string[];
 
   const result = url.replace("/upload/", `/upload/${transforms.join(",")}/`);
@@ -101,49 +91,48 @@ export function clSrcSet(
 
 /** Cards: features, benefits, services */
 export const clCard = (url: string) =>
-  cl(url, { width: 800, quality: "auto:good", sharpen: 40 });
+  cl(url, { width: 800, quality: 100, sharpen: 40 });
 
 export const clCardSrcSet = (url: string) =>
-  clSrcSet(url, [400, 800, 1200], { quality: "auto:good", sharpen: 40 });
+  clSrcSet(url, [400, 800, 1200], { quality: 100, sharpen: 40 });
 
 /** Full-screen hero */
 export const clHero = (url: string) =>
-  cl(url, { width: 1920, quality: "auto:best", sharpen: 30 });
+  cl(url, { width: 1920, quality: 100, sharpen: 30 });
 
 export const clHeroSrcSet = (url: string) =>
-  clSrcSet(url, [768, 1280, 1920], { quality: "auto:good", sharpen: 30 });
+  clSrcSet(url, [768, 1280, 1920], { quality: 100, sharpen: 30 });
 
 /** Small thumbnails: avatars, flags */
 export const clThumb = (url: string) =>
-  cl(url, { width: 200, quality: "auto:good", sharpen: 30 });
+  cl(url, { width: 200, quality: 100, sharpen: 30 });
 
 /** Full-bleed, no fixed size */
-export const clFull = (url: string) => cl(url, { quality: "auto:good" });
+export const clFull = (url: string) => cl(url, { quality: 100 });
 
 /** Logos — no sharpening (avoids raster artifacts on vector exports) */
-export const clLogo = (url: string) =>
-  cl(url, { width: 256, quality: "auto:best" });
+export const clLogo = (url: string) => cl(url, { width: 256, quality: 100 });
 
 /** Background sections */
 export const clBg = (url: string, isMobile = false) =>
   cl(url, {
-    width: isMobile ? 768 : 1920, // was 1200/2800 — trimmed >30% bytes
-    quality: "auto:eco", // backgrounds don't need "good"
+    width: isMobile ? 768 : 1920,
+    quality: 100,
     sharpen: 20,
   });
 
 /** Portrait / user photos */
 export const clPortrait = (url: string, isMobile = false) =>
   cl(url, {
-    width: isMobile ? 600 : 1200, // was 1000/1800
-    quality: "auto:good",
+    width: isMobile ? 600 : 1200,
+    quality: 100,
     sharpen: 40,
   });
 
 /** How It Works steps */
 export const clStep = (url: string, isMobile = false) =>
   cl(url, {
-    width: isMobile ? 768 : 1440, // was 1200/2400
-    quality: "auto:good",
+    width: isMobile ? 768 : 1440,
+    quality: 100,
     sharpen: 30,
   });

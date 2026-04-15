@@ -10,6 +10,8 @@ import {
   Trash,
   Copy,
   ChevronDown,
+  Play,
+  Pause,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -19,7 +21,7 @@ import chatService from "@/services/chat/chat.service";
 import { MCModalBase } from "@/shared/components/MCModalBase";
 import { mediaService } from "@/services/chat/media.service";
 import { Popover, PopoverTrigger, PopoverContent } from "@/shared/ui/popover";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, type ChangeEvent } from "react";
 import { format, isToday } from "date-fns";
 import { es } from "date-fns/locale";
 import { ImageCarouselModal } from "@/features/doctor/components/healthService/ImageCarouselModal";
@@ -333,34 +335,23 @@ export function MessageBubble({
 
           {/* Audio */}
           {message.tipo === MessageType.AUDIO && (
-            <div className="w-[300px] ">
+            <div className="w-auto">
               {isOptimistic && !mediaUrl ? (
-                <div className="flex items-center gap-2 md:gap-3 p-3 bg-muted/70 rounded-xl border border-border/50">
+                <div className="flex items-center gap-2 md:gap-3 p-2 bg-background/20 rounded-xl">
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary" />
-                  <p className="text-xs text-muted-foreground">
-                    Enviando audio...
-                  </p>
+                  <p className="text-xs font-medium">Enviando audio...</p>
                 </div>
               ) : (
                 mediaUrl && (
-                  <div className="rounded-xl  w-[300px] bg-muted/70 p-2">
-                    <audio
-                      controls
-                      className="w-full h-11 md:h-12"
-                      preload="metadata"
-                    >
-                      <source src={mediaUrl} type="audio/webm" />
-                      <source src={mediaUrl} type="audio/mp4" />
-                      <source src={mediaUrl} type="audio/ogg" />
-                      {t("messageBubble.audioNotSupported") ||
-                        "Tu navegador no soporta audio."}
-                    </audio>
-                  </div>
+                  <CustomAudioPlayer
+                    src={mediaUrl}
+                    isOwnMessage={isOwnMessage}
+                  />
                 )
               )}
 
               {message.contenido && (
-                <p className="text-xs md:text-sm break-words mt-2">
+                <p className="text-xs md:text-sm break-words mt-1 px-1">
                   {message.contenido}
                 </p>
               )}
@@ -405,7 +396,7 @@ export function MessageBubble({
           <div
             className={cn(
               "mt-2 min-h-6",
-              "flex items-center justify-end gap-1 text-xs opacity-70",
+              "flex items-center justify-end gap-1 text-xs opacity-70 leading-none",
             )}
           >
             {(canQuickCopy || canQuickDownload) && (
@@ -437,7 +428,7 @@ export function MessageBubble({
             <span>{messageTime}</span>
 
             {isOwnMessage && (
-              <span>
+              <span className="inline-flex items-center">
                 {message.estado === MessageStatus.ENVIADO && (
                   <Check className="inline w-3 h-3 md:w-4 md:h-4 text-background" />
                 )}
@@ -558,3 +549,156 @@ export function MessageBubble({
     </motion.div>
   );
 }
+
+const CustomAudioPlayer = ({
+  src,
+  isOwnMessage,
+}: {
+  src: string;
+  isOwnMessage: boolean;
+}) => {
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [currentTime, setCurrentTime] = useState(0);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    audio.pause();
+    audio.currentTime = 0;
+    audio.load();
+
+    setIsPlaying(false);
+    setProgress(0);
+    setCurrentTime(0);
+    setDuration(0);
+  }, [src]);
+
+  const togglePlayPause = async () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    try {
+      // usar estado real del elemento, no solo estado React
+      if (!audio.paused && !audio.ended) {
+        audio.pause();
+        return;
+      }
+
+      // si terminó, reiniciar
+      if (audio.ended) {
+        audio.currentTime = 0;
+      }
+
+      await audio.play();
+    } catch (err) {
+      console.error("Audio play error:", err, { src });
+    }
+  };
+
+  const handleTimeUpdate = () => {
+    if (!audioRef.current) return;
+    const current = audioRef.current.currentTime;
+    const total = audioRef.current.duration;
+
+    setCurrentTime(current);
+    if (!Number.isNaN(total) && total > 0) {
+      setProgress((current / total) * 100);
+    }
+  };
+
+  const handleLoadedMetadata = () => {
+    if (!audioRef.current) return;
+    const total = audioRef.current.duration;
+    if (!Number.isNaN(total)) setDuration(total);
+  };
+
+  const handleSeek = (e: ChangeEvent<HTMLInputElement>) => {
+    if (!audioRef.current || !audioRef.current.duration) return;
+    const value = Number(e.target.value);
+    audioRef.current.currentTime = (value / 100) * audioRef.current.duration;
+    setProgress(value);
+  };
+
+  const formatTime = (time: number) => {
+    if (!time || Number.isNaN(time)) return "0:00";
+    const m = Math.floor(time / 60);
+    const s = Math.floor(time % 60);
+    return `${m}:${s < 10 ? "0" : ""}${s}`;
+  };
+
+  return (
+    <div className="flex items-center  gap-3 min-w-[180px] md:min-w-[220px] p-1 ">
+      <audio
+        ref={audioRef}
+        src={src}
+        preload="metadata"
+        onPlay={() => setIsPlaying(true)}
+        onPause={() => setIsPlaying(false)}
+        onTimeUpdate={handleTimeUpdate}
+        onLoadedMetadata={handleLoadedMetadata}
+        onEnded={() => {
+          setIsPlaying(false);
+          setProgress(0);
+          setCurrentTime(0);
+        }}
+        onError={(e) => {
+          console.error("Audio element error:", e.currentTarget.error, { src });
+        }}
+      />
+
+      <button
+        type="button"
+        onClick={togglePlayPause}
+        className={cn(
+          "flex-shrink-0 flex items-center justify-center w-9 h-9 md:w-10 md:h-10 rounded-full transition-colors",
+          isOwnMessage
+            ? "text-primary bg-background hover:bg-background/90"
+            : "text-background bg-primary hover:bg-primary/90",
+        )}
+        aria-label={isPlaying ? "Pause audio" : "Play audio"}
+      >
+        {isPlaying ? (
+          <Pause size={18} fill="currentColor" />
+        ) : (
+          <Play size={18} fill="currentColor" className="ml-0.5" />
+        )}
+      </button>
+
+      <div className="flex flex-col flex-1 gap-1 min-w-0 justify-center pt-4 h-full ">
+        <input
+          type="range"
+          min="0"
+          max="100"
+          value={Number.isNaN(progress) ? 0 : progress}
+          onChange={handleSeek}
+          className={cn(
+            "w-full self-center h-1.5 appearance-none cursor-pointer outline-none rounded-full",
+            // Track
+            "[&::-webkit-slider-runnable-track]:h-1.5 [&::-webkit-slider-runnable-track]:rounded-full",
+            "[&::-moz-range-track]:h-1.5 [&::-moz-range-track]:rounded-full",
+            // Thumb (bolita)
+            "[&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-3.5 [&::-webkit-slider-thumb]:w-3.5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:-mt-1",
+            "[&::-moz-range-thumb]:h-3.5 [&::-moz-range-thumb]:w-3.5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0",
+            isOwnMessage
+              ? "bg-background/30 [&::-webkit-slider-runnable-track]:bg-background/30 [&::-moz-range-track]:bg-background/30 [&::-webkit-slider-thumb]:bg-background [&::-moz-range-thumb]:bg-background"
+              : "bg-primary/20 [&::-webkit-slider-runnable-track]:bg-primary/20 [&::-moz-range-track]:bg-primary/20 [&::-webkit-slider-thumb]:bg-primary [&::-moz-range-thumb]:bg-primary",
+          )}
+        />
+        <span
+          className={cn(
+            "text-[11px] md:text-xs font-medium",
+            isOwnMessage ? "text-background/80" : "text-primary/70",
+          )}
+        >
+          {isPlaying || progress > 0
+            ? formatTime(currentTime)
+            : formatTime(duration)}
+        </span>
+      </div>
+    </div>
+  );
+};
