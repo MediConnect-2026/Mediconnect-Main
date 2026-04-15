@@ -37,7 +37,7 @@ function DialogOverlay({
       className={cn(
         // Mismo estilo que MorphingDialog: bg-black/10 con backdrop-blur-sm y dark:bg-black/40
         "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/10 backdrop-blur-sm dark:bg-black/40",
-        className
+        className,
       )}
       {...props}
     />
@@ -59,7 +59,7 @@ function DialogContent({
         data-slot="dialog-content"
         className={cn(
           "bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-xl border p-6 shadow-lg duration-200 outline-none sm:max-w-lg",
-          className
+          className,
         )}
         {...props}
       >
@@ -68,11 +68,10 @@ function DialogContent({
           <DialogPrimitive.Close
             data-slot="dialog-close"
             className={cn(
-              // Consistente con MorphingDialog: rounded, hover, transición, tamaño, focus
-              "absolute top-4 right-4 flex items-center justify-center rounded-full bg-transparent p-2 transition-all duration-200 hover:bg-primary/10 hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 disabled:pointer-events-none"
+              "absolute top-4 right-6 inline-flex items-center justify-center p-1 text-primary transition-opacity duration-200 hover:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 disabled:pointer-events-none",
             )}
           >
-            <XIcon className="text-primary" size={24} />
+            <XIcon className="opacity-90" size={24} />
             <span className="sr-only">Close</span>
           </DialogPrimitive.Close>
         )}
@@ -97,7 +96,7 @@ function DialogFooter({ className, ...props }: React.ComponentProps<"div">) {
       data-slot="dialog-footer"
       className={cn(
         "flex flex-col-reverse gap-2 sm:flex-row sm:justify-end",
-        className
+        className,
       )}
       {...props}
     />

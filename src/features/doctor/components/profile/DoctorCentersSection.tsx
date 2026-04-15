@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader } from "@/shared/ui/card";
 import { useTranslation } from "react-i18next";
 
@@ -16,8 +16,10 @@ import {
 } from "@/shared/ui/empty";
 import { Filter, CalendarX } from "lucide-react";
 import MCButton from "@/shared/components/forms/MCButton";
+import useTiposCentros from "@/features/onboarding/services/useTiposCentros";
 interface Center {
   id: string | number;
+  allianceRequestId?: string | number;
   name: string;
   type: string;
   rating: number;
@@ -38,12 +40,33 @@ interface CenterFilters {
 interface Props {
   centers: Center[];
   onToggleConnection?: (id: string | number) => void;
+  onViewProfile?: (id: string | number) => void;
+  isConnectionSubmitting?: boolean;
+  connectionSubmittingId?: string | number | null;
 }
 
-function DoctorCentersSection({ centers, onToggleConnection }: Props) {
+function DoctorCentersSection({
+  centers,
+  onToggleConnection,
+  onViewProfile,
+  isConnectionSubmitting = false,
+  connectionSubmittingId = null,
+}: Props) {
   const { t } = useTranslation("doctor");
   const [searchTerm, setSearchTerm] = useState("");
   const isMobile = useIsMobile();
+  const { data: tiposCentroOptions = [], isLoading: isLoadingCenterTypes } =
+    useTiposCentros();
+
+  const centerTypeOptions = useMemo(
+    () =>
+      tiposCentroOptions.map((option) => ({
+        // Keep center type name as value so current filter comparison continues working.
+        value: option.label,
+        label: option.label,
+      })),
+    [tiposCentroOptions],
+  );
 
   // Estado de filtros
   const [filters, setFilters] = useState<CenterFilters>({
@@ -98,6 +121,8 @@ function DoctorCentersSection({ centers, onToggleConnection }: Props) {
     >
       <FilterCenters
         filters={filters}
+        centerTypeOptions={centerTypeOptions}
+        isLoadingCenterTypes={isLoadingCenterTypes}
         onFiltersChange={(partialFilters) =>
           setFilters((prev) => ({ ...prev, ...partialFilters }))
         }
@@ -201,6 +226,7 @@ function DoctorCentersSection({ centers, onToggleConnection }: Props) {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3 gap-4">
             {filteredCenters.map((center) => (
               <MCCentersCards
+                id={center.id}
                 key={center.id}
                 name={center.name}
                 type={center.type}
@@ -213,10 +239,20 @@ function DoctorCentersSection({ centers, onToggleConnection }: Props) {
                   center.connectionStatus ??
                   (center.isConnected ? "connected" : "not_connected")
                 }
+                onDetails={
+                  onViewProfile ? () => onViewProfile(center.id) : undefined
+                }
                 onToggleConnection={
-                  onToggleConnection
-                    ? () => onToggleConnection(center.id)
+                  onToggleConnection && center.allianceRequestId !== undefined
+                    ? () => onToggleConnection(center.allianceRequestId as string | number)
                     : undefined
+                }
+                isConnectionSubmitting={
+                  isConnectionSubmitting &&
+                  connectionSubmittingId !== null &&
+                  center.allianceRequestId !== undefined &&
+                  String(connectionSubmittingId) ===
+                    String(center.allianceRequestId)
                 }
               />
             ))}

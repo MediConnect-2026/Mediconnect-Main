@@ -26,7 +26,7 @@ function MCFilterInput({
         value={value}
         onChange={handleChange}
         placeholder={placeholder}
-        className="w-full rounded-full h-full placeholder:text-muted-foreground/70 sm:placeholder:text-primary/80 pl-8 sm:pl-9 pr-3 sm:pr-4 py-2 sm:py-2.5 md:py-2.5 lg:py-2.5 text-sm sm:text-base border-primary/20 bg-bg-btn-secondary dark:bg-bg-btn-secondary focus:border-primary/40 transition-colors"
+        className={`w-full rounded-full h-full placeholder:text-muted-foreground/70 sm:placeholder:text-primary/80 pl-8 sm:pl-9 pr-3 sm:pr-4 py-2 sm:py-2.5 md:py-2.5 lg:py-2.5 text-sm sm:text-base border-primary/20 bg-bg-btn-secondary dark:bg-bg-btn-secondary focus:border-primary/40 transition-colors ${mainInput ? "font-medium" : ""}`}
       />
     </div>
   );

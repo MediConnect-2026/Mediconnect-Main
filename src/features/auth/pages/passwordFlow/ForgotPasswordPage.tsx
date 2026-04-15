@@ -6,17 +6,57 @@ import { useAppStore } from "@/stores/useAppStore";
 import { useTranslation } from "react-i18next";
 import AuthFooterContainer from "../../components/AuthFooterContainer";
 import { useNavigate } from "react-router-dom";
+import { ROUTES } from "@/router/routes";
+import { Loader2 } from "lucide-react";
+import  { toast } from "sonner";
+import { authService } from "@/services/auth/auth.service";
+import { useState } from "react";
 
 function ForgotPasswordPage() {
   const { t } = useTranslation("auth");
   const navigate = useNavigate();
-
+  const [isLoading, setIsLoading] = useState(false);
+  
   const forgotPasswordData = useAppStore((state) => state.forgotPassword);
   const setForgotPassword = useAppStore((state) => state.setForgotPassword);
 
-  const handlesubmit = (data: { email: string }) => {
-    setForgotPassword({ email: data.email });
-    navigate("/auth/verify-email", { replace: true });
+  const handlesubmit = async (data: { email: string }) => {
+    setIsLoading(true);
+
+    try {
+      // Llamar a la API para solicitar código OTP
+      // Si el email no existe, el backend devolverá un error
+      const response = await authService.solicitarCodigoPassword({
+        email: data.email,
+      });
+
+      // Guardar email para el flujo de restablecimiento de contraseña
+      setForgotPassword({ email: data.email });
+
+      // Mostrar mensaje de éxito
+      toast.success(t("forgotPassword.successTitleEmailSent") || response.message || "Código enviado correctamente");
+      
+      // Redirigir a la página de verificación de email, pasando el email en el estado
+      navigate(ROUTES.VERIFY_EMAIL, { 
+        replace: true,
+        state: { email: data.email }
+      });
+
+    } catch (error: any) {
+      console.error("Error al solicitar código OTP:", error);
+
+      const errorMessage = error.response?.data?.message || t("forgotPassword.errors.sendingEmail") || "Error al enviar el correo de restablecimiento de contraseña. Por favor, inténtalo de nuevo.";
+
+      if (error.response?.data?.message.includes("No existe un usuario registrado con este correo")) {
+        toast.error(t("forgotPassword.errors.emailNotFound") || "Correo no encontrado. Por favor, verifica e inténtalo de nuevo.");
+        return;
+      }
+
+      console.log("Error message to display:", errorMessage);
+      toast.error(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -26,8 +66,8 @@ function ForgotPasswordPage() {
     >
       <MCFormWrapper
         schema={ForgotPasswordSchema((key) => t(key))}
-        onSubmit={(data) => {
-          handlesubmit(data);
+        onSubmit={async (data) => {
+          await handlesubmit(data);
         }}
         defaultValues={{
           email: forgotPasswordData?.email || "",
@@ -41,11 +81,14 @@ function ForgotPasswordPage() {
             label={t("forgotPassword.emailLabel")}
             placeholder={t("forgotPassword.emailPlaceholder")}
           />
-          <p className="text-center mt-2 w-full">{forgotPasswordData?.email}</p>
         </div>
         <AuthFooterContainer
           backButtonProps={{
-            disabled: true,
+            disabled: isLoading,
+          }}
+          continueButtonProps={{
+            disabled: isLoading,
+            icon: isLoading ? <Loader2 className="animate-spin" /> : undefined,
           }}
         />
       </MCFormWrapper>

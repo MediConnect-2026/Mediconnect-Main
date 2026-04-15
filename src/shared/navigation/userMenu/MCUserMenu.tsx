@@ -8,6 +8,8 @@ import MCSheetProfile from "@/shared/navigation/userMenu/editProfile/MCSheetProf
 import MCUserMenuTrigger from "./MCUserMenuTrigger";
 import MCUserMenuContent from "./MCUserMenuContent";
 import { DropdownMenu } from "@/shared/animate-ui/components/radix/dropdown-menu";
+import { getUserFullName, getUserInitials, getUserAvatar } from "@/services/auth/auth.types";
+import { emitInsuranceChanged } from "@/lib/events/insuranceEvents";
 
 export function MCUserMenu() {
   // Estados locales
@@ -28,44 +30,50 @@ export function MCUserMenu() {
   const themeButtonRef = useRef<HTMLDivElement>(null);
 
   const getUserData = () => {
-    switch (user?.role) {
+    const avatar = getUserAvatar(user) || "";
+    
+    switch (user?.rol) {
       case "PATIENT":
         return {
-          name: "IliaTopuria",
-          email: "Iliatopuria17@gmail.com",
-          initials: "IT",
+          userId: user.id,
+          name: getUserFullName(user),
+          email: user.email,
+          initials: getUserInitials(user),
           roleLabel: t("userMenu.patient"),
-          avatar: "",
+          avatar,
         };
       case "DOCTOR":
         return {
-          name: "Dr. Cristiano Ronaldo",
-          email: "DrCr7Mediconnect@mediconnect.com",
-          avatar: "",
-          initials: "CR",
+          userId: user.id,
+          name: getUserFullName(user),
+          email: user.email,
+          avatar,
+          initials: getUserInitials(user),
           roleLabel: t("userMenu.doctor"),
         };
       case "CENTER":
         return {
-          name: "Hospital Dario Contreras",
-          email: "HospDarioCont@gmail.com",
-          avatar: "",
-          initials: "HC",
+          userId: user.id,
+          name: getUserFullName(user),
+          email: user.email,
+          avatar,
+          initials: getUserInitials(user),
           roleLabel: t("userMenu.center"),
         };
       default:
         return {
-          name: "José Almirante",
-          email: "emmanuel03250310@gmail.com",
-          avatar: "",
-          initials: "JA",
+          userId: user?.id || 0,
+          name: getUserFullName(user),
+          email: user?.email || "admin@example.com",
+          avatar,
+          initials: getUserInitials(user),
           roleLabel: t("userMenu.admin"),
         };
     }
   };
 
   const userData = getUserData();
-
+  
   // Función para manejar cambio de tema
   const handleThemeChange = useCallback(
     async (newTheme: Theme, event: React.MouseEvent) => {
@@ -115,6 +123,12 @@ export function MCUserMenu() {
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, []);
+  
+  // Callback para cuando se modifiquen los seguros en el Sheet
+  // Emite un evento global para notificar a otros componentes (como PatientProfilePage)
+  const handleInsurancesChanged = useCallback(() => {
+    emitInsuranceChanged();
+  }, []);
 
   return (
     <>
@@ -135,13 +149,14 @@ export function MCUserMenu() {
           handleThemeChange={handleThemeChange}
           themeButtonRef={themeButtonRef}
           isMobile={isMobile}
-          userRole={user?.role || "ADMIN"}
+          userRole={user?.rol || "ADMIN"}
         />
       </DropdownMenu>
 
       <MCSheetProfile
         open={isEditProfileOpen}
         onOpenChange={setIsEditProfileOpen}
+        onInsurancesChanged={handleInsurancesChanged}
       />
     </>
   );

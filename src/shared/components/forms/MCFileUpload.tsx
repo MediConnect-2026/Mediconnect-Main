@@ -42,8 +42,8 @@ function MCFileUpload({
   standalone = false,
   onFileChange,
 }: MCFileUploadProps) {
-  const formContext = standalone ? null : useFormContext();
-  const { t } = useTranslation("common");
+  const formContext = useFormContext();
+  useTranslation("common");
 
   const [files, setFiles] = useState<File[]>([]);
   const [isDragging, setIsDragging] = useState(false);
@@ -158,6 +158,8 @@ function MCFileUpload({
       url: URL.createObjectURL(file), // En producción, esto sería la URL del servidor
       name: file.name,
       type: file.type,
+      size: file.size,
+      uploadedAt: new Date().toISOString(),
     }));
 
     // Actualizar formulario
@@ -181,6 +183,8 @@ function MCFileUpload({
       url: URL.createObjectURL(file),
       name: file.name,
       type: file.type,
+      size: file.size,
+      uploadedAt: new Date().toISOString(),
     }));
 
     if (!standalone && formContext) {

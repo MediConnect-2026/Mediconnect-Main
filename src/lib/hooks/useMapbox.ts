@@ -11,24 +11,49 @@ interface UseMapboxProps {
 
 export function useMapbox({ containerRef, center, zoom = 12 }: UseMapboxProps) {
   const mapRef = useRef<mapboxgl.Map | null>(null);
+  const hasNavControlRef = useRef(false);
+  const initialCenterRef = useRef(center);
+  const initialZoomRef = useRef(zoom);
 
   useEffect(() => {
-    if (!containerRef.current || mapRef.current) return;
+    const container = containerRef.current;
+    if (!container || mapRef.current) return;
 
-    mapRef.current = new mapboxgl.Map({
-      container: containerRef.current,
+    const map = new mapboxgl.Map({
+      container,
       style: "mapbox://styles/mapbox/streets-v12",
-      center,
-      zoom,
+      center: initialCenterRef.current,
+      zoom: initialZoomRef.current,
     });
+    mapRef.current = map;
 
-    mapRef.current.addControl(new mapboxgl.NavigationControl());
+    if (!hasNavControlRef.current) {
+      map.addControl(new mapboxgl.NavigationControl());
+      hasNavControlRef.current = true;
+    }
 
     return () => {
-      mapRef.current?.remove();
-      mapRef.current = null;
+      map.remove();
+      if (mapRef.current === map) {
+        mapRef.current = null;
+      }
+      hasNavControlRef.current = false;
     };
-  }, []);
+  }, [containerRef]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    const currentCenter = map.getCenter();
+    const currentZoom = map.getZoom();
+    const centerChanged = currentCenter.lng !== center[0] || currentCenter.lat !== center[1];
+    const zoomChanged = currentZoom !== zoom;
+
+    if (!centerChanged && !zoomChanged) return;
+
+    map.jumpTo({ center, zoom });
+  }, [center, zoom]);
 
   return mapRef;
 }

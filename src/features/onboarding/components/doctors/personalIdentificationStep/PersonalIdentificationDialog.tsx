@@ -6,7 +6,6 @@ import MCStepper from "@/shared/components/MCStepper";
 import AuthFooterContainer from "@/features/auth/components/AuthFooterContainer";
 import { useGlobalUIStore } from "@/stores/useGlobalUIStore";
 import { MorphingDialogClose } from "@/shared/ui/morphing-dialog";
-import { useAppStore } from "@/stores/useAppStore";
 import { useTranslation } from "react-i18next";
 type PersonalIdentificationDialogProps = {
   children?: React.ReactNode;
@@ -16,6 +15,8 @@ function PersonalIdentificationDialog({
   children,
 }: PersonalIdentificationDialogProps) {
   const { t } = useTranslation("auth");
+  const [isStep1Valid, setIsStep1Valid] = useState(false);
+  const [isStep2Valid, setIsStep2Valid] = useState(false);
 
   const steps = [
     { title: t("personalIdentificationDialog.steps.personal") },
@@ -24,24 +25,7 @@ function PersonalIdentificationDialog({
 
   const current = useGlobalUIStore((s) => s.doctorOnboardingStep);
   const setCurrent = useGlobalUIStore((s) => s.setDoctorOnboardingStep);
-  const [step1Valid, setStep1Valid] = useState(false);
-  const doctorsteps = useAppStore((state) => state.doctorOnboardingData);
 
-  const doctorStep1 =
-    doctorsteps?.name &&
-    doctorsteps?.lastName &&
-    doctorsteps?.gender &&
-    doctorsteps?.birthDate &&
-    doctorsteps?.nationality &&
-    doctorsteps?.identityDocument &&
-    doctorsteps?.phone;
-
-  const doctorStep2 =
-    doctorsteps?.exequatur &&
-    doctorsteps?.mainSpecialty &&
-    doctorsteps?.secondarySpecialties;
-
-  const handleValidationChange = (isValid: boolean) => setStep1Valid(isValid);
   const handleNextStep = () => setCurrent(current + 1);
 
   return (
@@ -72,8 +56,8 @@ function PersonalIdentificationDialog({
             <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 ">
               {current === 0 && (
                 <PersonalIdentificationStep1
-                  onValidationChange={handleValidationChange}
                   onNext={handleNextStep}
+                  onValidationChange={setIsStep1Valid}
                 >
                   <AuthFooterContainer
                     backButtonProps={{
@@ -85,13 +69,15 @@ function PersonalIdentificationDialog({
                       disabled: current === 0,
                     }}
                     continueButtonProps={{
-                      disabled: !step1Valid || !doctorStep1,
+                      disabled: !isStep1Valid,
                     }}
                   />
                 </PersonalIdentificationStep1>
               )}
               {current === 1 && (
-                <PersonalIdentificationStep2>
+                <PersonalIdentificationStep2
+                  onValidationChange={setIsStep2Valid}
+                >
                   <AuthFooterContainer
                     type="Save"
                     backButtonProps={{
@@ -102,7 +88,7 @@ function PersonalIdentificationDialog({
                     }}
                     continueButtonProps={{
                       type: "submit",
-                      disabled: !doctorStep2,
+                      disabled: !isStep2Valid,
                     }}
                     canClose={true}
                     continueButtonWrapper={MorphingDialogClose}

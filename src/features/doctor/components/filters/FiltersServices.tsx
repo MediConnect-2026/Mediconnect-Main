@@ -4,7 +4,7 @@ import MCFilterSelect from "@/shared/components/filters/MCFilterSelect";
 import { useTranslation } from "react-i18next";
 
 interface ServiceFilters {
-  type: string;
+  modalidad: string;
   priceRange: string;
   duration: string;
   rating: number | null;
@@ -184,11 +184,11 @@ function FiltersServices({
         label={t("filters.labels.serviceType", "Tipo de servicio")}
         options={serviceTypes}
         placeholder={t("filters.placeholders.serviceType", "Seleccionar tipo")}
-        value={filters.type}
+        value={filters.modalidad}
         noBadges
         onChange={(v) =>
           onFiltersChange({
-            type: typeof v === "string" ? v : (v[0] ?? ""),
+            modalidad: typeof v === "string" ? v : (v[0] ?? ""),
           })
         }
       />

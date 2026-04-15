@@ -4,25 +4,33 @@ import MCSheetDoctor from "./doctor/MCSheetDoctor";
 import MCSheetHealthCenter from "./center/MCSheetHealthCenter";
 import { useAppStore } from "@/stores/useAppStore";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
+import { getUserAppRole } from "@/services/auth/auth.types";
 interface MCSheetProfileProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  whatTab?: "general" | "history" | "insurance";
+  whatTab?: "general" | "history" | "insurance" | "education" | "experience" | "language" | string;
+  onClinicalHistoryChanged?: () => void;
+  onInsurancesChanged?: () => void;
 }
 
-function MCSheetProfile({ open, onOpenChange, whatTab }: MCSheetProfileProps) {
+function MCSheetProfile({ open, onOpenChange, whatTab, onClinicalHistoryChanged, onInsurancesChanged }: MCSheetProfileProps) {
   const user = useAppStore((state) => state.user);
   const isMobile = useIsMobile();
+  
   const renderProfileContent = () => {
-    switch (user?.role) {
+    
+    switch (getUserAppRole(user)) {
       case "PATIENT":
-        return <MCSheetPatient onOpenChange={onOpenChange} whatTab={whatTab} />;
+        return <MCSheetPatient onOpenChange={onOpenChange} whatTab={whatTab} onClinicalHistoryChanged={onClinicalHistoryChanged} onInsurancesChanged={onInsurancesChanged} />;
       case "DOCTOR":
-        return <MCSheetDoctor onOpenChange={onOpenChange} />;
+        return <MCSheetDoctor 
+          onOpenChange={onOpenChange} 
+          whatTab={whatTab}
+        />;
       case "CENTER":
         return <MCSheetHealthCenter onOpenChange={onOpenChange} />;
       default:
-        return <MCSheetPatient onOpenChange={onOpenChange} />;
+        return <MCSheetPatient onOpenChange={onOpenChange} whatTab={whatTab} onClinicalHistoryChanged={onClinicalHistoryChanged} />;
     }
   };
 

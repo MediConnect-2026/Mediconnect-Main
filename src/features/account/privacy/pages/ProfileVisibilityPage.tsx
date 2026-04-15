@@ -4,7 +4,7 @@ import MCFormWrapper from "@/shared/components/forms/MCFormWrapper";
 import { useProfileStore } from "@/stores/useProfileStore";
 import { profileVisibilitySchema } from "@/schema/account.schema";
 import { useNavigate } from "react-router-dom";
-import { useAppStore } from "@/stores/useAppStore";
+
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
 import { useTranslation } from "react-i18next";
 

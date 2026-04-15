@@ -11,6 +11,11 @@
     "noMenuRole": "Sin menú para el rol",
     "noRole": "Desconocido"
   },
+  "common": {
+    "confirm": "Confirmar",
+    "cancel": "Cancelar",
+    "loading": "Cargando..."
+  },
   "userMenu": {
     "spanish": "Español",
     "english": "Inglés",
@@ -34,13 +39,18 @@
   "clinicCard": {
     "connect": "Conectar",
     "connected": "Conectado",
+    "allied": "Aliado",
     "pending": "Esperando solicitud",
     "viewProfile": "Ver perfil",
     "insurances": "Seguros:",
     "acceptedInsurances": "Seguros aceptados:",
+    "noLanguages": "No disponible",
+    "noInsurances": "No disponible",
     "andOtherLanguages": "y otros {{count}} idiomas...",
     "andMore": "y {{count}} más...",
-    "reviews": "reseñas"
+    "reviews": "reseñas",
+    "scheduleAppointment": "Agendar cita",
+    "contact": "Contactar"
   },
   "doctorCard": {
     "availability": "Disponibilidad:",
@@ -48,8 +58,17 @@
     "noSlots": "No",
     "appointments": "Citas",
     "more": "Más",
-    "pending": "Esperando solicitud"
+    "pending": "Esperando solicitud",
+    "favoriteAdded": "Doctor agregado a favoritos",
+    "favoriteAddError": "No se pudo agregar a favoritos",
+    "confirmFavoriteTitle": "Agregar a favoritos",
+    "confirmFavoriteDescription": "¿Deseas agregar a {{name}} a tus doctores favoritos?",
+    "confirmRemoveFavoriteTitle": "Eliminar de favoritos",
+    "confirmRemoveFavoriteDescription": "¿Deseas eliminar a {{name}} de tus doctores favoritos?",
+    "favoriteRemoved": "Doctor eliminado de favoritos",
+    "favoriteRemoveError": "No se pudo eliminar de favoritos"
   },
+  "confirm": "Confirmar",
   "search": {
     "providerType": "Tipo de proveedor",
     "specialty": "Especialidad",
@@ -59,13 +78,67 @@
     "schedule": "Horario",
     "rating": "Calificación",
     "yearsOfExperience": "Años de experiencia",
+    "options": {
+      "all": "Todos",
+      "providerType": {
+        "doctor": "Doctor",
+        "clinic": "Clínica",
+        "hospital": "Hospital"
+      },
+      "modality": {
+        "Presencial": "Presencial",
+        "Virtual": "Virtual",
+        "hibrido": "Mixta"
+      },
+      "gender": {
+        "masculino": "Masculino",
+        "femenino": "Femenino",
+        "other": "Otro"
+      },
+      "schedule": {
+        "mañana": "Mañana",
+        "tarde": "Tarde",
+        "noche": "Noche"
+      },
+      "rating": {
+        "3": "3 estrellas o más",
+        "3.5": "3.5 estrellas o más",
+        "4": "4 estrellas o más",
+        "4.5": "4.5 estrellas o más"
+      },
+      "years": {
+        "1": "1 año o más",
+        "3": "3 años o más",
+        "5": "5 años o más",
+        "10": "10 años o más"
+      },
+      "radio": {
+        "1": "5 km",
+        "2": "10 km",
+        "3": "20 km",
+        "4": "30 km",
+        "5": "40 km",
+        "6": "50 km"
+      },
+      "languages": {
+        "spanish": "Español",
+        "english": "Inglés",
+        "french": "Francés"
+      }
+    },
+    "radio": "Cercanía",
     "selectedProviders": "{{count}} de {{max}} proveedores seleccionados para comparar",
     "compare": "Comparar",
     "providersFound": "{{count}} proveedores encontrados",
     "noProvidersFound": "No se encontraron proveedores",
     "noResultsDescription": "No hay resultados para los filtros seleccionados. Intenta cambiar los filtros o la búsqueda.",
     "viewList": "Ver Lista",
-    "viewMap": "Ver Mapa"
+    "viewMap": "Ver Mapa",
+    "address": "Dirección",
+    "province": "Provincia",
+    "municipality": "Municipio",
+    "loadingProviderTypes": "Cargando tipos de proveedores...",
+    "loadingSpecialties": "Cargando especialidades..."
   },
   "validation": {
     "emailRequired": "El correo electrónico es obligatorio",
@@ -74,7 +147,7 @@
     "passwordRequired": "La contraseña es obligatoria",
     "confirmPasswordRequired": "Debes confirmar la contraseña",
     "passwordsDoNotMatch": "Las contraseñas no coinciden",
-    "otpLength": "El código OTP debe tener 4 dígitos",
+    "otpLength": "El código OTP debe tener 6 dígitos",
     "otpNumeric": "El código OTP debe ser numérico",
     "visibilityRequired": "La visibilidad del perfil es obligatoria",
     "privacyConsentRequired": "Debes aceptar la política de privacidad",
@@ -122,14 +195,20 @@
     "passwordLabel": "Contraseña",
     "passwordPlaceholder": "Ingresa tu contraseña",
     "verifyButton": "Verificar",
-    "successMessage": "Identidad verificada sin implementar lógica real."
+    "successMessage": "Identidad verificada correctamente.",
+    "otpSentMessage": "Código de verificación enviado a tu correo.",
+    "otpSendError": "Error al enviar el código de verificación. Inténtalo de nuevo."
   },
   "changeEmail": {
     "title": "Cambiar correo electrónico",
     "description": "Ingresa tu nueva dirección de correo. Te enviaremos un código de verificación.",
     "newEmailLabel": "Nuevo correo electrónico",
     "newEmailPlaceholder": "Ingresa tu nuevo correo electrónico",
-    "changeButton": "Cambiar correo"
+    "changeButton": "Cambiar correo",
+    "sameEmailError": "El nuevo correo no puede ser el mismo que el actual.",
+    "otpSentSuccess": "Código de verificación enviado a tu nuevo correo.",
+    "otpSendError": "Error al enviar el código de verificación. Inténtalo de nuevo.",
+    "sending": "Enviando..."
   },
   "verifyEmail": {
     "title": "Verifica tu nuevo correo",
@@ -137,7 +216,18 @@
     "tip": "¿No recibiste el código?:Revisa tu carpeta de spam o espera unos minutos.",
     "resend": "Reenviar código",
     "verify": "Verificar",
-    "currentOtp": "OTP actual:"
+    "currentOtp": "OTP actual:",
+    "emailNotFound": "Correo no encontrado",
+    "success": "Correo verificado exitosamente",
+    "error": "Error al validar el código. Inténtalo de nuevo.",
+    "invalidCode": "Código de verificación inválido.",
+    "resendSuccess": "Código reenviado exitosamente",
+    "resendError": "Error al reenviar el código",
+    "passwordNotFound": "Se requiere verificación de contraseña. Por favor, reinicia el proceso.",
+    "newEmailNotFound": "Nuevo correo no encontrado. Por favor, reinicia el proceso.",
+    "emailChangedSuccess": "¡Correo cambiado exitosamente!",
+    "incorrectPassword": "Contraseña incorrecta. Por favor, reinicia el proceso.",
+    "emailAlreadyRegistered": "Este correo ya está registrado."
   },
   "changePassword": {
     "title": "Cambiar contraseña",
@@ -146,6 +236,10 @@
     "currentPasswordPlaceholder": "Ingresa tu contraseña actual",
     "newPasswordLabel": "Nueva contraseña",
     "newPasswordPlaceholder": "Ingresa tu nueva contraseña",
+    "confirmNewPasswordLabel": "Confirmar nueva contraseña",
+    "confirmNewPasswordPlaceholder": "Confirma tu nueva contraseña",
+    "confirmPasswordLabel": "Confirmar contraseña",
+    "confirmPasswordPlaceholder": "Confirma tu contraseña",
     "changeButton": "Cambiar contraseña"
   },
   "deleteAccount": {
@@ -156,8 +250,21 @@
     "consequence2": "No podrás iniciar sesión ni recuperar tu cuenta.",
     "consequence3": "Se cancelarán todas tus citas y conexiones con médicos o centros de salud.",
     "consequence4": "Los mensajes y registros asociados se eliminarán de manera irreversible, siguiendo las políticas de privacidad de MediConnect.",
+    "confirmationHint": "Por favor, escribe ELIMINAR CUENTA para confirmar que deseas eliminar tu cuenta.",
+    "placeholder": "Escribe ELIMINAR CUENTA para confirmar",
+    "confirmationLabel": "Escribe ELIMINAR CUENTA para confirmar",
     "cancelButton": "Cancelar",
-    "deleteButton": "Eliminar Cuenta"
+    "success": "Cuenta eliminada exitosamente",
+    "deleteButton": "Eliminar Cuenta",
+    "errors": {
+      "confirmationInvalid": "Debes escribir exactamente \"ELIMINAR CUENTA\" para confirmar",
+      "noPassword": "Se requiere verificación de contraseña. Por favor, ingresa tu contraseña para confirmar.",
+      "incorrectPassword": "Contraseña incorrecta. Por favor, reinicia el proceso.",
+      "invalidData": "Datos inválidos. Por favor, reinicia el proceso.",
+      "accountInactive": "Tu cuenta ya está inactiva o eliminada.",
+      "userNotFound": "Usuario no encontrado. Por favor, reinicia el proceso.",
+      "generic": "Ocurrió un error al eliminar tu cuenta. Por favor, intenta nuevamente más tarde."
+    }
   },
   "profileVisibility": {
     "title": "Privacidad del perfil profesional",
@@ -233,7 +340,12 @@
       "resubmitPersonal": "Reenviar Datos Personales",
       "resubmitCenter": "Reenviar Información del Centro",
       "cancel": "Cancelar",
-      "submit": "Enviar"
+      "submit": "Enviar",
+      "submitting": "Enviando...",
+      "noChanges": "No hay cambios para guardar",
+      "updateSuccess": "Información actualizada correctamente",
+      "updateError": "No se pudo actualizar la información",
+      "locationRequiredError": "Para actualizar la ubicación, selecciona un punto válido en el mapa"
     },
     "documents": {
       "title": "Documentos",
@@ -264,7 +376,11 @@
       "actionsAvailable": "Acciones disponibles",
       "actionsDescription": "Puedes enviar todas las certificaciones actuales para revisión, o cancelar todo y empezar de nuevo.",
       "submitAllForReview": "Enviar Todo a Revisión",
-      "cancelAll": "Cancelar Todo"
+      "cancelAll": "Cancelar Todo",
+      "uploadError": "Error al subir el documento: {{message}}",
+      "errorFileTooLarge": "El archivo supera el tamaño máximo de 5MB",
+      "errorInvalidType": "Tipo de archivo no permitido. Solo imágenes (JPEG, PNG, WEBP) o PDF",
+      "errorGeneric": "Error al subir el documento"
     },
     "forms": {
       "centerName": "Nombre del Centro",
@@ -277,6 +393,7 @@
       "rncPlaceholder": "000000000",
       "centerType": "Tipo de Centro",
       "centerTypePlaceholder": "Seleccione tipo",
+      "loadingCenterTypes": "Cargando tipos de centro...",
       "phone": "Teléfono",
       "phonePlaceholder": "(809) 000-0000",
       "email": "Email",
@@ -288,6 +405,7 @@
       "provincePlaceholder": "Se completará automáticamente",
       "municipality": "Municipio",
       "municipalityPlaceholder": "Se completará automáticamente",
+      "zipCode": "Código postal",
       "latitude": "Latitud",
       "longitude": "Longitud",
       "firstName": "Nombre(s)",
@@ -390,6 +508,26 @@
     "subtitle": "Estás a punto de iniciar una videollamada",
     "joinButton": "Unirse a la teleconsulta"
   },
+  "teleconsultRoom": {
+    "connecting": "Conectando a la teleconsulta...",
+    "tabs": {
+      "video": "Video",
+      "chat": "Chat",
+      "info": "Info"
+    },
+    "fallbackDoctor": "Doctor",
+    "fallbackSpecialty": "Especialidad"
+  },
+  "teleconsultChatPanel": {
+    "loading": "Cargando chat...",
+    "error": "No se pudo cargar la conversación para esta cita.",
+    "preparing": "Preparando conversación...",
+    "close": "Cerrar",
+    "tabs": {
+      "chat": "Chat",
+      "notes": "Notas"
+    }
+  },
   "consultationInfo": {
     "title": "Información de la consulta",
     "additionalSections": "Secciones Adicionales",
@@ -403,6 +541,7 @@
     "rateExperience": "Califica tu experiencia",
     "leaveComment": "Deja un comentario (Opcional)",
     "commentPlaceholder": "Escribe tu comentario aquí...",
+    "defaultDoctorName": "Doctor",
     "submit": "Enviar calificación",
     "skip": "Omitir por ahora",
     "specialty": "Especialista en Medicina Interna"
@@ -434,9 +573,12 @@
     "back": "Volver",
     "menu": "Menú",
     "conversations": "Conversaciones",
+    "loading": "Cargando conversaciones...",
     "searchChats": "Buscar Chats",
     "noConversationsFound": "No se encontraron conversaciones",
-    "microphoneError": "No se pudo acceder al micrófono. Verifica los permisos."
+    "microphoneError": "No se pudo acceder al micrófono. Verifica los permisos.",
+    "noConversations": "Aún no hay conversaciones. Inicia un nuevo chat para conectar con tus doctores o pacientes.",
+    "loadingOlderMessages": "Cargando mensajes anteriores..."
   },
   "filePreview": {
     "imageAlt": "Vista previa de imagen",
@@ -454,22 +596,54 @@
   },
   "messageBubble": {
     "imageAlt": "Imagen enviada",
-    "download": "Descargar"
+    "copy": "Copiar",
+    "copied": "Copiado",
+    "download": "Descargar",
+    "audioNotSupported": "Tu navegador no soporta audio.",
+    "videoNotSupported": "Tu navegador no soporta video.",
+    "deleted": "Este mensaje fue eliminado",
+    "deleteError": "Error al eliminar el mensaje. Por favor, intenta nuevamente.",
+    "confirmDelete": "¿Estás seguro de que deseas eliminar este mensaje?",
+    "confirmDeleteTitle": "Eliminar mensaje",
+    "delete": "Eliminar",
+    "cancel": "Cancelar"
   },
+  "cancel": "Cancelar",
   "prescription": {
     "diagnosisTittle": "Diagnóstico",
     "diagnosisTittlePlaceholder": "Título del diagnóstico",
     "diagnosisDescription": "Descripción del diagnóstico",
     "diagnosisDescriptionPlaceholder": "Describe el diagnóstico aquí...",
     "documents": "Documentos adjuntos",
+    "maxImagesHint": "(máx. {{max}} imágenes · 10 MB c/u)",
     "uploadHintMobile": "Toca para subir",
     "uploadHintDesktop": "Arrastra o haz clic",
-    "uploadSubHint": "Imágenes y documentos",
+    "uploadFormats": "Imágenes (JPG, PNG, GIF, WebP)",
+    "imagesAttached": "{{count}} imagen adjunta",
+    "imagesAttached_plural": "{{count}} imágenes adjuntas",
+    "removeImageAria": "Eliminar imagen",
     "maxFiles": "Máximo {{count}} archivos",
     "uploadedFiles": "{{count}} archivo subido",
     "uploadedFiles_plural": "{{count}} archivos subidos",
     "removeFile": "Eliminar archivo",
-    "submit": "Guardar receta"
+    "submit": "Guardar receta",
+    "status": {
+      "noActiveAppointment": "No hay una cita activa. El diagnóstico no puede enviarse.",
+      "notInProgress": "La cita no está en progreso. El diagnóstico no puede modificarse.",
+      "submitSuccess": "Diagnóstico enviado con éxito.",
+      "submitError": "Error al enviar el diagnóstico",
+      "submitting": "Enviando diagnóstico..."
+    },
+    "validation": {
+      "diagnosisTitleRequired": "El título del diagnóstico es obligatorio",
+      "diagnosisTitleMax": "El título no puede exceder {{max}} caracteres",
+      "diagnosisDescriptionRequired": "La descripción del diagnóstico es obligatoria",
+      "diagnosisDescriptionMax": "La descripción no puede exceder {{max}} caracteres",
+      "documentsMax": "Puedes adjuntar un máximo de {{max}} imágenes",
+      "fileTypeInvalid": "\"{{fileName}}\": tipo no permitido (solo imágenes)",
+      "fileSizeExceeded": "\"{{fileName}}\": excede {{maxSize}} máximo",
+      "maxReached": "Límite de {{max}} imágenes alcanzado"
+    }
   },
   "richText": {
     "bold": "Negrita (Ctrl+B)",
@@ -501,6 +675,7 @@
     "appointmentDetails": "Detalles de la cita",
     "contact": "Contacto",
     "reason": "Motivo",
+    "cancelReason": "Razon de cancelacion",
     "weekDays": {
       "sun": "Dom",
       "mon": "Lun",
@@ -519,7 +694,9 @@
     },
     "modality": {
       "virtual": "Virtual",
-      "presencial": "Presencial"
+      "presencial": "Presencial",
+      "teleconsulta": "Teleconsulta",
+      "in_person": "Presencial"
     }
   },
   "appointments": {
@@ -533,7 +710,8 @@
     "continueConsultation": "Continuar consulta",
     "joinTeleconsult": "Unirse a teleconsulta",
     "markCompleted": "Marcar como completada",
-    "openChat": "Abrir chat"
+    "openChat": "Abrir chat",
+    "addMedicalDiagnosis": "Agregar diagnóstico médico"
   },
   "requests": {
     "title": "Gestionar Solicitudes",
@@ -545,10 +723,55 @@
     "connect": "Conectar",
     "reject": "Rechazar",
     "withdraw": "Retirar",
+    "withdrawModalTitle": "Retirar solicitud",
+    "withdrawModalDescription": "¿Deseas retirar esta solicitud de alianza? Esta accion no se puede deshacer.",
+    "withdrawConfirm": "Si, retirar",
+    "withdrawSuccess": "Solicitud retirada correctamente.",
+    "acceptSuccess": "Solicitud aceptada correctamente.",
+    "rejectSuccess": "Solicitud rechazada correctamente.",
+    "actionError": "No se pudo actualizar la solicitud.",
+    "loadError": "No se pudieron cargar las solicitudes. Intenta nuevamente.",
+    "statusAccepted": "Aprobada",
+    "statusRejected": "Rechazada",
+    "viewDetail": "Ver detalle",
+    "acceptModalTitle": "Confirmar solicitud",
+    "acceptModalDescription": "¿Deseas aceptar esta solicitud de alianza?",
+    "sending": "Enviando...",
+    "acceptConfirm": "Aceptar",
+    "cancel": "Cancelar",
+    "rejectModalTitle": "Rechazar solicitud",
+    "rejectConfirm": "Enviar rechazo",
+    "rejectReasonPrompt": "Ingresa un motivo de rechazo para continuar.",
+    "rejectReasonPlaceholder": "No contamos con disponibilidad en este momento",
+    "rejectDetailTitle": "Detalle del rechazo",
+    "close": "Cerrar",
+    "rejectReasonLabel": "Motivo",
+    "noReason": "No especificado",
+    "issuerLabel": "Emitida por",
+    "unknown": "Desconocido",
+    "attendedAtLabel": "Atendida el",
+    "notAvailable": "No disponible",
+    "mock": {
+      "specialtyCardiology": "Cardiología",
+      "specialtyNeurology": "Neurología",
+      "specialtyPediatrics": "Pediatría",
+      "specialtyDermatology": "Dermatología",
+      "specialtyOphthalmology": "Oftalmología",
+      "receivedToday": "Recibida hoy",
+      "receivedYesterday": "Recibida ayer",
+      "receivedTwoDaysAgo": "Recibida hace 2 días",
+      "sentToday": "Enviada hoy",
+      "sentThreeDaysAgo": "Enviada hace 3 días"
+    },
     "noReceivedTitle": "No hay solicitudes recibidas",
     "noReceivedDescription": "No has recibido ninguna solicitud de conexión aún.",
     "noSentTitle": "No hay solicitudes enviadas",
     "noSentDescription": "No has enviado ninguna solicitud de conexión aún."
+  },
+  "chat": {
+    "chatListItem": {
+      "noMessages": "Sin mensajes aún"
+    }
   },
   "doctors": {
     "profile": "Ver perfil",
@@ -560,5 +783,6 @@
     "noExperience": "Experiencia no especificada",
     "acceptedInsurances": "Seguros aceptados",
     "noLanguages": "Idiomas no especificados"
-  }
+  },
+  "retry": "Reintentar"
 }

@@ -17,6 +17,7 @@ export const useAppointmentStore = create<AppointmentStore>()(
       storage: createJSONStorage(() => sessionStorage),
       partialize: (state) => ({
         appointment: state.appointment,
+        isRescheduling: state.isRescheduling,
       }),
     },
   ),

@@ -1,11 +1,9 @@
 import { Star } from "lucide-react";
 import MCFilterSelect from "@/shared/components/filters/MCFilterSelect";
-import { Label } from "@/shared/ui/label";
-import { Switch } from "@/shared/ui/switch";
 import { type JSX } from "react";
 import { useTranslation } from "react-i18next";
-import { useAppStore } from "@/stores/useAppStore";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
+
 interface CenterFilters {
   type: string;
   rating: number | null;
@@ -14,38 +12,21 @@ interface CenterFilters {
 
 interface FilterCentersProps {
   filters: CenterFilters;
+  centerTypeOptions: OptionType[];
+  isLoadingCenterTypes?: boolean;
   onFiltersChange: (filters: Partial<CenterFilters>) => void;
 }
 
 type OptionType = { value: string; label: string | JSX.Element };
 
-function FilterCenters({ filters, onFiltersChange }: FilterCentersProps) {
+function FilterCenters({
+  filters,
+  centerTypeOptions,
+  isLoadingCenterTypes = false,
+  onFiltersChange,
+}: FilterCentersProps) {
   const { t } = useTranslation("doctor");
-  const userRole = useAppStore((state) => state.user?.role);
   const isMobile = useIsMobile();
-
-  const centerTypes: OptionType[] = [
-    {
-      value: "hospital",
-      label: t("filters.centerTypes.hospital", "Hospital"),
-    },
-    {
-      value: "clinic",
-      label: t("filters.centerTypes.clinic", "Clínica"),
-    },
-    {
-      value: "laboratory",
-      label: t("filters.centerTypes.laboratory", "Laboratorio"),
-    },
-    {
-      value: "imaging",
-      label: t("filters.centerTypes.imaging", "Centro de Imagen"),
-    },
-    {
-      value: "pharmacy",
-      label: t("filters.centerTypes.pharmacy", "Farmacia"),
-    },
-  ];
 
   const ratingOptions: OptionType[] = [
     {
@@ -95,8 +76,13 @@ function FilterCenters({ filters, onFiltersChange }: FilterCentersProps) {
       <MCFilterSelect
         name="type"
         label={t("filters.labels.centerType", "Tipo de centro")}
-        options={centerTypes}
-        placeholder={t("filters.placeholders.centerType", "Seleccionar tipo")}
+        options={centerTypeOptions}
+        placeholder={
+          isLoadingCenterTypes
+            ? t("filters.loadingCenterTypes", "Cargando tipos...")
+            : t("filters.placeholders.centerType", "Seleccionar tipo")
+        }
+        disabled={isLoadingCenterTypes}
         value={filters.type}
         noBadges
         onChange={(v) =>
@@ -120,28 +106,6 @@ function FilterCenters({ filters, onFiltersChange }: FilterCentersProps) {
         }
       />
 
-      {/* Filtro exclusivo para doctores */}
-      {userRole === "DOCTOR" && (
-        <div
-          className={`flex items-center gap-2 ${isMobile ? "col-span-1" : ""}`}
-        >
-          <Switch
-            checked={filters.isConnected === true}
-            onCheckedChange={(v) =>
-              onFiltersChange({
-                isConnected: v ? true : null,
-              })
-            }
-            id="only-connected"
-          />
-          <Label
-            htmlFor="only-connected"
-            className="text-primary flex items-center gap-2 cursor-pointer"
-          >
-            {t("filters.labels.onlyConnected", "Solo conectados")}
-          </Label>
-        </div>
-      )}
     </div>
   );
 }

@@ -24,7 +24,7 @@ export const AppointmentBadge = ({
   onClick,
   compact = false,
 }: AppointmentBadgeProps) => {
-  const userRole = useAppStore((state) => state.user?.role);
+  const userRole = useAppStore((state) => state.user?.rol);
 
   const displayName =
     userRole === "DOCTOR" ? appointment.patientName : appointment.doctorName;

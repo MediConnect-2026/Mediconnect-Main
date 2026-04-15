@@ -1,52 +1,50 @@
 import React from "react";
-import { Star, MapPin, Globe, Shield, Phone } from "lucide-react";
+import { Star, MapPin, Globe, Shield, Phone, Loader2 } from "lucide-react";
 import { type Doctor } from "@/data/providers";
 import { Card, CardContent, CardTitle } from "@/shared/ui/card";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/tooltip";
-import { useAppStore } from "@/stores/useAppStore";
 import MCButton from "../forms/MCButton";
 import { fadeInUp } from "@/lib/animations/commonAnimations";
 import { motion } from "framer-motion";
-import ScheduleAppointmentDialog from "@/features/patient/components/appoiments/ScheduleAppointmentDialog";
-import { useIsMobile } from "@/lib/hooks/useIsMobile";
 import { useTranslation } from "react-i18next";
-import ToogleConfirmConnection from "@/features/request/components/ToogleConfirmConnection";
+import { formatPhone } from "@/utils/phoneFormat";
 
 type DoctorPopupProps = {
   provider: Doctor;
   isConnected?: boolean;
   onConnect?: (id: string) => void;
+  onScheduleAppointment?: (providerId: string) => void;
   navigateFn?: (path: string) => void;
+  userRole?: string | null;
+  isMobile?: boolean;
+  onContact?: (providerId: string) => void;
+  isContactLoading?: boolean;
 };
 
 const DoctorPopup: React.FC<DoctorPopupProps> = ({
   provider,
-  isConnected,
   onConnect,
+  onScheduleAppointment,
   navigateFn,
+  userRole,
+  isMobile = false,
+  onContact,
+  isContactLoading = false,
 }) => {
-  const userRole = useAppStore((state) => state.user?.role);
-  const isMobile = useIsMobile();
   const { t } = useTranslation("common");
 
-  // Determinar estado de conexión
-  const connectionStatus =
-    provider.connectionStatus ?? (isConnected ? "connected" : "not_connected");
-  let connectBtnText = t("clinicCard.connect");
-  let connectBtnDisabled = false;
-  let connectVariant: "primary" | "outline" = "outline";
+  // Helpers
+  const locations = (
+    Array.isArray(provider.address) ? provider.address : [provider.address]
+  ).filter(Boolean) as string[];
+  const languages = provider.languages?.filter(Boolean) ?? [];
+  const hasPhone = !!provider.phone?.trim();
+  const insurances = provider.insurances?.filter(Boolean) ?? [];
 
-  if (connectionStatus === "connected") {
-    connectBtnText = t("clinicCard.connected");
-    connectVariant = "primary";
-  } else if (connectionStatus === "pending") {
-    connectBtnText = t("clinicCard.pending");
-    connectBtnDisabled = true;
-  }
-
-  const locations = Array.isArray(provider.address)
-    ? provider.address
-    : [provider.address];
+  const connectBtnText = t("clinicCard.connect");
+  const viewProfileText = t("clinicCard.viewProfile");
+  const scheduleAppointmentText = t("clinicCard.scheduleAppointment");
+  const contactText = t("clinicCard.contact");
 
   const cardSize = isMobile ? "w-[260px] rounded-2xl" : "w-[480px] rounded-3xl";
   const imgHeight = isMobile ? "h-28" : "h-36";
@@ -58,8 +56,16 @@ const DoctorPopup: React.FC<DoctorPopupProps> = ({
     }
   };
 
-  const handleConfirmConnect = () => {
+  const handleConnect = () => {
     onConnect?.(provider.id);
+  };
+
+  const handleSchedule = () => {
+    onScheduleAppointment?.(provider.id);
+  };
+
+  const handleContactClick = () => {
+    onContact?.(provider.id);
   };
 
   return (
@@ -69,7 +75,7 @@ const DoctorPopup: React.FC<DoctorPopupProps> = ({
       >
         {/* Imagen */}
         <div
-          className={`overflow-hidden rounded-xl border border-primary/5 ${imgHeight}`}
+          className={`overflow-hidden rounded-xl border border-primary/15 ${imgHeight}`}
         >
           <img
             src={provider.image}
@@ -98,92 +104,120 @@ const DoctorPopup: React.FC<DoctorPopupProps> = ({
             {provider.specialty}
           </div>
 
-          {/* Ubicaciones */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div
-                className={`flex gap-1.5 cursor-pointer ${textXs} text-muted-foreground`}
-              >
-                <MapPin className="w-3 h-3 mt-0.5 text-secondary" />
-                <span className="truncate">{locations[0]}</span>
-                {locations.length > 1 && (
-                  <span className="text-secondary">
-                    +{locations.length - 1}
-                  </span>
-                )}
-              </div>
-            </TooltipTrigger>
-            <TooltipContent className="max-w-xs">
-              {locations.join(" • ")}
-            </TooltipContent>
-          </Tooltip>
+          <div
+            className={
+              isMobile ? "space-y-2" : "grid grid-cols-2 gap-x-3 gap-y-2"
+            }
+          >
+            {/* Ubicaciones — oculto si vacío */}
+            {locations.length > 0 && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div
+                    className={`flex gap-1.5 cursor-pointer ${textXs} text-muted-foreground`}
+                  >
+                    <MapPin className="w-3 h-3 mt-0.5 text-secondary" />
+                    <span className="truncate">{locations[0]}</span>
+                    {locations.length > 1 && (
+                      <span className="text-secondary">
+                        +{locations.length - 1}
+                      </span>
+                    )}
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent className="max-w-xs">
+                  {locations.join(" • ")}
+                </TooltipContent>
+              </Tooltip>
+            )}
 
-          {/* Idiomas */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div
-                className={`flex gap-1 cursor-pointer ${textXs} text-muted-foreground`}
+            {/* Idiomas — oculto si array vacío */}
+            {languages.length > 0 && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div
+                    className={`flex gap-1 cursor-pointer ${textXs} text-muted-foreground`}
+                  >
+                    <Globe className="w-3 h-3 text-secondary" />
+                    <span className="truncate max-w-[150px]">
+                      {languages.join(", ")}
+                    </span>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>{languages.join(", ")}</TooltipContent>
+              </Tooltip>
+            )}
+
+            {/* Teléfono — oculto si vacío */}
+            {hasPhone && (
+              <a
+                href={`tel:${provider.phone}`}
+                className={`flex gap-1 ${textXs} text-secondary`}
               >
-                <Globe className="w-3 h-3 text-secondary" />
-                <span className="truncate max-w-[150px]">
-                  {provider.languages.join(", ")}
+                <Phone className="w-3 h-3" />
+                <span className="text-primary">
+                  {formatPhone(provider.phone)}
                 </span>
-              </div>
-            </TooltipTrigger>
-            <TooltipContent>{provider.languages.join(", ")}</TooltipContent>
-          </Tooltip>
+              </a>
+            )}
 
-          {/* Teléfono */}
-          {provider.phone && (
-            <a
-              href={`tel:${provider.phone}`}
-              className={`flex gap-1 ${textXs} text-secondary`}
-            >
-              <Phone className="w-3 h-3" />
-              <span className="text-primary">{provider.phone}</span>
-            </a>
-          )}
+            {/* Seguros — oculto si array vacío */}
+            {insurances.length > 0 && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className={`flex gap-1 cursor-pointer ${textXs}`}>
+                    <Shield className="w-3 h-3 text-secondary" />
+                    <span className="truncate max-w-[150px]">
+                      {insurances.join(", ")}
+                    </span>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>{insurances.join(", ")}</TooltipContent>
+              </Tooltip>
+            )}
+          </div>
 
-          {/* Seguros */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div
-                className={`flex gap-1 cursor-pointer pt-1 border-t ${textXs}`}
-              >
-                <Shield className="w-3 h-3 text-secondary" />
-                <span className="truncate max-w-[150px]">
-                  {provider.insurances.join(", ")}
-                </span>
-              </div>
-            </TooltipTrigger>
-            <TooltipContent>{provider.insurances.join(", ")}</TooltipContent>
-          </Tooltip>
+          <div className="my-3 h-[1px] w-full rounded-full bg-gradient-to-r from-primary/5 via-primary/30 to-primary/5" />
 
           {/* Botones */}
-          <div className={`flex gap-2 mt-3 ${isMobile && "flex-col"}`}>
+          <div
+            className={`flex gap-2 mt-3 ${isMobile ? "flex-col" : "flex-row"}`}
+          >
             {userRole === "CENTER" && (
-              <ToogleConfirmConnection
-                status={connectionStatus}
-                id={parseInt(provider.id)}
-                onConfirm={handleConfirmConnect}
+              <MCButton
+                size="xs"
+                variant="outline"
+                className="flex-1 w-full"
+                onClick={handleConnect}
               >
-                <MCButton
-                  size="xs"
-                  variant={connectVariant}
-                  className="flex-1 w-full"
-                  disabled={connectBtnDisabled}
-                >
-                  {connectBtnText}
-                </MCButton>
-              </ToogleConfirmConnection>
+                {connectBtnText}
+              </MCButton>
             )}
 
             {userRole === "PATIENT" && (
-              <ScheduleAppointmentDialog idProvider={provider.id}>
-                <MCButton size="xs" variant="primary" className="w-full">
-                  Agendar cita
+              <>
+                <MCButton
+                  size="xs"
+                  variant="primary"
+                  className="flex-1 w-full"
+                  onClick={handleSchedule}
+                >
+                  {scheduleAppointmentText}
                 </MCButton>
-              </ScheduleAppointmentDialog>
+                <MCButton
+                  size="xs"
+                  variant="outline"
+                  className="flex-1 w-full"
+                  onClick={handleContactClick}
+                  disabled={isContactLoading}
+                >
+                  {isContactLoading ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    contactText
+                  )}
+                </MCButton>
+              </>
             )}
 
             <MCButton
@@ -192,7 +226,7 @@ const DoctorPopup: React.FC<DoctorPopupProps> = ({
               className="flex-1 w-full"
               onClick={handleProfileClick}
             >
-              {t("clinicCard.viewProfile")}
+              {viewProfileText}
             </MCButton>
           </div>
         </CardContent>

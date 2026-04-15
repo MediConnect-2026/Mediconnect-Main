@@ -109,7 +109,7 @@ export const MCGeneratePDF = async <T extends Record<string, any>>({
       }));
 
     // Process data
-    let processedData: T[] = transformData ? transformData(data) : data;
+    const processedData: T[] = transformData ? transformData(data) : data;
 
     // Map data to table format
     const tableData: Record<string, string>[] = processedData.map((record) => {

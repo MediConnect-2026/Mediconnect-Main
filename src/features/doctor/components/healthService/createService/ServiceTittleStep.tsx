@@ -5,7 +5,8 @@ import MCAnimatedInput from "@/shared/components/forms/MCAnimatedInput";
 import ServicesLayoutsSteps from "./ServicesLayoutsSteps";
 import { useTranslation } from "react-i18next";
 import AuthFooterContainer from "@/features/auth/components/AuthFooterContainer";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
+import type { UseFormReturn } from "react-hook-form";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
 
 function ServiceTittleStep() {
@@ -21,22 +22,30 @@ function ServiceTittleStep() {
     setName("name", data.name);
     setIsTitleSeted(true);
   };
+  const formRef = useRef<UseFormReturn<any> | null>(null);
 
   useEffect(() => {
-    console.log(name);
+    // If the `name` is populated asynchronously (edit mode), reset the form value so Controller/defaultValue reflects it
+    if (formRef.current) {
+      formRef.current.reset({ name });
+    }
   }, [name]);
+
+  const isButtondisabled = !name || name.trim() === "";
 
   return (
     <ServicesLayoutsSteps title={t("createService.title.title")}>
       <MCFormWrapper
         schema={nameSchema}
         defaultValues={{ name }}
+        formRef={formRef}
         onSubmit={handleSubmit}
         className={`w-full ${isMobile ? "px-2" : ""}`}
       >
         <MCAnimatedInput
           name="name"
           label={t("createService.title.serviceName")}
+          value={name}
           onChange={(value) => setName("name", value)}
         />
         <AuthFooterContainer
@@ -45,6 +54,7 @@ function ServiceTittleStep() {
           }}
           continueButtonProps={{
             type: "submit",
+            disabled: isButtondisabled,
           }}
         />
       </MCFormWrapper>

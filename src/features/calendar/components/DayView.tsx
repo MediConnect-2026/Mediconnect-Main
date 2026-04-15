@@ -9,8 +9,10 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/avatar";
 import { MCUserAvatar } from "@/shared/navigation/userMenu/MCUserAvatar";
 import { useTranslation } from "react-i18next";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
+import { formatTimeTo12h } from "@/utils/appointmentMapper";
 
-const hours = Array.from({ length: 24 }, (_, i) => i); // 0 AM to 11 PM (full day)
+// Rango de horas completo de 24 horas (00:00 - 23:00)
+const hours = Array.from({ length: 24 }, (_, i) => i); // 12 AM (00:00) to 11 PM (23:00)
 
 const statusColors: Record<AppointmentStatus, string> = {
   scheduled: "border-l-[#6A1B9A] bg-[#6A1B9A]/10",
@@ -37,6 +39,15 @@ export const DayView = ({
     isSameDay(apt.date, currentDate),
   );
 
+  console.debug("DayView - all appointments:", appointments.map(apt => ({
+    id: apt.id,
+    date: apt.date,
+    time: apt.time,
+    isSameDay: isSameDay(apt.date, currentDate),
+    address: apt.address,
+    modality: apt.modality,
+  })));
+
   const getAppointmentsForHour = (hour: number) => {
     return dayAppointments.filter((apt) => {
       const aptHour = parseInt(apt.time.split(":")[0]);
@@ -44,7 +55,7 @@ export const DayView = ({
     });
   };
 
-  const userRole = useAppStore((state) => state.user?.role);
+  const userRole = useAppStore((state) => state.user?.rol);
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
@@ -173,7 +184,7 @@ export const DayView = ({
                             <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground w-full overflow-hidden">
                               <span className="flex items-center gap-1 truncate">
                                 <Clock className="w-3 h-3" />
-                                {apt.time} - {apt.duration} min
+                                {formatTimeTo12h(apt.time)} - {apt.duration} min
                               </span>
                               {!isMobile && <span className="mx-1">·</span>}
                               {apt.modality === "presencial" ? (

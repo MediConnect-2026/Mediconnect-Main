@@ -1,4 +1,4 @@
-import { useState, useEffect, type JSX } from "react";
+import { useState, type JSX } from "react";
 import {
   Select,
   SelectContent,
@@ -54,18 +54,17 @@ function MCFilterSelect({
   noBadges = false,
 }: MCFilterSelectProps) {
   const { t } = useTranslation("common");
-  const [selectedValues, setSelectedValues] = useState<string[]>([]);
+  const [selectedValuesState, setSelectedValuesState] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const isControlled = multiple && value !== undefined;
+  const selectedValues = isControlled
+    ? Array.isArray(value)
+      ? value
+      : []
+    : selectedValuesState;
 
   // Use translation for default placeholder
   const defaultPlaceholder = placeholder || t("ui.select.placeholder");
-
-  // Sincronizar estado interno con prop value
-  useEffect(() => {
-    if (multiple) {
-      setSelectedValues(Array.isArray(value) ? value : []);
-    }
-  }, [value, multiple]);
 
   const handleStatusColor = () => {
     switch (status) {
@@ -103,7 +102,9 @@ function MCFilterSelect({
   const handleSelectChange = (selected: string) => {
     if (multiple) {
       if (selected === "all") {
-        setSelectedValues(["all"]);
+        if (!isControlled) {
+          setSelectedValuesState(["all"]);
+        }
         onChange?.(["all"]);
       } else {
         let newValues = selectedValues.filter((v) => v !== "all");
@@ -112,7 +113,9 @@ function MCFilterSelect({
         } else {
           newValues = [...newValues, selected];
         }
-        setSelectedValues(newValues);
+        if (!isControlled) {
+          setSelectedValuesState(newValues);
+        }
         onChange?.(newValues);
       }
     } else {
@@ -123,7 +126,9 @@ function MCFilterSelect({
 
   const removeValue = (valueToRemove: string) => {
     const newValues = selectedValues.filter((v) => v !== valueToRemove);
-    setSelectedValues(newValues);
+    if (!isControlled) {
+      setSelectedValuesState(newValues);
+    }
     onChange?.(newValues);
   };
 
@@ -174,6 +179,7 @@ function MCFilterSelect({
           value={!multiple ? (value as string) : undefined}
         >
           <SelectTrigger
+            id={name}
             className={cn(
               "w-full rounded-4xl focus:ring-0 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 text-primary",
               getSizeClasses(),

@@ -67,7 +67,7 @@ export const ROUTES = {
     DOCTORS: "/center/staff",
     REQUESTS: "/center/requests",
     PROFILE: "/center/profile",
-    SETTINGS: "/center/settings",
+    SETTINGS: "/settings",
     CENTER_PROFILE_PRIVATE: "/center/profile",
     CENTER_PROFILE_PUBLIC: "/center/profile/:centerId",
   },

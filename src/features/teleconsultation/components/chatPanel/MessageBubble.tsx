@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Check, CheckCheck, Download, Play } from "lucide-react";
+import { Check, CheckCheck, Download, Play, Copy } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/avatar";
 import { useTranslation } from "react-i18next";
 
@@ -42,7 +42,7 @@ export const MessageBubble = ({
       y: 0,
       scale: 1,
       transition: {
-        type: "spring" as "spring",
+        type: "spring" as const,
         stiffness: 500,
         damping: 30,
       },
@@ -53,6 +53,13 @@ export const MessageBubble = ({
       transition: { duration: 0.2 },
     },
   };
+
+  const canQuickCopy = message.type === "text" && !!message.content?.trim();
+  const canQuickDownload =
+    !!onDownloadFile &&
+    (message.type === "image" ||
+      message.type === "file" ||
+      message.type === "voice");
 
   return (
     <motion.div
@@ -73,10 +80,12 @@ export const MessageBubble = ({
       </Avatar>
 
       <div
-        className={`max-w-[75%] rounded-2xl px-4 py-2 ${
+        className={`rounded-3xl px-4 py-2 ${
+          message.type === "text" ? "w-fit" : "max-w-[75%]"
+        } ${
           message.sender === "user"
-            ? "bg-accent/75 text-primary rounded-br-sm"
-            : "bg-bg-btn-secondary text-primary rounded-bl-sm"
+            ? "bg-primary text-primary-foreground rounded-br-xl"
+            : "bg-primary/10 border border-primary/15 text-primary rounded-bl-xl"
         }`}
       >
         {/* Mensaje de texto */}
@@ -119,7 +128,7 @@ export const MessageBubble = ({
         {message.type === "file" && (
           <div className="min-w-[200px]">
             <div
-              className="flex items-center gap-3 p-3 bg-background/30 rounded-lg cursor-pointer hover:bg-background/50 transition-colors group"
+              className="flex items-center gap-3 p-3 bg-primary/5 rounded-lg cursor-pointer hover:bg-primary/10 transition-colors group"
               onClick={() => onViewFile?.(message)}
             >
               <div className="text-3xl">
@@ -145,7 +154,7 @@ export const MessageBubble = ({
                       message.fileName || "archivo",
                     );
                   }}
-                  className="flex-shrink-0 p-2 hover:bg-background/70 rounded-full transition-colors opacity-0 group-hover:opacity-100"
+                  className="flex-shrink-0 p-2 hover:bg-primary/15 rounded-full transition-colors opacity-0 group-hover:opacity-100"
                   title={t("messageBubble.download") || "Descargar"}
                 >
                   <Download size={16} />
@@ -175,21 +184,50 @@ export const MessageBubble = ({
 
         {/* Hora y estado */}
         <div
-          className={`flex items-center gap-1 mt-1 text-xs opacity-70 ${
+          className={`flex items-center gap-1 mt-2 text-xs opacity-70 ${
             message.sender === "user" ? "justify-end" : ""
           }`}
         >
+          {canQuickCopy && (
+            <button
+              onClick={() => navigator.clipboard.writeText(message.content)}
+              className="p-1 rounded-full hover:bg-primary/15 transition-colors"
+              title={t("messageBubble.copy") || "Copiar"}
+              aria-label={t("messageBubble.copy") || "Copiar"}
+            >
+              <Copy className="w-3 h-3" />
+            </button>
+          )}
+
+          {canQuickDownload && (
+            <button
+              onClick={() => {
+                const fileName =
+                  message.type === "image"
+                    ? `imagen_${message.id}.jpg`
+                    : message.fileName || "archivo";
+                onDownloadFile?.(message.content, fileName);
+              }}
+              className="p-1 rounded-full hover:bg-primary/15 transition-colors"
+              title={t("messageBubble.download") || "Descargar"}
+              aria-label={t("messageBubble.download") || "Descargar"}
+            >
+              <Download className="w-3 h-3" />
+            </button>
+          )}
+
           <span>{message.time}</span>
+
           {message.sender === "user" && message.status && (
-            <span className="ml-1">
+            <span>
               {message.status === "sent" && (
-                <Check className="inline w-4 h-4 text-black/80" />
+                <Check className="inline w-4 h-4 text-primary-foreground/80" />
               )}
               {message.status === "delivered" && (
-                <CheckCheck className="inline w-4 h-4 text-black/50" />
+                <CheckCheck className="inline w-4 h-4 text-primary-foreground/70" />
               )}
               {message.status === "read" && (
-                <CheckCheck className="inline w-4 h-4 text-black" />
+                <CheckCheck className="inline w-4 h-4 text-primary-foreground" />
               )}
             </span>
           )}

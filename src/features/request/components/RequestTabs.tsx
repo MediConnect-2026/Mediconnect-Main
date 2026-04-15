@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   Pagination,
   PaginationContent,
@@ -26,18 +26,20 @@ interface ConnectionRequest {
   subtitle: string;
   date: string;
   avatar: string;
+  profileId: string;
+  profileType: "doctor" | "center";
+  status: "Pendiente" | "Aceptada" | "Rechazada";
+  rejectionReason?: string;
+  issuerName?: string;
+  attendedAt?: string;
 }
 
 interface RequestTabsProps {
   receivedRequests: ConnectionRequest[];
   sentRequests: ConnectionRequest[];
-  onConnect: (id: string) => void;
-  onReject: (id: string) => void;
-  onWithdraw: (id: string) => void;
-  setReceivedRequests: React.Dispatch<
-    React.SetStateAction<ConnectionRequest[]>
-  >;
-  setSentRequests: React.Dispatch<React.SetStateAction<ConnectionRequest[]>>;
+  onConnect: (id: string) => Promise<void>;
+  onReject: (id: string, reason: string) => Promise<void>;
+  onWithdraw: (id: string) => Promise<void>;
 }
 
 export const RequestTabs = ({

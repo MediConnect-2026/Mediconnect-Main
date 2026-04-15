@@ -1,10 +1,10 @@
-import { Spinner } from "@/shared/ui/spinner";
+import { Loader2 } from "lucide-react";
 import { useGlobalUIStore } from "@/stores/useGlobalUIStore";
 
 function MCLoadingSpinner() {
-  const isloading = useGlobalUIStore((state) => state.isloading);
+  const isLoading = useGlobalUIStore((state) => state.isloading);
 
-  if (!isloading) return null;
+  if (!isLoading) return null;
 
   return (
     <div
@@ -21,7 +21,7 @@ function MCLoadingSpinner() {
         zIndex: 9999,
       }}
     >
-      <Spinner />
+      <Loader2 />
     </div>
   );
 }

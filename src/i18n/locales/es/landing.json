@@ -1,0 +1,269 @@
+{
+  "hero": {
+    "welcome": "Bienvenido a Mediconnect",
+    "title": "Conectando el Futuro <br /> de la Atención Médica",
+    "description": "Una plataforma integral que transforma la comunicación entre médicos, pacientes y centros de salud.",
+    "connect": "Conectar",
+    "startNow": "Empezar ahora"
+  },
+  "navbar": {
+    "home": "Inicio",
+    "about": "Sobre Nosotros",
+    "how": "Cómo Funciona",
+    "faq": "FAQ",
+    "contact": "Contacto",
+    "login": "Iniciar Sesión",
+    "register": "Registrarse"
+  },
+  "about": {
+    "title": "Sobre Nosotros",
+    "subtitle": "Una Plataforma para la Salud Conectada",
+    "description": "MediConect es una plataforma digital que conecta pacientes, médicos y centros de salud para ofrecer atención rápida y organizada. Simplifica citas, comunicación y acceso a historiales, creando una experiencia médica más clara, humana y eficiente."
+  },
+  "users": {
+    "title": "Hecho para ti, según lo que necesitas",
+    "subtitle": "Pensado Para Cada Rol en la Atención Médica",
+    "description": "Funciones adaptadas a lo que necesitan pacientes, médicos y centros de salud.",
+    "patient": {
+      "title": "Pacientes",
+      "description": "Atención rápida, simple y accesible.",
+      "benefits": [
+        "Agenda tus citas médicas en segundos.",
+        "Consulta tu historial desde cualquier dispositivo.",
+        "Recibe recordatorios automáticos de citas.",
+        "Realiza teleconsultas con doctores de confianza.",
+        "Accede a médicos, especialidades y centros en un solo lugar.",
+        "Todo disponible 24/7."
+      ],
+      "buttons": {
+        "primary": "Comenzar a Agendar",
+        "secondary": "Registrarme"
+      }
+    },
+    "doctor": {
+      "title": "Doctores",
+      "description": "Organiza tu práctica médica y comienza a atender con facilidad.",
+      "benefits": [
+        "Gestiona tu agenda y disponibilidad en tiempo real.",
+        "Recibe solicitudes de citas sin complicaciones.",
+        "Accede al historial clínico de tus pacientes.",
+        "Lleva tus notas, diagnósticos y seguimientos.",
+        "Únete o colabora con varios centros de salud.",
+        "Comienza a atender rápidamente tras verificar tus datos."
+      ],
+      "buttons": {
+        "primary": "Comenzar a Atender",
+        "secondary": "Unirme"
+      }
+    },
+    "center": {
+      "title": "Centros de Salud",
+      "description": "Control y visualización desde tu dashboard.",
+      "benefits": [
+        "Visualiza el directorio médico asociado a tu centro.",
+        "Conecta con tus doctores y fortalece la relación dentro de la app.",
+        "Consulta reportes generales de tus profesionales.",
+        "Gestiona tu operación desde un panel unificado."
+      ],
+      "buttons": {
+        "primary": "Comenzar a Gestionar",
+        "secondary": "Configurar"
+      }
+    }
+  },
+  "switch": {
+    "patient": "Paciente",
+    "doctor": "Doctor",
+    "center": "Centro"
+  },
+  "how": {
+    "title": "¿Cómo funciona?",
+    "subtitle": "Un proceso simple, claro y conectado",
+    "description": "Diseñado para guiarte paso a paso, brindando comodidad y confianza desde la primera acción hasta la confirmación final.",
+    "steps": [
+      {
+        "number": "01",
+        "step": "Paso 1",
+        "title": "Regístrate fácilmente",
+        "description": "Crea tu cuenta en segundos y completa tu información básica para comenzar a usar la plataforma sin complicaciones."
+      },
+      {
+        "number": "02",
+        "step": "Paso 2",
+        "title": "Encuentra tu servicio médico",
+        "description": "Busca especialidades, doctores o centros cercanos. Utiliza filtros simples para localizar exactamente el servicio que necesitas."
+      },
+      {
+        "number": "03",
+        "step": "Paso 3",
+        "title": "Agenda tu cita",
+        "description": "Elige fecha, hora y modalidad de atención. Confirma tu cita y recibe notificaciones automáticas en tu dispositivo."
+      },
+      {
+        "number": "04",
+        "step": "Paso 4",
+        "title": "Preséntate a tu consulta",
+        "description": "Preséntate a tu consulta de forma presencial o conéctate a tu teleconsulta desde la app con un solo clic, según la modalidad seleccionada."
+      }
+    ]
+  },
+
+  "functionality": {
+    "title": "Funcionalidades",
+    "subtitle": "Soluciones inteligentes, claras y conectadas",
+    "description": "Diseñadas para ofrecer herramientas modernas que elevan la atención médica y hacen todo el proceso más eficiente y seguro.",
+    "cards": [
+      {
+        "title": "Chat Directo con Doctores",
+        "description": "Mensajería segura y privada con tus médicos. Resuelve dudas rápidamente sin necesidad de una cita."
+      },
+      {
+        "title": "Historial Clínico Digital",
+        "description": "Todo tu historial médico en un solo lugar. Accede a tus resultados, recetas y análisis cuando los necesites."
+      },
+      {
+        "title": "Buscar Doctores por Zona",
+        "description": "Encuentra médicos especializados cerca de ti con nuestra búsqueda inteligente por ubicación."
+      },
+      {
+        "title": "Teleconsultas en Tiempo Real",
+        "description": "Consulta con médicos desde cualquier lugar y en cualquier momento, sin esperas ni traslados."
+      }
+    ]
+  },
+  "benefitsSection": {
+    "title": "Beneficios",
+    "items": [
+      {
+        "id": "acceso",
+        "name": "Acceso inmediato",
+        "description": "Conecta con médicos y especialistas cuando lo necesites, sin largas esperas ni procesos complicados. MediConnect acerca la atención médica a tu día a día."
+      },
+      {
+        "id": "ahorro",
+        "name": "Ahorro inteligente",
+        "description": "Reduce costos y tiempo al evitar traslados innecesarios, llamadas y gestiones presenciales. Todo el proceso médico se realiza desde un solo lugar."
+      },
+      {
+        "id": "historial",
+        "name": "Historial centralizado",
+        "description": "Toda tu información clínica se guarda de forma organizada y segura, permitiendo un acceso rápido en cualquier momento y desde cualquier dispositivo."
+      },
+      {
+        "id": "atencion",
+        "name": "Atención continua",
+        "description": "Mantén seguimiento médico antes, durante y después de cada consulta, garantizando un cuidado constante y personalizado."
+      },
+      {
+        "id": "comunicacion",
+        "name": "Comunicación segura",
+        "description": "Intercambia mensajes, documentos e indicaciones médicas mediante canales protegidos que respetan la privacidad y confidencialidad del paciente."
+      },
+      {
+        "id": "decisiones",
+        "name": "Decisiones precisas",
+        "description": "El acceso a datos completos y actualizados permite a los profesionales ofrecer diagnósticos y tratamientos más acertados."
+      },
+      {
+        "id": "gestion",
+        "name": "Gestión optimizada",
+        "description": "Médicos y centros de salud pueden administrar citas, expedientes y agendas de forma eficiente, mejorando su productividad."
+      },
+      {
+        "id": "experiencia",
+        "name": "Experiencia confiable",
+        "description": "Una plataforma intuitiva, moderna y estable que genera confianza tanto en pacientes como en profesionales de la salud."
+      }
+    ]
+  },
+  "testimonials": {
+    "title": "Testimonios",
+    "subtitle": "Únete a quienes cuidan su salud"
+  },
+  "faq": {
+    "title": "FAQ",
+    "heading": "Preguntas frecuentes esenciales",
+    "description": "Descubre cómo MediConnect facilita la atención médica para pacientes, doctores y centros de salud.",
+    "items": [
+      {
+        "question": "¿Qué es MediConnect y cómo funciona?",
+        "answer": "MediConnect es una plataforma digital de salud que conecta pacientes, doctores y centros médicos en un solo lugar. Puedes encontrar servicios médicos, agendar citas, acceder a teleconsultas y gestionar tu salud de forma fácil y segura."
+      },
+      {
+        "question": "¿MediConnect es gratis para los pacientes?",
+        "answer": "Sí. Los pacientes pueden registrarse, buscar doctores o centros médicos y agendar citas sin costo. Algunos servicios, como consultas o telemedicina, dependen de las tarifas del proveedor."
+      },
+      {
+        "question": "¿Cómo agendo una cita médica?",
+        "answer": "Después de crear una cuenta, puedes buscar doctores, especialidades o centros médicos por ubicación. Selecciona el servicio que necesitas, elige una fecha y hora disponible, y confirma tu cita directamente desde la app."
+      },
+      {
+        "question": "¿Puedo asistir a citas en línea?",
+        "answer": "Sí. MediConnect ofrece teleconsultas, permitiéndote conectar con tu doctor de forma segura desde la app sin necesidad de acudir presencialmente al centro médico."
+      },
+      {
+        "question": "¿Mi información médica está segura en MediConnect?",
+        "answer": "Por supuesto. MediConnect prioriza la privacidad y seguridad de los datos. Tu información médica está protegida con sistemas seguros y solo es accesible para profesionales autorizados."
+      },
+      {
+        "question": "¿Qué pueden hacer los doctores en MediConnect?",
+        "answer": "Los doctores pueden gestionar su perfil profesional, aparecer en el directorio médico, recibir solicitudes de citas, realizar teleconsultas y construir relaciones de confianza con los pacientes a través de la plataforma."
+      },
+      {
+        "question": "¿Cuál es el rol de los centros médicos en MediConnect?",
+        "answer": "Los centros médicos usan MediConnect para aumentar su visibilidad, conectar con doctores y ser descubiertos por pacientes. Pueden mostrar sus servicios y fortalecer la colaboración dentro del ecosistema de salud."
+      },
+      {
+        "question": "¿Necesito descargar una app para usar MediConnect?",
+        "answer": "MediConnect está disponible como plataforma web y también puede estar accesible mediante una app móvil, permitiéndote gestionar tu salud en cualquier momento y lugar."
+      }
+    ]
+  },
+  "services": {
+    "telehealth": "Telemedicina",
+    "rehabilitation": "Rehabilitación",
+    "solutions": "Soluciones de Salud",
+    "device": "Dispositivo Médico",
+    "diagnostics": "Diagnósticos",
+    "care": "Atención al Paciente"
+  },
+  "contacts": {
+    "title": "Contáctanos si tienes alguna duda!",
+    "nameLabel": "Nombre Completo",
+    "namePlaceholder": "Nombre Completo",
+    "emailLabel": "Correo electrónico",
+    "emailPlaceholder": "Correo electrónico",
+    "subjectLabel": "Asunto",
+    "subjectPlaceholder": "Escribe el asunto",
+    "messageLabel": "Mensaje",
+    "messagePlaceholder": "Escriba su mensaje aquí...",
+    "submit": "Enviar Ahora",
+    "sending": "Cargando...",
+    "success": "¡Mensaje enviado correctamente!"
+  },
+  "toasts": {
+    "contactSuccess": "Mensaje enviado correctamente. Revisa tu correo de confirmación.",
+    "contactError": "No se pudo enviar el mensaje.",
+    "newsletterSuccess": "Suscripción al newsletter completada.",
+    "newsletterError": "No se pudo suscribir el correo."
+  },
+  "footer": {
+    "quickLinks": [
+      { "href": "#inicio", "label": "Inicio" },
+      { "href": "#about", "label": "Nosotros" },
+      { "href": "#how", "label": "Cómo Funciona" },
+      { "href": "#faq", "label": "FAQ" },
+      { "href": "#contact", "label": "Contacto" }
+    ],
+    "quickLinksTitle": "Enlaces Rápidos",
+    "newsletterTitle": "Boletín Informativo",
+    "newsletterDesc": "Suscríbete para recibir novedades y consejos de salud.",
+    "newsletterBtn": "Suscribirse",
+    "brandDesc": "Plataforma digital para conectar pacientes y médicos de forma segura y eficiente. Salud al alcance de todos.",
+    "copyright": "© 2025 MediConnect. Todos los derechos reservados.",
+    "terms": "Términos y Condiciones",
+    "privacy": "Política de Privacidad",
+    "contact": "Contáctanos",
+    "InputPlaceholder": "Introduce tu correo electrónico"
+  }
+}

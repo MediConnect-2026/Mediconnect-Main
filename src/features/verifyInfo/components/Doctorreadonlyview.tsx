@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 import type { DoctorPersonalInfo } from "@/schema/verifyInfo.schema";
+import { formatPhone } from "@/utils/phoneFormat";
 
 interface DoctorReadOnlyViewProps {
   data: DoctorPersonalInfo;
@@ -7,7 +8,6 @@ interface DoctorReadOnlyViewProps {
 
 function DoctorReadOnlyView({ data }: DoctorReadOnlyViewProps) {
   const { t } = useTranslation("common");
-
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
       <div>
@@ -49,22 +49,14 @@ function DoctorReadOnlyView({ data }: DoctorReadOnlyViewProps) {
           {t("verification.identification.identificationNumber")}
         </p>
         <p className="font-medium text-foreground">
-          {data.identificationNumber}
+          {data.identificationNumber?.replace(/(\d{3})(\d{7})(\d{1})/, "$1-$2-$3")}
         </p>
       </div>
       <div>
         <p className="text-sm text-muted-foreground mb-1">
           {t("verification.identification.phone")}
         </p>
-        <p className="font-medium text-foreground">{data.phone}</p>
-      </div>
-      <div>
-        <p className="text-sm text-muted-foreground mb-1">
-          {t("verification.identification.physicalAddress")}
-        </p>
-        <p className="font-medium text-foreground break-words">
-          {data.address}
-        </p>
+        <p className="font-medium text-foreground">{formatPhone(data.phone, { emptyValue: "-" })}</p>
       </div>
       <div>
         <p className="text-sm text-muted-foreground mb-1">
@@ -84,7 +76,7 @@ function DoctorReadOnlyView({ data }: DoctorReadOnlyViewProps) {
         <p className="text-sm text-muted-foreground mb-1">
           {t("verification.identification.medicalLicense")}
         </p>
-        <p className="font-medium text-foreground">{data.medicalLicense}</p>
+        <p className="font-medium text-foreground">{data.medicalLicense?.replace(/(\d{3})(\d{2})/, "$1-$2")}</p>
       </div>
     </div>
   );

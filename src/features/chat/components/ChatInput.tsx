@@ -9,8 +9,7 @@ interface ChatInputProps {
   setInputValue: (value: string) => void;
   isRecording: boolean;
   recordingTime: number;
-  previewImage: string | null;
-  filePreview: { file: File; url: string; type: string } | null;
+  hasAttachments: boolean;
   onSendMessage: () => void;
   onImageSelect: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onFileSelect: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -24,8 +23,7 @@ export const ChatInput = ({
   setInputValue,
   isRecording,
   recordingTime,
-  previewImage,
-  filePreview,
+  hasAttachments,
   onSendMessage,
   onImageSelect,
   onFileSelect,
@@ -92,6 +90,7 @@ export const ChatInput = ({
             ref={imageInputRef}
             type="file"
             accept="image/*"
+            multiple
             onChange={onImageSelect}
             className="hidden"
           />
@@ -99,7 +98,8 @@ export const ChatInput = ({
           <input
             ref={fileInputRef}
             type="file"
-            accept=".pdf,.doc,.docx,.xls,.xlsx,.txt"
+            accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.zip,.mp4,.webm,.avi,.mov,.mkv,image/*,audio/*"
+            multiple
             onChange={onFileSelect}
             className="hidden"
           />
@@ -142,7 +142,7 @@ export const ChatInput = ({
           </div>
 
           {/* Botón de enviar o grabar */}
-          {inputValue.trim() || previewImage || filePreview ? (
+          {inputValue.trim() || hasAttachments ? (
             <motion.button
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}

@@ -13,6 +13,14 @@ export interface AuthFlowSlice {
     email: string;
   };
   resetPassword: ResetPasswordSchemaType;
+  registrationToken: string;
+  googleUserData: {
+    email?: string;
+    nombre?: string;
+    apellido?: string;
+    foto?: string;
+    banner?: string;
+  } | null;
 
   setLoginCredentials: (data: LoginSchemaType) => void;
   setForgotPassword: (data: ForgotPasswordSchemaType) => void;
@@ -20,6 +28,8 @@ export interface AuthFlowSlice {
   setOtp: (otp: string) => void;
   setVerifyEmail: (data: { verified: boolean; email: string }) => void;
   setResetPassword: (data: ResetPasswordSchemaType) => void;
+  setRegistrationToken: (token: string) => void;
+  setGoogleUserData: (data: { email?: string; nombre?: string; apellido?: string; foto?: string; banner?: string; } | null) => void;
   clearAuthFlow: () => void;
 }
 
@@ -43,6 +53,8 @@ export const createAuthFlowSlice: StateCreator<AuthFlowSlice> = (set) => ({
     verified: true,
     email: "",
   },
+  registrationToken: "",
+  googleUserData: null,
 
   setLoginCredentials: (data) => set({ loginCredentials: data }),
 
@@ -56,6 +68,10 @@ export const createAuthFlowSlice: StateCreator<AuthFlowSlice> = (set) => ({
 
   setResetPassword: (data) => set({ resetPassword: data }),
 
+  setRegistrationToken: (token) => set({ registrationToken: token }),
+
+  setGoogleUserData: (data) => set({ googleUserData: data }),
+
   clearAuthFlow: () =>
     set({
       loginCredentials: { email: "", password: "" },
@@ -63,5 +79,7 @@ export const createAuthFlowSlice: StateCreator<AuthFlowSlice> = (set) => ({
       otp: "",
       verifyEmail: { verified: false, email: "" },
       resetPassword: { password: "", confirmPassword: "" },
+      registrationToken: "",
+      googleUserData: null,
     }),
 });

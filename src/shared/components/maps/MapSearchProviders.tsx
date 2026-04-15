@@ -1,15 +1,24 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import mapboxgl from "mapbox-gl";
 import { createRoot } from "react-dom/client";
 import { type Provider } from "@/data/providers";
 import ProviderPopup from "./ProviderPopup";
 import { Expand, Minimize, Plus, Minus, Cuboid } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/tooltip";
+
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
 import { AnimatePresence, motion } from "framer-motion";
 import { useGlobalUIStore } from "@/stores/useGlobalUIStore";
+import { useAppStore } from "@/stores/useAppStore";
+import { useIsMobile } from "@/lib/hooks/useIsMobile";
 import { useNavigate } from "react-router-dom";
 import { TooltipProvider } from "@/shared/ui/tooltip";
+import type { FeatureCollection, Geometry } from "geojson";
+import ScheduleAppointmentDialog from "@/features/patient/components/appoiments/ScheduleAppointmentDialog";
+import ToogleConfirmConnection from "@/features/request/components/ToogleConfirmConnection";
+import { useStartConversation } from "@/lib/hooks/useStartConversation";
+import MCButton from "../forms/MCButton";
+import { useTranslation } from "react-i18next";
 
 interface MapSearchProvidersProps {
   providers: Provider[];
@@ -22,15 +31,35 @@ const PopupContent: React.FC<{
   provider: Provider;
   isSelected: boolean;
   onSelect?: (id: string) => void;
+  onScheduleAppointment?: (providerId: string) => void;
   navigateFn: (path: string) => void;
-}> = ({ provider, isSelected, onSelect, navigateFn }) => {
+  userRole?: string | null;
+  isMobile?: boolean;
+  onContact?: (providerId: string) => void;
+  isContactLoading?: boolean;
+}> = ({
+  provider,
+  isSelected,
+  onSelect,
+  onScheduleAppointment,
+  navigateFn,
+  userRole,
+  isMobile,
+  onContact,
+  isContactLoading,
+}) => {
   return (
     <TooltipProvider>
       <ProviderPopup
         provider={provider}
         isSelected={isSelected}
         onSelect={onSelect ?? (() => {})}
+        onScheduleAppointment={onScheduleAppointment}
         navigateFn={navigateFn}
+        userRole={userRole}
+        isMobile={isMobile}
+        onContact={onContact}
+        isStartingConversation={isContactLoading}
       />
     </TooltipProvider>
   );
@@ -41,21 +70,109 @@ export default function MapSearchProviders({
   selectedProviders = [],
   onProviderSelect,
 }: MapSearchProvidersProps) {
-  const navigate = useNavigate(); // Capturar navigate aquí
+  const navigate = useNavigate();
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const normalContainerRef = useRef<HTMLDivElement | null>(null);
   const fullscreenContainerRef = useRef<HTMLDivElement | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
+  const markersMapRef = useRef<
+    Map<string, { marker: mapboxgl.Marker; root: any }>
+  >(new Map());
+  const userMarkerRef = useRef<mapboxgl.Marker | null>(null);
+  const popupTimeoutsRef = useRef<Map<string, number>>(new Map());
+  const hasInitializedBoundsRef = useRef(false);
+  const previousProviderCountRef = useRef(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [is3D, setIs3D] = useState(true);
   const setisLoading = useGlobalUIStore((state) => state.setIsLoading);
   const isdarkMode = useGlobalUIStore((state) => state.theme);
+  const userRole = useAppStore((state) => state.user?.rol);
+  const isMobile = useIsMobile();
   const [userLocation, setUserLocation] = useState<[number, number] | null>(
     null,
   );
   const [locationDenied, setLocationDenied] = useState(false);
+  const [isMapLoaded, setIsMapLoaded] = useState(false);
+  const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false);
+  const [selectedProviderId, setSelectedProviderId] = useState<string | null>(
+    null,
+  );
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [pendingConnectionId, setPendingConnectionId] = useState<string | null>(
+    null,
+  );
+  const [geoDatas, setGeoDatas] = useState<{
+    santoDomingo: FeatureCollection<Geometry> | null;
+    distritoNacional: FeatureCollection<Geometry> | null;
+  }>({
+    santoDomingo: null,
+    distritoNacional: null,
+  });
 
+  const { t } = useTranslation("doctor");
+  const { startConversation, isLoading: isStartingConversation } =
+    useStartConversation();
+
+  // Memoize selected providers set for efficient lookups
+  const selectedProvidersSet = useMemo(
+    () => new Set(selectedProviders),
+    [selectedProviders],
+  );
+
+  // Callback handlers
+  const handleScheduleAppointment = (providerId: string) => {
+    console.log("Scheduling appointment with provider ID:", providerId);
+    setSelectedProviderId(providerId);
+    setScheduleDialogOpen(true);
+  };
+
+  const handleConnect = (providerId: string) => {
+    // Si el userRole es CENTER o DOCTOR, abrir diálogo de confirmación
+    if (userRole === "CENTER" || userRole === "DOCTOR") {
+      setPendingConnectionId(providerId);
+      setConfirmDialogOpen(true);
+    }
+  };
+
+  const handleContact = (providerId: string) => {
+    startConversation(Number(providerId));
+  };
+
+  const handleConfirmConnection = () => {
+    if (pendingConnectionId) {
+      onProviderSelect?.(pendingConnectionId);
+      setPendingConnectionId(null);
+      setConfirmDialogOpen(false);
+    }
+  };
+
+  // Cargar los polígonos GeoJSON
   useEffect(() => {
+    const fetchGeoJSON = async () => {
+      try {
+        const [resSD, resDN] = await Promise.all([
+          fetch("/data/poligonSantoDomingo.geojson"),
+          fetch("/data/poligonDistritoNacional.geojson"),
+        ]);
+        const dataSD = await resSD.json();
+        const dataDN = await resDN.json();
+
+        setGeoDatas({
+          santoDomingo: dataSD,
+          distritoNacional: dataDN,
+        });
+      } catch (error) {
+        console.error("Error cargando polígonos:", error);
+      }
+    };
+
+    fetchGeoJSON();
+  }, []);
+
+  // Inicializar el mapa (solo cuando cambia el contenedor o tema)
+  useEffect(() => {
+    if (!geoDatas.santoDomingo || !geoDatas.distritoNacional) return;
+
     const container = isFullscreen
       ? fullscreenContainerRef.current
       : normalContainerRef.current;
@@ -73,186 +190,454 @@ export default function MapSearchProviders({
       style: mapStyle,
       center: userLocation ?? [-69.93, 18.48],
       zoom: 12,
-      pitch: is3D ? 60 : 0,
-      bearing: is3D ? -17.6 : 0,
+      pitch: 0,
+      bearing: 0,
       antialias: true,
-      dragRotate: is3D,
-      touchPitch: is3D,
-      pitchWithRotate: is3D,
-      maxPitch: is3D ? 85 : 60,
-      minPitch: is3D ? 0 : 0,
+      dragRotate: true,
+      touchPitch: true,
+      pitchWithRotate: true,
+      maxPitch: 85,
+      minPitch: 0,
     });
 
     mapRef.current.on("load", () => {
       setisLoading(false);
+      setIsMapLoaded(true);
 
-      if (is3D) {
-        mapRef.current!.keyboard.enable();
-        mapRef.current!.dragRotate.enable();
+      // Agregar polígonos de límites
+      mapRef.current!.addSource("limite-sd", {
+        type: "geojson",
+        data: geoDatas.santoDomingo ?? undefined,
+      });
+      mapRef.current!.addLayer({
+        id: "borde-sd",
+        type: "line",
+        source: "limite-sd",
+        paint: {
+          "line-color": "#e11d48",
+          "line-width": 2,
+          "line-opacity": 0.5,
+        },
+      });
 
-        if ("ontouchstart" in window) {
-          setTimeout(() => {
-            const instructionDiv = document.createElement("div");
-            instructionDiv.className = "mapbox-rotation-hint";
-            instructionDiv.innerHTML = `
-              <div style="
-                position: absolute;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                background: rgba(0,0,0,0.8);
-                color: white;
-                padding: 12px 20px;
-                border-radius: 8px;
-                font-size: 14px;
-                text-align: center;
-                z-index: 1000;
-                pointer-events: none;
-                animation: fadeOut 3s ease-in-out forwards;
-              ">
-                📱 Usa dos dedos para rotar el mapa<br>
-                🔄 Arrastra para cambiar el ángulo
-              </div>
-              <style>
-                @keyframes fadeOut {
-                  0% { opacity: 1; }
-                  70% { opacity: 1; }
-                  100% { opacity: 0; }
-                }
-              </style>
-            `;
-            container.appendChild(instructionDiv);
+      mapRef.current!.addSource("limite-dn", {
+        type: "geojson",
+        data: geoDatas.distritoNacional ?? undefined,
+      });
+      mapRef.current!.addLayer({
+        id: "borde-dn",
+        type: "line",
+        source: "limite-dn",
+        paint: {
+          "line-color": "#3b82f6",
+          "line-width": 2,
+          "line-opacity": 0.5,
+        },
+      });
 
-            setTimeout(() => {
-              if (instructionDiv.parentNode) {
-                instructionDiv.parentNode.removeChild(instructionDiv);
-              }
-            }, 3000);
-          }, 1000);
-        }
-
-        mapRef.current!.addSource("mapbox-dem", {
-          type: "raster-dem",
-          url: "mapbox://mapbox.mapbox-terrain-dem-v1",
-          tileSize: 512,
-          maxzoom: 14,
-        });
-        mapRef.current!.setTerrain({ source: "mapbox-dem", exaggeration: 1.5 });
-
-        mapRef.current!.addLayer(
-          {
-            id: "3d-buildings",
-            source: "composite",
-            "source-layer": "building",
-            filter: ["==", "extrude", "true"],
-            type: "fill-extrusion",
-            minzoom: 15,
-            paint: {
-              "fill-extrusion-color": "#aaa",
-              "fill-extrusion-height": [
-                "interpolate",
-                ["linear"],
-                ["get", "height"],
-                0,
-                0,
-                100,
-                100,
-              ],
-              "fill-extrusion-base": [
-                "interpolate",
-                ["linear"],
-                ["get", "min_height"],
-                0,
-                0,
-                100,
-                100,
-              ],
-              "fill-extrusion-opacity": 0.6,
-            },
-          },
-          "waterway-label",
-        );
-      }
-    });
-
-    // Limpiar markers anteriores
-    markersRef.current.forEach((marker) => marker.remove());
-    markersRef.current = [];
-
-    // Agrega el marcador rojo si hay ubicación del usuario
-    if (userLocation && mapRef.current) {
-      const userMarker = new mapboxgl.Marker({
-        color: "#e11d48",
-        scale: 1.3,
-      })
-        .setLngLat(userLocation)
-        .addTo(mapRef.current);
-
-      markersRef.current.push(userMarker);
-    }
-
-    providers.forEach((provider) => {
-      const isSelected = selectedProviders.includes(provider.id);
-
-      const popupNode = document.createElement("div");
-      const root = createRoot(popupNode);
-      root.render(
-        <PopupContent
-          provider={provider}
-          isSelected={isSelected}
-          onSelect={(id) => onProviderSelect?.(id)}
-          navigateFn={navigate}
-        />,
-      );
-
-      const popup = new mapboxgl.Popup({
-        offset: 20,
-        closeButton: false,
-        closeOnClick: true,
-        maxWidth: "none",
-        className: "mapbox-popup-high-z",
-      }).setDOMContent(popupNode);
-
-      const marker = new mapboxgl.Marker({
-        color: provider.type === "doctor" ? "#A8C3A0" : "#8BB1CA",
-        scale: isSelected ? 1.2 : 1,
-      })
-        .setLngLat([provider.coordinates.lng, provider.coordinates.lat])
-        .setPopup(popup)
-        .addTo(mapRef.current!);
-
-      markersRef.current.push(marker);
+      // Agregar fuente de terreno para 3D
+      mapRef.current!.addSource("mapbox-dem", {
+        type: "raster-dem",
+        url: "mapbox://mapbox.mapbox-terrain-dem-v1",
+        tileSize: 512,
+        maxzoom: 14,
+      });
     });
 
     return () => {
-      markersRef.current.forEach((marker) => marker.remove());
+      setIsMapLoaded(false);
+      // Clean up all markers and roots
+      markersMapRef.current.forEach((markerData) => {
+        markerData.marker.remove();
+        markerData.root?.unmount?.();
+      });
+      markersMapRef.current.clear();
+      markersRef.current = [];
+
+      // Clear all pending timeouts
+      popupTimeoutsRef.current.forEach((timeout) => {
+        clearTimeout(timeout);
+      });
+      popupTimeoutsRef.current.clear();
+
+      if (userMarkerRef.current) {
+        userMarkerRef.current.remove();
+        userMarkerRef.current = null;
+      }
+
+      // Reset tracking refs
+      hasInitializedBoundsRef.current = false;
+      previousProviderCountRef.current = 0;
+
       mapRef.current?.remove();
       setisLoading(false);
     };
+  }, [isFullscreen, isdarkMode, geoDatas]);
+
+  // Manejar el cambio de vista 3D sin reinicializar el mapa
+  useEffect(() => {
+    if (!mapRef.current || !isMapLoaded) return;
+
+    const map = mapRef.current;
+
+    const toggle3D = () => {
+      if (is3D) {
+        // Activar vista 3D
+        map.easeTo({ pitch: 60, bearing: -17.6, duration: 1000 });
+
+        // Mostrar hint en móviles
+        if ("ontouchstart" in window) {
+          const container = isFullscreen
+            ? fullscreenContainerRef.current
+            : normalContainerRef.current;
+          if (container) {
+            setTimeout(() => {
+              const instructionDiv = document.createElement("div");
+              instructionDiv.className = "mapbox-rotation-hint";
+              instructionDiv.innerHTML = `
+                <div style="
+                  position: absolute;
+                  top: 50%;
+                  left: 50%;
+                  transform: translate(-50%, -50%);
+                  background: rgba(0,0,0,0.8);
+                  color: white;
+                  padding: 12px 20px;
+                  border-radius: 8px;
+                  font-size: 14px;
+                  text-align: center;
+                  z-index: 1000;
+                  pointer-events: none;
+                  animation: fadeOut 3s ease-in-out forwards;
+                ">
+                  📱 Usa dos dedos para rotar el mapa<br>
+                  🔄 Arrastra para cambiar el ángulo
+                </div>
+                <style>
+                  @keyframes fadeOut {
+                    0% { opacity: 1; }
+                    70% { opacity: 1; }
+                    100% { opacity: 0; }
+                  }
+                </style>
+              `;
+              container.appendChild(instructionDiv);
+
+              setTimeout(() => {
+                if (instructionDiv.parentNode) {
+                  instructionDiv.parentNode.removeChild(instructionDiv);
+                }
+              }, 3000);
+            }, 1000);
+          }
+        }
+
+        // Activar terreno 3D si no existe
+        if (!map.getTerrain()) {
+          map.setTerrain({ source: "mapbox-dem", exaggeration: 1.5 });
+        }
+
+        // Agregar edificios 3D si no existen
+        if (!map.getLayer("3d-buildings")) {
+          map.addLayer(
+            {
+              id: "3d-buildings",
+              source: "composite",
+              "source-layer": "building",
+              filter: ["==", "extrude", "true"],
+              type: "fill-extrusion",
+              minzoom: 15,
+              paint: {
+                "fill-extrusion-color": "#aaa",
+                "fill-extrusion-height": [
+                  "interpolate",
+                  ["linear"],
+                  ["get", "height"],
+                  0,
+                  0,
+                  100,
+                  100,
+                ],
+                "fill-extrusion-base": [
+                  "interpolate",
+                  ["linear"],
+                  ["get", "min_height"],
+                  0,
+                  0,
+                  100,
+                  100,
+                ],
+                "fill-extrusion-opacity": 0.6,
+              },
+            },
+            "waterway-label",
+          );
+        }
+      } else {
+        // Desactivar vista 3D
+        map.easeTo({ pitch: 0, bearing: 0, duration: 1000 });
+
+        // Remover terreno
+        if (map.getTerrain()) {
+          map.setTerrain(null);
+        }
+
+        // Remover edificios 3D
+        if (map.getLayer("3d-buildings")) {
+          map.removeLayer("3d-buildings");
+        }
+      }
+    };
+
+    if (map.loaded()) {
+      toggle3D();
+    } else {
+      map.on("load", toggle3D);
+    }
+  }, [is3D, isMapLoaded, isFullscreen]);
+
+  // Manage user location marker (independent effect)
+  useEffect(() => {
+    if (!mapRef.current || !isMapLoaded) return;
+
+    if (userLocation) {
+      if (!userMarkerRef.current) {
+        userMarkerRef.current = new mapboxgl.Marker({
+          color: "#e11d48",
+          scale: 1.3,
+        })
+          .setLngLat(userLocation)
+          .addTo(mapRef.current);
+      } else {
+        userMarkerRef.current.setLngLat(userLocation);
+      }
+    } else if (userMarkerRef.current) {
+      userMarkerRef.current.remove();
+      userMarkerRef.current = null;
+    }
+  }, [userLocation, isMapLoaded]);
+
+  // Create/update/remove markers when providers change (optimized - no selection dependency)
+  useEffect(() => {
+    if (!mapRef.current || !isMapLoaded) return;
+
+    // Get current provider IDs with coordinates
+    const currentProviderIds = new Set<string>();
+
+    providers.forEach((provider) => {
+      const coordinates = Array.isArray(provider.coordinates)
+        ? provider.coordinates
+        : [provider.coordinates];
+
+      coordinates.forEach((_coord, idx) => {
+        const markerId = `${provider.id}_${idx}`;
+        currentProviderIds.add(markerId);
+      });
+    });
+
+    // Remove markers that are no longer in the provider list
+    markersMapRef.current.forEach((markerData, markerId) => {
+      if (!currentProviderIds.has(markerId)) {
+        markerData.marker.remove();
+        markerData.root?.unmount?.();
+        markersMapRef.current.delete(markerId);
+
+        // Clear pending timeout if exists
+        const timeout = popupTimeoutsRef.current.get(markerId);
+        if (timeout) {
+          clearTimeout(timeout);
+          popupTimeoutsRef.current.delete(markerId);
+        }
+      }
+    });
+
+    // Create new markers (always with scale 1 initially)
+    providers.forEach((provider) => {
+      const coordinates = Array.isArray(provider.coordinates)
+        ? provider.coordinates
+        : provider.coordinates
+          ? [provider.coordinates]
+          : [];
+
+      coordinates.forEach((coord, idx) => {
+        if (!coord || !coord.lat || !coord.lng) {
+          console.warn(
+            `Invalid coordinates for provider ${provider.id} at index ${idx}:`,
+            coord,
+          );
+          return;
+        }
+
+        const lat = Number(coord.lat);
+        const lng = Number(coord.lng);
+        if (isNaN(lat) || isNaN(lng)) {
+          console.warn(
+            `Non-numeric coordinates for provider ${provider.id} at index ${idx}:`,
+            coord,
+          );
+          return;
+        }
+
+        const markerId = `${provider.id}_${idx}`;
+        const existingMarker = markersMapRef.current.get(markerId);
+
+        // Only create if it doesn't exist
+        if (!existingMarker) {
+          // Create the marker first
+          const marker = new mapboxgl.Marker({
+            color: provider.type === "doctor" ? "#A8C3A0" : "#8BB1CA",
+            scale: 1,
+          })
+            .setLngLat([lng, lat])
+            .addTo(mapRef.current!);
+
+          // Create popup container and root
+          const popupNode = document.createElement("div");
+          const root = createRoot(popupNode);
+
+          // Store marker and root immediately
+          markersMapRef.current.set(markerId, { marker, root });
+
+          // Render the popup content and attach to marker
+          root.render(
+            <PopupContent
+              provider={provider}
+              isSelected={false}
+              onSelect={handleConnect}
+              onScheduleAppointment={handleScheduleAppointment}
+              navigateFn={navigate}
+              userRole={userRole}
+              isMobile={isMobile}
+              onContact={handleContact}
+              isContactLoading={isStartingConversation}
+            />,
+          );
+
+          // Create and attach popup after React renders
+          const timeoutId = setTimeout(() => {
+            const popup = new mapboxgl.Popup({
+              offset: 20,
+              closeButton: false,
+              closeOnClick: true,
+              maxWidth: "none",
+              className: "mapbox-popup-high-z",
+            }).setDOMContent(popupNode);
+
+            marker.setPopup(popup);
+            popupTimeoutsRef.current.delete(markerId);
+          }, 0);
+
+          // Store timeout for cleanup
+          popupTimeoutsRef.current.set(markerId, timeoutId);
+        }
+      });
+    });
+
+    // Legacy support: keep markersRef updated
+    markersRef.current = Array.from(markersMapRef.current.values()).map(
+      (m) => m.marker,
+    );
+  }, [providers, onProviderSelect, isMapLoaded, navigate]);
+
+  // Update marker styles when selection changes (optimized - only updates scale)
+  useEffect(() => {
+    if (!mapRef.current || !isMapLoaded) return;
+
+    providers.forEach((provider) => {
+      const isSelected = selectedProvidersSet.has(provider.id);
+      const coordinates = Array.isArray(provider.coordinates)
+        ? provider.coordinates
+        : provider.coordinates
+          ? [provider.coordinates]
+          : [];
+
+      coordinates.forEach((_coord, idx) => {
+        const markerId = `${provider.id}_${idx}`;
+        const existingMarker = markersMapRef.current.get(markerId);
+
+        if (existingMarker) {
+          // Update scale using DOM manipulation with proper transform preservation
+          const targetScale = isSelected ? 1.2 : 1;
+          const element = existingMarker.marker.getElement();
+
+          // Get the SVG element and apply scale directly
+          const svg = element.querySelector("svg");
+          if (svg) {
+            svg.style.transform = `scale(${targetScale})`;
+            svg.style.transformOrigin = "center bottom";
+            svg.style.transition = "transform 0.2s ease";
+          }
+
+          // Update popup content to reflect selection state
+          existingMarker.root.render(
+            <PopupContent
+              provider={provider}
+              isSelected={isSelected}
+              onSelect={handleConnect}
+              onScheduleAppointment={handleScheduleAppointment}
+              navigateFn={navigate}
+              userRole={userRole}
+              isMobile={isMobile}
+              onContact={handleContact}
+              isContactLoading={isStartingConversation}
+            />,
+          );
+        }
+      });
+    });
   }, [
+    selectedProvidersSet,
     providers,
-    selectedProviders,
+    isMapLoaded,
+    navigate,
     onProviderSelect,
-    isFullscreen,
-    isdarkMode,
-    is3D,
-    userLocation,
   ]);
 
-  // Ajustar vista cuando cambian los providers
+  // Ajustar vista cuando cambian los providers (solo si hay cambio significativo)
   useEffect(() => {
-    if (!mapRef.current || providers.length === 0) return;
+    if (!mapRef.current || !isMapLoaded || providers.length === 0) return;
+
+    // Only fit bounds if this is the first load or provider count changed significantly
+    const shouldFitBounds =
+      !hasInitializedBoundsRef.current ||
+      Math.abs(providers.length - previousProviderCountRef.current) > 3;
+
+    if (!shouldFitBounds) return;
 
     const bounds = new mapboxgl.LngLatBounds();
+    let validCoordCount = 0;
+
     providers.forEach((provider) => {
-      bounds.extend([provider.coordinates.lng, provider.coordinates.lat]);
+      const coordinates = Array.isArray(provider.coordinates)
+        ? provider.coordinates
+        : provider.coordinates
+          ? [provider.coordinates]
+          : [];
+
+      coordinates.forEach((coord) => {
+        if (!coord || !coord.lat || !coord.lng) return;
+
+        const lat = Number(coord.lat);
+        const lng = Number(coord.lng);
+
+        if (!isNaN(lat) && !isNaN(lng)) {
+          bounds.extend([lng, lat]);
+          validCoordCount++;
+        }
+      });
     });
 
-    mapRef.current.fitBounds(bounds, {
-      padding: 50,
-      maxZoom: 15,
-    });
-  }, [providers]);
+    if (validCoordCount > 0) {
+      mapRef.current.fitBounds(bounds, {
+        padding: 50,
+        maxZoom: 15,
+        duration: hasInitializedBoundsRef.current ? 1000 : 0,
+      });
+
+      hasInitializedBoundsRef.current = true;
+      previousProviderCountRef.current = providers.length;
+    }
+  }, [providers, isMapLoaded]);
 
   useEffect(() => {
     if (isFullscreen) {
@@ -437,6 +822,32 @@ export default function MapSearchProviders({
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Diálogos renderizados en el componente padre (dentro del contexto de React) */}
+      {userRole === "PATIENT" && selectedProviderId && (
+        <ScheduleAppointmentDialog
+          idProvider={selectedProviderId}
+          isOpen={scheduleDialogOpen}
+          onClose={() => setScheduleDialogOpen(false)}
+        >
+          <MCButton className="w-full font-body text-sm sm:text-base py-5 sm:py-6">
+            {t("service.schedule", "Agendar")}
+          </MCButton>
+        </ScheduleAppointmentDialog>
+      )}
+
+      {(userRole === "CENTER" || userRole === "DOCTOR") &&
+        pendingConnectionId && (
+          <ToogleConfirmConnection
+            status="not_connected"
+            id={parseInt(pendingConnectionId)}
+            onConfirm={handleConfirmConnection}
+            isOpen={confirmDialogOpen}
+            onClose={() => setConfirmDialogOpen(false)}
+          >
+            <div style={{ display: "none" }} />
+          </ToogleConfirmConnection>
+        )}
     </>
   );
 }

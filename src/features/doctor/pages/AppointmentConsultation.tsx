@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { ConsultationInfoVertical } from "@/features/teleconsultation/components/ConsultationInfoVertical";
 import MCDashboardContent from "@/shared/layout/MCDashboardContent";
@@ -7,14 +7,17 @@ import Prescription from "@/features/teleconsultation/components/chatPanel/Presc
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
 import { MessageSquare, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ROUTES } from "@/router/routes";
 
 type MobileTab = "notes" | "info";
 
 function AppointmentConsultation() {
-  const { appointmentId } = useParams();
+  const { id: appointmentId } = useParams();
   const { t } = useTranslation("doctor");
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<MobileTab>("notes");
+  const handleConsultationSuccess = () => navigate(ROUTES.DOCTOR.HOME);
 
   // ── Desktop ──────────────────────────────────────────────────────────────────
   if (!isMobile) {
@@ -26,7 +29,7 @@ function AppointmentConsultation() {
               <h2 className="text-2xl font-semibold text-primary mb-4">
                 {t("appointment.consultation.medicalNotes")}
               </h2>
-              <Prescription minHeight="500px" maxHeight="900px" />
+              <Prescription appointmentId={appointmentId} onSuccess={handleConsultationSuccess} minHeight="500px" maxHeight="900px" />
             </div>
           </div>
           <div className="flex flex-col gap-4">
@@ -75,7 +78,7 @@ function AppointmentConsultation() {
             <h2 className="text-lg font-semibold text-primary mb-3">
               {t("appointment.consultation.medicalNotes")}
             </h2>
-            <Prescription minHeight="400px" maxHeight="70vh" />
+            <Prescription appointmentId={appointmentId} onSuccess={handleConsultationSuccess} minHeight="400px" maxHeight="70vh" />
           </div>
         ) : (
           <ConsultationInfoVertical appointmentId={appointmentId ?? "1"} />

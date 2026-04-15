@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import FilterMyDoctors from "../components/filters/FilterMyDoctors";
 import MCTablesLayouts from "@/shared/components/tables/MCTablesLayouts";
 import MCDoctorsCards from "@/shared/components/MCDoctorsCards";
@@ -23,9 +23,10 @@ import {
 } from "@/shared/ui/empty";
 import { MCFilterPopover } from "@/shared/components/filters/MCFilterPopover";
 import { useTranslation } from "react-i18next";
-import { Filter, UserX } from "lucide-react";
+import { Filter, UserX, Loader2, AlertCircle } from "lucide-react";
 import MCButton from "@/shared/components/forms/MCButton";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
+import { useMyDoctors } from "@/lib/hooks/useMyDoctors";
 
 // Define the DoctorFilters type to match FilterMyDoctors expectations
 type DoctorFilters = {
@@ -39,125 +40,12 @@ type DoctorFilters = {
   rating: number | null;
 };
 
-const doctorsList = [
-  {
-    id: "d1",
-    name: "Stephen Curry",
-    specialty: "Cardiólogo",
-    rating: 4.8,
-    yearsOfExperience: 15,
-    languages: ["es", "en", "fr"],
-    insuranceAccepted: ["senasa", "universal", "humano"],
-    isFavorite: false,
-    urlImage: "",
-  },
-  {
-    id: "d2",
-    name: "LeBron James",
-    specialty: "Dermatóloga",
-    rating: 4.9,
-    yearsOfExperience: 10,
-    languages: ["es", "en"],
-    insuranceAccepted: ["palic", "humano"],
-    isFavorite: true,
-    urlImage: "",
-  },
-  {
-    id: "d3",
-    name: "Conor McGregor",
-    specialty: "Pediatra",
-    rating: 4.7,
-    yearsOfExperience: 8,
-    languages: ["es"],
-    insuranceAccepted: ["universal"],
-    isFavorite: true,
-    urlImage: "",
-  },
-  {
-    id: "d4",
-    name: "Sofía Ramírez",
-    specialty: "Endocrinóloga",
-    rating: 4.6,
-    yearsOfExperience: 12,
-    languages: ["es", "fr"],
-    insuranceAccepted: ["senasa", "mapfre", "yunen"],
-    isFavorite: true,
-    urlImage: "",
-  },
-  {
-    id: "d5",
-    name: "Luis Fernández",
-    specialty: "Ginecólogo",
-    rating: 4.5,
-    yearsOfExperience: 11,
-    languages: ["es", "en"],
-    insuranceAccepted: ["palic", "universal"],
-    isFavorite: false,
-    urlImage: "https://randomuser.me/api/portraits/men/32.jpg",
-  },
-  {
-    id: "d6",
-    name: "Ana Torres",
-    specialty: "Oftalmóloga",
-    rating: 4.8,
-    yearsOfExperience: 9,
-    languages: ["es"],
-    insuranceAccepted: ["senasa", "humano"],
-    isFavorite: true,
-    urlImage: "https://randomuser.me/api/portraits/women/44.jpg",
-  },
-  {
-    id: "d7",
-    name: "Pedro Castillo",
-    specialty: "Ortopedista",
-    rating: 4.4,
-    yearsOfExperience: 13,
-    languages: ["es", "en"],
-    insuranceAccepted: ["mapfre", "palic"],
-    isFavorite: false,
-    urlImage: "https://randomuser.me/api/portraits/men/65.jpg",
-  },
-  {
-    id: "d8",
-    name: "Gabriela Suárez",
-    specialty: "Psiquiatra",
-    rating: 4.9,
-    yearsOfExperience: 7,
-    languages: ["es", "en", "it"],
-    insuranceAccepted: ["universal", "humano"],
-    isFavorite: true,
-    urlImage: "https://randomuser.me/api/portraits/women/68.jpg",
-  },
-  {
-    id: "d9",
-    name: "Javier Peña",
-    specialty: "Neurólogo",
-    rating: 4.7,
-    yearsOfExperience: 14,
-    languages: ["es"],
-    insuranceAccepted: ["senasa", "palic"],
-    isFavorite: false,
-    urlImage: "https://randomuser.me/api/portraits/men/77.jpg",
-  },
-  {
-    id: "d10",
-    name: "Lucía Vargas",
-    specialty: "Nutrióloga",
-    rating: 4.6,
-    yearsOfExperience: 6,
-    languages: ["es", "en"],
-    insuranceAccepted: ["humano", "mapfre"],
-    isFavorite: true,
-    urlImage: "https://randomuser.me/api/portraits/women/81.jpg",
-  },
-];
-
 function MyDoctorsPage() {
-  const { t } = useTranslation("patient");
+  const { t, i18n } = useTranslation("patient");
   const isMobile = useIsMobile();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingPDF, setIsLoadingPDF] = useState(false);
 
   // Ajustar cards por página según dispositivo
   const CARDS_PER_PAGE = isMobile ? 4 : 8;
@@ -173,30 +61,72 @@ function MyDoctorsPage() {
     rating: null,
   });
 
+  // Fetch doctors from API
+  const { data, isLoading, error } = useMyDoctors({
+    target: i18n.language,
+    source: 'es',
+    translate_fields: 'especialidadPrincipal.nombre',
+  });
+
+  // Transform API data to the format expected by MCDoctorsCards
+  const transformedDoctors = useMemo(() => {
+    if (!data?.data) return [];
+    
+    console.log("Transforming doctors data:", data.data);
+    return data.data.map((doctor) => ({
+      id: doctor.id.toString(),
+      name: `${doctor.nombre} ${doctor.apellido}`,
+      specialty: doctor.especialidadPrincipal?.nombre || t("myDoctors.noSpecialty", "Sin especialidad"),
+      specialtyId: doctor.especialidadPrincipal?.id || null,
+      rating: doctor.calificacionPromedio || 0,
+      yearsOfExperience: doctor.anosExperiencia || 0,
+      languages: doctor.idiomas?.map(idioma => idioma.nombre.toLowerCase().substring(0, 2)) || [],
+      insuranceAccepted: doctor.segurosAceptados?.map(seguro => seguro.nombre?.toLowerCase() || '') || [],
+      insuranceAccpetedIds: doctor.segurosAceptados?.map(seguro => seguro.id) || [],
+      isFavorite: doctor.esFavorito || false, // This would come from a separate favorites system
+      urlImage: doctor.fotoPerfil || "",
+      lastAppointment: doctor.ultimaCita?.fecha,
+    }));
+  }, [data, t]);
+
   // Filtering logic
-  const filteredDoctors = doctorsList
-    .filter(
-      (doctor) =>
-        doctor.name.toLowerCase().includes(search.toLowerCase()) ||
-        doctor.specialty.toLowerCase().includes(search.toLowerCase()),
-    )
-    .filter((doctor) => {
-      if (filters.specialty && doctor.specialty !== filters.specialty)
-        return false;
-      if (filters.language && !doctor.languages.includes(filters.language))
-        return false;
-      if (
-        filters.insurance &&
-        !doctor.insuranceAccepted.includes(filters.insurance)
+  const filteredDoctors = useMemo(() => {
+    return transformedDoctors
+      .filter(
+        (doctor) =>
+          doctor.name.toLowerCase().includes(search.toLowerCase()) ||
+          doctor.specialty.toLowerCase().includes(search.toLowerCase()),
       )
-        return false;
-      if (
-        filters.isFavorite !== null &&
-        doctor.isFavorite !== filters.isFavorite
-      )
-        return false;
-      return true;
-    });
+      .filter((doctor) => {
+        if (filters.specialty && doctor.specialtyId !== parseInt(filters.specialty))
+          return false;
+        if (filters.language && !doctor.languages?.includes(filters.language))
+          return false;
+        if (
+          filters.insurance &&
+          !doctor.insuranceAccepted?.some(ins => ins.includes(filters.insurance.toLowerCase()))
+        )
+          return false;
+        if (filters.languages.length > 0 && 
+            !filters.languages.some(lang => doctor.languages?.includes(lang)))
+          return false;
+        
+        // ✅ FILTRO ACTUALIZADO POR IDs DE SEGUROS
+        if (filters.acceptingInsurance.length > 0) {
+          const hasMatchingInsurance = filters.acceptingInsurance.some(filterId => 
+            doctor.insuranceAccpetedIds?.includes(Number(filterId))
+          );
+          if (!hasMatchingInsurance) return false;
+        }
+        
+        if (filters.yearsOfExperience !== null && 
+            (doctor.yearsOfExperience || 0) < filters.yearsOfExperience)
+          return false;
+        if (filters.rating !== null && doctor.rating < filters.rating)
+          return false;
+        return true;
+      });
+  }, [transformedDoctors, search, filters]);
 
   // Pagination
   const totalPages = Math.ceil(filteredDoctors.length / CARDS_PER_PAGE);
@@ -233,15 +163,18 @@ function MyDoctorsPage() {
   }
 
   function updateFilters(newFilters: Partial<DoctorFilters>) {
+    console.log("Updating filters with:", newFilters);
     setFilters((prev) => ({ ...prev, ...newFilters }));
     setPage(1);
   }
 
+  console
   // PDF generator
   const pdfGeneratorComponent = (
     <MCPDFButton
       onClick={async () => {
-        setIsLoading(true);
+        if (filteredDoctors.length === 0) return;
+        setIsLoadingPDF(true);
         await MCGeneratePDF({
           columns: [
             { title: t("myDoctors.pdfColumns.name"), key: "name" },
@@ -262,9 +195,9 @@ function MyDoctorsPage() {
           title: t("myDoctors.pdfTitle"),
           subtitle: t("myDoctors.pdfSubtitle"),
         });
-        setIsLoading(false);
+        setIsLoadingPDF(false);
       }}
-      loading={isLoading}
+      loading={isLoadingPDF || isLoading}
     />
   );
 
@@ -410,66 +343,96 @@ function MyDoctorsPage() {
   };
 
   // Table component - Grid responsive
-  const tableComponent =
-    filteredDoctors.length === 0 ? (
-      emptyComponent
-    ) : (
-      <>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 px-2 sm:px-0">
-          {paginatedDoctors.map((doctor) => (
-            <MCDoctorsCards
-              key={doctor.id}
-              id={doctor.id}
-              name={doctor.name}
-              specialty={doctor.specialty}
-              rating={doctor.rating}
-              yearsOfExperience={doctor.yearsOfExperience}
-              languages={doctor.languages}
-              insuranceAccepted={doctor.insuranceAccepted}
-              isFavorite={doctor.isFavorite}
-              urlImage={doctor.urlImage}
-            />
-          ))}
+  const tableComponent = isLoading ? (
+    <div className="flex items-center justify-center py-12">
+      <Loader2 className="w-8 h-8 animate-spin text-primary" /> 
+      <span className="ml-3 text-muted-foreground">{t("myDoctors.loading", "Cargando doctores...")}</span>
+    </div>
+  ) : error ? (
+    <Empty>
+      <EmptyHeader>
+        <div className="flex flex-col items-center gap-2 px-4">
+          <span className="flex items-center justify-center gap-2 text-destructive">
+            <AlertCircle className="w-6 h-6 sm:w-7 sm:h-7" />
+            <EmptyTitle className="text-lg sm:text-xl font-semibold text-center">
+              {t("myDoctors.error.title", "Error al cargar")}
+            </EmptyTitle>
+          </span>
+          <EmptyDescription className="text-muted-foreground text-center max-w-md mx-auto text-sm sm:text-base px-2">
+            {t("myDoctors.error.description", "No se pudieron cargar los doctores. Por favor, intenta nuevamente.")}
+          </EmptyDescription>
         </div>
-        {/* Pagination - Responsive */}
-        {totalPages > 1 && (
-          <Pagination className="mt-6 sm:mt-8">
-            <PaginationContent className="flex-wrap gap-1">
-              <PaginationItem>
-                <PaginationPrevious
-                  onClick={() => {
-                    if (page > 1) setPage((p) => Math.max(1, p - 1));
-                  }}
-                  aria-disabled={page === 1}
-                  tabIndex={page === 1 ? -1 : 0}
-                  className={
-                    page === 1
-                      ? "pointer-events-none opacity-50"
-                      : "cursor-pointer"
-                  }
-                />
-              </PaginationItem>
-              {renderPaginationItems()}
-              <PaginationItem>
-                <PaginationNext
-                  onClick={() => {
-                    if (page < totalPages)
-                      setPage((p) => Math.min(totalPages, p + 1));
-                  }}
-                  aria-disabled={page === totalPages}
-                  tabIndex={page === totalPages ? -1 : 0}
-                  className={
-                    page === totalPages
-                      ? "pointer-events-none opacity-50"
-                      : "cursor-pointer"
-                  }
-                />
-              </PaginationItem>
-            </PaginationContent>
-          </Pagination>
-        )}
-      </>
-    );
+      </EmptyHeader>
+      <EmptyContent>
+        <MCButton 
+          variant="outline" 
+          onClick={() => window.location.reload()}
+          className="px-4 py-2 sm:px-6"
+          size="sm"
+        >
+          {t("myDoctors.retry", "Reintentar")}
+        </MCButton>
+      </EmptyContent>
+    </Empty>
+  ) : filteredDoctors.length === 0 ? (
+    emptyComponent
+  ) : (
+    <>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 px-2 sm:px-0">
+        {paginatedDoctors.map((doctor) => (
+          <MCDoctorsCards
+            key={doctor.id}
+            id={doctor.id}
+            name={doctor.name}
+            specialty={doctor.specialty}
+            rating={doctor.rating}
+            yearsOfExperience={doctor.yearsOfExperience}
+            languages={doctor.languages}
+            insuranceAccepted={doctor.insuranceAccepted}
+            isFavorite={doctor.isFavorite}
+            urlImage={doctor.urlImage}
+          />
+        ))}
+      </div>
+      {/* Pagination - Responsive */}
+      {totalPages > 1 && (
+        <Pagination className="mt-6 sm:mt-8">
+          <PaginationContent className="flex-wrap gap-1">
+            <PaginationItem>
+              <PaginationPrevious
+                onClick={() => {
+                  if (page > 1) setPage((p) => Math.max(1, p - 1));
+                }}
+                aria-disabled={page === 1}
+                tabIndex={page === 1 ? -1 : 0}
+                className={
+                  page === 1
+                    ? "pointer-events-none opacity-50"
+                    : "cursor-pointer"
+                }
+              />
+            </PaginationItem>
+            {renderPaginationItems()}
+            <PaginationItem>
+              <PaginationNext
+                onClick={() => {
+                  if (page < totalPages)
+                    setPage((p) => Math.min(totalPages, p + 1));
+                }}
+                aria-disabled={page === totalPages}
+                tabIndex={page === totalPages ? -1 : 0}
+                className={
+                  page === totalPages
+                    ? "pointer-events-none opacity-50"
+                    : "cursor-pointer"
+                }
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
+      )}
+    </>
+  );
 
   return (
     <MCTablesLayouts

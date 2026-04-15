@@ -21,6 +21,8 @@
     "deleteProfilePhoto": "Eliminar foto de perfil",
     "confirmDeleteTitle": "¿Eliminar foto de perfil?",
     "confirmDeleteDescription": "Esta acción no se puede deshacer. La foto de perfil será eliminada permanentemente.",
+    "birthDate": "Fecha de Nacimiento",
+    "birthDatePlaceholder": "Selecciona tu fecha de nacimiento",
     "fullName": "Nombre Completo",
     "fullNamePlaceholder": "Ingresa tu nombre completo",
     "identityDocument": "Número de Cédula",
@@ -31,11 +33,14 @@
     "agePlaceholder": "Ingresa tu edad",
     "height": "Altura (cm)",
     "heightPlaceholder": "Ingresa tu altura",
+    "years": "años",
+    "pending": "Pendiente",
     "weight": "Peso (kg)",
     "weightPlaceholder": "Ingresa tu peso",
     "bloodType": "Tipo de Sangre",
     "bloodTypePlaceholder": "Selecciona tipo de sangre",
     "saveChanges": "Guardar cambios",
+    "saving": "Guardando...",
     "cancel": "Cancelar",
     "cropBanner": "Recortar banner",
     "cropProfilePhoto": "Recortar foto de perfil",
@@ -55,10 +60,35 @@
     "addAllergy": "Agregar Alergia",
     "selectAllergy": "Selecciona una alergia",
     "removeAllergy": "Eliminar alergia",
+    "errorLoadingAllergies": "Error al cargar alergias",
+    "allergyAdded": "Alergia agregada exitosamente",
+    "errorAddingAllergy": "Error al agregar alergia",
+    "allergyRemoved": "Alergia eliminada exitosamente",
+    "errorRemovingAllergy": "Error al eliminar alergia",
     "conditions": "Condiciones",
     "addCondition": "Agregar Condición",
+    "selectCondition": "Selecciona una condición",
     "removeCondition": "Eliminar condición",
-    "conditionPlaceholder": "Describe tu condición"
+    "conditionPlaceholder": "Describe tu condición",
+    "errorLoadingConditions": "Error al cargar condiciones médicas",
+    "conditionAdded": "Condición médica agregada exitosamente",
+    "errorAddingCondition": "Error al agregar condición médica",
+    "conditionUpdated": "Condición médica actualizada exitosamente",
+    "errorUpdatingCondition": "Error al actualizar condición médica",
+    "conditionRemoved": "Condición médica eliminada exitosamente",
+    "errorRemovingCondition": "Error al eliminar condición médica",
+    "notesUpdated": "Notas actualizadas exitosamente",
+    "errorUpdatingNotes": "Error al actualizar notas",
+    "or": "o",
+    "addPersonalCondition": "Agregar condición médica personal",
+    "personalConditionPlaceholder": "Escribe tu condición médica",
+    "add": "Agregar",
+    "emptyPersonalCondition": "Por favor ingresa una condición médica",
+    "personalConditionAdded": "Condición médica personal agregada exitosamente",
+    "errorAddingPersonalCondition": "Error al agregar condición médica personal",
+    "personalConditionRemoved": "Condición médica personal eliminada exitosamente",
+    "errorRemovingPersonalCondition": "Error al eliminar condición médica personal",
+    "personalConditionTitle": "Condición médica personal"
   },
   "insurance": {
     "title": "Seguro Médico",
@@ -71,7 +101,19 @@
     "universal": "Seguro Universal",
     "humano": "Seguro Humano",
     "mapfre": "Mapfre Salud",
-    "particular": "Particular"
+    "removed": "Seguro eliminado exitosamente",
+    "added": "Seguro agregado exitosamente",
+    "profileCopied": "Enlace de perfil copiado al portapapeles",
+    "logoutSuccess": "¡Sesión cerrada exitosamente!",
+    "particular": "Particular",
+    "selectType": "Seleccionar tipo de seguro",
+    "typePlaceholder": "Tipo de seguro",
+    "selectInsuranceFirst": "Por favor selecciona un seguro primero",
+    "loading": "Cargando seguros...",
+    "verifying": "Verificando compatibilidad...",
+    "compatible": "Este seguro es aceptado por el doctor",
+    "notCompatible": "Este seguro no es aceptado por el doctor",
+    "verificationError": "Error al verificar compatibilidad"
   },
   "validation": {
     "fullNameRequired": "El nombre completo es requerido",
@@ -80,6 +122,10 @@
     "emailInvalid": "Dirección de correo inválida",
     "ageInvalid": "Entrada inválida: se esperaba un número",
     "heightInvalid": "Entrada inválida: se esperaba un número",
+    "weightPositive": "El peso debe ser un número positivo",
+    "heightPositive": "La altura debe ser un número positivo",
+    "weightMax": "El peso debe ser menor a 500 kg",
+    "heightMax": "La altura debe ser menor a 300 cm",
     "weightInvalid": "Entrada inválida: se esperaba un número",
     "bloodTypeInvalid": "Opción inválida: se esperaba A+, A-, B+, B-, AB+, AB-, O+ o O-"
   },
@@ -114,7 +160,28 @@
     "appointmentsCount_plural": "{{count}} citas",
     "emptyTitle": "No hay citas programadas",
     "emptyDescription": "No tienes citas para este día. Selecciona otra fecha o programa una nueva cita.",
-    "join": "Unirse"
+    "loading": "Cargando citas...",
+    "errorTitle": "Error al cargar citas",
+    "errorDescription": "No se pudieron cargar tus citas. Por favor, verifica tu conexión e intenta nuevamente.",
+    "cancelConfirmTitle": "¿Cancelar cita?",
+    "cancelConfirmDescription": "Por favor, indica el motivo de la cancelación de la cita.",
+    "confirmCancel": "Sí, cancelar",
+    "back": "Volver",
+    "cancelReasonLabel": "Motivo de cancelación",
+    "cancelReasonPlaceholder": "Describe el motivo de la cancelación...",
+    "cancelError": "Error al cancelar la cita. Por favor, intenta nuevamente.",
+    "join": "Unirse",
+    "success": "Cita programada exitosamente",
+    "error": "Error al programar la cita. Por favor, intenta nuevamente.",
+    "rescheduleSuccess": "Cita reagendada exitosamente",
+    "cancellationPolicyTitle": "Política flexible de cancelación y reagendamiento",
+    "cancellationPolicyDescription": "Puedes cancelar o reagendar tu cita sin costo adicional si lo haces con al menos 4 horas de anticipación. Nuestro objetivo es ofrecerte la mayor comodidad y flexibilidad en tu atención médica.",
+    "noInsurance": "Sin seguro",
+    "ongoing": "En progreso",
+    "withInsurance": "Con seguro",
+    "submitting": "Procesando...",
+    "loadingDoctorData": "Cargando información del doctor...",
+    "noDoctorData": "No se pudo cargar la información del doctor"
   },
   "dashboard": {
     "searchTitle": "Busca médicos, especialidades o clínicas cercanas"
@@ -131,8 +198,10 @@
     },
     "placeholders": {
       "specialty": "Seleccionar especialidad",
+      "loadingSpecialty": "Cargando especialidades...",
       "languages": "Seleccionar idiomas",
       "insurances": "Seleccionar seguros",
+      "loadingInsurances": "Cargando seguros...",
       "yearsOfExperience": "Seleccionar años de experiencia",
       "ranking": "Seleccionar puntuación",
       "name": "Buscar por nombre"
@@ -213,7 +282,9 @@
       "santaMariaClinic": "Clínica Santa María",
       "specializedCenter": "Centro Especializado",
       "virtualConsultation": "Consulta Virtual"
-    }
+    },
+    "loading": "Cargando servicios...",
+    "noResults": "No hay servicios que coincidan con los filtros seleccionados"
   },
   "searchBar": {
     "searchLabel": "Buscar",
@@ -240,6 +311,7 @@
     "clearFilters": "Limpiar",
     "profile": "Perfil",
     "history": "Historial",
+    "specialty": "Especialidad",
     "doctors": {
       "profile": "Perfil",
       "schedule": "Agendar",
@@ -253,6 +325,20 @@
     }
   },
   "appointment": {
+    "patient": {
+      "name": "Nombre Completo",
+      "age": "Edad",
+      "bloodType": "Tipo de Sangre",
+      "height": "Altura",
+      "weight": "Peso",
+      "contactInfo": "Información de Contacto",
+      "email": "Email",
+      "phone": "Teléfono",
+      "medicalInfo": "Información Médica",
+      "allergies": "Alergias",
+      "conditions": "Condiciones"
+    },
+    "patientDetailsTab": "Detalles del Paciente",
     "detailsTitle": "Detalles de la Cita",
     "detailsTab": "Detalles de la cita",
     "historyTab": "Historial",
@@ -342,6 +428,10 @@
     "upcomingTitle": "Próximas Citas",
     "historyTitle": "Historial de Citas",
     "searchPlaceholder": "Buscar por nombre del doctor...",
+    "loadingAppointments": "Cargando citas...",
+    "errorTitle": "Error al cargar citas",
+    "errorDescription": "No se pudieron cargar tus citas. Por favor, verifica tu conexión e intenta nuevamente.",
+    "retry": "Reintentar",
     "noResults": "No se encontraron resultados",
     "noUpcoming": "No hay próximas citas",
     "noHistory": "No hay historial de citas",
@@ -354,19 +444,24 @@
     "historySection": "citas en historial",
     "clearFilters": "Limpiar",
     "scheduleNew": "Agendar Nueva Cita",
+    "cancelSuccess": "Cita cancelada exitosamente",
+    "cancelError": "Error al cancelar la cita. Por favor, intenta nuevamente.",
     "pdfTitle": "Mis Citas",
     "pdfSubtitle": "Lista completa de citas médicas",
     "accept": "Aceptar",
     "viewAppointment": "Ver cita",
     "joinTeleconsult": "Unirse a teleconsulta",
     "markCompleted": "Marcar como completada",
-    "continueConsultation": "Continuar consulta",
+    "continueConsultation": "Agregar diagnóstico médico",
     "pdfColumns": {
       "doctor": "Doctor",
+      "patient": "Paciente",
       "specialty": "Especialidad",
+      "service": "Servicio",
       "evaluationType": "Tipo de Evaluación",
       "date": "Fecha",
       "time": "Hora",
+      "modality": "Modalidad",
       "appointmentType": "Tipo de Cita",
       "location": "Ubicación",
       "status": "Estado"
@@ -407,11 +502,25 @@
       "yearsOfExperience": "Años de experiencia",
       "languages": "Idiomas",
       "insuranceAccepted": "Seguros aceptados"
-    }
+    },
+    "empty": {
+      "noDoctorsTitle": "Aún no tienes doctores",
+      "noDoctorsDescription": "Cuando tengas doctores asignados, aparecerán aquí.",
+      "filteredTitle": "No se encontraron doctores",
+      "filteredDescription": "Intenta ajustar los filtros o la búsqueda.",
+      "clearFilters": "Limpiar filtros",
+      "noResults": "No se encontraron doctores",
+      "noResultsDescription": "No tienes doctores favoritos que coincidan con los filtros aplicados. Intenta ajustar tus criterios de búsqueda o agrega doctores a tu lista de favoritos."
+    },
+    "loading": "Cargando doctores..."
   },
   "clinicCard": {
     "connect": "Conectar",
     "connected": "Conectado",
     "pending": "Pendiente"
+  },
+  "errors": {
+    "noDoctorServices": "No se encontraron servicios del doctor",
+    "loadDoctorData": "Error al cargar datos del doctor"
   }
 }

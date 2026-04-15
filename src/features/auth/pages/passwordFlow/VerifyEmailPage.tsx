@@ -6,29 +6,85 @@ import { useAppStore } from "@/stores/useAppStore";
 import { useTranslation } from "react-i18next";
 import AuthFooterContainer from "../../components/AuthFooterContainer";
 import MCButton from "@/shared/components/forms/MCButton";
-import { useNavigate } from "react-router-dom";
-import { useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { ROUTES } from "@/router/routes";
+import { toast } from "sonner";
+import { authService } from "@/services/auth/auth.service";
+
 function VerifyEmailPage() {
   const { t } = useTranslation("auth");
   const navigate = useNavigate();
-  const confirmedEmail = useAppStore((state) => state.forgotPassword.email);
+  const location = useLocation();
+  const [isLoading, setIsLoading] = useState(false);
+
+  const setForgotPassword = useAppStore((state) => state.setForgotPassword);
+  
+  // Intentar obtener el email del estado de navegación primero, luego del store
+  const emailFromNavigation = (location.state as { email?: string })?.email;
+  const emailFromStore = useAppStore((state) => state.forgotPassword.email);
+  const confirmedEmail = emailFromNavigation || emailFromStore;
+  
   const otpData = useAppStore((state) => state.otp);
   const setOtp = useAppStore((state) => state.setOtp);
 
   useEffect(() => {
-    if (!confirmedEmail) {
-      navigate("/auth/forgot-password", { replace: true });
+    // Si hay email de navegación pero no está en el store, guardarlo
+    if (emailFromNavigation && !emailFromStore) {
+      setForgotPassword({ email: emailFromNavigation });
     }
-  }, [confirmedEmail, navigate]);
+    
+    // Si no hay email de ninguna fuente, redirigir
+    if (!confirmedEmail) {
+      navigate(ROUTES.FORGOT_PASSWORD, { replace: true });
+    }
+  }, [confirmedEmail, emailFromNavigation, emailFromStore, setForgotPassword, navigate]);
 
-  const handleSubmit = (data: { otp: string }) => {
-    if (otpData) {
-      console.log("OTP Data:", data);
-      setOtp(data.otp);
+  const handleSubmit = async (data: { otp: string }) => {
+    if (!confirmedEmail) {
+      toast.error(t("forgotPassword.emailNotFound") || "Email no encontrado");
+      return;
+    }
 
-      return navigate("/auth/reset-password", { replace: true });
-    } else {
-      console.log("No OTP entered.");
+    setIsLoading(true);
+
+    try {
+      const response = await authService.validarCodigoPassword({
+        email: confirmedEmail,
+        codigo: data.otp,
+      });
+
+      if (response.success) {
+        toast.success(response.message || t("verifyEmail.success") || "Código validado correctamente");
+        
+        // Guardar el token en el store para usarlo en el siguiente paso
+        setForgotPassword({ 
+          email: confirmedEmail,
+          resetToken: response.data.token 
+        });
+        
+        // Navegar a la página de reseteo de contraseña
+        navigate(ROUTES.RESET_PASSWORD, { replace: true });
+      }
+    } catch (error: any) {
+      // Mostrar mensaje de error
+      const errorMessage = 
+        error?.response?.data?.message || 
+        error?.message || 
+        t("registerEmailVerifyPage.errors.otpInvalid") || "Código inválido. Por favor, verifica e intenta de nuevo.";
+      
+      if (error?.response?.data?.message?.toLowerCase().includes("expirado")) {
+        toast.error(t("registerEmailVerifyPage.errors.otpExpired") || "El código ha expirado. Por favor, solicita un nuevo código.");
+        return;
+      } else if (error?.response?.data?.message?.toLowerCase().includes("inválido")) {
+        toast.error(t("registerEmailVerifyPage.errors.invalidOtp") || "El código es inválido. Por favor, verifica e intenta de nuevo.");
+        return;
+      }
+      
+      console.error("Error al validar código OTP:", error);
+      toast.error(errorMessage);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -55,7 +111,6 @@ function VerifyEmailPage() {
               setOtp(value);
             }}
           />
-          <p className="text-center mt-2 w-full">{otpData}</p>
         </div>
         <div className="w-md max-w-md m-4 flex flex-col items-center gap-4">
           <p className="text-md text-primary/80  mb-2 text-center">
@@ -64,15 +119,15 @@ function VerifyEmailPage() {
             </span>{" "}
             {t("verifyEmail.tip").split(":")[1]}
           </p>
-          <MCButton variant="tercero" size="m">
+          <MCButton variant="tercero" size="m" disabled={isLoading}>
             {t("verifyEmail.resend")}
           </MCButton>
         </div>
         <AuthFooterContainer
           backButtonProps={{
-            disabled: false,
+            disabled: isLoading,
             onClick: () => {
-              navigate("/auth/forgot-password", { replace: true });
+              navigate(ROUTES.FORGOT_PASSWORD, { replace: true });
             },
           }}
         />

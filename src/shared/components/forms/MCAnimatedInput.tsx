@@ -10,6 +10,7 @@ interface AnimatedInputProps {
   placeholder?: string;
   maxLength?: number;
   onChange?: (value: string) => void;
+  value?: string;
   variant?: "Default" | "Description";
 }
 
@@ -18,6 +19,7 @@ const MCAnimatedInput = ({
   placeholder,
   maxLength = 50,
   onChange,
+  value,
   variant = "Default",
 }: AnimatedInputProps) => {
   const { control } = useFormContext();
@@ -36,7 +38,7 @@ const MCAnimatedInput = ({
     <Controller
       name={name}
       control={control}
-      defaultValue=""
+      defaultValue={value ?? ""}
       render={({ field, fieldState }) => {
         const hasValue = field.value && field.value.length > 0;
         const charCount = field.value?.length || 0;

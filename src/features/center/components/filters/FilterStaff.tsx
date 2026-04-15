@@ -1,10 +1,10 @@
-import React from "react";
 import { MCFilterPopover } from "@/shared/components/filters/MCFilterPopover";
 import MCFilterSelect from "@/shared/components/filters/MCFilterSelect";
 import MCFilterDates from "@/shared/components/filters/MCFilterDates";
 import { Star } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { JSX } from "react";
+import { useEspecialidades } from "@/features/onboarding/services";
 
 interface OptionType {
   value: string;
@@ -29,6 +29,16 @@ function FilterStaff({
   activeFiltersCount,
 }: FilterStaffProps) {
   const { t } = useTranslation("center");
+
+  const { data: especialidadesOptions = [], isLoading: isLoadingEspecialidades } = useEspecialidades();
+
+  const specialtyLabel = isLoadingEspecialidades
+    ? `${t("staff.filters.specialty")} (${t("staff.filters.loadingSpecialties")})`
+    : t("staff.filters.specialty");
+
+  const specialtyPlaceholder = isLoadingEspecialidades
+    ? t("staff.filters.loadingSpecialties")
+    : t("staff.filters.specialtyPlaceholder");
 
   const handleFilterChange = (name: string, value: any) => {
     onFiltersChange({ ...filters, [name]: value });
@@ -96,28 +106,11 @@ function FilterStaff({
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
         <MCFilterSelect
           name="specialty"
-          label={t("staff.filters.specialty")}
-          placeholder={t("staff.filters.specialtyPlaceholder")}
-          options={[
-            { label: t("staff.specialties.cardiology"), value: "Cardiología" },
-            {
-              label: t("staff.specialties.dermatology"),
-              value: "Dermatología",
-            },
-            { label: t("staff.specialties.pediatrics"), value: "Pediatría" },
-            { label: t("staff.specialties.neurology"), value: "Neurología" },
-            {
-              label: t("staff.specialties.internalMedicine"),
-              value: "Medicina Interna",
-            },
-            { label: t("staff.specialties.gynecology"), value: "Ginecología" },
-            {
-              label: t("staff.specialties.traumatology"),
-              value: "Traumatología",
-            },
-            { label: t("staff.specialties.psychiatry"), value: "Psiquiatría" },
-          ]}
+          label={specialtyLabel}
+          placeholder={specialtyPlaceholder}
+          options={especialidadesOptions}
           value={filters.specialty}
+          disabled={isLoadingEspecialidades}
           onChange={(value) => handleFilterChange("specialty", value)}
         />
 

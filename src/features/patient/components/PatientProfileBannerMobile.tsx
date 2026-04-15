@@ -1,4 +1,3 @@
-import React from "react";
 import {
   Ellipsis,
   History,
@@ -25,14 +24,45 @@ import { MCUserAvatar } from "@/shared/navigation/userMenu/MCUserAvatar";
 import { MCUserBanner } from "@/shared/navigation/userMenu/MCUserBanner";
 import MCButton from "@/shared/components/forms/MCButton";
 import { useTranslation } from "react-i18next";
+import { getUserAvatar, getUserCreationDate, getUserFullName } from "@/services/auth/auth.types";
+import { useNavigate } from "react-router-dom";
+import { ROUTES } from "@/router/routes";
+import { useAppStore } from "@/stores/useAppStore";
+import { useGlobalUIStore } from "@/stores/useGlobalUIStore";
+import { useVerifyInfoStore } from "@/stores/useVerifyInfoStore";
 
 interface Props {
   user: any;
-  setOpenSheet: (open: boolean) => void;
+  setOpenSheet: (tab?: "general" | "history" | "insurance") => void;
 }
 
 function PatientProfileBannerMobile({ user, setOpenSheet }: Props) {
-  const { t } = useTranslation("patient");
+  const { t, i18n } = useTranslation("patient");
+  const navigate = useNavigate();
+  const logout = useAppStore((state) => state.logout);
+  const setToast = useGlobalUIStore((state) => state.setToast);
+  const clearAllVerifyInfo = useVerifyInfoStore((state) => state.clearAll);
+
+  const handleLogout = () => {
+    logout();
+    clearAllVerifyInfo(); // Limpiar datos de verificación
+    setToast({
+      message: t("profileForm.menu.logoutSuccess", "Sesión cerrada exitosamente"),
+      type: "success",
+      open: true,
+    });
+    navigate(ROUTES.LOGIN);
+  };
+
+  const handleCopyProfile = () => {
+    const profileUrl = `${window.location.origin}${ROUTES.PATIENT.PATIENT_PROFILE_PUBLIC.replace(":patientId", user?.id || "")}`;
+    navigator.clipboard.writeText(profileUrl);
+    setToast({
+      message: t("profileForm.menu.profileCopied", "Enlace de perfil copiado al portapapeles"),
+      type: "success",
+      open: true,
+    });
+  };
 
   return (
     <div className="w-full rounded-3xl shadow-md bg-background overflow-hidden">
@@ -46,19 +76,19 @@ function PatientProfileBannerMobile({ user, setOpenSheet }: Props) {
           />
         ) : (
           <MCUserBanner
-            name={user?.name || "IliaTopuria"}
+            name={getUserFullName(user) || "IliaTopuria"}
             className="w-full h-full"
           />
         )}
 
         {/* Avatar */}
         <div className="absolute -bottom-14 left-4">
-          {user?.avatar ? (
+          {getUserAvatar(user) ? (
             <UiAvatar className="w-28 h-28 border-4 border-background">
-              <AvatarImage src={user.avatar} />
+              <AvatarImage src={getUserAvatar(user)} />
               <AvatarFallback>
-                {user?.name
-                  ?.split(" ")
+                {getUserFullName(user)
+                  .split(" ")
                   .map((n: string) => n[0])
                   .join("")
                   .toUpperCase()}
@@ -66,7 +96,7 @@ function PatientProfileBannerMobile({ user, setOpenSheet }: Props) {
             </UiAvatar>
           ) : (
             <MCUserAvatar
-              name={user?.name || "IliaTopuria"}
+              name={getUserFullName(user) || "IliaTopuria"}
               size={112}
               className="border-4 border-background rounded-full h-full w-full"
             />
@@ -80,7 +110,7 @@ function PatientProfileBannerMobile({ user, setOpenSheet }: Props) {
           <div>
             <div className="flex items-center gap-1">
               <h3 className="text-lg font-semibold text-foreground">
-                {user?.name || "Ilia Topuria"}
+                {getUserFullName(user) || "Ilia Topuria"}
               </h3>
               <BadgeCheck className="w-4 h-4 text-background" fill="#8bb1ca" />
             </div>
@@ -89,7 +119,7 @@ function PatientProfileBannerMobile({ user, setOpenSheet }: Props) {
               <span className="font-medium">
                 {t("profileForm.patientSince")}
               </span>{" "}
-              15 de Enero, 2025
+              {getUserCreationDate(user.paciente, i18n.language)}
             </p>
           </div>
 
@@ -101,26 +131,28 @@ function PatientProfileBannerMobile({ user, setOpenSheet }: Props) {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setOpenSheet("history")}>
                 <History className="w-4 h-4 mr-2" />
                 {t("profileForm.menu.history")}
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate(ROUTES.SETTINGS.ROOT)}>
                 <Settings className="w-4 h-4 mr-2" />
                 {t("profileForm.menu.settings")}
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate(ROUTES.PRIVACY.ROOT)}>
                 <Shield className="w-4 h-4 mr-2" />
                 {t("profileForm.menu.privacy")}
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={handleCopyProfile}>
                 <Copy className="w-4 h-4 mr-2" />
                 {t("profileForm.menu.copyProfile")}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-red-500">
-                <LogOut className="w-4 h-4 mr-2" />
-                {t("profileForm.menu.logout")}
+              <DropdownMenuItem onClick={handleLogout}>
+                <LogOut className="w-4 h-4 mr-2 text-red-500" />
+                <span className="text-red-500">
+                  {t("profileForm.menu.logout")}
+                </span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -131,7 +163,7 @@ function PatientProfileBannerMobile({ user, setOpenSheet }: Props) {
           variant="secondary"
           size="m"
           className="rounded-full w-full"
-          onClick={() => setOpenSheet(true)}
+          onClick={() => setOpenSheet()}
         >
           {t("profileForm.editProfile")}
         </MCButton>

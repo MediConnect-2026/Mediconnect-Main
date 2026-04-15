@@ -478,12 +478,14 @@ export const ChatPanel = () => {
 
           {/* File Previews */}
           <FilePreviewSection
-            previewImage={previewImage}
-            filePreview={filePreview}
-            onClearImagePreview={() => setPreviewImage(null)}
-            onClearFilePreview={() => setFilePreview(null)}
-            getFileIcon={getFileIcon}
-            formatFileSize={formatFileSize}
+            {...({
+              previewImage,
+              filePreview,
+              onClearImagePreview: () => setPreviewImage(null),
+              onClearFilePreview: () => setFilePreview(null),
+              getFileIcon,
+              formatFileSize,
+            } as any)}
           />
 
           {/* Input area */}

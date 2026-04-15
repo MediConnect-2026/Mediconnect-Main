@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import MCFormWrapper from "@/shared/components/forms/MCFormWrapper";
 import AuthContentContainer from "@/features/auth//components/AuthContentContainer";
 import MCOtpInput from "@/shared/components/forms/MCOtpInput";
@@ -8,17 +8,24 @@ import { useTranslation } from "react-i18next";
 import AuthFooterContainer from "@/features/auth/components/AuthFooterContainer";
 import MCButton from "@/shared/components/forms/MCButton";
 import { useNavigate } from "react-router-dom";
+import { authService } from "@/services/auth/auth.service";
+import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
 
 function OtpVerificationPage() {
   const { t } = useTranslation("auth");
   const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
+  const [isResending, setIsResending] = useState(false);
+  
   const otpData = useAppStore((state) => state.otp);
   const setOtp = useAppStore((state) => state.setOtp);
   const selectedRole = useAppStore((state) => state.selectedRole);
   const basicInfo = useAppStore((state) => state.patientOnboardingData);
   const doctorBasicInfo = useAppStore((state) => state.doctorOnboardingData);
   const centerBasicInfo = useAppStore((state) => state.centerOnboardingData);
-  const verifyEmail = useAppStore((state) => state.verifyEmail);
+  const setVerifyEmail = useAppStore((state) => state.setVerifyEmail);
+  const setRegistrationToken = useAppStore((state) => state.setRegistrationToken);
   const confirmedEmail =
     selectedRole === "Patient"
       ? basicInfo?.email
@@ -39,28 +46,96 @@ function OtpVerificationPage() {
     }
   }, [confirmedEmail, selectedRole, navigate]);
 
-  const handleSubmit = (data: { otp: string }) => {
-    console.log("OTP Data:", data);
+  const handleSubmit = async (data: { otp: string }) => {
+    if (!confirmedEmail) {
+      toast.error(t("registerEmailVerifyPage.errors.emailNotFound") || "Email no encontrado");
+      return;
+    }
 
-    setOtp(data.otp);
-    verifyEmail.verified = true;
-    verifyEmail.email = confirmedEmail ?? "";
-    setTimeout(() => {
-      if (selectedRole === "Patient") {
-        navigate("/auth/patient-onboarding/basic-info", { replace: true });
-      } else if (selectedRole === "Doctor") {
-        navigate("/auth/doctor-onboarding", { replace: true });
-      } else if (selectedRole === "Center") {
-        navigate("/auth/center-onboarding", { replace: true });
-      } else {
-        navigate("/auth/register", { replace: true });
+    setIsLoading(true);
+    
+    try {
+      // Validar código OTP con la API
+      const response = await authService.validarCodigoRegistro({
+        email: confirmedEmail,
+        codigo: data.otp,
+      });
+
+      if (response.success) {
+        // Guardar OTP y token de registro
+        setOtp(data.otp);
+        setRegistrationToken(response.data.token);
+        
+        // Marcar email como verificado
+        setVerifyEmail({ verified: true, email: confirmedEmail });
+
+        // Mostrar mensaje de éxito
+        toast.success(t("registerEmailVerifyPage.successTitle") || response.message || "¡Correo verificado con éxito!");
+        
+        // Navegar según el rol
+        setTimeout(() => {
+          if (selectedRole === "Patient") {
+            navigate("/auth/patient-onboarding/basic-info", { replace: true });
+          } else if (selectedRole === "Doctor") {
+            navigate("/auth/doctor-onboarding", { replace: true });
+          } else if (selectedRole === "Center") {
+            navigate("/auth/center-onboarding", { replace: true });
+          } else {
+            navigate("/auth/register", { replace: true });
+          }
+        }, 300);
       }
-    }, 0);
+    } catch (error: any) {
+      console.error("Error al validar código OTP:", error);
+      
+      // Mostrar mensaje de error
+      const errorMessage = 
+        error?.response?.data?.message || 
+        error?.message || 
+        t("registerEmailVerifyPage.errors.otpInvalid") || "Código inválido. Por favor, verifica e intenta de nuevo.";
+      
+      if (error?.response?.data?.message?.toLowerCase().includes("expirado")) {
+        toast.error(t("registerEmailVerifyPage.errors.otpExpired") || "El código ha expirado. Por favor, solicita un nuevo código.");
+        return;
+      } else if (error?.response?.data?.message?.toLowerCase().includes("inválido")) {
+        toast.error(t("registerEmailVerifyPage.errors.invalidOtp") || "El código es inválido. Por favor, verifica e intenta de nuevo.");
+        return;
+      }
+      toast.error(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleResendOtp = () => {
-    // TODO: Implementar lógica de reenvío de OTP
-    console.log("Resending OTP to:", confirmedEmail);
+  const handleResendOtp = async () => {
+    if (!confirmedEmail) {
+      toast.error(t("registerEmailVerifyPage.errors.emailNotFound") || "Email no encontrado");
+      return;
+    }
+
+    setIsResending(true);
+    
+    try {
+      // Solicitar nuevo código OTP
+      const response = await authService.solicitarCodigoRegistro({
+        email: confirmedEmail,
+      });
+
+      if (response.success) {
+        toast.success(t("registerEmailVerifyPage.successTitleEmailSent") || "Código reenviado correctamente");
+      }
+    } catch (error: any) {
+      console.error("Error al reenviar código OTP:", error);
+      
+      const errorMessage = 
+        error?.response?.data?.message || 
+        error?.message || 
+        t("registerEmailVerifyPage.errors.sendingEmail") || "Error al reenviar el código. Por favor, intenta de nuevo.";
+      
+      toast.error(errorMessage);
+    } finally {
+      setIsResending(false);
+    }
   };
 
   if (!selectedRole || !confirmedEmail) {
@@ -89,14 +164,8 @@ function OtpVerificationPage() {
             onChange={(value) => {
               setOtp(value);
             }}
+            disabled={isLoading}
           />
-
-          {/* Debug info - remover en producción */}
-          {otpData && (
-            <p className="text-center mt-2 w-full text-sm text-gray-500">
-              OTP actual: {otpData}
-            </p>
-          )}
         </div>
 
         <div className="w-full max-w-md m-4 flex flex-col items-center gap-4">
@@ -112,8 +181,10 @@ function OtpVerificationPage() {
             size="m"
             type="button"
             onClick={handleResendOtp}
+            disabled={isLoading || isResending}
+            icon={isResending ? <Loader2 className="animate-spin" /> : undefined}
           >
-            {t("verifyEmail.resend")}
+            {isResending ? t("verifyEmail.resending") || "Reenviando..." : t("verifyEmail.resend")}
           </MCButton>
         </div>
 
@@ -122,6 +193,11 @@ function OtpVerificationPage() {
             onClick: () => {
               navigate("/auth/reg-email-verification", { replace: true });
             },
+            disabled: isLoading,
+          }}
+          continueButtonProps={{
+            disabled: isLoading,
+            icon: isLoading ? <Loader2 className="animate-spin" /> : undefined,
           }}
         />
       </MCFormWrapper>

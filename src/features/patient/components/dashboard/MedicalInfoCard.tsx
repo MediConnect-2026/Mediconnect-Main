@@ -1,4 +1,4 @@
-import { Heart, AlertTriangle } from "lucide-react";
+import { Heart, AlertTriangle, Loader2 } from "lucide-react";
 import { Card, CardContent } from "@/shared/ui/card";
 import { motion } from "framer-motion";
 import { fadeInUp } from "@/lib/animations/commonAnimations";
@@ -13,6 +13,8 @@ interface MedicalInfoCardProps {
   bloodType: string;
   allergies: string[];
   conditions: string[];
+  isLoadingAllergies?: boolean;
+  isLoadingConditions?: boolean;
 }
 
 const MedicalInfoCard = ({
@@ -24,6 +26,8 @@ const MedicalInfoCard = ({
   bloodType,
   allergies,
   conditions,
+  isLoadingAllergies = false,
+  isLoadingConditions = false,
 }: MedicalInfoCardProps) => {
   const { t } = useTranslation("patient");
 
@@ -78,7 +82,7 @@ const MedicalInfoCard = ({
               </p>
             </div>
           </div>
-          <div className="border-t border-muted my-4"></div>
+          <div className="border-t border-primary/15 my-4"></div>
           <div className="mb-4">
             <p className="text-xs text-muted-foreground">
               {t("profileForm.bloodType")}
@@ -89,7 +93,7 @@ const MedicalInfoCard = ({
               {bloodType}
             </p>
           </div>
-          <div className="border-t border-muted my-4"></div>
+          <div className="border-t border-primary/15 my-4"></div>
           <div
             className={`${isMobile ? "max-h-64" : "max-h-48"} overflow-y-auto pr-2`}
           >
@@ -100,7 +104,11 @@ const MedicalInfoCard = ({
                   {t("clinicalHistory.allergies")}
                 </span>
               </div>
-              {allergies.length > 0 ? (
+              {isLoadingAllergies ? (
+                <div className="flex items-center justify-center py-2">
+                  <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+                </div>
+              ) : allergies.length > 0 ? (
                 allergies.map((allergy, idx) => (
                   <p key={idx} className="mt-1 text-sm text-muted-foreground">
                     {allergy}
@@ -112,7 +120,7 @@ const MedicalInfoCard = ({
                 </p>
               )}
             </div>
-            <div className="border-t border-muted my-4"></div>
+            <div className="border-t border-primary/15 my-4"></div>
             <div>
               <div className="flex items-center gap-2 text-orange-600">
                 <AlertTriangle className="h-4 w-4" />
@@ -120,10 +128,21 @@ const MedicalInfoCard = ({
                   {t("clinicalHistory.conditions")}
                 </span>
               </div>
-              {conditions.length > 0 ? (
+              {isLoadingConditions ? (
+                <div className="flex items-center justify-center py-2">
+                  <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+                </div>
+              ) : conditions.length > 0 ? (
                 conditions.map((condition, idx) => (
                   <p key={idx} className="mt-1 text-sm text-muted-foreground">
-                    {condition}
+                    {condition.startsWith("Condición Personal") ||
+                    condition.startsWith("Personal status") ? (
+                      <span className="text-red-600">
+                        {t("clinicalHistory.personalConditionTitle")}
+                      </span>
+                    ) : (
+                      condition
+                    )}
                   </p>
                 ))
               ) : (

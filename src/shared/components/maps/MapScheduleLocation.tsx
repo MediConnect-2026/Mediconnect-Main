@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
 import { Expand, Minimize, Plus, Minus, Cuboid } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/tooltip";
@@ -22,8 +22,8 @@ interface LocationCoordinate {
 interface mapScheduleLocationProps {
   initialLocation?: { lat: number; lng: number };
   fontSizeVariant?: "xs" | "s" | "m" | "l";
-  showAddressInfo?: boolean; // Nueva prop para mostrar/ocultar información de dirección
-  multipleLocations?: LocationCoordinate[]; // Nueva prop para múltiples ubicaciones
+  showAddressInfo?: boolean;
+  multipleLocations?: LocationCoordinate[];
 }
 
 function MapScheduleLocation({
@@ -47,25 +47,170 @@ function MapScheduleLocation({
   const isMobile = useIsMobile();
   const { t } = useTranslation("common");
 
-  // Coordenadas por defecto (Santo Domingo, RD)
-  const defaultLocation = { lat: 18.48, lng: -69.93 };
-  const location = initialLocation || defaultLocation;
+  // ✅ Refs para que on("load") siempre tenga los valores actuales
+  // sin necesidad de reinicializar el mapa cuando cambian las ubicaciones.
+  const multipleLocationsRef = useRef(multipleLocations);
+  const locationRef = useRef<{ lat: number; lng: number } | null>(null);
+  const isMobileRef = useRef(isMobile);
+  const lastBoundsKeyRef = useRef<string>("");
 
-  // Calcular el centro del mapa cuando hay múltiples ubicaciones
+  multipleLocationsRef.current = multipleLocations;
+  isMobileRef.current = isMobile;
+
+  const defaultLocation = useMemo(() => ({ lat: 18.48, lng: -69.93 }), []);
+  const location = useMemo(
+    () => initialLocation ?? defaultLocation,
+    [initialLocation?.lat, initialLocation?.lng, defaultLocation],
+  );
+  locationRef.current = location;
+
+  // ResizeObserver para que Mapbox recalcule el canvas cuando cambia el contenedor
+  useEffect(() => {
+    const container = isFullscreen
+      ? fullscreenContainerRef.current
+      : normalContainerRef.current;
+    if (!container || !mapRef.current) return;
+
+    const resizeObserver = new ResizeObserver(() => {
+      mapRef.current?.resize();
+    });
+
+    resizeObserver.observe(container);
+    return () => resizeObserver.disconnect();
+  }, [isFullscreen]);
+
+  // ✅ Validación de coordenadas para evitar NaN/Infinity
+  const isValidCoord = (lat: number, lng: number) =>
+    typeof lat === "number" &&
+    typeof lng === "number" &&
+    !isNaN(lat) &&
+    !isNaN(lng) &&
+    isFinite(lat) &&
+    isFinite(lng);
+
   const getMapCenter = (): [number, number] => {
-    if (multipleLocations && multipleLocations.length > 0) {
-      const avgLat =
-        multipleLocations.reduce((sum, loc) => sum + loc.lat, 0) /
-        multipleLocations.length;
-      const avgLng =
-        multipleLocations.reduce((sum, loc) => sum + loc.lng, 0) /
-        multipleLocations.length;
-      return [avgLng, avgLat];
+    const locs = multipleLocationsRef.current;
+    const loc = locationRef.current ?? defaultLocation;
+
+    if (locs && locs.length > 0) {
+      const validLocs = locs.filter((l) => l && isValidCoord(l.lat, l.lng));
+      if (validLocs.length > 0) {
+        const avgLat =
+          validLocs.reduce((sum, l) => sum + l.lat, 0) / validLocs.length;
+        const avgLng =
+          validLocs.reduce((sum, l) => sum + l.lng, 0) / validLocs.length;
+        if (isValidCoord(avgLat, avgLng)) return [avgLng, avgLat];
+      }
     }
-    return [location.lng, location.lat];
+
+    if (isValidCoord(loc.lat, loc.lng)) return [loc.lng, loc.lat];
+
+    return [defaultLocation.lng, defaultLocation.lat];
   };
 
-  // Inicializar el mapa (solo cuando cambia el contenedor, tema o modo 3D)
+  // Helper: bloquea touch en el elemento del marcador
+  const lockMarkerTouch = (el: HTMLElement) => {
+    const stopTouch = (e: TouchEvent) => e.stopPropagation();
+    el.addEventListener("touchstart", stopTouch, { passive: false });
+    el.addEventListener("touchmove", stopTouch, { passive: false });
+    el.addEventListener("touchend", stopTouch, { passive: false });
+  };
+
+  // ✅ Función centralizada de markers — reutilizada tanto en on("load")
+  // como en el effect de actualización, garantizando que el pin nunca desaparezca.
+  const placeMarkers = (map: mapboxgl.Map) => {
+    // Limpiar markers anteriores
+    if (markerRef.current) {
+      markerRef.current.remove();
+      markerRef.current = null;
+    }
+    multipleMarkersRef.current.forEach((m) => m.remove());
+    multipleMarkersRef.current = [];
+
+    const locs = multipleLocationsRef.current;
+    const loc = locationRef.current ?? defaultLocation;
+    const mobile = isMobileRef.current;
+
+    if (locs && locs.length > 0) {
+      const validLocs = locs.filter((l) => l && isValidCoord(l.lat, l.lng));
+
+      validLocs.forEach((locItem) => {
+        const marker = new mapboxgl.Marker({
+          color: locItem.color || "#e11d48",
+          scale: mobile ? 1.2 : 1.5,
+        })
+          .setLngLat([locItem.lng, locItem.lat])
+          .addTo(map);
+
+        lockMarkerTouch(marker.getElement());
+
+        const popup = new mapboxgl.Popup({
+          offset: 25,
+          closeButton: false,
+          closeOnClick: false,
+        });
+
+        marker.getElement().addEventListener("click", async () => {
+          try {
+            const parsedAddress = await ParseDominicanAddress(
+              locItem.lat,
+              locItem.lng,
+            );
+            setSelectedLocationAddress(parsedAddress);
+
+            const addressText =
+              locItem.label ||
+              [
+                parsedAddress.direccion,
+                parsedAddress.municipio,
+                parsedAddress.provincia,
+              ]
+                .filter(Boolean)
+                .join(", ");
+
+            popup
+              .setLngLat([locItem.lng, locItem.lat])
+              .setHTML(
+                `<div class="p-2 bg-white rounded-lg shadow-lg border border-gray-200">
+                  <p class="text-sm font-medium text-gray-800">${addressText}</p>
+                </div>`,
+              )
+              .addTo(map);
+          } catch (error) {
+            console.error("Error parsing address:", error);
+          }
+        });
+
+        multipleMarkersRef.current.push(marker);
+      });
+
+      if (validLocs.length > 1) {
+        const boundsKey = validLocs.map((l) => `${l.lat}:${l.lng}`).join("|");
+        if (lastBoundsKeyRef.current !== boundsKey) {
+          lastBoundsKeyRef.current = boundsKey;
+          const bounds = new mapboxgl.LngLatBounds();
+          validLocs.forEach((l) => bounds.extend([l.lng, l.lat]));
+          map.fitBounds(bounds, { padding: 50, duration: 600 });
+        }
+      }
+    } else {
+      lastBoundsKeyRef.current = "";
+      if (isValidCoord(loc.lat, loc.lng)) {
+        markerRef.current = new mapboxgl.Marker({
+          color: "#e11d48",
+          scale: mobile ? 1.2 : 1.5,
+        })
+          .setLngLat([loc.lng, loc.lat])
+          .addTo(map);
+
+        lockMarkerTouch(markerRef.current.getElement());
+      }
+    }
+  };
+
+  // ✅ Inicializar mapa — los markers se colocan dentro del on("load")
+  // para que siempre estén presentes sin importar expand/minimize.
+  // El toggle 3D ya NO reinicializa el mapa (tiene su propio effect abajo).
   useEffect(() => {
     const container = isFullscreen
       ? fullscreenContainerRef.current
@@ -84,20 +229,20 @@ function MapScheduleLocation({
     mapRef.current = new mapboxgl.Map({
       container,
       style: mapStyle,
-      center: center,
+      center,
       zoom:
         multipleLocations && multipleLocations.length > 1
           ? 12
           : isMobile
             ? 14
             : 15,
-      pitch: is3D ? 60 : 0,
-      bearing: is3D ? -17.6 : 0,
+      pitch: 0,
+      bearing: 0,
       antialias: true,
-      dragRotate: is3D,
-      touchPitch: is3D,
-      pitchWithRotate: is3D,
-      maxPitch: is3D ? 85 : 60,
+      dragRotate: true,
+      touchPitch: true,
+      pitchWithRotate: true,
+      maxPitch: 85,
       minPitch: 0,
       scrollZoom: true,
       boxZoom: false,
@@ -110,174 +255,145 @@ function MapScheduleLocation({
     mapRef.current.on("load", () => {
       setisLoading(false);
 
-      if (is3D) {
-        // Terreno 3D
-        mapRef.current!.addSource("mapbox-dem", {
-          type: "raster-dem",
-          url: "mapbox://mapbox.mapbox-terrain-dem-v1",
-          tileSize: 512,
-          maxzoom: 14,
-        });
-        mapRef.current!.setTerrain({ source: "mapbox-dem", exaggeration: 1.5 });
-
-        // Edificios 3D
-        mapRef.current!.addLayer(
-          {
-            id: "3d-buildings",
-            source: "composite",
-            "source-layer": "building",
-            filter: ["==", "extrude", "true"],
-            type: "fill-extrusion",
-            minzoom: 15,
-            paint: {
-              "fill-extrusion-color": "#aaa",
-              "fill-extrusion-height": [
-                "interpolate",
-                ["linear"],
-                ["get", "height"],
-                0,
-                0,
-                100,
-                100,
-              ],
-              "fill-extrusion-base": [
-                "interpolate",
-                ["linear"],
-                ["get", "min_height"],
-                0,
-                0,
-                100,
-                100,
-              ],
-              "fill-extrusion-opacity": 0.6,
-            },
-          },
-          "waterway-label",
-        );
-      }
-
-      // Si hay múltiples ubicaciones, ajustar el mapa para mostrar todas
-      if (multipleLocations && multipleLocations.length > 1) {
-        const bounds = new mapboxgl.LngLatBounds();
-        multipleLocations.forEach((loc) => {
-          bounds.extend([loc.lng, loc.lat]);
-        });
-        mapRef.current!.fitBounds(bounds, { padding: 50 });
-      }
+      // ✅ Markers colocados aquí — siempre corren después del load,
+      // incluso al expandir/minimizar, garantizando que el pin no desaparezca.
+      placeMarkers(mapRef.current!);
     });
 
     return () => {
       if (markerRef.current) {
         markerRef.current.remove();
+        markerRef.current = null;
       }
       multipleMarkersRef.current.forEach((marker) => marker.remove());
+      multipleMarkersRef.current = [];
       mapRef.current?.remove();
       setisLoading(false);
     };
-  }, [isFullscreen, isdarkMode, is3D]);
+  }, [isFullscreen, isdarkMode]);
 
-  // Actualizar marcadores cuando cambien las ubicaciones (sin recargar el mapa)
+  // ✅ Toggle 3D separado — usa easeTo para no reinicializar el mapa.
   useEffect(() => {
     if (!mapRef.current) return;
+    const map = mapRef.current;
 
-    // Limpiar marcadores anteriores
-    if (markerRef.current) {
-      markerRef.current.remove();
-      markerRef.current = null;
-    }
-    multipleMarkersRef.current.forEach((marker) => marker.remove());
-    multipleMarkersRef.current = [];
+    const toggle3D = () => {
+      if (is3D) {
+        map.easeTo({ pitch: 60, bearing: -17.6, duration: 1000 });
 
-    // Esperar a que el mapa esté cargado
-    const updateMarkers = () => {
-      if (multipleLocations && multipleLocations.length > 0) {
-        // Múltiples marcadores
-        multipleLocations.forEach((loc) => {
-          const marker = new mapboxgl.Marker({
-            color: loc.color || "#e11d48",
-            scale: isMobile ? 1.2 : 1.5,
-          })
-            .setLngLat([loc.lng, loc.lat])
-            .addTo(mapRef.current!);
-
-          // Crear popup para mostrar información
-          const popup = new mapboxgl.Popup({
-            offset: 25,
-            closeButton: false,
-            closeOnClick: false,
+        if (!map.getSource("mapbox-dem")) {
+          map.addSource("mapbox-dem", {
+            type: "raster-dem",
+            url: "mapbox://mapbox.mapbox-terrain-dem-v1",
+            tileSize: 512,
+            maxzoom: 14,
           });
-
-          // Evento click en marcador
-          marker.getElement().addEventListener("click", async () => {
-            try {
-              const parsedAddress = await ParseDominicanAddress(
-                loc.lat,
-                loc.lng,
-              );
-              setSelectedLocationAddress(parsedAddress);
-
-              const addressText =
-                loc.label ||
-                [
-                  parsedAddress.direccion,
-                  parsedAddress.municipio,
-                  parsedAddress.provincia,
-                ]
-                  .filter(Boolean)
-                  .join(", ");
-
-              popup
-                .setLngLat([loc.lng, loc.lat])
-                .setHTML(
-                  `
-                  <div class="p-2 bg-white rounded-lg shadow-lg border border-gray-200">
-                    <p class="text-sm font-medium text-gray-800">${addressText}</p>
-                  </div>
-                `,
-                )
-                .addTo(mapRef.current!);
-            } catch (error) {
-              console.error("Error parsing address:", error);
-            }
-          });
-
-          multipleMarkersRef.current.push(marker);
-        });
-
-        // Ajustar vista si hay múltiples ubicaciones
-        if (multipleLocations.length > 1) {
-          const bounds = new mapboxgl.LngLatBounds();
-          multipleLocations.forEach((loc) => {
-            bounds.extend([loc.lng, loc.lat]);
-          });
-          mapRef.current!.fitBounds(bounds, { padding: 50, duration: 1000 });
+        }
+        if (!map.getTerrain()) {
+          map.setTerrain({ source: "mapbox-dem", exaggeration: 1.5 });
+        }
+        if (!map.getLayer("3d-buildings")) {
+          map.addLayer(
+            {
+              id: "3d-buildings",
+              source: "composite",
+              "source-layer": "building",
+              filter: ["==", "extrude", "true"],
+              type: "fill-extrusion",
+              minzoom: 15,
+              paint: {
+                "fill-extrusion-color": "#aaa",
+                "fill-extrusion-height": [
+                  "interpolate",
+                  ["linear"],
+                  ["get", "height"],
+                  0,
+                  0,
+                  100,
+                  100,
+                ],
+                "fill-extrusion-base": [
+                  "interpolate",
+                  ["linear"],
+                  ["get", "min_height"],
+                  0,
+                  0,
+                  100,
+                  100,
+                ],
+                "fill-extrusion-opacity": 0.6,
+              },
+            },
+            "waterway-label",
+          );
         }
       } else {
-        // Marcador único
-        markerRef.current = new mapboxgl.Marker({
-          color: "#e11d48",
-          scale: isMobile ? 1.2 : 1.5,
-        })
-          .setLngLat([location.lng, location.lat])
-          .addTo(mapRef.current!);
+        map.easeTo({ pitch: 0, bearing: 0, duration: 1000 });
+        if (map.getTerrain()) map.setTerrain(null);
+        if (map.getLayer("3d-buildings")) map.removeLayer("3d-buildings");
       }
     };
 
-    if (mapRef.current.loaded()) {
-      updateMarkers();
+    if (map.loaded()) {
+      toggle3D();
     } else {
-      mapRef.current.on("load", updateMarkers);
+      map.once("load", toggle3D);
     }
-  }, [location, multipleLocations, isMobile]);
+  }, [is3D]);
 
-  // Parsear dirección cuando cambia la ubicación (solo para ubicación única)
+  // ✅ Actualizar markers cuando cambian las ubicaciones SIN reinicializar el mapa.
   useEffect(() => {
-    if (initialLocation && !multipleLocations && showAddressInfo) {
-      ParseDominicanAddress(location.lat, location.lng).then(
-        (parsedAddress) => {
+    if (!mapRef.current) return;
+    if (!mapRef.current.loaded()) return;
+    placeMarkers(mapRef.current);
+  }, [multipleLocations, location.lat, location.lng, isMobile]);
+
+  // ✅ Actualizar centro y marcador único cuando cambia initialLocation (sin reinicializar).
+  useEffect(() => {
+    if (!mapRef.current || !initialLocation || multipleLocations) return;
+    if (!isValidCoord(initialLocation.lat, initialLocation.lng)) return;
+
+    const update = () => {
+      if (markerRef.current) {
+        markerRef.current.remove();
+        markerRef.current = null;
+      }
+      markerRef.current = new mapboxgl.Marker({
+        color: "#e11d48",
+        scale: isMobile ? 1.2 : 1.5,
+      })
+        .setLngLat([initialLocation.lng, initialLocation.lat])
+        .addTo(mapRef.current!);
+
+      mapRef.current!.easeTo({
+        center: [initialLocation.lng, initialLocation.lat],
+        zoom: isMobile ? 14 : 15,
+        duration: 800,
+      });
+    };
+
+    if (mapRef.current.loaded()) {
+      update();
+    } else {
+      mapRef.current.once("load", update);
+    }
+  }, [initialLocation?.lat, initialLocation?.lng, multipleLocations, isMobile]);
+
+  // Parsear dirección para ubicación única
+  useEffect(() => {
+    if (
+      initialLocation &&
+      !multipleLocations &&
+      showAddressInfo &&
+      isValidCoord(location.lat, location.lng)
+    ) {
+      ParseDominicanAddress(location.lat, location.lng)
+        .then((parsedAddress) => {
           setAddress(parsedAddress);
-        },
-      );
+        })
+        .catch((error) => {
+          console.error("Error parsing address:", error);
+        });
     }
   }, [location, initialLocation, multipleLocations, showAddressInfo]);
 
@@ -292,7 +408,6 @@ function MapScheduleLocation({
     };
   }, [isFullscreen]);
 
-  // Función para mostrar la dirección formateada
   const getFormattedAddress = (addressData = address) => {
     if (!addressData) return "";
     const parts = [
@@ -303,7 +418,6 @@ function MapScheduleLocation({
     return parts.join(", ");
   };
 
-  // Font size classes
   const fontSizeMap = {
     xs: "text-xs",
     s: "text-sm",
@@ -312,12 +426,53 @@ function MapScheduleLocation({
   };
   const fontSizeClass = fontSizeMap[fontSizeVariant];
 
+  const SelectedAddressBadge = ({
+    addressData,
+    fullscreen,
+  }: {
+    addressData: ParsedDominicanAddress | null;
+    fullscreen: boolean;
+  }) => {
+    if (!addressData || !multipleLocations) return null;
+    return (
+      <div
+        className={`
+          pointer-events-none select-none
+          ${
+            fullscreen
+              ? isMobile
+                ? "fixed bottom-4 left-3 right-3 z-[10002]"
+                : "fixed top-6 left-1/2 -translate-x-1/2 z-[10002]"
+              : "w-full mt-2"
+          }
+        `}
+      >
+        <div
+          className={`
+            inline-flex items-center
+            bg-background/95 backdrop-blur-sm
+            shadow-lg rounded-full px-4 py-2
+            border border-primary/60
+            ${fullscreen && !isMobile ? "" : "max-w-full"}
+          `}
+        >
+          <p
+            className={`${fontSizeClass} text-foreground font-medium truncate`}
+          >
+            {getFormattedAddress(addressData)}
+          </p>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <>
-      {/* Modal para fullscreen */}
+      {/* Modal fullscreen */}
       <AnimatePresence>
         {isFullscreen && (
           <motion.div
+            key="map-fullscreen"
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
@@ -341,7 +496,6 @@ function MapScheduleLocation({
                 style={{ background: "#fff" }}
               />
 
-              {/* Dirección en la parte superior - solo para ubicación única */}
               {address && !multipleLocations && showAddressInfo && (
                 <div
                   className={`absolute ${
@@ -358,24 +512,6 @@ function MapScheduleLocation({
                 </div>
               )}
 
-              {/* Dirección seleccionada para múltiples ubicaciones */}
-              {selectedLocationAddress && multipleLocations && (
-                <div
-                  className={`absolute ${
-                    isMobile
-                      ? "bottom-2 left-2 right-2"
-                      : "top-4 left-1/2 transform -translate-x-1/2"
-                  } z-[30] bg-background shadow-lg rounded-full px-4 py-2 border border-primary/75`}
-                >
-                  <p
-                    className={`${fontSizeClass} text-foreground font-medium ${isMobile ? "truncate" : ""}`}
-                  >
-                    {getFormattedAddress(selectedLocationAddress)}
-                  </p>
-                </div>
-              )}
-
-              {/* Botón toggle 3D */}
               <div
                 className={`absolute ${isMobile ? "top-16 left-2" : "top-4 left-4"} z-[10001]`}
               >
@@ -400,7 +536,6 @@ function MapScheduleLocation({
                 </Tooltip>
               </div>
 
-              {/* Controles */}
               <div
                 className={`absolute ${isMobile ? "top-2 right-2" : "top-4 right-4"} z-[10000] flex flex-col items-end gap-2`}
               >
@@ -434,6 +569,11 @@ function MapScheduleLocation({
                 </div>
               </div>
             </div>
+
+            <SelectedAddressBadge
+              addressData={selectedLocationAddress}
+              fullscreen
+            />
           </motion.div>
         )}
       </AnimatePresence>
@@ -442,35 +582,24 @@ function MapScheduleLocation({
       <AnimatePresence>
         {!isFullscreen && (
           <motion.div
+            key="map-normal"
             initial={{ opacity: 0, scale: 1.05 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 1.05 }}
             transition={{ duration: 0.12 }}
-            className="relative w-full rounded-xl"
+            className="relative w-full rounded-xl overflow-hidden isolate"
             style={{ height: isMobile ? "200px" : "300px" }}
           >
             <div
               ref={normalContainerRef}
-              className="h-full w-full rounded-xl"
-              style={{ background: "#fff", minHeight: isMobile ? 200 : 300 }}
+              className="h-full w-full rounded-xl overflow-hidden"
+              style={{
+                background: "#fff",
+                minHeight: isMobile ? 200 : 300,
+                maxWidth: "100%",
+              }}
             />
 
-            {/* Dirección seleccionada para múltiples ubicaciones (NO fullscreen) */}
-            {selectedLocationAddress && multipleLocations && !isFullscreen && (
-              <div
-                className={`absolute w-fit left-2 right-2 bottom-2 z-[10] bg-background shadow rounded-4xl px-3 py-1 border border-primary/50`}
-                style={{
-                  fontSize: isMobile ? "0.75rem" : "0.85rem",
-                  maxWidth: "90%",
-                }}
-              >
-                <p className="truncate text-foreground font-medium">
-                  {getFormattedAddress(selectedLocationAddress)}
-                </p>
-              </div>
-            )}
-
-            {/* Botón toggle 3D */}
             <div
               className={`absolute ${isMobile ? "top-2 left-2" : "top-4 left-4"} z-10`}
             >
@@ -495,7 +624,6 @@ function MapScheduleLocation({
               </Tooltip>
             </div>
 
-            {/* Controles */}
             <div
               className={`absolute ${isMobile ? "top-2 right-2" : "top-4 right-4"} z-10 flex flex-col items-center justify-center gap-2`}
             >
@@ -531,9 +659,17 @@ function MapScheduleLocation({
           </motion.div>
         )}
 
-        {/* Información de dirección - solo se muestra si showAddressInfo es true y no hay múltiples ubicaciones */}
+        {!isFullscreen && (
+          <SelectedAddressBadge
+            key="map-selected-address-badge"
+            addressData={selectedLocationAddress}
+            fullscreen={false}
+          />
+        )}
+
         {showAddressInfo && !multipleLocations && (
           <div
+            key="map-address-info"
             className={`flex ${
               isMobile ? "flex-wrap gap-4 justify-between" : "justify-between"
             } mt-4`}
@@ -541,11 +677,9 @@ function MapScheduleLocation({
             {isMobile ? (
               <div className="grid grid-cols-2 gap-4 w-full">
                 <div className="flex flex-col items-start gap-2">
-                  <div className="flex items-center gap-2">
-                    <h5 className="text-md text-primary/75 font-medium">
-                      {t("search.address", "Address")}
-                    </h5>
-                  </div>
+                  <h5 className="text-md text-primary/75 font-medium">
+                    {t("search.address", "Address")}
+                  </h5>
                   <span
                     className={`${fontSizeClass} text-primary font-medium break-words max-w-xs`}
                   >
@@ -553,11 +687,9 @@ function MapScheduleLocation({
                   </span>
                 </div>
                 <div className="flex flex-col items-start gap-2">
-                  <div className="flex items-center gap-2">
-                    <h5 className="text-md text-primary/75 font-medium">
-                      {t("search.province", "Province")}
-                    </h5>
-                  </div>
+                  <h5 className="text-md text-primary/75 font-medium">
+                    {t("search.province", "Province")}
+                  </h5>
                   <span
                     className={`${fontSizeClass} text-primary font-medium break-words max-w-xs`}
                   >
@@ -565,11 +697,9 @@ function MapScheduleLocation({
                   </span>
                 </div>
                 <div className="flex flex-col items-start gap-2 col-span-2">
-                  <div className="flex items-center gap-2">
-                    <h5 className="text-md text-primary/75 font-medium">
-                      {t("search.municipality", "Municipality")}
-                    </h5>
-                  </div>
+                  <h5 className="text-md text-primary/75 font-medium">
+                    {t("search.municipality", "Municipality")}
+                  </h5>
                   <span
                     className={`${fontSizeClass} text-primary font-medium break-words max-w-xs`}
                   >
@@ -580,11 +710,9 @@ function MapScheduleLocation({
             ) : (
               <>
                 <div className="flex flex-col items-start gap-2">
-                  <div className="flex items-center gap-2">
-                    <h5 className="text-md text-primary/75 font-medium">
-                      {t("search.address", "Address")}
-                    </h5>
-                  </div>
+                  <h5 className="text-md text-primary/75 font-medium">
+                    {t("search.address", "Address")}
+                  </h5>
                   <span
                     className={`${fontSizeClass} text-primary font-medium break-words max-w-xs`}
                   >
@@ -592,11 +720,9 @@ function MapScheduleLocation({
                   </span>
                 </div>
                 <div className="flex flex-col items-start gap-2">
-                  <div className="flex items-center gap-2">
-                    <h5 className="text-md text-primary/75 font-medium">
-                      {t("search.province", "Province")}
-                    </h5>
-                  </div>
+                  <h5 className="text-md text-primary/75 font-medium">
+                    {t("search.province", "Province")}
+                  </h5>
                   <span
                     className={`${fontSizeClass} text-primary font-medium break-words max-w-xs`}
                   >
@@ -604,11 +730,9 @@ function MapScheduleLocation({
                   </span>
                 </div>
                 <div className="flex flex-col items-start gap-2">
-                  <div className="flex items-center gap-2">
-                    <h5 className="text-md text-primary/75 font-medium">
-                      {t("search.municipality", "Municipality")}
-                    </h5>
-                  </div>
+                  <h5 className="text-md text-primary/75 font-medium">
+                    {t("search.municipality", "Municipality")}
+                  </h5>
                   <span
                     className={`${fontSizeClass} text-primary font-medium break-words max-w-xs`}
                   >

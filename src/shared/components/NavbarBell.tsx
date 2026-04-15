@@ -1,5 +1,6 @@
-import React, { useState } from "react";
-import { Bell, User, AlertTriangle, FileText, Trash2Icon } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Bell, User, AlertTriangle, FileText, Trash2Icon, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 import {
   DropdownMenu,
@@ -11,58 +12,22 @@ import {
 import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
+import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 
-const notifications = [
-  {
-    id: 1,
-    type: "user",
-    title: "New user registered",
-    description: "A new user has joined the platform.",
-    read: false,
-    timestamp: "2 min ago",
-  },
-  {
-    id: 2,
-    type: "system",
-    title: "System update",
-    description: "The system will be updated tonight.",
-    read: false,
-    timestamp: "1 hour ago",
-  },
-  {
-    id: 3,
-    type: "report",
-    title: "New report submitted",
-    description: "A new report is available for review.",
-    read: true,
-    timestamp: "Yesterday",
-  },
-  {
-    id: 1,
-    type: "user",
-    title: "New user registered",
-    description: "A new user has joined the platform.",
-    read: false,
-    timestamp: "2 min ago",
-  },
-  {
-    id: 2,
-    type: "system",
-    title: "System update",
-    description: "The system will be updated tonight.",
-    read: false,
-    timestamp: "1 hour ago",
-  },
-  {
-    id: 3,
-    type: "report",
-    title: "New report submitted",
-    description: "A new report is available for review.",
-    read: true,
-    timestamp: "Yesterday",
-  },
-];
+// Servicios y Store
+import { useAppStore } from "@/stores/useAppStore";
+import socketService from "@/services/websocket/socket.service";
+import {
+  getNotificaciones,
+  getUnreadNotificationsCount,
+  markNotificationAsRead,
+  markAllNotificationsAsRead,
+  deleteNotificacion,
+  type Notificacion,
+} from "@/services/api/notifications.service";
+import type { NotificacionEvent, ContadorNotificacionesEvent } from "@/types/WebSocketTypes";
+
 
 const typeIcon: Record<string, React.ReactNode> = {
   user: <User className="w-4 h-4" />,
@@ -72,20 +37,219 @@ const typeIcon: Record<string, React.ReactNode> = {
 
 function NavbarBell() {
   const [open, setOpen] = useState(false);
-  const [notis, setNotis] = useState(notifications);
-
-  const unread = notis.filter((n) => !n.read);
-  const read = notis.filter((n) => n.read);
-
-  const markAllAsRead = () => {
-    setNotis((prev) => prev.map((n) => ({ ...n, read: true })));
-  };
-
-  const removeNotification = (id: number) => {
-    setNotis((prev) => prev.filter((n) => n.id !== id));
-  };
-
+  const [notis, setNotis] = useState<Notificacion[]>([]);
+  const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<"unread" | "read">("unread");
+  const { t, i18n } = useTranslation("common");
+  const currentLang = i18n.language || 'es';
+
+  // Zustand store - notificaciones
+  const store = useAppStore() as any;
+  const unreadCount = store?.unreadNotificationsCount ?? 0;
+  const setUnreadCount = store?.setUnreadNotificationsCount ?? (() => { });
+  const incrementUnreadCount = store?.incrementUnreadNotificationsCount ?? (() => { });
+
+  // Asegurar que notis es un array antes de filtrar
+  const unread = Array.isArray(notis) ? notis.filter((n) => !n.leida) : [];
+  const read = Array.isArray(notis) ? notis.filter((n) => n.leida) : [];
+
+  /**
+   * Cargar notificaciones desde la API
+   */
+  const loadNotifications = async () => {
+    try {
+      setLoading(true);
+      const response = await getNotificaciones(1, 50, currentLang);
+      console.log("🔔 [NavbarBell] Response from getNotificaciones:", response);
+
+      const responseData = response?.data as any;
+
+      // Extraer el array dependiendo de la estructura de la API
+      if (responseData?.notificaciones && Array.isArray(responseData.notificaciones)) {
+        // Mapear traducciones si vienen en el payload general
+        const notisTraducidas = responseData.notificaciones.map((n: any) => {
+          // Si el backend envía _translation a nivel general
+          if (responseData._translation && responseData._translation.fields) {
+            // Aquí el backend en realidad no devolvió los campos reemplazados en el array directamente?
+            // Si el backend devuelve las traducciones anidadas en notification._translation:
+            if (n._translation) {
+              return { ...n, titulo: n._translation.titulo || n.titulo, mensaje: n._translation.mensaje || n.mensaje };
+            }
+          } else if (n._translation) {
+            // Fallback por si la traducción viene por notificación individual desde el inicio
+            return { ...n, titulo: n._translation.titulo || n.titulo, mensaje: n._translation.mensaje || n.mensaje };
+          }
+          return n;
+        });
+
+        setNotis(notisTraducidas);
+
+        // Actualizar también el contador si viene en la misma respuesta
+        if (responseData.noLeidas !== undefined) {
+          setUnreadCount(responseData.noLeidas);
+        }
+      } else if (Array.isArray(response)) {
+        setNotis(response);
+      } else if (responseData && Array.isArray(responseData)) {
+        setNotis(responseData);
+      } else {
+        console.warn("🔔 [NavbarBell] Unknown response format:", response);
+        setNotis([]);
+      }
+    } catch (error) {
+      console.error("Error cargando notificaciones:", error);
+      setNotis([]);
+      toast.error(t("notifications.loadError", "Error al cargar notificaciones"));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /**
+   * Cargar el contador de notificaciones no leídas
+   */
+  const loadUnreadCount = async () => {
+    try {
+      const response = await getUnreadNotificationsCount(currentLang);
+      console.log("🔔 [NavbarBell] Response from getUnreadNotificationsCount:", response);
+
+      const resAny = response as any;
+
+      if (typeof resAny === "number") {
+        setUnreadCount(resAny);
+      } else if (resAny?.data?.contador !== undefined) {
+        setUnreadCount(resAny.data.contador);
+      } else if (resAny?.contador !== undefined) {
+        setUnreadCount(resAny.contador);
+      } else if (resAny?.data?.noLeidas !== undefined) {
+        setUnreadCount(resAny.data.noLeidas);
+      } else {
+        setUnreadCount(0);
+      }
+    } catch (error) {
+      console.error("Error cargando contador de no leídas:", error);
+    }
+  };
+
+  /**
+   * Marcar una notificación como leída
+   */
+  const handleMarkAsRead = async (notificationId: number) => {
+    try {
+      await markNotificationAsRead(notificationId);
+      setNotis((prev) =>
+        prev.map((n) => (n.id === notificationId ? { ...n, leida: true } : n))
+      );
+
+      // Decrementar el contador si la notificación estaba sin leer
+      if (unread.some((n) => n.id === notificationId) && unreadCount > 0) {
+        setUnreadCount(unreadCount - 1);
+      }
+
+      toast.success(t("notifications.markedAsRead", "Notificación marcada como leída"));
+    } catch (error) {
+      console.error("Error marcando notificación como leída:", error);
+      toast.error(t("notifications.markAsReadError", "Error marcando como leída"));
+    }
+  };
+
+  /**
+   * Marcar todas como leídas
+   */
+  const markAllAsRead = async () => {
+    try {
+      await markAllNotificationsAsRead();
+      // Actualizar localmente
+      setNotis((prev) => prev.map((n) => ({ ...n, leida: true })));
+      setUnreadCount(0);
+      toast.success(t("notifications.allMarkedAsRead", "Todas las notificaciones marcadas como leídas"));
+    } catch (error) {
+      console.error("Error marcando todas como leídas:", error);
+      toast.error(t("notifications.markAllAsReadError", "Error marcando todas como leídas"));
+    }
+  };
+
+  const removeNotification = async (id: number) => {
+    try {
+      await deleteNotificacion(id);
+      setNotis((prev) => prev.filter((n) => n.id !== id));
+      toast.success(t("notifications.deleted", "Notificación eliminada"));
+
+      // Ajustar contador si la notificación borrada era "no leída"
+      if (unread.some((n) => n.id === id) && unreadCount > 0) {
+        setUnreadCount(unreadCount - 1);
+      }
+    } catch (error) {
+      console.error("Error eliminando notificación:", error);
+      toast.error(t("notifications.deleteError", "Error al eliminar la notificación"));
+    }
+  };
+
+  // Escuchar estado de conexión para suscribirse a WebSocket
+  const connectionStatus = useAppStore((state) => state.connectionStatus);
+
+  /**
+   * Cargar datos iniciales (API REST)
+   */
+  useEffect(() => {
+    loadNotifications();
+    loadUnreadCount();
+  }, [currentLang]);
+
+  /**
+   * Suscribirse a eventos de WebSocket una vez conectado
+   */
+  useEffect(() => {
+    if (connectionStatus !== "connected") return;
+
+    // Suscribirse a nuevas notificaciones
+    const unsubscribeNewNotification = socketService.onNewNotification(
+      (event: NotificacionEvent & { _translation?: any }) => {
+        console.log("📢 Nueva notificación recibida:", event);
+
+        // Si viene con traducción por WebSocket, usarla
+        const titulo = event._translation?.titulo || event.titulo;
+        const mensaje = event._translation?.mensaje || event.mensaje;
+
+        // Agregar a la lista
+        const newNotification: Notificacion = {
+          id: event.id,
+          titulo,
+          mensaje,
+          tipoAlerta: event.tipoAlerta,
+          tipoEntidad: event.tipoEntidad,
+          entidadId: event.entidadId,
+          leida: false,
+          creadoEn: event.creadoEn,
+        };
+
+        setNotis((prev) => [newNotification, ...prev]);
+
+        // Incrementar contador
+        incrementUnreadCount(1);
+
+        // Mostrar toast
+        toast.info(titulo, {
+          description: mensaje,
+        });
+      }
+    );
+
+    // Suscribirse a actualizaciones del contador
+    const unsubscribeCounterUpdate = socketService.onUnreadNotificationsCount(
+      (event: ContadorNotificacionesEvent) => {
+        console.log("🔔 Contador de no leídas actualizado:", event.contador);
+        setUnreadCount(event.contador);
+      }
+    );
+
+    // Limpiar suscripciones al desmontar (o si se desconecta)
+    return () => {
+      unsubscribeNewNotification();
+      unsubscribeCounterUpdate();
+    };
+  }, [connectionStatus, setUnreadCount, incrementUnreadCount]);
+
 
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
@@ -97,7 +261,7 @@ function NavbarBell() {
             open ? "bg-primary" : "bg-bg-btn-secondary",
             "h-11 w-11 p-2.5 md:h-14 md:w-14 md:p-3",
           )}
-          aria-label="Notifications"
+          aria-label={t("notifications.title", "Notificaciones")}
         >
           <Bell
             className={cn(
@@ -106,7 +270,7 @@ function NavbarBell() {
               open ? "text-background" : "text-primary/70",
             )}
           />
-          {unread.length > 0 && (
+          {unreadCount > 0 && (
             <Badge
               className={cn(
                 "absolute -top-2 -right-2 transition-transform duration-300",
@@ -114,7 +278,7 @@ function NavbarBell() {
               )}
               variant="destructive"
             >
-              {unread.length}
+              {unreadCount}
             </Badge>
           )}
         </button>
@@ -122,7 +286,7 @@ function NavbarBell() {
       <DropdownMenuContent className="w-96 p-0">
         <DropdownMenuLabel className="flex items-center justify-between px-4 py-2">
           <span className="text-base font-semibold text-foreground">
-            Notifications
+            {t("notifications.title", "Notificaciones")}
           </span>
           <Button
             size="sm"
@@ -131,7 +295,7 @@ function NavbarBell() {
             disabled={unread.length === 0}
             className="text-xs font-medium text-muted-foreground hover:text-foreground"
           >
-            Mark all as read
+            {t("notifications.markAllRead", "Marcar todas como leídas")}
           </Button>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
@@ -150,7 +314,7 @@ function NavbarBell() {
                   "flex-1 text-xs font-medium py-3 rounded-md transition-all duration-200",
                 )}
               >
-                Unread
+                {t("notifications.unread", "No leídas")} ({unread.length})
               </TabsTrigger>
               <TabsTrigger
                 value="read"
@@ -158,23 +322,29 @@ function NavbarBell() {
                   "flex-1 text-xs font-medium py-3 px-3 rounded-md transition-all duration-200",
                 )}
               >
-                Read
+                {t("notifications.read", "Leídas")} ({read.length})
               </TabsTrigger>
             </TabsList>
             <div className="border-b border-border/50 my-1" />
 
             <TabsContent value="unread">
               <div className="max-h-72 overflow-y-auto">
-                {unread.length === 0 ? (
+                {loading ? (
+                  <div className="py-8 flex items-center justify-center text-sm text-muted-foreground">
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    {t("common.loading", "Cargando...")}
+                  </div>
+                ) : unread.length === 0 ? (
                   <div className="py-8 text-center text-sm text-muted-foreground">
-                    No unread notifications
+                    {t("notifications.noUnread", "Sin notificaciones sin leer")}
                   </div>
                 ) : (
                   <div className="divide-y divide-border/50">
                     {unread.map((notification) => (
                       <div
                         key={notification.id}
-                        className="notification-item px-4 py-3 flex items-start gap-3"
+                        onClick={() => handleMarkAsRead(notification.id)}
+                        className="notification-item px-4 py-3 flex items-start gap-3 hover:bg-accent/50 cursor-pointer transition-colors"
                       >
                         {/* Unread Indicator */}
                         <div className="flex items-center h-8">
@@ -184,34 +354,40 @@ function NavbarBell() {
                         <div
                           className={cn(
                             "flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center",
-                            notification.type === "user"
-                              ? "bg-accent text-accent-foreground"
-                              : "bg-[hsl(38_92%_50%/0.15)] text-[hsl(var(--notification-warning))]",
+                            "bg-accent text-accent-foreground",
                           )}
                         >
-                          {typeIcon[notification.type]}
+                          {notification.tipoEntidad ? (
+                            typeIcon[notification.tipoEntidad] || <Bell className="w-4 h-4" />
+                          ) : (
+                            <Bell className="w-4 h-4" />
+                          )}
                         </div>
                         {/* Content */}
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium text-foreground leading-tight">
-                            {notification.title}
+                            {notification.titulo}
                           </p>
                           <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
-                            {notification.description}
+                            {notification.mensaje}
                           </p>
                           <p className="text-[10px] text-muted-foreground/70 mt-1">
-                            {notification.timestamp}
+                            {new Date(notification.creadoEn).toLocaleString()}
                           </p>
                         </div>
                         {/* Actions */}
                         <div className="flex items-center gap-1 flex-shrink-0">
                           <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              removeNotification(notification.id);
+                            }}
                             className={cn(
                               "p-1.5 rounded-full transition-all",
                               " text-primary/70  ",
                               "hover:bg-red-500/10 hover:text-red-500 ",
                             )}
-                            title="Delete"
+                            title={t("actions.delete", "Eliminar")}
                           >
                             <Trash2Icon className="w-3.5 h-3.5" />
                           </button>
@@ -226,14 +402,14 @@ function NavbarBell() {
               <div className="max-h-72 overflow-y-auto">
                 {read.length === 0 ? (
                   <div className="py-8 text-center text-sm text-muted-foreground">
-                    No read notifications
+                    {t("notifications.noRead", "Sin notificaciones leídas")}
                   </div>
                 ) : (
                   <div className="divide-y divide-border/50">
                     {read.map((notification) => (
                       <div
                         key={notification.id}
-                        className="notification-item px-4 py-3 flex items-start gap-3"
+                        className="notification-item px-4 py-3 flex items-start gap-3 hover:bg-accent/50 transition-colors"
                       >
                         {/* Read Indicator */}
                         <div className="pt-1">
@@ -243,23 +419,25 @@ function NavbarBell() {
                         <div
                           className={cn(
                             "flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center",
-                            notification.type === "user"
-                              ? "bg-accent text-accent-foreground"
-                              : "bg-[hsl(38_92%_50%/0.15)] text-[hsl(var(--notification-warning))]",
+                            "bg-accent text-accent-foreground",
                           )}
                         >
-                          {typeIcon[notification.type]}
+                          {notification.tipoEntidad ? (
+                            typeIcon[notification.tipoEntidad] || <Bell className="w-4 h-4" />
+                          ) : (
+                            <Bell className="w-4 h-4" />
+                          )}
                         </div>
                         {/* Content */}
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium text-foreground leading-tight">
-                            {notification.title}
+                            {notification.titulo}
                           </p>
                           <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
-                            {notification.description}
+                            {notification.mensaje}
                           </p>
                           <p className="text-[10px] text-muted-foreground/70 mt-1">
-                            {notification.timestamp}
+                            {new Date(notification.creadoEn).toLocaleString()}
                           </p>
                         </div>
                         {/* Actions */}
@@ -271,7 +449,7 @@ function NavbarBell() {
                               " text-primary/70  ",
                               "hover:bg-red-500/10 hover:text-red-500 ",
                             )}
-                            title="Delete"
+                            title={t("actions.delete", "Eliminar")}
                           >
                             <Trash2Icon className="w-3.5 h-3.5" />
                           </button>

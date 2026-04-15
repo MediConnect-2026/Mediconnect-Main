@@ -159,6 +159,7 @@ interface RichTextEditorProps {
   label?: string;
   minHeight?: string; // 👈 nueva prop
   maxHeight?: string; // 👈 nueva prop
+  disabled?: boolean;
 }
 
 export const RichTextEditor = ({
@@ -170,6 +171,7 @@ export const RichTextEditor = ({
   label,
   minHeight, // 👈
   maxHeight, // 👈
+  disabled = false,
 }: RichTextEditorProps) => {
   const isMobile = useIsMobile();
 
@@ -182,6 +184,7 @@ export const RichTextEditor = ({
   );
 
   const editor = useEditor({
+    editable: !disabled,
     extensions: [
       StarterKit.configure({
         heading: {
@@ -212,6 +215,13 @@ export const RichTextEditor = ({
       editor.commands.setContent(value, { emitUpdate: false });
     }
   }, [value, editor]);
+
+  // Sync disabled state
+  useEffect(() => {
+    if (editor && editor.isEditable === disabled) {
+      editor.setEditable(!disabled);
+    }
+  }, [disabled, editor]);
 
   return (
     <div className={cn("space-y-1", className)}>

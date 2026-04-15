@@ -56,14 +56,21 @@ const truncate = (text: string | undefined, maxLength: number = 30): string => {
   return text.length > maxLength ? `${text.substring(0, maxLength)}...` : text;
 };
 
-export function MyAppointmentsTable({ data }: MyAppointmentsTableProps) {
+export const MyAppointmentsTable = React.memo(function MyAppointmentsTable({
+  data,
+}: MyAppointmentsTableProps) {
   const { t } = useTranslation("patient");
   const [page, setPage] = React.useState(1);
 
-  const totalPages = Math.ceil(data.length / PAGE_SIZE);
-  const startIndex = (page - 1) * PAGE_SIZE;
-  const endIndex = startIndex + PAGE_SIZE;
-  const paginatedData = data.slice(startIndex, endIndex);
+  const totalPages = React.useMemo(
+    () => Math.ceil(data.length / PAGE_SIZE),
+    [data.length],
+  );
+  const paginatedData = React.useMemo(() => {
+    const startIndex = (page - 1) * PAGE_SIZE;
+    const endIndex = startIndex + PAGE_SIZE;
+    return data.slice(startIndex, endIndex);
+  }, [data, page]);
 
   // Reset page if data changes and current page is out of bounds
   React.useEffect(() => {
@@ -243,4 +250,4 @@ export function MyAppointmentsTable({ data }: MyAppointmentsTableProps) {
       )}
     </div>
   );
-}
+});

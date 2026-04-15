@@ -2,6 +2,8 @@
   "validation": {
     "roleRequired": "El rol es requerido",
     "fullNameRequired": "El nombre completo es requerido",
+    "nameRequired": "El nombre es requerido",
+    "lastNameRequired": "El apellido es requerido",
     "emailInvalid": "Dirección de correo electrónico inválida",
     "specialtyRequired": "La especialidad principal es requerida",
     "phoneRequired": "El número de teléfono es requerido",
@@ -18,12 +20,14 @@
     "startYearRequired": "El año de inicio es requerido",
     "endMonthRequired": "El mes de finalización es requerido",
     "endYearRequired": "El año de finalización es requerido",
+    "endDateRequired": "La fecha de finalización es requerida cuando no trabaja actualmente",
     "educationAtLeastOne": "Se requiere al menos una formación académica",
     "hospitalRequired": "La organización/hospital es requerida",
     "positionRequired": "El cargo es requerido",
     "experienceAtLeastOne": "Se requiere al menos una experiencia laboral",
     "languageRequired": "El idioma no puede estar vacío",
     "languageAtLeastOne": "Se requiere al menos un idioma",
+    "proficiencyRequired": "El nivel de dominio es requerido",
     "insuranceProviderRequired": "La aseguradora no puede estar vacía",
     "name": {
       "required": "El nombre es requerido",
@@ -34,9 +38,15 @@
       "minLength": "La descripción debe tener al menos 50 caracteres",
       "maxLength": "La descripción no puede exceder 250 caracteres"
     },
-    "specialty": { "required": "La especialidad es requerida" },
-    "selectedModality": { "required": "La modalidad es requerida" },
-    "pricePerSession": { "positive": "El precio por sesión debe ser positivo" },
+    "specialty": {
+      "required": "La especialidad es requerida"
+    },
+    "selectedModality": {
+      "required": "La modalidad es requerida"
+    },
+    "pricePerSession": {
+      "positive": "El precio por sesión debe ser positivo"
+    },
     "duration": {
       "minutes": {
         "min": "Los minutos deben ser al menos 1",
@@ -47,10 +57,24 @@
       "maxLength": "Máximo 8 imágenes",
       "required": "Se requiere al menos 1 imagen"
     },
-    "address": { "required": "La dirección es requerida" },
-    "province": { "required": "La provincia es requerida" },
-    "municipality": { "required": "El municipio es requerido" },
-    "day": { "selectAtLeastOne": "Debe seleccionar al menos un día" },
+    "section": {
+      "required": "La sección es requerida"
+    },
+    "neighborhood": {
+      "required": "El barrio es requerido"
+    },
+    "address": {
+      "required": "La dirección es requerida"
+    },
+    "province": {
+      "required": "La provincia es requerida"
+    },
+    "municipality": {
+      "required": "El municipio es requerido"
+    },
+    "day": {
+      "selectAtLeastOne": "Debe seleccionar al menos un día"
+    },
     "startTime": {
       "invalidFormat": "La hora de inicio debe estar en formato HH:mm:ss"
     },
@@ -62,7 +86,6 @@
       "required": "La hora de inicio y fin son requeridas"
     }
   },
-
   "navbar": {
     "home": "Inicio",
     "patients": "Pacientes",
@@ -70,7 +93,6 @@
     "services": "Servicios",
     "schedule": "Calendario"
   },
-
   "dashboard": {
     "metrics": {
       "totalPatients": "Total de Pacientes",
@@ -92,7 +114,6 @@
       "all": "Todo"
     }
   },
-
   "appointment": {
     "acceptTitle": "Aceptar cita",
     "acceptDescription": "¿Estás seguro de que deseas aceptar esta cita? El paciente será notificado automáticamente.",
@@ -118,7 +139,6 @@
       "medicalNotes": "Registro de Notas Médicas"
     }
   },
-
   "appointments": {
     "title": "Citas",
     "subtitle": "Gestiona todas tus citas agendadas",
@@ -147,7 +167,8 @@
       "noResultsDescription": "Ninguna cita coincide con los filtros seleccionados. Intenta ajustarlos o limpiarlos.",
       "noAppointments": "No hay citas registradas",
       "noAppointmentsDescription": "No tienes ninguna cita agendada en este momento.",
-      "clearFilters": "Limpiar filtros"
+      "clearFilters": "Limpiar filtros",
+      "loadError": "Error al cargar citas. Por favor, intenta nuevamente más tarde."
     },
     "status": {
       "pending": "Pendiente",
@@ -193,6 +214,20 @@
         "service": "Seleccionar servicio",
         "dateRange": "Seleccionar rango"
       },
+      "values": {
+        "status": {
+          "all": "appointments.filters.values.status.all",
+          "scheduled": "appointments.filters.values.status.scheduled",
+          "inProgress": "appointments.filters.values.status.inProgress",
+          "completed": "appointments.filters.values.status.completed",
+          "cancelled": "appointments.filters.values.status.cancelled"
+        },
+        "type": {
+          "all": "appointments.filters.values.type.all",
+          "virtual": "appointments.filters.values.type.virtual",
+          "inPerson": "appointments.filters.values.type.inPerson"
+        }
+      },
       "status": {
         "all": "Todos",
         "pending": "Pendiente",
@@ -227,7 +262,6 @@
       }
     }
   },
-
   "patients": {
     "title": "Pacientes",
     "subtitle": "Gestiona tus pacientes registrados",
@@ -316,9 +350,11 @@
       "viewProfile": "Ver perfil",
       "viewDetails": "Ver detalles",
       "message": "Enviar mensaje"
+    },
+    "search": {
+      "placeholder": "Buscar paciente, especialidad o servicio..."
     }
   },
-
   "patientDetails": {
     "patientSince": "Paciente desde:",
     "tabs": {
@@ -338,7 +374,8 @@
       "phone": "Teléfono",
       "medicalTitle": "Información Médica",
       "allergies": "Alergias",
-      "conditions": "Condiciones"
+      "conditions": "Condiciones",
+      "gender": "Género"
     },
     "history": {
       "title": "Historial de consultas",
@@ -359,7 +396,6 @@
       "noResultsDescription": "Ajusta los filtros para ver más citas."
     }
   },
-
   "profileForm": {
     "cropBanner": "Recortar Banner",
     "cropProfilePhoto": "Recortar Foto de Perfil",
@@ -375,6 +411,10 @@
     "recommended": "Se recomienda una imagen cuadrada de al menos 400x400px",
     "fullName": "Nombre Completo",
     "fullNamePlaceholder": "Dr. Juan Pérez",
+    "name": "Nombre",
+    "namePlaceholder": "Juan",
+    "lastName": "Apellido",
+    "lastNamePlaceholder": "Pérez",
     "specialty": "Especialidad Principal",
     "specialtyPlaceholder": "Cardiología",
     "secondarySpecialties": "Especialidades Secundarias",
@@ -397,8 +437,16 @@
     "biographyPlaceholder": "Describe tu experiencia, enfoque médico y áreas de interés...",
     "saveChanges": "Guardar Cambios",
     "cancel": "Cancelar",
+    "saving": "Guardando...",
     "editProfile": "Editar Perfil",
     "sendMessage": "Enviar Mensaje",
+    "errorNoUser": "Usuario no encontrado",
+    "photoUpdated": "Foto de perfil actualizada exitosamente",
+    "errorPhotoUpdate": "Error al actualizar la foto de perfil",
+    "bannerUpdated": "Banner actualizado exitosamente",
+    "errorBannerUpdate": "Error al actualizar el banner",
+    "success": "Perfil actualizado exitosamente",
+    "error": "Error al actualizar el perfil. Intenta nuevamente.",
     "menu": {
       "settings": "Configuración",
       "privacy": "Privacidad",
@@ -406,10 +454,11 @@
       "logout": "Cerrar Sesión",
       "shareProfile": "Compartir Perfil",
       "mute": "Silenciar",
-      "block": "Bloquear"
+      "block": "Bloquear",
+      "profileCopied": "Enlace de perfil copiado al portapapeles",
+      "logoutSuccess": "¡Sesión cerrada exitosamente!"
     }
   },
-
   "specialties": {
     "cardiology": "Cardiología",
     "dermatology": "Dermatología",
@@ -423,25 +472,36 @@
     "ophthalmology": "Oftalmología",
     "internalMedicine": "Medicina interna"
   },
-
   "languages": {
     "title": "Idiomas",
     "description": "Selecciona los idiomas en los que puedes atender a tus pacientes",
     "list": "Idiomas que Hablas",
     "add": "Agregar Idioma",
     "select": "Selecciona un idioma",
-    "remove": "Eliminar idioma"
+    "remove": "Eliminar idioma",
+    "proficiency": "Nivel de Dominio",
+    "selectProficiency": "Selecciona el nivel",
+    "selectBoth": "Por favor selecciona el idioma y el nivel de dominio",
+    "edit": "Editar nivel de dominio",
+    "errorLoading": "Error al cargar idiomas",
+    "added": "Idioma agregado exitosamente",
+    "errorAdding": "Error al agregar idioma",
+    "removed": "Idioma eliminado exitosamente",
+    "errorRemoving": "Error al eliminar idioma",
+    "updated": "Nivel de dominio actualizado exitosamente",
+    "errorUpdating": "Error al actualizar nivel de dominio"
   },
-
   "insurance": {
     "title": "Seguros Médicos",
     "description": "Selecciona las aseguradoras con las que trabajas",
     "list": "Seguros Aceptados",
     "add": "Agregar Seguro",
     "select": "Selecciona un seguro",
+    "selectType": "Selecciona el tipo de seguro",
+    "typePlaceholder": "Tipo de seguro",
+    "selectInsuranceFirst": "Por favor selecciona un seguro primero",
     "remove": "Eliminar seguro"
   },
-
   "educationForm": {
     "educationTitle": "Formación",
     "degree": "Título o Certificación",
@@ -450,6 +510,11 @@
     "institutionPlaceholder": "Universidad Autónoma de Santo Domingo",
     "startDate": "Fecha de Inicio",
     "endDate": "Fecha de Finalización",
+    "selectCountry": "Selecciona un país",
+    "country": "País",
+    "selectUniversity": "Selecciona una universidad",
+    "invalidEndDate": "La fecha de finalización no puede ser anterior a la fecha de inicio",
+    "university": "Universidad",
     "selectMonth": "Mes",
     "selectYear": "Año",
     "addEducation": "Agregar Formación",
@@ -458,7 +523,6 @@
     "confirmDeleteDescription": "Esta acción no se puede deshacer. ¿Estás seguro que deseas eliminar esta formación académica?",
     "dragHandle": "Arrastrar para reordenar"
   },
-
   "experienceForm": {
     "experienceTitle": "Experiencia",
     "position": "Cargo",
@@ -469,13 +533,24 @@
     "endDate": "Fecha de Finalización",
     "selectMonth": "Mes",
     "selectYear": "Año",
+    "currentlyWorking": "Actualmente trabajo aquí",
     "addExperience": "Agregar Experiencia",
     "deleteExperience": "Eliminar experiencia",
     "confirmDeleteTitle": "¿Eliminar experiencia?",
     "confirmDeleteDescription": "Esta acción no se puede deshacer. ¿Estás seguro que deseas eliminar esta experiencia laboral?",
-    "dragHandle": "Arrastrar para reordenar"
+    "dragHandle": "Arrastrar para reordenar",
+    "errorLoading": "Error al cargar experiencias laborales",
+    "savedSuccessfully": "Experiencias guardadas exitosamente",
+    "errorSaving": "Error al guardar experiencias laborales",
+    "createdSuccessfully": "Experiencia creada exitosamente",
+    "updatedSuccessfully": "Experiencia actualizada exitosamente",
+    "deletedSuccessfully": "Experiencia eliminada exitosamente",
+    "errorDeleting": "Error al eliminar experiencia",
+    "deleting": "Eliminando...",
+    "saving": "Guardando...",
+    "save": "Guardar experiencias",
+    "saveExperience": "Guardar experiencia"
   },
-
   "months": {
     "january": "Enero",
     "february": "Febrero",
@@ -490,7 +565,6 @@
     "november": "Noviembre",
     "december": "Diciembre"
   },
-
   "tabs": {
     "general": "Información General",
     "education": "Formación",
@@ -498,32 +572,65 @@
     "languages": "Idiomas",
     "insurance": "Seguros"
   },
-
   "editProfile": {
     "title": "Editar Perfil",
     "subtitle": "Actualiza tu información profesional y preferencias"
   },
-
   "common": {
     "close": "Cerrar",
     "cancel": "Cancelar",
+    "save": "Guardar",
+    "saving": "Guardando...",
+    "adding": "Agregando...",
     "connected": "Conectado",
     "connect": "Conectar",
     "disconnect": "Desconectar",
     "viewDetails": "Ver detalles",
     "reviews": "reseñas",
+    "loading": "Cargando...",
     "review": "reseña",
-    "save": "Guardar"
+    "error": "Ocurrió un error. Por favor, intenta nuevamente.",
+    "retry": "Reintentar"
   },
-
   "profile": {
-    "about": { "title": "Acerca del doctor" },
-    "education": { "title": "Formación Académica" },
-    "experience": { "title": "Experiencia Profesional" },
+    "about": {
+      "title": "Acerca del doctor",
+      "addBio": "Agrega una biografía para que tus pacientes te conozcan mejor",
+      "noBio": "Este doctor no ha proporcionado una biografía.",
+      "addButton": "Agregar biografía"
+    },
+    "education": {
+      "title": "Formación Académica",
+      "loading": "Cargando formación académica...",
+      "addEducation": "Agrega tu formación académica para completar tu perfil profesional",
+      "noEducation": "Este doctor no ha registrado su formación académica.",
+      "addButton": "Agregar formación académica",
+      "errorLoadingData": "Error al cargar la formación académica. Por favor, intenta nuevamente más tarde."
+    },
+    "experience": {
+      "title": "Experiencia Profesional",
+      "loading": "Cargando experiencia profesional...",
+      "addExperience": "Agrega tu experiencia profesional para completar tu perfil",
+      "noExperience": "Este doctor no ha registrado su experiencia profesional.",
+      "addButton": "Agregar experiencia profesional",
+      "present": "Presente"
+    },
     "insurance": {
       "title": "Seguros Médicos Aceptados",
       "question": "¿Este doctor está dentro de su red de seguros?",
-      "morePlans": "Más planes de Seguros dentro de la red - Ver todo"
+      "morePlans": "Más planes de Seguros dentro de la red - Ver todo",
+      "loading": "Cargando seguros...",
+      "addInsurance": "Agrega los seguros médicos que aceptas para ayudar a tus pacientes",
+      "noInsurance": "Este doctor no ha registrado seguros médicos aceptados.",
+      "addButton": "Agregar seguros aceptados"
+    },
+    "languages": {
+      "title": "Idiomas",
+      "description": "Idiomas en los que este doctor puede atenderte",
+      "loading": "Cargando idiomas...",
+      "empty": "No hay idiomas registrados",
+      "emptyDescription": "Agrega los idiomas en los que puedes atender a tus pacientes.",
+      "add": "Agregar Idiomas"
     },
     "services": {
       "title": "Servicios ofrecidos",
@@ -541,6 +648,10 @@
         "deactivate": "Desactivar servicio",
         "activate": "Activar servicio",
         "delete": "Eliminar servicio"
+      },
+      "status": {
+        "active": "Activo",
+        "inactive": "Inactivo"
       }
     },
     "centers": {
@@ -558,7 +669,6 @@
       "reviews": "reseñas"
     }
   },
-
   "services": {
     "management": {
       "title": "Gestión de Servicios",
@@ -569,7 +679,7 @@
       "service": "Servicio",
       "specialty": "Especialidad",
       "location": "Ubicación",
-      "type": "Tipo",
+      "modality": "Modalidad",
       "price": "Precio",
       "duration": "Duración",
       "rating": "Calificación",
@@ -619,14 +729,31 @@
       "noServices": "No tienes servicios registrados",
       "noServicesDescription": "Agrega tu primer servicio para comenzar a recibir pacientes.",
       "clearFilters": "Limpiar filtros"
+    },
+    "messages": {
+      "missingServiceId": "ID de servicio faltante. Por favor, intenta nuevamente.",
+      "deactivateSuccess": "Servicio desactivado exitosamente",
+      "deactivateDescription": "Este servicio ha sido desactivado. Los pacientes no podrán reservarlo hasta que lo actives nuevamente.",
+      "deactivateError": "Error al desactivar el servicio. Por favor, inténtalo nuevamente.",
+      "tryAgain": "Por favor, inténtalo nuevamente",
+      "activateSuccess": "Servicio activado exitosamente",
+      "activateDescription": "Este servicio ha sido activado. Los pacientes pueden reservarlo ahora.",
+      "activateError": "Error al activar el servicio. Por favor, inténtalo nuevamente.",
+      "deleteSuccess": "Servicio eliminado exitosamente",
+      "deleteDescription": "Este servicio ha sido eliminado. Toda la información relacionada ha sido borrada.",
+      "deleteError": "Error al eliminar el servicio. Por favor, inténtalo nuevamente."
+    },
+    "status": {
+      "active": "Activo",
+      "inactive": "Inactivo"
     }
   },
-
   "service": {
     "title": "Consulta de Medicina Familiar",
     "share": "Compartir",
     "copied": "¡Copiado!",
     "edit": "Editar",
+    "location": "Ubicación",
     "photoAlt": "Consulta médica",
     "reviewCount": "12 reseñas",
     "specialty": "Medicina Familiar",
@@ -645,12 +772,15 @@
       "rating": "Calificación",
       "experience": "Años de experiencia"
     },
-    "reviews": { "title": "Reseñas" }
+    "reviews": {
+      "title": "Reseñas",
+      "titleForOne": "Reseña"
+    }
   },
-
   "filters": {
     "labels": {
-      "serviceType": "Tipo de servicio",
+      "serviceType": "Modalidad de servicio",
+      "specialty": "Especialidad",
       "priceRange": "Rango de precio",
       "duration": "Duración",
       "rating": "Calificación",
@@ -659,12 +789,14 @@
       "onlyConnected": "Solo conectados"
     },
     "placeholders": {
-      "serviceType": "Seleccionar tipo",
+      "serviceType": "Seleccionar modalidad",
       "priceRange": "Seleccionar rango",
       "duration": "Seleccionar duración",
       "rating": "Calificación mínima",
       "status": "Seleccionar estado",
-      "centerType": "Seleccionar tipo"
+      "centerType": "Seleccionar tipo",
+      "specialty": "Seleccionar especialidad",
+      "Loading": "Cargando opciones..."
     },
     "serviceTypes": {
       "presencial": "Presencial",
@@ -702,7 +834,6 @@
       "pharmacy": "Farmacia"
     }
   },
-
   "cards": {
     "service": {
       "details": "Ver detalles",
@@ -720,7 +851,7 @@
       "review": "reseña"
     }
   },
-
+  "Abandonar": "Abandonar",
   "createService": {
     "steps": {
       "serviceDetails": "Detalles del servicio",
@@ -752,7 +883,18 @@
       "location": "Ubicación",
       "selectLocation": "Seleccionar ubicación",
       "errorEndTime": "La hora de fin debe ser posterior a la hora de inicio",
-      "errorMinDuration": "El rango de horario debe permitir al menos una cita de"
+      "errorMinDuration": "El rango de horario debe permitir al menos una cita de ",
+      "noSchedules": "No hay horarios registrados todavía. Agrega tu primer horario para que los pacientes puedan reservar.",
+      "successCreating": "Horario creado exitosamente",
+      "successUpdating": "Horario actualizado exitosamente",
+      "errorCreating": "Error al crear el horario. Por favor, intenta nuevamente.",
+      "creating": "Creando horario...",
+      "updating": "Actualizando horario...",
+      "createSchedule": "Crear horario",
+      "validatingSchedules": "Validando horarios...",
+      "conflictDetected": "Conflicto de horarios detectado",
+      "conflictDays": "Días en conflicto",
+      "noConflicts": "Los horarios seleccionados son compatibles"
     },
     "images": {
       "title": "Muestra tus servicios y experiencia",
@@ -761,13 +903,24 @@
       "minImagesText": "imágenes mínimas",
       "addedImages": "de",
       "addedImagesText": "imágenes agregadas",
-      "imageAlt": "Imagen"
+      "imageAlt": "Imagen",
+      "addSuccess": "Imagen agregada exitosamente",
+      "addError": "Error al agregar la imagen. Por favor, intenta nuevamente.",
+      "fileTooLarge": "El archivo {{name}} excede el tamaño máximo de {{max}}MB"
     },
     "location": {
       "title": "Confirma tu ubicación",
       "description": "Especifica la dirección donde ofrecerás tus consultas o servicios médicos para que los pacientes puedan encontrarte fácilmente.",
       "addLocation": "Agregar Ubicación",
-      "manageLocation": "Seleccionar Ubicación"
+      "manageLocation": "Seleccionar Ubicación",
+      "locationCreatedSuccess": "Ubicación creada exitosamente",
+      "locationCreatedError": "Error al crear la ubicación",
+      "missingRequiredFields": "Por favor complete todos los campos requeridos",
+      "invalidFormData": "Los datos del formulario son inválidos",
+      "noLocations": "No tienes ubicaciones registradas",
+      "addFirstLocation": "Agrega tu primera ubicación para continuar",
+      "noLocationsYet": "Aún no tienes ubicaciones",
+      "errorLoadingLocations": "Error al cargar las ubicaciones"
     },
     "review": {
       "title": "Revisar Servicio",
@@ -780,16 +933,36 @@
       "location": "Ubicación",
       "virtualConsultation": "Consulta virtual",
       "virtualConsultationDescription": "La consulta se realizará a través de la plataforma de teleconsultas de Mediconnect.",
-      "save": "Guardar"
+      "saving": "Guardando...",
+      "save": "Guardar servicio",
+      "successMessage": "Servicio guardado exitosamente!",
+      "errorMessage": "Error al guardar el servicio. Por favor, inténtalo nuevamente.",
+      "validationError": "Los datos del servicio no son válidos. Por favor, revisa la información.",
+      "conflictError": "Ya existe un servicio similar. Por favor, revisa tus servicios.",
+      "authError": "No tienes permiso para crear este servicio.",
+      "serverError": "Error del servidor. Por favor, inténtalo nuevamente más tarde.",
+      "networkError": "Error de conexión. Por favor, verifica tu conexión a internet.",
+      "locationError": "Error con la ubicación seleccionada. Por favor, elige una ubicación diferente o inténtalo nuevamente más tarde.",
+      "updateErrorMessage": "Error al actualizar el servicio. Por favor, inténtalo nuevamente.",
+      "updateSuccessMessage": "Servicio actualizado exitosamente!",
+      "modalityPresencial": "Presencial",
+      "modalityTeleconsulta": "Teleconsulta",
+      "modalityMixta": "Mixta"
     },
     "modals": {
       "description": {
         "title": "Descripción del servicio",
         "placeholder": "Ingresa tu descripción aquí..."
       },
-      "sessions": { "title": "Número de sesiones" },
-      "duration": { "title": "Duración de la sesión" },
-      "price": { "title": "Precio" }
+      "sessions": {
+        "title": "Número de sesiones"
+      },
+      "duration": {
+        "title": "Duración de la sesión"
+      },
+      "price": {
+        "title": "Precio"
+      }
     },
     "common": {
       "save": "Guardar",
@@ -807,7 +980,6 @@
       "button": "Abandonar"
     }
   },
-
   "form": {
     "specialty": "Especialidad",
     "selectSpecialty": "Seleccionar especialidad",
@@ -830,24 +1002,35 @@
     "locationNamePlaceholder": "Ej: Consultorio Principal",
     "address": "Dirección",
     "addressPlaceholder": "Calle Principal #123",
+    "available": "Disponible",
     "province": "Provincia",
-    "provincePlaceholder": "Santo Domingo",
+    "provincePlaceholder": "Seleccione una provincia",
+    "loadingProvinces": "Cargando provincias...",
     "municipality": "Municipio",
-    "municipalityPlaceholder": "Distrito Nacional",
-    "available": "Disponible"
+    "municipalityPlaceholder": "Seleccione un municipio",
+    "loadingMunicipalities": "Cargando municipios...",
+    "selectProvinceFirst": "Primero seleccione una provincia",
+    "district": "Distrito Municipal",
+    "districtPlaceholder": "Seleccione un distrito (opcional)",
+    "loadingDistricts": "Cargando distritos...",
+    "selectMunicipalityFirst": "Primero seleccione un municipio",
+    "section": "Sección",
+    "sectionPlaceholder": "Seleccione una sección",
+    "loadingSections": "Cargando secciones...",
+    "neighborhood": "Barrio",
+    "neighborhoodPlaceholder": "Seleccione un barrio",
+    "loadingNeighborhoods": "Cargando barrios...",
+    "selectSectionFirst": "Primero seleccione una sección"
   },
-
   "modality": {
     "presencial": "Presencial",
     "teleconsulta": "Teleconsulta",
     "mixed": "Mixta"
   },
-
   "specialty": {
     "cardiology": "Cardiología",
     "pediatrics": "Pediatría"
   },
-
   "days": {
     "sunday": "Domingo",
     "monday": "Lunes",

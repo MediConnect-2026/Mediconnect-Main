@@ -11,7 +11,7 @@ import {
   isWeekend,
   isToday,
 } from "date-fns";
-import { es } from "date-fns/locale";
+
 import type { Appointment } from "@/types/CalendarTypes";
 import { AppointmentBadge } from "./AppointmentBadge";
 import { cn } from "@/lib/utils";

@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
 import GeneralInformation from "./GeneralInfortmation";
 import Location from "./Location";
+import { useAppStore } from "@/stores/useAppStore";
 
 interface MCSheetHealthCenterProps {
   onOpenChange: (open: boolean) => void;
@@ -15,14 +16,15 @@ function MCSheetHealthCenter({ onOpenChange }: MCSheetHealthCenterProps) {
   const [activeTab, setActiveTab] = useState("general");
   const isMobile = useIsMobile();
 
+  const user = useAppStore((state) => state.user);
+
   return (
     <Tabs
       defaultValue="general"
       value={activeTab}
       onValueChange={setActiveTab}
-      className={`w-full h-full min-h-full min-w-full ${
-        isMobile ? "flex flex-col" : "grid grid-cols-[35%_65%]"
-      }`}
+      className={`w-full h-full min-h-full min-w-full ${isMobile ? "flex flex-col" : "grid grid-cols-[35%_65%]"
+        }`}
     >
       {/* MOBILE CLOSE BUTTON */}
       {isMobile && (
@@ -121,7 +123,7 @@ function MCSheetHealthCenter({ onOpenChange }: MCSheetHealthCenterProps) {
             <GeneralInformation onOpenChange={onOpenChange} />
           </TabsContent>
           <TabsContent value="location" className="m-0 p-0">
-            <Location />
+            <Location locationId={user?.centroSalud?.ubicacionId} />
           </TabsContent>
         </div>
       </main>

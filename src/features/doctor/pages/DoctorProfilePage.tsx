@@ -1,11 +1,12 @@
-import React, { useState } from "react";
-import { useTranslation } from "react-i18next";
-
+import { useMemo, useState } from "react";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import MCSheetProfile from "@/shared/navigation/userMenu/editProfile/MCSheetProfile";
 import { useAppStore } from "@/stores/useAppStore";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
+import { doctorService } from "@/shared/navigation/userMenu/editProfile/doctor/services/doctor.service";
+import { Skeleton } from "@/shared/ui/skeleton";
+import { toast } from "sonner";
 
-import { useNavigate, useParams } from "react-router-dom";
 import DoctorProfileBanner from "../components/profile/DoctorProfileBanner";
 import DoctorProfileBannerMobile from "../components/profile/DoctorProfileBannerMobile";
 import DoctorEducationSection from "../components/profile/DoctorEducationSection";
@@ -15,186 +16,125 @@ import DoctorAboutSection from "../components/profile/DoctorAboutSection";
 import DoctorServicesSection from "../components/profile/DoctorServicesSection";
 import DoctorCentersSection from "../components/profile/DoctorCentersSection";
 import MCDashboardContent from "@/shared/layout/MCDashboardContent"; // <-- importa tu layout
+import { useNavigate, useParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 function DoctorProfilePage() {
   const { doctorId } = useParams();
-  const { t } = useTranslation("doctor");
+  const { i18n, t } = useTranslation("doctor");
   const [openSheet, setOpenSheet] = useState(false);
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const user = useAppStore((state) => state.user);
+  const [disconnectingAllianceId, setDisconnectingAllianceId] = useState<
+    string | number | null
+  >(null);
+  const [sheetTab, setSheetTab] = useState<"general" | "education" | "insurance" | "experience" | "language">("general");
 
-  // Mock data - en producción esto vendría de una API
-  const doctor = {
-    name: "LeBron James",
-    avatar: "",
-    banner: "",
-    specialty: "Cardiología",
-    rating: 4.8,
-    yearsOfExperience: 15,
-    languages: ["es", "en", "fr"],
-    isFavorite: false,
-    about:
-      "LeBron James integra toda la familia, enfocándose en prevenir, diagnosticar y tratar enfermedades comunes. Nuestro médico de familia acompaña a cada paciente en todas las etapas de su vida, considerando su bienestar físico, emocional y social.",
-    education: [
-      {
-        degree: "Medicina General",
-        institution: "Universidad Nacional Autónoma de México",
-        location: "Ciudad de México",
-        year: "1995-2001",
-      },
-      {
-        degree: "Especialidad en Cardiología",
-        institution: "Hospital General de México",
-        location: "Ciudad de México",
-        year: "2002-2006",
-      },
-      {
-        degree: "Fellowship en Enfermedades Autoinmunes",
-        institution: "Mayo Clinic, USA",
-        location: "Rochester, Minnesota",
-        year: "2007-2018",
-      },
-    ],
-    experience: [
-      {
-        position: "Médico Internista Senior",
-        institution: "Hospital ABC",
-        period: "2015 - Presente",
-        description: "Atención de pacientes hospitalizados y consulta externa",
-      },
-      {
-        position: "Fellow en Enfermedades Autoinmunes",
-        institution: "Mayo Clinic",
-        period: "2012 - 2018",
-        description:
-          "Especialización en enfermedades autoinmunes y manejo avanzado",
-      },
-      {
-        position: "Médico Residente",
-        institution: "Hospital General de México",
-        period: "2011 - 2015",
-        description: "Residencia en medicina interna",
-      },
-      {
-        position: "Médico Pasante",
-        institution: "Centro de Salud Valencia",
-        period: "2010 - 2011",
-        description: "Servicio social y consulta en medicina general",
-      },
-    ],
-    insurances: [
-      "Seguros Atlas",
-      "AXA Palic",
-      "ARS Palic",
-      "Seguros Atlas",
-      "Humano Seguros",
-      "MAPFRE ARS",
-      "ARS Universal",
-      "Seguros Crecer",
-      "ARS Yunen",
-    ],
+  const isMyProfile = !doctorId || user?.id === Number(doctorId);
+
+  // Determinar el ID del doctor a mostrar
+  const profileDoctorId = doctorId ? Number(doctorId) : Number(user?.id);
+  const hasValidProfileDoctorId = Number.isFinite(profileDoctorId) && profileDoctorId > 0;
+
+  // Fetch del perfil público cuando es otro doctor
+  const { data: fetchedDoctorProfile, isLoading: isLoadingProfile } = useQuery({
+    queryKey: ["doctor-profile", profileDoctorId, i18n.language],
+    queryFn: () => doctorService.getDoctorById(profileDoctorId!, {
+      target: i18n.language === 'en' ? 'en' : 'es',
+      source: i18n.language === 'en' ? 'es' : 'en',
+      translate_fields: 'biografia,nombre'
+    }),
+    enabled: !isMyProfile && !!profileDoctorId,
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const {
+    data: myCentersResponse,
+    isLoading: isLoadingCenters,
+    refetch: refetchMyCenters,
+  } = useQuery({
+    queryKey: ["doctor-my-centers", profileDoctorId, i18n.language],
+    queryFn: () =>
+      doctorService.getMyCenters({
+        doctorId: !isMyProfile ? profileDoctorId : undefined,
+        target: i18n.language === "en" ? "en" : "es",
+        source: i18n.language === "en" ? "es" : "en",
+        translate_fields:
+          "centroSalud.nombreComercial,centroSalud.tipoCentro.nombre,centroSalud.ubicacion.direccionCompleta",
+      }),
+    enabled: hasValidProfileDoctorId,
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const deleteAllianceMutation = useMutation({
+    mutationFn: (requestId: string | number) =>
+      doctorService.deleteAllianceRequest(requestId),
+    onSuccess: async () => {
+      await refetchMyCenters();
+      toast.success(t("connection.allianceDisconnectSuccess"));
+    },
+    onError: (error: unknown) => {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : t("connection.allianceDisconnectError");
+      toast.error(errorMessage);
+    },
+    onSettled: () => {
+      setDisconnectingAllianceId(null);
+    },
+  });
+
+  // Usar los datos del store si es mi perfil, o los fetched si es otro doctor
+  const doctorProfile = isMyProfile ? user : fetchedDoctorProfile?.data;
+  // Para secciones que esperan el objeto doctor anidado (Doctor type)
+  const doctorData = doctorProfile;
+
+  const centers = useMemo(() => {
+    return (myCentersResponse?.data ?? []).map((item) => ({
+      id: item.centroSalud.usuarioId,
+      name: item.centroSalud.nombreComercial,
+      type:
+        item.centroSalud.tipoCentro?.nombre ||
+        t("profile.centers.centerTypeFallback", "Centro de salud"),
+      rating: 0,
+      reviewCount: 0,
+      phone: item.centroSalud.usuario?.telefono || "",
+      urlImage: item.centroSalud.usuario?.fotoPerfil || "",
+      isConnected: true,
+      allianceRequestId: item.solicitudId,
+      description:
+        item.centroSalud.ubicacion?.direccionCompleta ||
+        item.centroSalud.ubicacion?.direccion ||
+        "",
+      connectionStatus: "connected" as const,
+    }));
+  }, [myCentersResponse?.data, t]);
+
+  const handleViewCenterProfile = (centerId: string | number) => {
+    navigate(`/center/profile/${centerId}`);
   };
 
-  const services = [
-    {
-      id: "1",
-      title: "Laboratorios clínicos",
-      description:
-        "Evaluación médica completa con laboratorios ambulatorios realizados por laboratoristas profesionales y con las autorizaciones correspondientes.",
-      duration: "1 hora",
-      price: "RD$800",
-      type: "presencial" as const,
-      image:
-        "https://i.pinimg.com/736x/26/96/86/2696865c46c902b5a2a0cdd58b98ba95.jpg",
-      rating: 4.7,
-      reviews: 12,
-      status: "active",
-    },
-    {
-      id: "2",
-      title: "Consulta virtual",
-      description:
-        "Consulta médica por videollamada para seguimiento y evaluación de síntomas.",
-      duration: "30 min",
-      price: "RD$1,200",
-      type: "virtual" as const,
-      image:
-        "https://i.pinimg.com/736x/5a/be/8f/5abe8ff7a562514b3a552a78369e0ed7.jpg",
-      rating: 4.9,
-      reviews: 20,
-      status: "active",
-    },
-    {
-      id: "3",
-      title: "Chequeo general anual",
-      description:
-        "Evaluación médica completa anual para monitorear la salud general y prevenir enfermedades.",
-      duration: "1 hora",
-      price: "RD$2,500",
-      type: "presencial" as const,
-      image:
-        "https://i.pinimg.com/736x/2d/79/92/2d799226aaefb127794b72128c3889cd.jpg",
-      rating: 4.8,
-      reviews: 15,
-      status: "active",
-    },
-    {
-      id: "4",
-      title: "Consulta de seguimiento",
-      description:
-        "Consulta médica para seguimiento de condiciones crónicas o tratamiento en curso.",
-      duration: "30 min",
-      price: "RD$1,000",
-      type: "mixta" as const,
-      image:
-        "https://i.pinimg.com/736x/16/51/d6/1651d6e629be1f7033e364dda83a83cd.jpg",
-      rating: 4.6,
-      reviews: 8,
-      status: "inactive",
-    },
-  ];
+  const handleDisconnectCenter = (requestId: string | number) => {
+    if (!isMyProfile) return;
+    setDisconnectingAllianceId(requestId);
+    deleteAllianceMutation.mutate(requestId);
+  };
 
-  const centers = [
-    {
-      id: "1",
-      name: "Hospital Dario Contreras",
-      type: "Hospital General",
-      rating: 4.8,
-      reviewCount: 12,
-      phone: "809-093-2342",
-      urlImage:
-        "https://i.pinimg.com/736x/2d/79/92/2d799226aaefb127794b72128c3889cd.jpg",
-      isConnected: true,
-      description:
-        "Centro hospitalario de referencia nacional con atención 24/7.",
-    },
-    {
-      id: "2",
-      name: "Centro Médico Integral",
-      type: "Clínica",
-      rating: 4.6,
-      reviewCount: 8,
-      phone: "809-555-1234",
-      urlImage:
-        "https://i.pinimg.com/736x/5a/be/8f/5abe8ff7a562514b3a552a78369e0ed7.jpg",
-      isConnected: false,
-    },
-    {
-      id: "3",
-      name: "Clínica Familiar",
-      type: "Centro de Salud",
-      rating: 4.7,
-      reviewCount: 10,
-      phone: "809-222-5678",
-      urlImage:
-        "https://i.pinimg.com/736x/26/96/86/2696865c46c902b5a2a0cdd58b98ba95.jpg",
-      isConnected: false,
-      description: "Atención primaria y familiar para toda la comunidad.",
-    },
-  ];
 
-  const isMyProfile = user?.id === doctorId;
+  if (isLoadingProfile) {
+    return (
+      <MCDashboardContent mainWidth="w-[100%]" noBg>
+        <div className="min-h-screen w-full space-y-6 p-6">
+          <Skeleton className="w-full h-60 rounded-4xl" />
+          <Skeleton className="w-2/3 h-8" />
+          <Skeleton className="w-full h-40" />
+          <Skeleton className="w-full h-40" />
+        </div>
+      </MCDashboardContent>
+    );
+  }
 
   return (
     <MCDashboardContent mainWidth="w-[100%]" noBg>
@@ -203,13 +143,13 @@ function DoctorProfilePage() {
         <div className="w-full">
           {isMobile ? (
             <DoctorProfileBannerMobile
-              doctor={doctor}
+              doctor={doctorProfile}
               setOpenSheet={setOpenSheet}
               isMyProfile={isMyProfile}
             />
           ) : (
             <DoctorProfileBanner
-              doctor={doctor}
+              doctor={doctorProfile}
               setOpenSheet={setOpenSheet}
               isMyProfile={isMyProfile}
             />
@@ -221,28 +161,96 @@ function DoctorProfilePage() {
           <div className="grid grid-cols-1 lg:grid-cols-[8fr_2fr] gap-4 lg:gap-4">
             {/* Columna principal */}
             <div className="flex flex-col gap-4 lg:gap-6 order-1">
-              <DoctorAboutSection doctor={doctor} />
-              <DoctorInsurancesSection insurances={doctor.insurances} />
-              <DoctorServicesSection services={services} />
-              <DoctorCentersSection centers={centers} />
+              <DoctorAboutSection 
+                doctor={doctorData || undefined} 
+                isMyProfile={isMyProfile}
+                onOpenSheet={() => {
+                  setSheetTab("general");
+                  setOpenSheet(true);
+                }}
+              />
+              <DoctorInsurancesSection
+                isMyProfile={isMyProfile}
+                onOpenSheet={() => {
+                  setSheetTab("insurance");
+                  setOpenSheet(true);
+                }}
+                doctorId={profileDoctorId}
+              />
+              <DoctorServicesSection 
+                doctorId={profileDoctorId} 
+                isMyProfile={isMyProfile}
+              />
+              {isLoadingCenters ? (
+                <Skeleton className="w-full h-80 rounded-4xl" />
+              ) : (
+                <DoctorCentersSection
+                  centers={centers}
+                  onViewProfile={handleViewCenterProfile}
+                  onToggleConnection={isMyProfile ? handleDisconnectCenter : undefined}
+                  isConnectionSubmitting={deleteAllianceMutation.isPending}
+                  connectionSubmittingId={disconnectingAllianceId}
+                />
+              )}
               {/* Educación y Experiencia - solo en mobile */}
               <div className="flex flex-col gap-4 lg:hidden">
-                <DoctorEducationSection education={doctor.education} />
-                <DoctorExperienceSection experience={doctor.experience} />
+                <DoctorEducationSection 
+                  isMyProfile={isMyProfile}
+                  onOpenSheet={() => {
+                    setSheetTab("education");
+                    setOpenSheet(true);
+                  }}
+                  doctorId={profileDoctorId}
+                />
+                {user?.id && (
+                  <DoctorExperienceSection 
+                    doctorId={profileDoctorId}
+                    isMyProfile={isMyProfile}
+                    onOpenSheet={() => {
+                      setSheetTab("experience");
+                      setOpenSheet(true);
+                    }}
+                  />
+                )}
               </div>
             </div>
             {/* Columna lateral - sticky en desktop, oculta en mobile */}
             <div className="hidden lg:flex flex-col gap-6 order-2">
               <div className="sticky top-24 space-y-6">
-                <DoctorEducationSection education={doctor.education} />
-                <DoctorExperienceSection experience={doctor.experience} />
+                <DoctorEducationSection 
+                  isMyProfile={isMyProfile}
+                  onOpenSheet={() => {
+                      setSheetTab("education");
+                      setOpenSheet(true);
+                  }}
+                  doctorId={profileDoctorId}
+                />
+                {user?.id && (
+                  <DoctorExperienceSection 
+                    doctorId={profileDoctorId}
+                    isMyProfile={isMyProfile}
+                    onOpenSheet={() => {
+                      setSheetTab("experience");
+                      setOpenSheet(true);
+                    }}
+                  />
+                )}
               </div>
             </div>
           </div>
         </div>
         <div className="h-8 lg:h-12" />
         {/* Sheet de perfil */}
-        <MCSheetProfile open={openSheet} onOpenChange={setOpenSheet} />
+        <MCSheetProfile 
+          open={openSheet} 
+          onOpenChange={(open) => {
+            setOpenSheet(open);
+            if (!open) {
+              setSheetTab("general");
+            }
+          }}
+          whatTab={sheetTab}
+        />
       </div>
     </MCDashboardContent>
   );

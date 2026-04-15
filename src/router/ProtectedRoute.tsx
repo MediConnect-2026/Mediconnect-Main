@@ -1,7 +1,7 @@
 import React from "react";
 import { Navigate } from "react-router-dom";
 import { useAppStore } from "@/stores/useAppStore";
-import type { UserRole } from "@/stores/useAuthSlice";
+import type { AppUserRole } from "@/services/auth/auth.types";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -11,10 +11,11 @@ interface ProtectedRouteProps {
   center?: boolean;
 }
 
-const roleMap: Record<UserRole, keyof ProtectedRouteProps> = {
+const roleMap: Record<AppUserRole, keyof ProtectedRouteProps> = {
   DOCTOR: "doctor",
   PATIENT: "patient",
   CENTER: "center",
+  ADMINISTRATOR: "center", // Por defecto, administradores tienen acceso a centro
 };
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
@@ -25,7 +26,22 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 }) => {
   const { user } = useAppStore((s) => s);
 
-  const roleKey = roleMap[user!.role];
+  // Si no hay usuario, redirigir al login
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  // El user.rol ya viene en formato de aplicación (DOCTOR, PATIENT, CENTER)
+  // gracias a getUserAppRole en normalizeLoginResponse
+  const appRole = user.rol as AppUserRole;
+
+  // Verificar que el rol sea válido
+  if (!roleMap[appRole]) {
+    console.warn("Invalid user role:", user.rol);
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  const roleKey = roleMap[appRole];
 
   const hasAccess =
     (roleKey === "doctor" && doctor) ||
@@ -40,3 +56,4 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 };
 
 export default ProtectedRoute;
+

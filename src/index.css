@@ -144,6 +144,30 @@ iframe {
   display: none; /* Chrome, Safari y Opera */
 }
 
+/* Scrollbar visible para listas con overflow vertical */
+.scrollbar-visible {
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: color-mix(in srgb, var(--primary) 35%, transparent)
+    transparent;
+}
+
+.scrollbar-visible::-webkit-scrollbar {
+  width: 8px;
+}
+
+.scrollbar-visible::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-visible::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--primary) 35%, transparent);
+  border-radius: 999px;
+}
+
+.scrollbar-visible::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--primary) 50%, transparent);
+}
+
 /* Oculta la scrollbar pero permite el scroll */
 .custom-iframe-scroll {
   scrollbar-width: none; /* Firefox */
@@ -232,4 +256,41 @@ input[type="time"]::-webkit-datetime-edit-text {
 input[type="time"] {
   appearance: none;
   -moz-appearance: textfield;
+}
+/* Spinner Médico - Efecto Pulso */
+.medical-loader {
+  width: 60px;
+  height: 60px;
+  display: inline-block;
+  position: relative;
+}
+
+.medical-loader::after,
+.medical-loader::before {
+  content: "";
+  box-sizing: border-box;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  /* Usamos tu color primario para que cambie según el tema */
+  border: 3px solid var(--primary);
+  position: absolute;
+  left: 0;
+  top: 0;
+  animation: animloader 2s linear infinite;
+}
+
+.medical-loader::after {
+  animation-delay: 1s;
+}
+
+@keyframes animloader {
+  0% {
+    transform: scale(0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0;
+  }
 }

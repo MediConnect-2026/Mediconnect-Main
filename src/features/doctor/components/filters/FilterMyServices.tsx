@@ -3,11 +3,12 @@ import { Star, DollarSign } from "lucide-react";
 import MCFilterSelect from "@/shared/components/filters/MCFilterSelect";
 import { useTranslation } from "react-i18next";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
+import { useEspecialidades } from "@/features/onboarding/services/useEspecialidades";
 
 interface MyServiceFilters {
   servicio: string;
   especialidad: string;
-  tipo: string;
+  modalidad: string;
   precio: string;
   duracion: string;
   rating: number | null;
@@ -25,24 +26,10 @@ function FilterMyServices({ filters, onFiltersChange }: FilterMyServicesProps) {
   const { t } = useTranslation("doctor");
   const isMobile = useIsMobile();
 
-  const servicioOptions: OptionType[] = [
-    { value: "consulta-general", label: "Consulta General" },
-    { value: "consulta-cardiologica", label: "Consulta Cardiológica" },
-    { value: "consulta-pediatrica", label: "Consulta Pediátrica" },
-    { value: "teleconsulta", label: "Teleconsulta" },
-    { value: "consulta-dermatologica", label: "Consulta Dermatológica" },
-    { value: "consulta-psicologica", label: "Consulta Psicológica" },
-  ];
+  const { data: especialidades = [], isLoading: isLoadingEspecialidades } = useEspecialidades();
+  
 
-  const especialidadOptions: OptionType[] = [
-    { value: "medicina-general", label: "Medicina General" },
-    { value: "cardiologia", label: "Cardiología" },
-    { value: "pediatria", label: "Pediatría" },
-    { value: "dermatologia", label: "Dermatología" },
-    { value: "psicologia", label: "Psicología" },
-  ];
-
-  const tipoOptions: OptionType[] = [
+  const modalidadOptions: OptionType[] = [
     { value: "presencial", label: t("filters.serviceTypes.presencial") },
     { value: "virtual", label: t("filters.serviceTypes.virtual") },
     { value: "mixta", label: t("filters.serviceTypes.mixta") },
@@ -200,24 +187,11 @@ function FilterMyServices({ filters, onFiltersChange }: FilterMyServicesProps) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 w-full">
       <MCFilterSelect
-        name="servicio"
-        label="Tipo de Servicio"
-        options={servicioOptions}
-        placeholder={t("filters.placeholders.serviceType")}
-        value={filters.servicio}
-        noBadges
-        onChange={(v) =>
-          onFiltersChange({
-            servicio: typeof v === "string" ? v : (v[0] ?? ""),
-          })
-        }
-      />
-
-      <MCFilterSelect
         name="especialidad"
-        label="Especialidad"
-        options={especialidadOptions}
-        placeholder="Seleccionar especialidad"
+        searchable
+        label={t("filters.labels.specialty")}
+        options={isLoadingEspecialidades ? [] : especialidades.map(e => ({ value: e.value, label: e.label }))}
+        placeholder={isLoadingEspecialidades ? t("filters.loading") : t("filters.placeholders.specialty")}
         value={filters.especialidad}
         noBadges
         onChange={(v) =>
@@ -230,13 +204,13 @@ function FilterMyServices({ filters, onFiltersChange }: FilterMyServicesProps) {
       <MCFilterSelect
         name="tipo"
         label={t("filters.labels.serviceType")}
-        options={tipoOptions}
+        options={modalidadOptions}
         placeholder={t("filters.placeholders.serviceType")}
-        value={filters.tipo}
+        value={filters.modalidad}
         noBadges
         onChange={(v) =>
           onFiltersChange({
-            tipo: typeof v === "string" ? v : (v[0] ?? ""),
+            modalidad: typeof v === "string" ? v : (v[0] ?? ""),
           })
         }
       />

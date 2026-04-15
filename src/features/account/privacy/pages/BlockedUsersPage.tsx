@@ -15,7 +15,6 @@ import {
 } from "@/shared/ui/pagination";
 import { useTranslation } from "react-i18next";
 
-// Badge component
 type BadgeProps = {
   children: React.ReactNode;
   role: "PATIENT" | "DOCTOR" | "CENTER";

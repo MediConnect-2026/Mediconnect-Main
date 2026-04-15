@@ -15,6 +15,7 @@ import {
   TooltipTrigger,
 } from "@/shared/ui/tooltip";
 import { useRef, useState, useEffect } from "react";
+
 interface MCServiceCardProps {
   idProvider?: string | number;
   image: string;
@@ -23,12 +24,12 @@ interface MCServiceCardProps {
   price: string;
   description: string;
   rating: number;
-  reviews: number;
+  reviews?: number;
   duration: string;
-  type: string;
+  modalidad: string;
   onDetails?: () => void;
   isOwner?: boolean;
-  serviceId: string; // <-- NUEVA PROP
+  serviceId: string;
   onEdit?: () => void;
   onDeactivate?: () => void;
   onActivate?: () => void;
@@ -43,9 +44,8 @@ const MCServiceCards = ({
   price,
   description,
   rating,
-  reviews,
   duration,
-  type,
+  modalidad,
   onDetails,
   isOwner = false,
   serviceId,
@@ -53,26 +53,16 @@ const MCServiceCards = ({
   onDeactivate,
   onActivate,
   onDelete,
-}: MCServiceCardProps & {
-  onEdit?: () => void;
-  onDeactivate?: () => void;
-  onActivate?: () => void;
-  onDelete?: () => void;
-}) => {
+}: MCServiceCardProps) => {
   const { t } = useTranslation("doctor");
   const isMobile = useIsMobile();
-  const navigate = useNavigate(); // <-- NAVEGAR
-  const currentUser = useAppStore((state) => state.user?.role);
+  const navigate = useNavigate();
+  const currentUser = useAppStore((state) => state.user?.rol);
 
-  if (currentUser === "PATIENT") {
-    // El usuario es paciente
-    // Puedes agregar lógica específica aquí
-  }
-
-  const getTypeIcon = () => {
-    if (type.toLowerCase().includes("mixta"))
+  const getTypeIcon = () => { 
+    if (modalidad.toLowerCase().includes("mixta"))
       return <ClipboardPlus size={16} className="text-secondary mb-0.5" />;
-    if (type.toLowerCase().includes("virtual"))
+    if (modalidad.toLowerCase().includes("virtual"))
       return <Video size={16} className="text-secondary mb-0.5" />;
     return <MapPin size={16} className="text-secondary mb-0.5" />;
   };
@@ -87,6 +77,48 @@ const MCServiceCards = ({
       );
     }
   }, [title]);
+
+  // Handler por defecto para ver detalles
+  const handleViewDetails = () => {
+    if (onDetails) {
+      onDetails();
+    } else {
+      navigate(`/service/${serviceId}`);
+    }
+  };
+
+  // Handlers con logging para debugging
+  const handleEdit = () => {
+    if (onEdit) {
+      onEdit();
+    } else {
+      console.warn("⚠️ [MCServiceCards] onEdit callback not provided for service:", serviceId);
+    }
+  };
+
+  const handleDeactivate = () => {
+    if (onDeactivate) {
+      onDeactivate();
+    } else {
+      console.warn("⚠️ [MCServiceCards] onDeactivate callback not provided for service:", serviceId);
+    }
+  };
+
+  const handleActivate = () => {
+    if (onActivate) {
+      onActivate();
+    } else {
+      console.warn("⚠️ [MCServiceCards] onActivate callback not provided for service:", serviceId);
+    }
+  };
+
+  const handleDelete = () => {
+    if (onDelete) {
+      onDelete();
+    } else {
+      console.warn("⚠️ [MCServiceCards] onDelete callback not provided for service:", serviceId);
+    }
+  };
 
   return (
     <Card className="rounded-3xl bg-transparent border border-primary/10 shadow-sm hover:shadow-lg transition-shadow h-full flex flex-col">
@@ -111,13 +143,12 @@ const MCServiceCards = ({
                 <ServicesActions
                   isCard
                   status={status}
-                  onView={
-                    onDetails ?? (() => navigate(`/service/${serviceId}`))
-                  }
-                  onEdit={onEdit}
-                  onDeactivate={onDeactivate}
-                  onActivate={onActivate}
-                  onDelete={onDelete}
+                  serviceId={serviceId}
+                  onView={handleViewDetails}
+                  onEdit={handleEdit}
+                  onDeactivate={handleDeactivate}
+                  onActivate={handleActivate}
+                  onDelete={handleDelete}
                 />
               </div>
             </>
@@ -212,7 +243,7 @@ const MCServiceCards = ({
 
           <div className="flex items-center gap-1">
             {getTypeIcon()}
-            <span>{type}</span>
+            <span>{modalidad}</span>
           </div>
         </div>
 
@@ -220,7 +251,7 @@ const MCServiceCards = ({
           <MCButton
             className="w-full rounded-full mt-auto"
             variant="primary"
-            onClick={() => navigate(`/service/${serviceId}`)}
+            onClick={handleViewDetails}
             size="sm"
           >
             {t("profile.services.details", "Ver detalles")}

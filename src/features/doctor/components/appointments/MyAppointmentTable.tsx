@@ -1,4 +1,3 @@
-import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/avatar";
 import { Button } from "@/shared/ui/button";
@@ -18,17 +17,10 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/shared/ui/tooltip";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationLink,
-  PaginationItem,
-  PaginationPrevious,
-  PaginationNext,
-} from "@/shared/ui/pagination";
 import { Popover, PopoverTrigger, PopoverContent } from "@/shared/ui/popover";
 import AppointmentActions from "@/features/patient/components/appoiments/AppointmentActions";
 import { MCUserAvatar } from "@/shared/navigation/userMenu/MCUserAvatar";
+import { formatTimeTo12h } from "@/utils/appointmentMapper";
 
 export interface Appointment {
   id: string;
@@ -37,6 +29,7 @@ export interface Appointment {
   patientImage?: string;
   service: string;
   specialty: string;
+  specialtyId?: string;
   date: string;
   time: string;
   phone: string;
@@ -48,9 +41,8 @@ export interface Appointment {
 
 interface MyAppointmentTableProps {
   appointments: Appointment[];
+  isChangingPage?: boolean;
 }
-
-const PAGE_SIZE = 10;
 
 const truncate = (text: string | undefined, maxLength: number = 30): string => {
   if (!text) return "";
@@ -59,25 +51,25 @@ const truncate = (text: string | undefined, maxLength: number = 30): string => {
 
 export default function MyAppointmentTable({
   appointments,
+  isChangingPage,
 }: MyAppointmentTableProps) {
   const { t } = useTranslation("doctor");
-  const [page, setPage] = React.useState(1);
-
-  const totalPages = Math.ceil(appointments.length / PAGE_SIZE);
-  const startIndex = (page - 1) * PAGE_SIZE;
-  const endIndex = startIndex + PAGE_SIZE;
-  const paginatedData = appointments.slice(startIndex, endIndex);
-
-  // Reset page if data changes and current page is out of bounds
-  React.useEffect(() => {
-    if (page > totalPages && totalPages > 0) {
-      setPage(1);
-    }
-  }, [appointments.length, page, totalPages]);
-
   return (
-    <div className="w-full overflow-x-auto">
-      <Table>
+    <div className="w-full overflow-x-auto relative">
+
+      {/* Spinner overlay */}
+      {isChangingPage && (
+        <div className="absolute inset-0 bg-background/50 backdrop-blur-sm z-10 flex items-center justify-center rounded-lg">
+          <div className="flex flex-col items-center gap-3">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
+            <p className="text-sm text-muted-foreground font-medium">
+              {t("common.loading")}
+            </p>
+          </div>
+        </div>
+      )}
+
+      <Table className={`transition-opacity duration-300 ${isChangingPage ? "opacity-40" : "opacity-100"}`}>
         <TableHeader>
           <TableRow>
             <TableHead className="w-[250px]">
@@ -104,8 +96,8 @@ export default function MyAppointmentTable({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {paginatedData.length > 0 ? (
-            paginatedData.map((row) => (
+          {appointments.length > 0 ? (
+            appointments.map((row) => (
               <TableRow key={row.id}>
                 <TableCell className="w-[250px]">
                   <div className="flex items-center gap-2">
@@ -166,7 +158,7 @@ export default function MyAppointmentTable({
                 <TableCell className="w-[150px]">
                   <div className="font-medium">{row.date}</div>
                   <div className="text-xs text-muted-foreground">
-                    {row.time}
+                    {formatTimeTo12h(row.time)}
                   </div>
                 </TableCell>
                 <TableCell className="w-[180px]">
@@ -213,43 +205,6 @@ export default function MyAppointmentTable({
           )}
         </TableBody>
       </Table>
-      {totalPages > 1 && (
-        <Pagination className="mt-4">
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                className={
-                  page === 1
-                    ? "pointer-events-none opacity-50"
-                    : "cursor-pointer"
-                }
-              />
-            </PaginationItem>
-            {[...Array(totalPages)].map((_, i) => (
-              <PaginationItem key={i}>
-                <PaginationLink
-                  isActive={page === i + 1}
-                  onClick={() => setPage(i + 1)}
-                  className="cursor-pointer"
-                >
-                  {i + 1}
-                </PaginationLink>
-              </PaginationItem>
-            ))}
-            <PaginationItem>
-              <PaginationNext
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                className={
-                  page === totalPages
-                    ? "pointer-events-none opacity-50"
-                    : "cursor-pointer"
-                }
-              />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
-      )}
     </div>
   );
 }

@@ -11,6 +11,11 @@
     "noMenuRole": "No menu for role",
     "noRole": "Unknown"
   },
+  "common": {
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "loading": "Loading..."
+  },
   "userMenu": {
     "spanish": "Spanish",
     "english": "English",
@@ -34,13 +39,18 @@
   "clinicCard": {
     "connect": "Connect",
     "connected": "Connected",
+    "allied": "Allied",
     "pending": "Request pending",
     "viewProfile": "View profile",
     "insurances": "Insurances:",
     "acceptedInsurances": "Accepted insurances:",
+    "noLanguages": "Not available",
+    "noInsurances": "Not available",
     "andOtherLanguages": "and {{count}} other languages...",
     "andMore": "and {{count}} more...",
-    "reviews": "reviews"
+    "reviews": "reviews",
+    "scheduleAppointment": "Schedule appointment",
+    "contact": "Contact"
   },
   "doctorCard": {
     "availability": "Availability:",
@@ -48,8 +58,17 @@
     "noSlots": "No",
     "appointments": "Appointments",
     "more": "More",
-    "pending": "Request pending"
+    "pending": "Request pending",
+    "favoriteAdded": "Doctor added to favorites",
+    "favoriteAddError": "Could not add to favorites",
+    "confirmFavoriteTitle": "Add to favorites",
+    "confirmFavoriteDescription": "Do you want to add {{name}} to your favorites doctors?",
+    "confirmRemoveFavoriteTitle": "Remove from favorites",
+    "confirmRemoveFavoriteDescription": "Do you want to remove {{name}} from your favorite doctors?",
+    "favoriteRemoved": "Doctor removed from favorites",
+    "favoriteRemoveError": "Could not remove from favorites"
   },
+  "confirm": "Confirm",
   "search": {
     "providerType": "Provider type",
     "specialty": "Specialty",
@@ -59,13 +78,67 @@
     "schedule": "Schedule",
     "rating": "Rating",
     "yearsOfExperience": "Years of experience",
+    "options": {
+      "all": "All",
+      "providerType": {
+        "doctor": "Doctor",
+        "clinic": "Clinic",
+        "hospital": "Hospital"
+      },
+      "modality": {
+        "Presencial": "In-Person",
+        "Virtual": "Virtual",
+        "hibrido": "Mixed"
+      },
+      "gender": {
+        "masculino": "Male",
+        "femenino": "Female",
+        "other": "Other"
+      },
+      "schedule": {
+        "mañana": "Morning",
+        "tarde": "Afternoon",
+        "noche": "Evening"
+      },
+      "rating": {
+        "3": "3 stars or more",
+        "3.5": "3.5 stars or more",
+        "4": "4 stars or more",
+        "4.5": "4.5 stars or more"
+      },
+      "years": {
+        "1": "1 year or more",
+        "3": "3 years or more",
+        "5": "5 years or more",
+        "10": "10 years or more"
+      },
+      "radio": {
+        "1": "5 km",
+        "2": "10 km",
+        "3": "20 km",
+        "4": "30 km",
+        "5": "40 km",
+        "6": "50 km"
+      },
+      "languages": {
+        "spanish": "Spanish",
+        "english": "English",
+        "french": "French"
+      }
+    },
+    "radio": "Proximity",
     "selectedProviders": "{{count}} of {{max}} providers selected for comparison",
     "compare": "Compare",
     "providersFound": "{{count}} providers found",
     "noProvidersFound": "No providers found",
     "noResultsDescription": "No results for the selected filters. Try changing the filters or search.",
     "viewList": "View List",
-    "viewMap": "View Map"
+    "viewMap": "View Map",
+    "address": "Address",
+    "province": "Province",
+    "municipality": "Municipality",
+    "loadingProviderTypes": "Loading provider types...",
+    "loadingSpecialties": "Loading specialties..."
   },
   "validation": {
     "emailRequired": "Email is required",
@@ -74,7 +147,7 @@
     "passwordRequired": "Password is required",
     "confirmPasswordRequired": "You must confirm the password",
     "passwordsDoNotMatch": "Passwords do not match",
-    "otpLength": "OTP code must be 4 digits",
+    "otpLength": "OTP code must be 6 digits",
     "otpNumeric": "OTP code must be numeric",
     "visibilityRequired": "Profile visibility is required",
     "privacyConsentRequired": "You must accept the privacy policy",
@@ -122,14 +195,21 @@
     "passwordLabel": "Password",
     "passwordPlaceholder": "Enter your password",
     "verifyButton": "Verify",
-    "successMessage": "Identity verified without implementing real logic."
+    "successMessage": "Identity verified successfully",
+    "errorMessage": "Incorrect password. Please try again.",
+    "otpSentMessage": "Verification code sent to your email.",
+    "otpSendError": "Failed to send verification code. Please try again."
   },
   "changeEmail": {
     "title": "Change email address",
     "description": "Enter your new email address. We'll send you a verification code.",
     "newEmailLabel": "New email address",
     "newEmailPlaceholder": "Enter your new email address",
-    "changeButton": "Change email"
+    "changeButton": "Change email",
+    "sameEmailError": "The new email cannot be the same as the current one.",
+    "otpSentSuccess": "Verification code sent to your new email.",
+    "otpSendError": "Error sending verification code. Please try again.",
+    "sending": "Sending..."
   },
   "verifyEmail": {
     "title": "Verify your new email",
@@ -137,7 +217,18 @@
     "tip": "Didn't receive the code?:Check your spam folder or wait a few minutes.",
     "resend": "Resend code",
     "verify": "Verify",
-    "currentOtp": "Current OTP:"
+    "currentOtp": "Current OTP:",
+    "emailNotFound": "Email not found",
+    "success": "Email verified successfully",
+    "error": "Error validating code. Please try again.",
+    "invalidCode": "Invalid verification code.",
+    "resendSuccess": "Code resent successfully",
+    "resendError": "Error resending code",
+    "passwordNotFound": "Password verification required. Please restart the process.",
+    "newEmailNotFound": "New email not found. Please restart the process.",
+    "emailChangedSuccess": "Email changed successfully!",
+    "incorrectPassword": "Incorrect password. Please restart the process.",
+    "emailAlreadyRegistered": "This email is already registered."
   },
   "changePassword": {
     "title": "Change password",
@@ -146,6 +237,10 @@
     "currentPasswordPlaceholder": "Enter your current password",
     "newPasswordLabel": "New password",
     "newPasswordPlaceholder": "Enter your new password",
+    "confirmNewPasswordLabel": "Confirm new password",
+    "confirmNewPasswordPlaceholder": "Confirm your new password",
+    "confirmPasswordLabel": "Confirm password",
+    "confirmPasswordPlaceholder": "Confirm your password",
     "changeButton": "Change password"
   },
   "deleteAccount": {
@@ -156,8 +251,21 @@
     "consequence2": "You won't be able to log in or recover your account.",
     "consequence3": "All your appointments and connections with doctors or health centers will be cancelled.",
     "consequence4": "Associated messages and records will be irreversibly deleted, following MediConnect's privacy policies.",
+    "confirmationHint": "Please type DELETE ACCOUNT to confirm that you want to delete your account.",
+    "placeholder": "Type DELETE ACCOUNT to confirm",
+    "confirmationLabel": "Type DELETE ACCOUNT to confirm",
     "cancelButton": "Cancel",
-    "deleteButton": "Delete Account"
+    "success": "Account deleted successfully",
+    "deleteButton": "Delete Account",
+    "errors": {
+      "confirmationInvalid": "You must type exactly \"DELETE ACCOUNT\" to confirm",
+      "noPassword": "Password verification required. Please enter your password to confirm.",
+      "incorrectPassword": "Incorrect password. Please restart the process.",
+      "invalidData": "Invalid data. Please restart the process.",
+      "accountInactive": "Account is already inactive or deleted.",
+      "userNotFound": "User not found. Please restart the process.",
+      "generic": "An error occurred while trying to delete your account. Please try again later."
+    }
   },
   "profileVisibility": {
     "title": "Professional profile privacy",
@@ -233,7 +341,12 @@
       "resubmitPersonal": "Resubmit Personal Data",
       "resubmitCenter": "Resubmit Center Information",
       "cancel": "Cancel",
-      "submit": "Submit"
+      "submit": "Submit",
+      "submitting": "Submitting...",
+      "noChanges": "No changes to save",
+      "updateSuccess": "Information updated successfully",
+      "updateError": "Could not update the information",
+      "locationRequiredError": "To update location, select a valid point on the map"
     },
     "documents": {
       "title": "Documents",
@@ -264,7 +377,11 @@
       "actionsAvailable": "Available actions",
       "actionsDescription": "You can submit all current certifications for review, or cancel everything and start over.",
       "submitAllForReview": "Submit All for Review",
-      "cancelAll": "Cancel All"
+      "cancelAll": "Cancel All",
+      "uploadError": "Error uploading document: {{message}}",
+      "errorFileTooLarge": "The file exceeds the maximum size of 5MB",
+      "errorInvalidType": "File type not allowed. Only images (JPEG, PNG, WEBP) or PDF",
+      "errorGeneric": "Error uploading document"
     },
     "forms": {
       "centerName": "Center Name",
@@ -277,6 +394,7 @@
       "rncPlaceholder": "000000000",
       "centerType": "Center Type",
       "centerTypePlaceholder": "Select type",
+      "loadingCenterTypes": "Loading center types...",
       "phone": "Phone",
       "phonePlaceholder": "(809) 000-0000",
       "email": "Email",
@@ -288,6 +406,7 @@
       "provincePlaceholder": "Will be auto-filled",
       "municipality": "Municipality",
       "municipalityPlaceholder": "Will be auto-filled",
+      "zipCode": "Zip code",
       "latitude": "Latitude",
       "longitude": "Longitude",
       "firstName": "First Name(s)",
@@ -390,6 +509,26 @@
     "subtitle": "You are about to start a video call",
     "joinButton": "Join teleconsultation"
   },
+  "teleconsultRoom": {
+    "connecting": "Connecting to teleconsultation...",
+    "tabs": {
+      "video": "Video",
+      "chat": "Chat",
+      "info": "Info"
+    },
+    "fallbackDoctor": "Doctor",
+    "fallbackSpecialty": "Specialty"
+  },
+  "teleconsultChatPanel": {
+    "loading": "Loading chat...",
+    "error": "Could not load the conversation for this appointment.",
+    "preparing": "Preparing conversation...",
+    "close": "Close",
+    "tabs": {
+      "chat": "Chat",
+      "notes": "Notes"
+    }
+  },
   "consultationInfo": {
     "title": "Consultation Information",
     "additionalSections": "Additional Sections",
@@ -403,6 +542,7 @@
     "rateExperience": "Rate your experience",
     "leaveComment": "Leave a comment (Optional)",
     "commentPlaceholder": "Write your comment here...",
+    "defaultDoctorName": "Doctor",
     "submit": "Submit rating",
     "skip": "Skip for now",
     "specialty": "Internal Medicine Specialist"
@@ -435,8 +575,11 @@
     "menu": "Menu",
     "conversations": "Conversations",
     "searchChats": "Search Chats",
+    "loading": "Loading conversations...",
     "noConversationsFound": "No conversations found",
-    "microphoneError": "Could not access microphone. Check permissions."
+    "microphoneError": "Could not access microphone. Check permissions.",
+    "noConversations": "No conversations yet. Start a new chat to connect with your doctors or patients.",
+    "loadingOlderMessages": "Loading older messages..."
   },
   "filePreview": {
     "imageAlt": "Image preview",
@@ -454,22 +597,54 @@
   },
   "messageBubble": {
     "imageAlt": "Sent image",
-    "download": "Download"
+    "copy": "Copy",
+    "copied": "Copied",
+    "download": "Download",
+    "audioNotSupported": "Your browser does not support audio.",
+    "videoNotSupported": "Your browser does not support video.",
+    "deleted": "This message was deleted",
+    "deleteError": "Error deleting message. Please try again.",
+    "confirmDelete": "Are you sure you want to delete this message?",
+    "confirmDeleteTitle": "Delete message",
+    "delete": "Delete",
+    "cancel": "Cancel"
   },
+  "cancel": "Cancel",
   "prescription": {
     "diagnosisTittle": "Diagnosis",
     "diagnosisTittlePlaceholder": "Diagnosis title",
     "diagnosisDescription": "Diagnosis description",
     "diagnosisDescriptionPlaceholder": "Describe the diagnosis here...",
     "documents": "Attached documents",
+    "maxImagesHint": "(max {{max}} images · 10 MB each)",
     "uploadHintMobile": "Tap to upload",
     "uploadHintDesktop": "Drag or click",
-    "uploadSubHint": "Images and documents",
+    "uploadFormats": "Images (JPG, PNG, GIF, WebP)",
+    "imagesAttached": "{{count}} image attached",
+    "imagesAttached_plural": "{{count}} images attached",
+    "removeImageAria": "Remove image",
     "maxFiles": "Maximum {{count}} files",
     "uploadedFiles": "{{count}} file uploaded",
     "uploadedFiles_plural": "{{count}} files uploaded",
     "removeFile": "Remove file",
-    "submit": "Save prescription"
+    "submit": "Save prescription",
+    "status": {
+      "noActiveAppointment": "There is no active appointment. The diagnosis cannot be sent.",
+      "notInProgress": "The appointment is not in progress. The diagnosis cannot be modified.",
+      "submitSuccess": "Diagnosis sent successfully.",
+      "submitError": "Error sending diagnosis",
+      "submitting": "Sending diagnosis..."
+    },
+    "validation": {
+      "diagnosisTitleRequired": "Diagnosis title is required",
+      "diagnosisTitleMax": "Diagnosis title cannot exceed {{max}} characters",
+      "diagnosisDescriptionRequired": "Diagnosis description is required",
+      "diagnosisDescriptionMax": "Diagnosis description cannot exceed {{max}} characters",
+      "documentsMax": "You can attach a maximum of {{max}} images",
+      "fileTypeInvalid": "\"{{fileName}}\": invalid type (images only)",
+      "fileSizeExceeded": "\"{{fileName}}\": exceeds maximum {{maxSize}}",
+      "maxReached": "Limit of {{max}} images reached"
+    }
   },
   "richText": {
     "bold": "Bold (Ctrl+B)",
@@ -501,6 +676,7 @@
     "appointmentDetails": "Appointment Details",
     "contact": "Contact",
     "reason": "Reason",
+    "cancelReason": "Cancellation reason",
     "weekDays": {
       "sun": "Sun",
       "mon": "Mon",
@@ -519,7 +695,9 @@
     },
     "modality": {
       "virtual": "Virtual",
-      "presencial": "In-Person"
+      "presencial": "In-Person",
+      "teleconsulta": "Teleconsultation",
+      "in_person": "In-Person"
     }
   },
   "appointments": {
@@ -533,7 +711,8 @@
     "continueConsultation": "Continue Consultation",
     "joinTeleconsult": "Join Teleconsultation",
     "markCompleted": "Mark as Completed",
-    "openChat": "Open chat"
+    "openChat": "Open chat",
+    "addMedicalDiagnosis": "Add Medical Diagnosis"
   },
   "requests": {
     "title": "Manage Requests",
@@ -545,10 +724,55 @@
     "connect": "Connect",
     "reject": "Reject",
     "withdraw": "Withdraw",
+    "withdrawModalTitle": "Withdraw request",
+    "withdrawModalDescription": "Do you want to withdraw this alliance request? This action cannot be undone.",
+    "withdrawConfirm": "Yes, withdraw",
+    "withdrawSuccess": "Request withdrawn successfully.",
+    "acceptSuccess": "Request accepted successfully.",
+    "rejectSuccess": "Request rejected successfully.",
+    "actionError": "Could not update the request.",
+    "loadError": "Could not load requests. Please try again.",
+    "statusAccepted": "Approved",
+    "statusRejected": "Rejected",
+    "viewDetail": "View details",
+    "acceptModalTitle": "Confirm request",
+    "acceptModalDescription": "Do you want to accept this alliance request?",
+    "sending": "Sending...",
+    "acceptConfirm": "Accept",
+    "cancel": "Cancel",
+    "rejectModalTitle": "Reject request",
+    "rejectConfirm": "Send rejection",
+    "rejectReasonPrompt": "Enter a reason for rejection to continue.",
+    "rejectReasonPlaceholder": "We do not have availability at this time",
+    "rejectDetailTitle": "Rejection details",
+    "close": "Close",
+    "rejectReasonLabel": "Reason",
+    "noReason": "Not specified",
+    "issuerLabel": "Issued by",
+    "unknown": "Unknown",
+    "attendedAtLabel": "Handled on",
+    "notAvailable": "Not available",
+    "mock": {
+      "specialtyCardiology": "Cardiology",
+      "specialtyNeurology": "Neurology",
+      "specialtyPediatrics": "Pediatrics",
+      "specialtyDermatology": "Dermatology",
+      "specialtyOphthalmology": "Ophthalmology",
+      "receivedToday": "Received today",
+      "receivedYesterday": "Received yesterday",
+      "receivedTwoDaysAgo": "Received 2 days ago",
+      "sentToday": "Sent today",
+      "sentThreeDaysAgo": "Sent 3 days ago"
+    },
     "noReceivedTitle": "No received requests",
     "noReceivedDescription": "You have not received any connection requests yet.",
     "noSentTitle": "No sent requests",
     "noSentDescription": "You have not sent any connection requests yet."
+  },
+  "chat": {
+    "chatListItem": {
+      "noMessages": "No messages yet"
+    }
   },
   "doctors": {
     "profile": "View profile",
@@ -560,5 +784,6 @@
     "noExperience": "Experience not specified",
     "acceptedInsurances": "Accepted insurances",
     "noLanguages": "Languages not specified"
-  }
+  },
+  "retry": "Retry"
 }

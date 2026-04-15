@@ -1,9 +1,11 @@
-import React, { useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { formatCurrency } from "@/utils/formatCurrency";
 import { Card } from "@/shared/ui/card";
 import { AppointmentsCalendar } from "@/shared/components/calendar/AppointmentsCalendar";
 import MCMetricCard from "@/shared/components/MCMetricCard";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
+import { useDoctorStatsResumen, useDoctorMostUsedServices, useDoctorProductivity } from "@/lib/hooks/useDoctorStats";
 import { motion } from "framer-motion";
 import { fadeInUp } from "@/lib/animations/commonAnimations";
 import { UsersIcon, CalendarCheckIcon, DollarSignIcon } from "lucide-react";
@@ -14,21 +16,26 @@ import { MCFilterPopover } from "@/shared/components/filters/MCFilterPopover";
 import MCFilterSelect from "@/shared/components/filters/MCFilterSelect";
 import PieServices from "../components/dashboard/PieServices";
 
-// Data de ejemplo para servicios más utilizados
-const serviciosMasUtilizados = [
-  { name: "Consulta médica", value: 35, color: "hsl(var(--chart-1))" },
-  { name: "Sesión física", value: 25, color: "hsl(var(--chart-2))" },
-  { name: "Seguimiento", value: 20, color: "hsl(var(--chart-3))" },
-  { name: "Rehabilitación", value: 10, color: "hsl(var(--chart-4))" },
-  { name: "Presión arterial", value: 6, color: "hsl(var(--chart-5))" },
-  { name: "Ejercicios guiados", value: 4, color: "hsl(var(--chart-6))" },
-];
 
 type DateRangeType = "week" | "month" | "3months" | "year" | "all";
+
+// Mapeo de dateRange a período para el API
+const dateRangeToPeriodo = (dateRange: DateRangeType): string => {
+  const periodoMap: Record<DateRangeType, string> = {
+    week: "semana",
+    month: "mes",
+    "3months": "3meses",
+    year: "año",
+    all: "todo",
+  };
+  return periodoMap[dateRange];
+};
+
 
 function DashboardPage() {
   const isMobile = useIsMobile();
   const { t } = useTranslation("doctor");
+  const { i18n } = useTranslation();
   const [dateRange, setDateRange] = useState<DateRangeType>("month");
   const [filters, setFilters] = useState({
     specialty: "",
@@ -36,6 +43,36 @@ function DashboardPage() {
     availability: "",
     // ... otros filtros
   });
+
+  // Obtener estadísticas del doctor
+  const {
+    data: statsData,
+    isLoading: isStatsLoading,
+    error: statsError,
+  } = useDoctorStatsResumen();
+
+  // Obtener servicios más utilizados
+  const {
+    data: serviciosRawData,
+    error: serviciosError
+  } = useDoctorMostUsedServices(i18n.language);
+
+  // Obtener datos de productividad con período mapeado
+  const {
+    data: productividadData,
+    error: productividadError
+  } = useDoctorProductivity(dateRangeToPeriodo(dateRange));
+
+  // Transformar servicios más utilizados al formato esperado por PieServices
+  const serviciosMasUtilizados = useMemo(() => {
+    return serviciosRawData
+      ? serviciosRawData.map((servicio) => ({
+        name: servicio.nombre || "Sin nombre",
+        value: servicio.totalCitas || 0,
+        color: servicio.color || "hsl(var(--chart-1))",
+      }))
+      : [];
+  }, [serviciosRawData, i18n.language]);
 
   const resetFilters = () => {
     setFilters({
@@ -52,6 +89,19 @@ function DashboardPage() {
     ).length;
   };
 
+  // Manejar error en estadísticas
+  if (statsError) {
+    console.error("Error loading doctor stats:", statsError);
+  }
+
+  if (serviciosError) {
+    console.error("Error loading most used services:", serviciosError);
+  }
+
+  if (productividadError) {
+    console.error("Error loading productivity stats:", productividadError);
+  }
+
   return (
     <motion.main {...fadeInUp} className="min-h-screen">
       <div className="flex flex-col gap-4">
@@ -63,25 +113,25 @@ function DashboardPage() {
               <MCMetricCard
                 title={t("dashboard.metrics.totalPatients")}
                 icon={<UsersIcon />}
-                value={412}
+                value={isStatsLoading ? "..." : statsData?.totalPacientes || 0}
                 subtitle={t("dashboard.metrics.totalPatientsSubtitle")}
-                percentage="12%"
+                // percentage={statsData?.porcentajeCambio ? `${statsData.porcentajeCambio}%` : undefined}
                 bordered
               />
               <MCMetricCard
                 title={t("dashboard.metrics.totalAppointments")}
                 icon={<CalendarCheckIcon />}
-                value={285}
+                value={isStatsLoading ? "..." : statsData?.totalConsultas || 0}
                 subtitle={t("dashboard.metrics.totalAppointmentsSubtitle")}
-                percentage="8%"
+                // percentage={statsData?.porcentajeCambio ? `${statsData.porcentajeCambio}%` : undefined}
                 bordered
               />
               <MCMetricCard
                 title={t("dashboard.metrics.totalEarned")}
                 icon={<DollarSignIcon />}
-                value="RD$ 87,500"
+                value={isStatsLoading ? "..." : formatCurrency(statsData?.totalDineroGanado)}
                 subtitle={t("dashboard.metrics.totalEarnedSubtitle")}
-                percentage="15%"
+                // percentage={statsData?.porcentajeCambio ? `${statsData.porcentajeCambio}%` : undefined}
                 bordered
               />
             </div>
@@ -138,7 +188,11 @@ function DashboardPage() {
               </div>
             </div>
             <div className="h-[250px] sm:h-[325px] w-full">
-              <AreaChart dateRange={dateRange} />
+              <AreaChart
+                data={productividadData}
+                dateRange={dateRange}
+                showFooter={false}
+              />
             </div>
           </Card>
 

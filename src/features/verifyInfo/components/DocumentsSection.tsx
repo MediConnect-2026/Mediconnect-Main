@@ -11,7 +11,7 @@ interface DocumentsSectionProps {
 
 function DocumentsSection({
   isDoctor,
-  currentStatus,
+
   children,
 }: DocumentsSectionProps) {
   const { t } = useTranslation("common");

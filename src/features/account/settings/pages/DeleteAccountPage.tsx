@@ -1,10 +1,15 @@
-import React, { useEffect } from "react";
+import { useEffect, useState } from "react";
 import MCDashboardContent from "@/shared/layout/MCDashboardContent";
 import MCButton from "@/shared/components/forms/MCButton";
 import { useNavigate } from "react-router-dom";
 import { useGlobalUIStore } from "@/stores/useGlobalUIStore";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
 import { useTranslation } from "react-i18next";
+import { authService } from "@/services/auth/auth.service";
+import { useAppStore } from "@/stores/useAppStore";
+import { useProfileStore } from "@/stores/useProfileStore";
+import { toast } from "sonner";
+import MCInput from "@/shared/components/forms/MCInput";
 
 function DeleteAccountPage() {
   const { t } = useTranslation("common");
@@ -16,18 +21,124 @@ function DeleteAccountPage() {
   const VerificationContextStatus = useGlobalUIStore(
     (state) => state.verificationContextStatus,
   );
+  const logout = useAppStore((state) => state.logout);
+  const verifyAccountPassword = useProfileStore(
+    (state) => state.verifyAccountPassword,
+  );
+
+  const [confirmation, setConfirmation] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (
       VerificationContext !== "DELETE_ACCOUNT" ||
-      VerificationContextStatus !== "VERIFIED"
+      VerificationContextStatus !== "VERIFIED" ||
+      !verifyAccountPassword?.password
     ) {
       navigate("/settings");
     }
-  }, [VerificationContext, VerificationContextStatus, navigate]);
+  }, [VerificationContext, VerificationContextStatus, verifyAccountPassword, navigate]);
 
-  const handleSubmit = () => {
-    // Aquí deberías llamar a tu API para eliminar la cuenta
+  const handleSubmit = async () => {
+    // Normalizar y validar que la confirmación sea exacta (español o inglés)
+    const normalizedConfirmation = confirmation.trim().toUpperCase();
+    
+    const isValidConfirmation = 
+      normalizedConfirmation === "ELIMINAR CUENTA" || 
+      normalizedConfirmation === "DELETE ACCOUNT";
+    
+    if (!isValidConfirmation) {
+      toast.error(
+        t(
+          "deleteAccount.errors.confirmationInvalid",
+          'Debes escribir exactamente "ELIMINAR CUENTA" o "DELETE ACCOUNT" para confirmar'
+        )
+      );
+      return;
+    }
+
+    // Verificar que tengamos la contraseña del store
+    if (!verifyAccountPassword?.password) {
+      toast.error(t("deleteAccount.errors.noPassword", "No se encontró la contraseña validada"));
+      navigate("/settings");
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+
+      // El API solo acepta "ELIMINAR CUENTA", sin importar el idioma del usuario
+      const response = await authService.deleteAccount({
+        password: verifyAccountPassword.password,
+        confirmacion: "ELIMINAR CUENTA",
+      });
+
+      toast.success(
+        t("deleteAccount.success", "Cuenta eliminada exitosamente") || response.nota || "Cuenta eliminada exitosamente"
+      );
+
+      if (response.nota) {
+        toast.info(response.nota, { duration: 5000 });
+      }
+
+      // Cerrar sesión y redirigir
+      await logout();
+      navigate("/login");
+    } catch (error: any) {
+      console.error("❌ Error al eliminar cuenta:", error);
+
+      // Manejar errores específicos
+      const errorData = error.response?.data;
+      const status = error.response?.status;
+
+      if (status === 401) {
+        toast.error(
+          errorData?.error ||
+            t("deleteAccount.errors.incorrectPassword", "Contraseña incorrecta")
+        );
+      } else if (status === 400) {
+        const details = errorData?.detalles;
+        if (Array.isArray(details)) {
+          details.forEach((detail: string) => toast.error(detail));
+        } else {
+          toast.error(
+            errorData?.error ||
+              t("deleteAccount.errors.invalidData", "Datos inválidos")
+          );
+        }
+      } else if (status === 403) {
+        toast.error(
+          errorData?.mensaje ||
+            t(
+              "deleteAccount.errors.accountInactive",
+              "Tu cuenta ya ha sido eliminada o desactivada"
+            )
+        );
+        setTimeout(() => {
+          logout();
+          navigate("/auth/login");
+        }, 2000);
+      } else if (status === 404) {
+        toast.error(
+          t("deleteAccount.errors.userNotFound", "Usuario no encontrado")
+        );
+        setTimeout(() => {
+          logout();
+          navigate("/auth/login");
+        }, 2000);
+      } else {
+        toast.error(
+          errorData?.error ||
+            error.message ||
+            t(
+              "deleteAccount.errors.generic",
+              "Error al eliminar la cuenta. Intenta nuevamente."
+            )
+        );
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -55,6 +166,35 @@ function DeleteAccountPage() {
               <li>{t("deleteAccount.consequence4")}</li>
             </ul>
           </div>
+
+          {/* Formulario de eliminación */}
+          <div className="w-full max-w-md mt-4">
+            <div className="mb-4">
+              <label htmlFor="confirmation" className="block text-sm font-medium mb-2">
+                {t(
+                  "deleteAccount.confirmationLabel",
+                  'Escribe "ELIMINAR CUENTA" para confirmar'
+                )}
+              </label>
+              <MCInput
+                name="confirmation"
+                type="text"
+                placeholder={t("deleteAccount.placeholder", "Type DELETE ACCOUNT to confirm")}
+                value={confirmation}
+                onChange={(e) => setConfirmation(e.target.value)}
+                disabled={isSubmitting}
+                required
+                standalone={true}
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                {t(
+                  "deleteAccount.confirmationHint",
+                  "Debe ser exactamente: ELIMINAR CUENTA (mayúsculas)"
+                )}
+              </p>
+            </div>
+          </div>
+
           <div
             className={`flex gap-4 mt-6 ${isMobile ? "flex-col w-full" : ""}`}
           >
@@ -63,6 +203,7 @@ function DeleteAccountPage() {
               variant="outline"
               className={isMobile ? "w-full" : ""}
               onClick={() => navigate("/settings")}
+              disabled={isSubmitting}
             >
               {t("deleteAccount.cancelButton")}
             </MCButton>
@@ -71,8 +212,11 @@ function DeleteAccountPage() {
               variant="delete"
               className={isMobile ? "w-full" : ""}
               onClick={handleSubmit}
+              disabled={isSubmitting}
             >
-              {t("deleteAccount.deleteButton")}
+              {isSubmitting
+                ? t("deleteAccount.deleting", "Eliminando...")
+                : t("deleteAccount.deleteButton")}
             </MCButton>
           </div>
         </div>

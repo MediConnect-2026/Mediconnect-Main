@@ -16,6 +16,7 @@ import {
   type ChartConfig,
 } from "@/shared/ui/chart";
 import { useTranslation } from "react-i18next";
+import { formatCurrency } from "@/utils/formatCurrency";
 
 interface ChartDataItem {
   day: string;
@@ -30,70 +31,22 @@ interface AreaChartProps {
   dateRange?: "week" | "month" | "3months" | "year" | "all";
 }
 
-const chartConfig: ChartConfig = {
-  consultas: {
-    label: "Consultas",
-    color: "var(--accent)",
-  },
-  ingresos: {
-    label: "Ingresos",
-    color: "var(--secondary)",
-  },
-};
-
-// Datos por período
-const dataByPeriod: Record<string, ChartDataItem[]> = {
-  week: [
-    { day: "Lun", consultas: 120, ingresos: 3500 },
-    { day: "Mar", consultas: 180, ingresos: 4200 },
-    { day: "Mié", consultas: 150, ingresos: 3900 },
-    { day: "Jue", consultas: 200, ingresos: 4800 },
-    { day: "Vie", consultas: 170, ingresos: 4100 },
-    { day: "Sáb", consultas: 90, ingresos: 2100 },
-    { day: "Dom", consultas: 60, ingresos: 1500 },
-  ],
-  month: [
-    { day: "Sem 1", consultas: 580, ingresos: 16500 },
-    { day: "Sem 2", consultas: 720, ingresos: 19800 },
-    { day: "Sem 3", consultas: 650, ingresos: 18200 },
-    { day: "Sem 4", consultas: 800, ingresos: 22400 },
-  ],
-  "3months": [
-    { day: "Ene", consultas: 2400, ingresos: 68000 },
-    { day: "Feb", consultas: 2200, ingresos: 62000 },
-    { day: "Mar", consultas: 2750, ingresos: 77000 },
-  ],
-  year: [
-    { day: "Ene", consultas: 2400, ingresos: 68000 },
-    { day: "Feb", consultas: 2200, ingresos: 62000 },
-    { day: "Mar", consultas: 2750, ingresos: 77000 },
-    { day: "Abr", consultas: 2600, ingresos: 72000 },
-    { day: "May", consultas: 2900, ingresos: 81000 },
-    { day: "Jun", consultas: 2500, ingresos: 70000 },
-    { day: "Jul", consultas: 2300, ingresos: 65000 },
-    { day: "Ago", consultas: 2700, ingresos: 75000 },
-    { day: "Sep", consultas: 2800, ingresos: 78000 },
-    { day: "Oct", consultas: 3000, ingresos: 84000 },
-    { day: "Nov", consultas: 2850, ingresos: 79000 },
-    { day: "Dic", consultas: 2400, ingresos: 67000 },
-  ],
-  all: [
-    { day: "2021", consultas: 18000, ingresos: 510000 },
-    { day: "2022", consultas: 22000, ingresos: 620000 },
-    { day: "2023", consultas: 26000, ingresos: 730000 },
-    { day: "2024", consultas: 30000, ingresos: 850000 },
-    { day: "2025", consultas: 8500, ingresos: 240000 },
-  ],
-};
-
-function AreaChart({
-  data,
-  showFooter = false,
-  height = 250,
-  dateRange = "week",
-}: AreaChartProps) {
+function AreaChart({ data, showFooter = false, height = 250 }: AreaChartProps) {
   // Usar datos personalizados o datos según el período seleccionado
-  const chartData = data || dataByPeriod[dateRange];
+  const chartData = data;
+
+  const { t } = useTranslation("doctor");
+
+  const chartConfig: ChartConfig = {
+    consultas: {
+      label: t("dashboard.metrics.totalAppointments"),
+      color: "var(--accent)",
+    },
+    ingresos: {
+      label: t("dashboard.metrics.totalEarned"),
+      color: "var(--secondary)",
+    },
+  };
 
   return (
     <Card className="h-full flex flex-col rounded-3xl border-none shadow-none p-0 m-0">
@@ -123,7 +76,49 @@ function AreaChart({
                 orientation="right"
                 stroke="var(--primary)"
               />
-              <Tooltip content={<ChartTooltipContent indicator="dot" />} />
+              <Tooltip
+                content={
+                  <ChartTooltipContent
+                    indicator="dot"
+                    formatter={(value, name) => {
+                      if (name === "ingresos") {
+                        return (
+                          <div className="flex w-full flex-wrap items-center gap-2">
+                            <div
+                              className="h-2.5 w-2.5 shrink-0 rounded-[2px]"
+                              style={{ backgroundColor: "var(--secondary)" }}
+                            />
+                            <div className="flex flex-1 justify-between leading-none items-center">
+                              <span className="text-muted-foreground font-bold">
+                                {chartConfig.ingresos.label}
+                              </span>
+                              <span className="text-foreground font-mono font-medium tabular-nums ml-3">
+                                {formatCurrency(value)}
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      }
+                      return (
+                        <div className="flex w-full flex-wrap items-center gap-2">
+                          <div
+                            className="h-2.5 w-2.5 shrink-0 rounded-[2px]"
+                            style={{ backgroundColor: "var(--accent)" }}
+                          />
+                          <div className="flex flex-1 justify-between leading-none items-center">
+                            <span className="text-muted-foreground font-bold">
+                              {chartConfig.consultas.label}
+                            </span>
+                            <span className="text-foreground font-mono font-medium tabular-nums ml-3">
+                              {Number(value).toLocaleString()}
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    }}
+                  />
+                }
+              />
 
               {/* Área de Consultas - sin stackId para que no se apile */}
               <Area

@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/avatar";
 import { MCUserAvatar } from "@/shared/navigation/userMenu/MCUserAvatar";
 import { useTranslation } from "react-i18next";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
+import { formatTimeTo12h } from "@/utils/appointmentMapper";
 
 interface ListViewProps {
   appointments: Appointment[];
@@ -23,7 +24,7 @@ export const ListView = ({
   const { t } = useTranslation("common");
   const isMobile = useIsMobile();
   const today = startOfToday();
-  const userRole = useAppStore((state) => state.user?.role);
+  const userRole = useAppStore((state) => state.user?.rol);
 
   const statusLabels: Record<AppointmentStatus, string> = {
     scheduled: t("calendar.status.scheduled"),
@@ -84,7 +85,9 @@ export const ListView = ({
   return (
     <div className="flex-1 overflow-auto p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6 h-full">
       {Object.entries(groupedAppointments).map(([dateKey, dayAppointments]) => {
-        const date = new Date(dateKey);
+        // Parsear el dateKey correctamente para evitar problemas de zona horaria
+        const [year, month, day] = dateKey.split('-').map(Number);
+        const date = new Date(year, month - 1, day);
         const isToday = isSameDay(date, today);
 
         return (
@@ -202,7 +205,7 @@ export const ListView = ({
                         <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
                           <span className="flex items-center gap-1">
                             <Clock className="w-3 h-3 flex-shrink-0" />
-                            {apt.time} - {apt.duration} min
+                            {formatTimeTo12h(apt.time)} - {apt.duration} min
                           </span>
                           {!isMobile && <span className="mx-1">·</span>}
                           {apt.modality === "presencial" ? (

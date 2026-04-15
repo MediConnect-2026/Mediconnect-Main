@@ -7,13 +7,25 @@ import MCTextArea from "@/shared/components/forms/MCTextArea";
 import { useProfileStore } from "@/stores/useProfileStore";
 import { MCUserAvatar } from "@/shared/navigation/userMenu/MCUserAvatar";
 import { MCUserBanner } from "../../MCUserBanner";
-import { Trash2 } from "lucide-react";
+import { Trash2, Loader2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { MCDialogBase } from "@/shared/components/MCDialogBase";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { doctorProfileSchema } from "@/schema/profile.schema";
+import type { UseFormReturn } from "react-hook-form";
 import MCPhoneInput from "@/shared/components/forms/MCPhoneInput";
+import { useAppStore } from "@/stores/useAppStore";
+import { getUserAvatar, getUserFullName } from "@/services/auth/auth.types";
+import { especialidadesService } from "@/features/onboarding/services/especialidades.service";
+import type { SelectOption } from "@/features/onboarding/services/especialidades.types";
+import i18n from "@/i18n/config";
+import { doctorService } from "./services/doctor.service";
+import type { UpdateDoctorProfileRequest } from "./services/doctor.types";
+import { toast } from "sonner";
+import { base64ToFile } from "@/utils/base64ToFile";
+import { formatPhone } from "@/utils/phoneFormat";
+import { formatDominicanCedula } from "@/utils/identityDocument";
 type CropType = "banner" | "profile";
 
 interface GeneralInformationProps {
@@ -25,23 +37,125 @@ function GeneralInformation({ onOpenChange }: GeneralInformationProps) {
   const isMobile = useIsMobile();
   const doctorProfile = useProfileStore((s) => s.doctorProfile);
   const setDoctorProfile = useProfileStore((s) => s.setDoctorProfile);
+  const user = useAppStore((s) => s.user);
 
   const [cropModalOpen, setCropModalOpen] = useState(false);
   const [cropType, setCropType] = useState<CropType>("profile");
   const [tempImage, setTempImage] = useState<string>("");
+  const [especialidadesOptions, setEspecialidadesOptions] = useState<SelectOption[]>([]);
+  const [loadingEspecialidades, setLoadingEspecialidades] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Guardar las imágenes originales para detectar cambios
+  const originalProfileImage = getUserAvatar(user) || "";
+  const originalBannerImage = user?.doctor?.banner || user?.banner || "";
+
+  // Opciones de nacionalidad
+  const nationalityOptions = [
+    {
+      value: "dominicana",
+      label: t("personalIdentificationStep.nationalityOptions.dominicana", { ns: "auth" }),
+    },
+    {
+      value: "estadounidense",
+      label: t("personalIdentificationStep.nationalityOptions.estadounidense", { ns: "auth" }),
+    },
+    {
+      value: "mexicana",
+      label: t("personalIdentificationStep.nationalityOptions.mexicana", { ns: "auth" }),
+    },
+    {
+      value: "colombiana",
+      label: t("personalIdentificationStep.nationalityOptions.colombiana", { ns: "auth" }),
+    },
+    {
+      value: "venezolana",
+      label: t("personalIdentificationStep.nationalityOptions.venezolana", { ns: "auth" }),
+    },
+    {
+      value: "otra",
+      label: t("personalIdentificationStep.nationalityOptions.otra", { ns: "auth" }),
+    },
+  ];
+
+  const formattedIdentityDocument = useMemo(
+    () => formatDominicanCedula(user?.doctor?.numeroDocumentoIdentificacion),
+    [user?.doctor?.numeroDocumentoIdentificacion]
+  );
+
+  const formattedLicenseNumber = useMemo(() => {
+    const rawValue = String(user?.doctor?.exequatur || "").replace(/\D/g, "").slice(0, 5);
+    if (rawValue.length <= 3) return rawValue;
+    return `${rawValue.slice(0, 3)}-${rawValue.slice(3)}`;
+  }, [user?.doctor?.exequatur]);
+  
+  // Mapear los datos del doctor a los valores del formulario
+  const defaultValues = useMemo(
+    () =>
+      user?.doctor
+        ? {
+            role: "DOCTOR" as const,
+            name: user.doctor.nombre || "",
+            lastName: user.doctor.apellido || "",
+            specialty:
+              user.doctor.especialidades?.find((e) => e.es_principal)
+                ?.id_especialidad?.toString() || "",
+            secondarySpecialties:
+              user.doctor.especialidades
+                ?.filter((e) => !e.es_principal)
+                .map((e) => e.id_especialidad.toString()) || [],
+            email: user.email || "",
+            phone: formatPhone(user.telefono || ""),
+            yearsExperience: user.doctor.anosExperiencia?.toString() || "",
+            licenseNumber: user.doctor.exequatur || "",
+            identityDocument: formattedIdentityDocument,
+            nationality: user.doctor.nacionalidad || "",
+            birthDate: user.doctor.fechaNacimiento ? user.doctor.fechaNacimiento.split('T')[0] : "",
+            biography: user.doctor.biografia || "",
+          }
+        : undefined,
+    [user, formattedIdentityDocument]
+  );
 
   const [bannerImage, setBannerImage] = useState<string>(
-    doctorProfile?.banner?.url || "",
+    user?.doctor?.banner || user?.banner || "",
   );
   const [profileImage, setProfileImage] = useState<string>(
-    doctorProfile?.avatar?.url || "",
+    user?.doctor?.fotoPerfil || user?.fotoPerfil || "",
   );
 
   const bannerInputRef = useRef<HTMLInputElement>(null);
   const profileInputRef = useRef<HTMLInputElement>(null);
+  const formRef = useRef<UseFormReturn<any> | null>(null);
 
   const [showDeleteProfileModal, setShowDeleteProfileModal] = useState(false);
   const [showDeleteBannerModal, setShowDeleteBannerModal] = useState(false);
+
+  // Cargar especialidades con soporte multilenguaje
+  useEffect(() => {
+    const loadEspecialidades = async () => {
+      setLoadingEspecialidades(true);
+      try {
+        const language = i18n.language === "es" ? undefined : i18n.language;
+        const options = await especialidadesService.getAllActiveEspecialidades(language);
+        setEspecialidadesOptions(options);
+      } catch (error) {
+        console.error("Error cargando especialidades:", error);
+        setEspecialidadesOptions([]);
+      } finally {
+        setLoadingEspecialidades(false);
+      }
+    };
+
+    loadEspecialidades();
+  }, [i18n.language]);
+
+  // Resetear el formulario cuando cambien los defaultValues
+  useEffect(() => {
+    if (formRef.current && defaultValues) {
+      formRef.current.reset(defaultValues);
+    }
+  }, [defaultValues]);
 
   const handleImageChange = (
     e: React.ChangeEvent<HTMLInputElement>,
@@ -85,28 +199,150 @@ function GeneralInformation({ onOpenChange }: GeneralInformationProps) {
     setShowDeleteBannerModal(false);
   };
 
-  const handleSubmit = (data: any) => {
-    if (data && doctorProfile) {
-      setDoctorProfile({
-        ...doctorProfile,
-        ...data,
-        yearsExperience:
-          data.yearsExperience !== undefined && data.yearsExperience !== ""
-            ? Number(data.yearsExperience)
-            : undefined,
-        secondarySpecialties: Array.isArray(data.secondarySpecialties)
-          ? data.secondarySpecialties
-          : data.secondarySpecialties
-            ? [data.secondarySpecialties]
-            : [],
-        avatar: profileImage
-          ? { url: profileImage, type: "image", name: "avatar" }
-          : undefined,
-        banner: bannerImage
-          ? { url: bannerImage, type: "image", name: "banner" }
-          : undefined,
-      });
-      onOpenChange(false);
+  const handleSubmit = async (data: any) => {
+    if (!user) {
+      toast.error(t("profileForm.errorNoUser"));
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      // 1. Si la foto de perfil cambió, actualizarla primero
+      let newProfilePhotoUrl = originalProfileImage;
+      const profileImageChanged = profileImage !== originalProfileImage && profileImage;
+
+      if (profileImageChanged) {
+        try {
+          // Convertir la imagen base64 a File
+          const photoFile = base64ToFile(
+            profileImage,
+            'profile-photo.jpg',
+            'image/jpeg'
+          );
+
+          // Llamar al servicio para actualizar la foto de perfil
+          const photoResponse = await doctorService.updateProfilePhoto(photoFile);
+
+          if (photoResponse.success && photoResponse.data.fotoPerfil) {
+            // Agregar timestamp para evitar caché del navegador
+            newProfilePhotoUrl = `${photoResponse.data.fotoPerfil}?t=${Date.now()}`;
+            
+            // Actualizar también el estado local para preview inmediata
+            setProfileImage(newProfilePhotoUrl);
+            
+            toast.success(t("profileForm.photoUpdated"));
+          }
+        } catch (photoError) {
+          console.error("Error al actualizar foto de perfil:", photoError);
+          const photoErrorMessage = photoError instanceof Error 
+            ? photoError.message 
+            : t("profileForm.errorPhotoUpdate");
+          toast.error(photoErrorMessage);
+          // Continuar con la actualización de datos personales aunque falle la foto
+        }
+      }
+
+      // 2. Si el banner cambió, actualizarlo
+      let newBannerUrl = originalBannerImage;
+      const bannerImageChanged = bannerImage !== originalBannerImage && bannerImage;
+
+      if (bannerImageChanged) {
+        try {
+          // Convertir la imagen base64 a File
+          const bannerFile = base64ToFile(
+            bannerImage,
+            'banner.jpg',
+            'image/jpeg'
+          );
+
+          // Llamar al servicio para actualizar el banner
+          const bannerResponse = await doctorService.updateBanner(bannerFile);
+
+          if (bannerResponse.success && bannerResponse.data.bannerUrl) {
+            // Agregar timestamp para evitar caché del navegador
+            newBannerUrl = `${bannerResponse.data.bannerUrl}?t=${Date.now()}`;
+            
+            // Actualizar también el estado local para preview inmediata
+            setBannerImage(newBannerUrl);
+            
+            toast.success(t("profileForm.bannerUpdated"));
+          }
+        } catch (bannerError) {
+          console.error("Error al actualizar banner:", bannerError);
+          const bannerErrorMessage = bannerError instanceof Error 
+            ? bannerError.message 
+            : t("profileForm.errorBannerUpdate");
+          toast.error(bannerErrorMessage);
+          // Continuar con la actualización de datos personales aunque falle el banner
+        }
+      }
+
+      // 3. Actualizar datos personales del doctor
+      const updateData: UpdateDoctorProfileRequest = {
+        nombre: data.name || undefined,
+        apellido: data.lastName || undefined,
+        telefono: data.phone || undefined,
+        biografia: data.biography || undefined,
+        anosExperiencia: data.yearsExperience ? Number(data.yearsExperience) : undefined,
+        fechaNacimiento: data.birthDate || undefined,
+        nacionalidad: data.nationality || undefined,
+      };
+
+      // Llamar al servicio para actualizar el perfil
+      const response = await doctorService.updateProfile(updateData);
+
+      if (response.success) {
+        // Actualizar el usuario en el store con los nuevos datos
+        useAppStore.getState().updateUser({
+          ...user,
+          fotoPerfil: newProfilePhotoUrl,
+          telefono: data.phone || user.telefono,
+          banner: newBannerUrl || null,
+          doctor: user.doctor ? {
+            ...user.doctor,
+            ...response.data,
+            fotoPerfil: newProfilePhotoUrl,
+            banner: newBannerUrl || null,
+          } : null,
+        });
+
+        // Guardar avatar y banner en el store de perfil (cache local)
+        if (doctorProfile) {
+          setDoctorProfile({
+            ...doctorProfile,
+            ...data,
+            yearsExperience:
+              data.yearsExperience !== undefined && data.yearsExperience !== ""
+                ? Number(data.yearsExperience)
+                : undefined,
+            secondarySpecialties: Array.isArray(data.secondarySpecialties)
+              ? data.secondarySpecialties
+              : data.secondarySpecialties
+                ? [data.secondarySpecialties]
+                : [],
+            avatar: newProfilePhotoUrl
+              ? { url: newProfilePhotoUrl, type: "image", name: "avatar" }
+              : undefined,
+            banner: newBannerUrl
+              ? { url: newBannerUrl, type: "image", name: "banner" }
+              : undefined,
+          });
+        }
+
+        toast.success(t("profileForm.success"));
+        
+        // Cerrar el modal
+        onOpenChange(false);
+      }
+    } catch (error) {
+      console.error("Error al actualizar perfil del doctor:", error);
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : t("profileForm.error");
+      toast.error(errorMessage);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -154,9 +390,10 @@ function GeneralInformation({ onOpenChange }: GeneralInformationProps) {
 
       <MCFormWrapper
         schema={doctorProfileSchema(t)}
-        defaultValues={doctorProfile || undefined}
+        defaultValues={defaultValues}
         onSubmit={handleSubmit}
         className="flex flex-col gap-4"
+        formRef={formRef}
       >
         {/* Banner Image */}
         <div className="flex flex-col gap-3">
@@ -181,7 +418,7 @@ function GeneralInformation({ onOpenChange }: GeneralInformationProps) {
               ) : (
                 <MCUserBanner
                   name={
-                    doctorProfile?.fullName ||
+                    getUserFullName(user) ||
                     t("profileForm.fullNamePlaceholder")
                   }
                 />
@@ -247,7 +484,7 @@ function GeneralInformation({ onOpenChange }: GeneralInformationProps) {
                   ) : (
                     <MCUserAvatar
                       name={
-                        doctorProfile?.fullName ||
+                        getUserAvatar(user) ||
                         t("profileForm.fullNamePlaceholder")
                       }
                       size={isMobile ? 96 : 128}
@@ -302,29 +539,35 @@ function GeneralInformation({ onOpenChange }: GeneralInformationProps) {
 
         {/* Form Inputs */}
         <MCInput
-          name="fullName"
-          label={t("profileForm.fullName")}
+          name="name"
+          label={t("profileForm.name")}
           type="text"
-          placeholder={t("profileForm.fullNamePlaceholder")}
+          placeholder={t("profileForm.namePlaceholder")}
         />
 
         <MCInput
+          name="lastName"
+          label={t("profileForm.lastName")}
+          type="text"
+          placeholder={t("profileForm.lastNamePlaceholder")}
+        />
+
+        <MCSelect
           name="specialty"
           label={t("profileForm.specialty")}
-          type="text"
           placeholder={t("profileForm.specialtyPlaceholder")}
+          options={especialidadesOptions}
+          disabled={loadingEspecialidades}
+          searchable={true}
         />
 
         <MCSelect
           name="secondarySpecialties"
           label={t("profileForm.secondarySpecialties")}
           placeholder={t("profileForm.secondarySpecialtiesPlaceholder")}
-          options={[
-            { value: "cardiology", label: t("specialties.cardiology") },
-            { value: "dermatology", label: t("specialties.dermatology") },
-            { value: "neurology", label: t("specialties.neurology") },
-            // ...agrega más opciones según tus necesidades...
-          ]}
+          options={especialidadesOptions}
+          disabled={loadingEspecialidades}
+          searchable={true}
           multiple
         />
 
@@ -333,6 +576,7 @@ function GeneralInformation({ onOpenChange }: GeneralInformationProps) {
           label={t("profileForm.email")}
           type="email"
           placeholder={t("profileForm.emailPlaceholder")}
+          disabled
         />
 
         <MCPhoneInput
@@ -349,24 +593,30 @@ function GeneralInformation({ onOpenChange }: GeneralInformationProps) {
         />
 
         <MCInput
+          key={`license-number-${formattedLicenseNumber}`}
           name="licenseNumber"
           label={t("profileForm.licenseNumber")}
-          type="text"
+          variant="exequatur"
           placeholder={t("profileForm.licenseNumberPlaceholder")}
+          value={formattedLicenseNumber}
+          disabled
         />
 
         <MCInput
+          key={`identity-document-${formattedIdentityDocument}`}
           name="identityDocument"
           label={t("profileForm.identityDocument")}
           variant="cedula"
           placeholder={t("profileForm.identityDocumentPlaceholder")}
+          value={formattedIdentityDocument}
+          disabled
         />
 
-        <MCInput
+        <MCSelect
           name="nationality"
           label={t("profileForm.nationality")}
-          type="text"
           placeholder={t("profileForm.nationalityPlaceholder")}
+          options={nationalityOptions}
         />
 
         <MCInput
@@ -390,14 +640,23 @@ function GeneralInformation({ onOpenChange }: GeneralInformationProps) {
             size="m"
             type="submit"
             className={isMobile ? "w-full" : ""}
+            disabled={isSubmitting}
           >
-            {t("profileForm.saveChanges")}
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                {t("profileForm.saving")}
+              </>
+            ) : (
+              t("profileForm.saveChanges")
+            )}
           </MCButton>
           <MCButton
             variant="secondary"
             size="m"
             onClick={() => onOpenChange(false)}
             className={isMobile ? "w-full" : ""}
+            disabled={isSubmitting}
           >
             {t("profileForm.cancel")}
           </MCButton>

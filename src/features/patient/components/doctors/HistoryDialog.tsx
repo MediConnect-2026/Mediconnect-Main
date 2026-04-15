@@ -45,12 +45,24 @@ function HistoryCard({
   appointmentId: string;
 }) {
   const isMobile = useIsMobile();
-  const { t } = useTranslation("patient");
 
   return (
     <MedicalPrescriptionDialog
-      appointmentId={appointmentId}
-      historyId={historyItem.id || `${appointmentId}-${index}`}
+      historyItem={{
+        id: historyItem.id || `${appointmentId}-${index}`,
+        cita: {
+          id: appointmentId,
+          servicio: { nombre: historyItem.service, especialidad: { nombre: "General" } },
+          fechaFin: historyItem.date,
+          horaInicio: historyItem.time,
+          horaFin: historyItem.time,
+          totalAPagar: 0,
+          modalidad: historyItem.address,
+        },
+        nombre_diagnostico: "Consulta General",
+        descripcion_diagnostico: "Sin detalles adicionales",
+        adjuntos: []
+      }}
     >
       <div
         className={`flex bg-accent/30 dark:bg-primary/50 rounded-2xl w-full gap-4 justify-starts p-4 items-center cursor-pointer transition
