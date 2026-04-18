@@ -47,7 +47,11 @@ function LanguageDropDown({
 }: LanguageDropDownProps) {
   const language = useGlobalUIStore((state) => state.language);
   const setLanguage = useGlobalUIStore((state) => state.setLanguage);
-  const selectedLang = languages.find((l) => l.code === language);
+  const normalizedLanguage = language?.toLowerCase().startsWith("es")
+    ? "es"
+    : "en";
+  const selectedLang =
+    languages.find((l) => l.code === normalizedLanguage) ?? languages[0];
 
   return (
     <DropdownMenu>
@@ -86,7 +90,10 @@ function LanguageDropDown({
           Selecciona idioma
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuRadioGroup value={language} onValueChange={setLanguage}>
+        <DropdownMenuRadioGroup
+          value={normalizedLanguage}
+          onValueChange={setLanguage}
+        >
           {languages.map((lang) => (
             <DropdownMenuRadioItem
               key={lang.code}

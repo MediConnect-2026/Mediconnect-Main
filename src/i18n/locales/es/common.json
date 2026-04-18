@@ -39,7 +39,7 @@
   "clinicCard": {
     "connect": "Conectar",
     "connected": "Conectado",
-    "allied": "Aliado",
+    "allied": "Conectado",
     "pending": "Esperando solicitud",
     "viewProfile": "Ver perfil",
     "insurances": "Seguros:",
@@ -138,7 +138,8 @@
     "province": "Provincia",
     "municipality": "Municipio",
     "loadingProviderTypes": "Cargando tipos de proveedores...",
-    "loadingSpecialties": "Cargando especialidades..."
+    "loadingSpecialties": "Cargando especialidades...",
+    "loading": "Buscando doctores..."
   },
   "validation": {
     "emailRequired": "El correo electrónico es obligatorio",
@@ -563,6 +564,7 @@
   },
   "chatInput": {
     "recording": "Grabando...",
+    "cancelRecording": "Cancelar grabación",
     "sendImage": "Enviar imagen",
     "sendFile": "Enviar documento",
     "placeholder": "Escribe un mensaje..."
@@ -574,15 +576,20 @@
     "menu": "Menú",
     "conversations": "Conversaciones",
     "loading": "Cargando conversaciones...",
+    "loadingConversation": "Cargando conversación...",
     "searchChats": "Buscar Chats",
+    "largeUploadWarning": "Estás subiendo {{count}} archivo(s) grande(s) (>= {{size}}). Esto puede tardar unos momentos.",
     "noConversationsFound": "No se encontraron conversaciones",
     "microphoneError": "No se pudo acceder al micrófono. Verifica los permisos.",
     "noConversations": "Aún no hay conversaciones. Inicia un nuevo chat para conectar con tus doctores o pacientes.",
-    "loadingOlderMessages": "Cargando mensajes anteriores..."
+    "loadingOlderMessages": "Cargando mensajes anteriores...",
+    "fileValidationError": "No se pudo validar el archivo seleccionado.",
+    "removeInvalidAttachmentFirst": "Elimina los archivos con error antes de enviar el mensaje."
   },
   "filePreview": {
     "imageAlt": "Vista previa de imagen",
-    "fileAlt": "Vista previa de archivo"
+    "fileAlt": "Vista previa de archivo",
+    "largeUploadWarning": "Archivo grande (>= {{size}}): la subida puede tardar"
   },
   "fileViewer": {
     "imageTitle": "Vista de imagen",
@@ -662,6 +669,8 @@
     "day": "Día",
     "list": "Lista",
     "weekOf": "Semana del",
+    "loadingAppointments": "Cargando citas...",
+    "errorLoadingAppointments": "Error al cargar las citas",
     "appointmentsScheduled": "{{count}} cita programada",
     "appointmentsScheduled_plural": "{{count}} citas programadas",
     "noUpcomingAppointments": "No hay citas próximas",

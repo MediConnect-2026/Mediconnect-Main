@@ -47,14 +47,19 @@ function ServiceImagesStep({ isEditMode = false, serviceId }: Props) {
 
   useEffect(() => {
     if (storeImages && storeImages.length > 0) {
-      setImages(
-        storeImages.map((img: any) => ({
-          id: img.id ?? crypto.randomUUID(),
-          url: img.url,
-          file: img.file,
-          type: img.type,
-          name: img.name,
-        })),
+      setImages((prev) =>
+        storeImages.map((img: any) => {
+          const existing = prev.find((p) => p.url === img.url);
+
+          return {
+            // Mantener id previo si el store no trae id para evitar NaN al eliminar
+            id: String(img.id ?? existing?.id ?? crypto.randomUUID()),
+            url: img.url,
+            file: img.file,
+            type: img.type,
+            name: img.name,
+          };
+        }),
       );
     }
   }, [storeImages]);
@@ -62,6 +67,7 @@ function ServiceImagesStep({ isEditMode = false, serviceId }: Props) {
   // Sincronizar el estado local `images` con el store solo cuando haya cambios
   useEffect(() => {
     const mapped = images.map((img) => ({
+      id: img.id,
       url: img.url,
       type: img.file?.type || img.type || "image/jpeg",
       name: img.file?.name || img.name,
@@ -170,6 +176,7 @@ function ServiceImagesStep({ isEditMode = false, serviceId }: Props) {
   };
 
   const removeImage = async (id: string) => {
+    console.log("Attempting to remove image with id:", id);
     const img = images.find((i) => String(i.id) === String(id));
     if (!img) return;
 
@@ -185,7 +192,15 @@ function ServiceImagesStep({ isEditMode = false, serviceId }: Props) {
       setDeletingImageId(id);
       try {
         console.log("Attempting to remove image with id:", img);
-        const numericId = Number(img.id);
+        const fallbackStoreImage = Array.isArray(storeImages)
+          ? (storeImages as any[]).find((storedImg) => storedImg?.url === img.url)
+          : undefined;
+
+        const resolvedId = fallbackStoreImage?.id ?? img.id;
+        const numericId = Number(resolvedId);
+        if (!Number.isFinite(numericId) || numericId <= 0) {
+          throw new Error(t("createService.images.removeInvalidId", "ID de imagen inválido para eliminar"));
+        }
         await doctorService.removeImageFromService(serviceId, numericId);
         
         // Remove from local state after successful API call

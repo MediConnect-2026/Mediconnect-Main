@@ -37,7 +37,9 @@ interface Props {
   center: any;
   setOpenSheet?: (open: boolean) => void;
   isConnected?: "connected" | "not_connected" | "pending";
-  onConnect?: (id: string) => void;
+  onConnect?: (id: string, message?: string) => void;
+  onDisconnect?: (id: string) => void;
+  isConnecting?: boolean;
 }
 
 function CenterProfileBanner({
@@ -45,16 +47,32 @@ function CenterProfileBanner({
   setOpenSheet,
   isConnected = "not_connected",
   onConnect,
+  onDisconnect,
+  isConnecting = false,
 }: Props) {
   const { t } = useTranslation("center");
-  const userRole = useAppStore((state) => state.user?.rol);
+  const user = useAppStore((state) => state.user);
+  const userRole = user?.rol;
   const logoutUser = useLogout();
   const setToast = useGlobalUIStore((state) => state.setToast);
 
   const navigate = useNavigate();
   
-  const handleConfirmConnect = () => {
-    onConnect?.(center?.id);
+  const doctorVerificationStatus = user?.doctor?.estadoVerificacion;
+  const isDoctorVerified =
+    typeof doctorVerificationStatus === "string" &&
+    ["verificado", "aprobado", "approved", "aproved"].includes(
+      doctorVerificationStatus.toLowerCase().trim(),
+    );
+  const isDoctorRole = userRole === "DOCTOR" || userRole === "Doctor";
+  const disableConnectForUnverifiedDoctor = isDoctorRole && !isDoctorVerified;
+
+  const handleConfirmConnect = (message?: string) => {
+    onConnect?.(String(center?.id ?? ""), message);
+  };
+
+  const handleConfirmDisconnect = () => {
+    onDisconnect?.(String(center?.id ?? ""));
   };
 
   const handleLogout = () => {
@@ -85,9 +103,13 @@ function CenterProfileBanner({
 
   if (isConnected === "connected") {
     connectBtnText = t("profileBanner.connected");
-    connectVariant = "primary";
+    connectVariant = "outline";
   } else if (isConnected === "pending") {
     connectBtnText = t("profileBanner.pending");
+    connectBtnDisabled = true;
+  }
+
+  if (disableConnectForUnverifiedDoctor) {
     connectBtnDisabled = true;
   }
 
@@ -183,29 +205,53 @@ function CenterProfileBanner({
 
               {/* Action buttons */}
               <div className="flex items-center gap-3">
-                {userRole === "DOCTOR" ? (
-                  <ToogleConfirmConnection
-                    status={isConnected}
-                    id={parseInt(center?.id || "0")}
-                    onConfirm={handleConfirmConnect}
-                  >
-                    <MCButton
-                      variant={connectVariant}
-                      size="m"
-                      className={cn(
-                        "font-medium rounded-full transition-colors transition-opacity transition-transform duration-200 focus:outline-none px-6 py-3 text-base md:px-8 md:py-6 md:text-lg",
-                        isConnected === "connected" &&
-                          "bg-secondary hover:bg-secondary/90 text-white border-none active:bg-secondary/80",
-                        isConnected === "not_connected" &&
-                          "border-secondary text-secondary hover:bg-secondary/10 hover:border-secondary/80 active:bg-secondary/20",
-                        isConnected === "pending" &&
-                          "border-gray-300 text-gray-500 bg-gray-100 cursor-not-allowed",
-                      )}
-                      disabled={connectBtnDisabled}
-                    >
-                      {connectBtnText}
-                    </MCButton>
-                  </ToogleConfirmConnection>
+                {isDoctorRole ? (
+                  <>
+                    {isConnected === "not_connected" ? (
+                      <ToogleConfirmConnection
+                        status={isConnected}
+                        id={parseInt(center?.id || "0", 10)}
+                        onConfirm={handleConfirmConnect}
+                        isSubmitting={isConnecting}
+                        enableMessageInput
+                      >
+                        <MCButton
+                          variant={connectVariant}
+                          size="m"
+                          className={cn(
+                            "font-medium rounded-full transition-colors transition-opacity transition-transform duration-200 focus:outline-none px-6 py-3 text-base md:px-8 md:py-6 md:text-lg",
+                            isConnected === "not_connected" &&
+                              "border-secondary text-secondary hover:bg-secondary/10 hover:border-secondary/80 active:bg-secondary/20",
+                          )}
+                          disabled={connectBtnDisabled}
+                        >
+                          {connectBtnText}
+                        </MCButton>
+                      </ToogleConfirmConnection>
+                    ) : (
+                      <ToogleConfirmConnection
+                        status={isConnected}
+                        id={parseInt(center?.id || "0", 10)}
+                        onConfirm={isConnected === "connected" ? handleConfirmDisconnect : undefined}
+                        isSubmitting={isConnecting}
+                      >
+                        <MCButton
+                          variant={connectVariant}
+                          size="m"
+                          className={cn(
+                            "font-medium rounded-full transition-colors transition-opacity transition-transform duration-200 focus:outline-none px-6 py-3 text-base md:px-8 md:py-6 md:text-lg",
+                            isConnected === "connected" &&
+                              "border-emerald-500 text-emerald-700 bg-emerald-50 hover:bg-emerald-100 dark:border-emerald-400 dark:text-emerald-300 dark:bg-emerald-950/30",
+                            isConnected === "pending" &&
+                              "border-gray-300 text-gray-500 bg-gray-100 cursor-not-allowed",
+                          )}
+                          disabled={connectBtnDisabled || isConnecting}
+                        >
+                          {connectBtnText}
+                        </MCButton>
+                      </ToogleConfirmConnection>
+                    )}
+                  </>
                 ) : userRole === "CENTER" && setOpenSheet ? (
                   <MCButton
                     variant="secondary"

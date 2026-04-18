@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { Bell, User, AlertTriangle, FileText, Trash2Icon, Loader2 } from "lucide-react";
+import {
+  Bell,
+  User,
+  AlertTriangle,
+  FileText,
+  Trash2Icon,
+  Loader2,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import {
@@ -9,7 +16,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/shared/animate-ui/components/radix/dropdown-menu";
-import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
 import { useTranslation } from "react-i18next";
@@ -26,8 +32,10 @@ import {
   deleteNotificacion,
   type Notificacion,
 } from "@/services/api/notifications.service";
-import type { NotificacionEvent, ContadorNotificacionesEvent } from "@/types/WebSocketTypes";
-
+import type {
+  NotificacionEvent,
+  ContadorNotificacionesEvent,
+} from "@/types/WebSocketTypes";
 
 const typeIcon: Record<string, React.ReactNode> = {
   user: <User className="w-4 h-4" />,
@@ -41,13 +49,14 @@ function NavbarBell() {
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<"unread" | "read">("unread");
   const { t, i18n } = useTranslation("common");
-  const currentLang = i18n.language || 'es';
+  const currentLang = i18n.language || "es";
 
   // Zustand store - notificaciones
   const store = useAppStore() as any;
   const unreadCount = store?.unreadNotificationsCount ?? 0;
-  const setUnreadCount = store?.setUnreadNotificationsCount ?? (() => { });
-  const incrementUnreadCount = store?.incrementUnreadNotificationsCount ?? (() => { });
+  const setUnreadCount = store?.setUnreadNotificationsCount ?? (() => {});
+  const incrementUnreadCount =
+    store?.incrementUnreadNotificationsCount ?? (() => {});
 
   // Asegurar que notis es un array antes de filtrar
   const unread = Array.isArray(notis) ? notis.filter((n) => !n.leida) : [];
@@ -60,31 +69,33 @@ function NavbarBell() {
     try {
       setLoading(true);
       const response = await getNotificaciones(1, 50, currentLang);
-      console.log("🔔 [NavbarBell] Response from getNotificaciones:", response);
-
       const responseData = response?.data as any;
 
-      // Extraer el array dependiendo de la estructura de la API
-      if (responseData?.notificaciones && Array.isArray(responseData.notificaciones)) {
-        // Mapear traducciones si vienen en el payload general
+      if (
+        responseData?.notificaciones &&
+        Array.isArray(responseData.notificaciones)
+      ) {
         const notisTraducidas = responseData.notificaciones.map((n: any) => {
-          // Si el backend envía _translation a nivel general
           if (responseData._translation && responseData._translation.fields) {
-            // Aquí el backend en realidad no devolvió los campos reemplazados en el array directamente?
-            // Si el backend devuelve las traducciones anidadas en notification._translation:
             if (n._translation) {
-              return { ...n, titulo: n._translation.titulo || n.titulo, mensaje: n._translation.mensaje || n.mensaje };
+              return {
+                ...n,
+                titulo: n._translation.titulo || n.titulo,
+                mensaje: n._translation.mensaje || n.mensaje,
+              };
             }
           } else if (n._translation) {
-            // Fallback por si la traducción viene por notificación individual desde el inicio
-            return { ...n, titulo: n._translation.titulo || n.titulo, mensaje: n._translation.mensaje || n.mensaje };
+            return {
+              ...n,
+              titulo: n._translation.titulo || n.titulo,
+              mensaje: n._translation.mensaje || n.mensaje,
+            };
           }
           return n;
         });
 
         setNotis(notisTraducidas);
 
-        // Actualizar también el contador si viene en la misma respuesta
         if (responseData.noLeidas !== undefined) {
           setUnreadCount(responseData.noLeidas);
         }
@@ -93,13 +104,14 @@ function NavbarBell() {
       } else if (responseData && Array.isArray(responseData)) {
         setNotis(responseData);
       } else {
-        console.warn("🔔 [NavbarBell] Unknown response format:", response);
         setNotis([]);
       }
     } catch (error) {
       console.error("Error cargando notificaciones:", error);
       setNotis([]);
-      toast.error(t("notifications.loadError", "Error al cargar notificaciones"));
+      toast.error(
+        t("notifications.loadError", "Error al cargar notificaciones"),
+      );
     } finally {
       setLoading(false);
     }
@@ -111,8 +123,6 @@ function NavbarBell() {
   const loadUnreadCount = async () => {
     try {
       const response = await getUnreadNotificationsCount(currentLang);
-      console.log("🔔 [NavbarBell] Response from getUnreadNotificationsCount:", response);
-
       const resAny = response as any;
 
       if (typeof resAny === "number") {
@@ -138,18 +148,21 @@ function NavbarBell() {
     try {
       await markNotificationAsRead(notificationId);
       setNotis((prev) =>
-        prev.map((n) => (n.id === notificationId ? { ...n, leida: true } : n))
+        prev.map((n) => (n.id === notificationId ? { ...n, leida: true } : n)),
       );
 
-      // Decrementar el contador si la notificación estaba sin leer
       if (unread.some((n) => n.id === notificationId) && unreadCount > 0) {
         setUnreadCount(unreadCount - 1);
       }
 
-      toast.success(t("notifications.markedAsRead", "Notificación marcada como leída"));
+      toast.success(
+        t("notifications.markedAsRead", "Notificación marcada como leída"),
+      );
     } catch (error) {
       console.error("Error marcando notificación como leída:", error);
-      toast.error(t("notifications.markAsReadError", "Error marcando como leída"));
+      toast.error(
+        t("notifications.markAsReadError", "Error marcando como leída"),
+      );
     }
   };
 
@@ -159,13 +172,22 @@ function NavbarBell() {
   const markAllAsRead = async () => {
     try {
       await markAllNotificationsAsRead();
-      // Actualizar localmente
       setNotis((prev) => prev.map((n) => ({ ...n, leida: true })));
       setUnreadCount(0);
-      toast.success(t("notifications.allMarkedAsRead", "Todas las notificaciones marcadas como leídas"));
+      toast.success(
+        t(
+          "notifications.allMarkedAsRead",
+          "Todas las notificaciones marcadas como leídas",
+        ),
+      );
     } catch (error) {
       console.error("Error marcando todas como leídas:", error);
-      toast.error(t("notifications.markAllAsReadError", "Error marcando todas como leídas"));
+      toast.error(
+        t(
+          "notifications.markAllAsReadError",
+          "Error marcando todas como leídas",
+        ),
+      );
     }
   };
 
@@ -175,17 +197,17 @@ function NavbarBell() {
       setNotis((prev) => prev.filter((n) => n.id !== id));
       toast.success(t("notifications.deleted", "Notificación eliminada"));
 
-      // Ajustar contador si la notificación borrada era "no leída"
       if (unread.some((n) => n.id === id) && unreadCount > 0) {
         setUnreadCount(unreadCount - 1);
       }
     } catch (error) {
       console.error("Error eliminando notificación:", error);
-      toast.error(t("notifications.deleteError", "Error al eliminar la notificación"));
+      toast.error(
+        t("notifications.deleteError", "Error al eliminar la notificación"),
+      );
     }
   };
 
-  // Escuchar estado de conexión para suscribirse a WebSocket
   const connectionStatus = useAppStore((state) => state.connectionStatus);
 
   /**
@@ -202,16 +224,11 @@ function NavbarBell() {
   useEffect(() => {
     if (connectionStatus !== "connected") return;
 
-    // Suscribirse a nuevas notificaciones
     const unsubscribeNewNotification = socketService.onNewNotification(
       (event: NotificacionEvent & { _translation?: any }) => {
-        console.log("📢 Nueva notificación recibida:", event);
-
-        // Si viene con traducción por WebSocket, usarla
         const titulo = event._translation?.titulo || event.titulo;
         const mensaje = event._translation?.mensaje || event.mensaje;
 
-        // Agregar a la lista
         const newNotification: Notificacion = {
           id: event.id,
           titulo,
@@ -224,32 +241,23 @@ function NavbarBell() {
         };
 
         setNotis((prev) => [newNotification, ...prev]);
-
-        // Incrementar contador
         incrementUnreadCount(1);
 
-        // Mostrar toast
-        toast.info(titulo, {
-          description: mensaje,
-        });
-      }
+        toast.info(titulo, { description: mensaje });
+      },
     );
 
-    // Suscribirse a actualizaciones del contador
     const unsubscribeCounterUpdate = socketService.onUnreadNotificationsCount(
       (event: ContadorNotificacionesEvent) => {
-        console.log("🔔 Contador de no leídas actualizado:", event.contador);
         setUnreadCount(event.contador);
-      }
+      },
     );
 
-    // Limpiar suscripciones al desmontar (o si se desconecta)
     return () => {
       unsubscribeNewNotification();
       unsubscribeCounterUpdate();
     };
   }, [connectionStatus, setUnreadCount, incrementUnreadCount]);
-
 
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
@@ -270,16 +278,11 @@ function NavbarBell() {
               open ? "text-background" : "text-primary/70",
             )}
           />
+          {/* Badge unificado — mismo estilo que el de mensajes */}
           {unreadCount > 0 && (
-            <Badge
-              className={cn(
-                "absolute -top-2 -right-2 transition-transform duration-300",
-                open ? "" : "opacity-80 ",
-              )}
-              variant="destructive"
-            >
-              {unreadCount}
-            </Badge>
+            <span className="absolute -top-2 -right-2 flex min-w-5 h-5 px-1 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-white shadow-sm ring-2 ring-background">
+              {unreadCount > 99 ? "99+" : unreadCount}
+            </span>
           )}
         </button>
       </DropdownMenuTrigger>
@@ -300,7 +303,6 @@ function NavbarBell() {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
 
-        {/* Tabs usando el componente Tabs */}
         <div className="px-4 pt-2">
           <Tabs
             defaultValue="unread"
@@ -310,17 +312,13 @@ function NavbarBell() {
             <TabsList className="flex w-full gap-1 rounded-lg p-2">
               <TabsTrigger
                 value="unread"
-                className={cn(
-                  "flex-1 text-xs font-medium py-3 rounded-md transition-all duration-200",
-                )}
+                className="flex-1 text-xs font-medium py-3 rounded-md transition-all duration-200"
               >
                 {t("notifications.unread", "No leídas")} ({unread.length})
               </TabsTrigger>
               <TabsTrigger
                 value="read"
-                className={cn(
-                  "flex-1 text-xs font-medium py-3 px-3 rounded-md transition-all duration-200",
-                )}
+                className="flex-1 text-xs font-medium py-3 px-3 rounded-md transition-all duration-200"
               >
                 {t("notifications.read", "Leídas")} ({read.length})
               </TabsTrigger>
@@ -351,14 +349,11 @@ function NavbarBell() {
                           <div className="w-2 h-2 rounded-full bg-secondary" />
                         </div>
                         {/* Icon */}
-                        <div
-                          className={cn(
-                            "flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center",
-                            "bg-accent text-accent-foreground",
-                          )}
-                        >
+                        <div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center bg-accent text-accent-foreground">
                           {notification.tipoEntidad ? (
-                            typeIcon[notification.tipoEntidad] || <Bell className="w-4 h-4" />
+                            typeIcon[notification.tipoEntidad] || (
+                              <Bell className="w-4 h-4" />
+                            )
                           ) : (
                             <Bell className="w-4 h-4" />
                           )}
@@ -382,11 +377,7 @@ function NavbarBell() {
                               e.stopPropagation();
                               removeNotification(notification.id);
                             }}
-                            className={cn(
-                              "p-1.5 rounded-full transition-all",
-                              " text-primary/70  ",
-                              "hover:bg-red-500/10 hover:text-red-500 ",
-                            )}
+                            className="p-1.5 rounded-full transition-all text-primary/70 hover:bg-red-500/10 hover:text-red-500"
                             title={t("actions.delete", "Eliminar")}
                           >
                             <Trash2Icon className="w-3.5 h-3.5" />
@@ -398,6 +389,7 @@ function NavbarBell() {
                 )}
               </div>
             </TabsContent>
+
             <TabsContent value="read">
               <div className="max-h-72 overflow-y-auto">
                 {read.length === 0 ? (
@@ -416,14 +408,11 @@ function NavbarBell() {
                           <div className="w-2 h-2 rounded-full bg-[hsl(var(--notification-success))]" />
                         </div>
                         {/* Icon */}
-                        <div
-                          className={cn(
-                            "flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center",
-                            "bg-accent text-accent-foreground",
-                          )}
-                        >
+                        <div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center bg-accent text-accent-foreground">
                           {notification.tipoEntidad ? (
-                            typeIcon[notification.tipoEntidad] || <Bell className="w-4 h-4" />
+                            typeIcon[notification.tipoEntidad] || (
+                              <Bell className="w-4 h-4" />
+                            )
                           ) : (
                             <Bell className="w-4 h-4" />
                           )}
@@ -444,11 +433,7 @@ function NavbarBell() {
                         <div className="flex items-center gap-1 flex-shrink-0">
                           <button
                             onClick={() => removeNotification(notification.id)}
-                            className={cn(
-                              "p-1.5 rounded-full transition-all",
-                              " text-primary/70  ",
-                              "hover:bg-red-500/10 hover:text-red-500 ",
-                            )}
+                            className="p-1.5 rounded-full transition-all text-primary/70 hover:bg-red-500/10 hover:text-red-500"
                             title={t("actions.delete", "Eliminar")}
                           >
                             <Trash2Icon className="w-3.5 h-3.5" />

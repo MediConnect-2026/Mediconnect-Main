@@ -2,6 +2,8 @@ import apiClient from '@/services/api/client';
 import API_ENDPOINTS from '@/services/api/endpoints';
 import type {
   CenterProfileTranslationParams,
+  DoctorAllianceRequestPayload,
+  CreateDoctorAllianceRequestResponse,
   GetCenterAllianceRequestsResponse,
   UpdateAllianceRequestStatusPayload,
   UpdateAllianceRequestStatusResponse,
@@ -61,6 +63,34 @@ import type {
  * Servicio para gestionar el perfil del doctor autenticado
  */
 export const doctorService = {
+  createAllianceRequest: async (
+    payload: DoctorAllianceRequestPayload,
+  ): Promise<CreateDoctorAllianceRequestResponse> => {
+    try {
+      const { data } = await apiClient.post<CreateDoctorAllianceRequestResponse>(
+        API_ENDPOINTS.DOCTORES.SOLICITUDES_ALIANZA,
+        payload,
+      );
+
+      if (!data.success) {
+        const message =
+          typeof data.message === 'string'
+            ? data.message
+            : 'No se pudo enviar la solicitud de alianza.';
+        throw new Error(message);
+      }
+
+      return data;
+    } catch (error: any) {
+      const apiMessage = error?.response?.data?.message;
+      if (typeof apiMessage === 'string' && apiMessage.trim().length > 0) {
+        throw new Error(apiMessage);
+      }
+
+      throw new Error('No se pudo enviar la solicitud de alianza.');
+    }
+  },
+
   /**
    * Obtiene el perfil completo del doctor autenticado
    * @returns Respuesta con los datos del perfil del doctor

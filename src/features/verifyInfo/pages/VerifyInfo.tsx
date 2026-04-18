@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import MCDashboardContent from "@/shared/layout/MCDashboardContent";
 import { useVerifyInfoStore } from "@/stores/useVerifyInfoStore";
 import { useAppStore } from "@/stores/useAppStore";
@@ -18,6 +18,7 @@ import type { AppUserRole } from "@/services/auth/auth.types";
 import { useDoctorProfile } from "@/lib/hooks/useDoctorProfile";
 import { useCenterProfile } from "@/lib/hooks/useCenterProfile";
 import { useCenterDocuments } from "@/lib/hooks/useCenterDocuments";
+import { doctorService } from "@/shared/navigation/userMenu/editProfile/doctor/services";
 import type { Doctor } from "@/shared/navigation/userMenu/editProfile/doctor/services/doctor.types";
 import { useTranslation } from "react-i18next";
 import VerifyInfoSkeleton from "../components/VerifyInfoSkeleton";
@@ -26,6 +27,8 @@ import centerService from "@/shared/navigation/userMenu/editProfile/center/servi
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { QUERY_KEYS } from "@/lib/react-query/config";
+import { socketService } from "@/services/websocket";
+import type { NotificacionEvent } from "@/types/WebSocketTypes";
 import type {
   UpdateCenterLocationRequest,
   UpdateCenterLocationResponse,
@@ -77,6 +80,7 @@ function VerifyInfo() {
 
   const {
     data: centerDocsResponse,
+    refetch: refetchCenterDocuments,
   } = useCenterDocuments({
     // Keep sidebar progress status accurate from first render.
     // If we fetch only when opening the documents tab, status jumps from
@@ -85,6 +89,108 @@ function VerifyInfo() {
     language: i18n.language,
     staleTime: 1000 * 60 * 15,
   });
+
+  const isVerificationNotification = (event: NotificacionEvent): boolean => {
+    const normalizeText = (value?: string) =>
+      String(value || "")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase();
+
+    const entityHints = [
+      "documento",
+      "document",
+      "verificacion",
+      "verification",
+      "info personal",
+      "información personal",
+      "personal_info",
+      "estadoinfopersonal",
+    ];
+
+    const statusHints = [
+      "aprob",
+      "approved",
+      "rechaz",
+      "rejected",
+      "pendient",
+      "pending",
+      "revision",
+      "review",
+    ];
+
+    const entity = normalizeText(event.tipoEntidad);
+    const title = normalizeText(event.titulo);
+    const message = normalizeText(event.mensaje);
+    const alertType = normalizeText(event.tipoAlerta);
+    const haystack = `${title} ${message} ${alertType}`;
+
+    const hasVerificationEntity = entityHints.some((hint) =>
+      entity.includes(hint),
+    );
+
+    const hasVerificationText =
+      entityHints.some((hint) => haystack.includes(hint)) &&
+      statusHints.some((hint) => haystack.includes(hint));
+
+    return hasVerificationEntity || hasVerificationText;
+  };
+
+  const isRefreshingFromNotificationRef = useRef(false);
+  const lastNotificationRefreshAtRef = useRef(0);
+
+  useEffect(() => {
+    const refreshFromNotification = async () => {
+      const now = Date.now();
+      if (
+        isRefreshingFromNotificationRef.current ||
+        now - lastNotificationRefreshAtRef.current < 1200
+      ) {
+        return;
+      }
+
+      isRefreshingFromNotificationRef.current = true;
+      lastNotificationRefreshAtRef.current = now;
+
+      try {
+        if (isDoctor) {
+          await queryClient.invalidateQueries({
+            queryKey: [...QUERY_KEYS.DOCTORS, "me"],
+          });
+          await refetchDoctor();
+          return;
+        }
+
+        await Promise.all([
+          queryClient.invalidateQueries({
+            queryKey: [...QUERY_KEYS.CENTERS, "me"],
+          }),
+          queryClient.invalidateQueries({
+            queryKey: [...QUERY_KEYS.CENTERS, "documents", "my"],
+          }),
+          refetchCenter(),
+          refetchCenterDocuments(),
+        ]);
+      } finally {
+        isRefreshingFromNotificationRef.current = false;
+      }
+    };
+
+    const unsubscribe = socketService.onNewNotification((event) => {
+      if (!event || !isVerificationNotification(event)) return;
+      void refreshFromNotification();
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [
+    isDoctor,
+    queryClient,
+    refetchDoctor,
+    refetchCenter,
+    refetchCenterDocuments,
+  ]);
 
   // Transformar datos del doctor del API al formato esperado por el componente
   const transformDoctorData = (
@@ -102,7 +208,8 @@ function VerifyInfo() {
       .filter(Boolean) || [];
 
     
-    const secondarySpecialty = secondarySpecialties.length > 0 ? secondarySpecialties.join(", ") : undefined;
+    const secondarySpecialty =
+      secondarySpecialties.length > 0 ? secondarySpecialties[0] : undefined;
 
     // Mapear estado de verificación
     const verificationStatusMap: Record<
@@ -129,7 +236,9 @@ function VerifyInfo() {
       comentarioVerificacion:
         doctor.comentarioVerificacion || undefined,
       verificationStatus:
-        verificationStatusMap[doctor.estadoVerificacion] || "PENDING",
+        verificationStatusMap[
+          ((doctor as any).estadoInfoPersonal ?? doctor.estadoVerificacion) as string
+        ] || "PENDING",
     };
   };
 
@@ -312,7 +421,10 @@ function VerifyInfo() {
       },
       comentarioVerificacion:
         payload.comentarioVerificacion || payload.comentario_verificacion || payload.comentario || payload.feedback || undefined,
-      verificationStatus: verificationStatusMap[payload.estadoVerificacion] || "PENDING",
+      verificationStatus:
+        verificationStatusMap[
+          (payload.estadoInfoPersonal ?? payload.estadoVerificacion) as string
+        ] || "PENDING",
     };
   };
 
@@ -493,12 +605,53 @@ function VerifyInfo() {
     };
 
     if (isDoctor) {
-      const updatedData = {
-        ...data,
-        verificationStatus: "PENDING" as const,
-      };
-      setDoctorInfo(updatedData as DoctorPersonalInfo);
-      setIsEditing(false);
+      const next = data as DoctorPersonalInfo;
+      const prev = currentInfo as DoctorPersonalInfo;
+
+      const hasDoctorChanges =
+        normalize(next.firstName) !== normalize(prev.firstName) ||
+        normalize(next.lastName) !== normalize(prev.lastName) ||
+        normalize(next.phone) !== normalize(prev.phone) ||
+        normalize(next.nationality) !== normalize(prev.nationality);
+
+      if (!hasDoctorChanges) {
+        toast.info(t("verification.identification.noChanges"));
+        setIsEditing(false);
+        return;
+      }
+
+      setIsSubmitting(true);
+      try {
+        await doctorService.updateProfile({
+          nombre: normalize(next.firstName),
+          apellido: normalize(next.lastName),
+          telefono: normalize(next.phone),
+          nacionalidad: normalize(next.nationality),
+        });
+
+        await queryClient.invalidateQueries({
+          queryKey: [...QUERY_KEYS.DOCTORS, "me"],
+        });
+        await refetchDoctor();
+
+        const updatedData = {
+          ...next,
+          verificationStatus: "PENDING" as const,
+        };
+        setDoctorInfo(updatedData);
+        setIsEditing(false);
+        toast.success(t("verification.identification.updateSuccess"));
+      } catch (error: any) {
+        const serverMessage =
+          error?.response?.data?.message ||
+          error?.message ||
+          t("verification.identification.updateError");
+
+        toast.error(serverMessage);
+      } finally {
+        setIsSubmitting(false);
+      }
+
       return;
     }
 

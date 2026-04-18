@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
 import { useDoctorServicesStats } from "@/lib/hooks/useDoctorStats";
+import { useDoctorServicesByDoctor } from "@/lib/hooks/useDoctorServicesByDoctor";
 import MyServicesTable from "../components/healthService/MyServicesTable";
 import MCTablesLayouts from "@/shared/components/tables/MCTablesLayouts";
 import MCPDFButton from "@/shared/components/forms/MCPDFButton";
@@ -25,6 +26,7 @@ import {
   EmptyDescription,
   EmptyContent,
 } from "@/shared/ui/empty";
+import { Spinner } from "@/shared/ui/spinner";
 import MCButton from "@/shared/components/forms/MCButton";
 import {
   Filter,
@@ -38,9 +40,7 @@ import MCServiceCards from "@/shared/components/MCServiceCards";
 import FilterMyServices from "../components/filters/FilterMyServices";
 import MCNewButton from "@/shared/components/forms/MCNewButton";
 import { ROUTES } from "@/router/routes";
-import { doctorService } from "@/shared/navigation/userMenu/editProfile/doctor/services";
 import { useAppStore } from "@/stores/useAppStore";
-import type { GetServicesOfDoctor } from "@/shared/navigation/userMenu/editProfile/doctor/services";
 const ITEMS_PER_PAGE = 8;
 const TABLE_PAGE_SIZE = 15;
 
@@ -54,26 +54,34 @@ interface MyServiceFilters {
   estado: string;
 }
 
-const normalizeLanguageCode = (language?: string): "es" | "en" =>
-  language?.toLowerCase().startsWith("en") ? "en" : "es";
-
 function MyServicesPage() {
   const { t } = useTranslation("doctor");
   const { i18n } = useTranslation();
   const isMobile = useIsMobile();
   const navigate = useNavigate();
-  const currentLanguage = normalizeLanguageCode(i18n.resolvedLanguage || i18n.language);
-  const sourceLanguage = currentLanguage === "es" ? "en" : "es";
 
   const user = useAppStore((state) => state.user);
-  const [isLoading, setIsLoading] = useState(false);
-  const [services, setServices] = useState<GetServicesOfDoctor[]>([]);
+  const isDoctorVerified = useMemo(() => {
+    const rawStatus = user?.doctor?.estadoVerificacion;
+    if (typeof rawStatus !== "string") return false;
+
+    return ["verificado", "aprobado", "approved", "aproved"].includes(
+      rawStatus.toLowerCase().trim(),
+    );
+  }, [user?.doctor?.estadoVerificacion]);
+
+  const {
+    data: services = [],
+    isLoading,
+    refetch,
+  } = useDoctorServicesByDoctor({
+    doctorId: user?.id,
+    enabled: Boolean(user?.id),
+  });
 
   // Hook para obtener estadísticas de servicios desde la API
-  const { 
-    data: servicesStats, 
-    isLoading: isLoadingStats,
-  } = useDoctorServicesStats();
+  const { data: servicesStats, isLoading: isLoadingStats } =
+    useDoctorServicesStats();
 
   // Estados de vista y filtros
   const [showCards, setShowCards] = useState(() => {
@@ -95,42 +103,10 @@ function MyServicesPage() {
   const [cardsPage, setCardsPage] = useState(1);
   const [tablePage, setTablePage] = useState(1);
 
-  // Cargar servicios desde la API
-  useEffect(() => {
-    const loadServices = async () => {
-      try {
-        if (!user?.id) return;
-
-        setIsLoading(true);
-
-        const response = await doctorService.getServicesOfDoctor(
-          Number(user.id),
-          {
-            target: currentLanguage,
-            source: sourceLanguage,
-            translate_fields: "nombre,descripcion,modalidad", // Campos que deseas traducir
-          }
-        );
-        if (response && response.success && Array.isArray(response.data)) {
-          setServices(response.data);
-        } else {
-          setServices([]);
-        }
-      } catch (error) {
-        console.error("Error al cargar los servicios del doctor:", error);
-        setServices([]);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadServices();
-  }, [user?.id, currentLanguage, sourceLanguage]);
-
   // Contar filtros activos
   const activeFiltersCount = useMemo(() => {
     return Object.values(filters).filter(
-      (value) => value !== "" && value !== "all" && value !== null
+      (value) => value !== "" && value !== "all" && value !== null,
     ).length;
   }, [filters]);
 
@@ -161,14 +137,14 @@ function MyServicesPage() {
         (service) =>
           service.nombre.toLowerCase().includes(searchLower) ||
           service.especialidad.nombre.toLowerCase().includes(searchLower) ||
-          service.descripcion?.toLowerCase().includes(searchLower)
+          service.descripcion?.toLowerCase().includes(searchLower),
       );
     }
 
     // Filtro por servicio
     if (filters.servicio) {
       filtered = filtered.filter((service) =>
-        service.nombre.toLowerCase().includes(filters.servicio.toLowerCase())
+        service.nombre.toLowerCase().includes(filters.servicio.toLowerCase()),
       );
     }
 
@@ -179,7 +155,7 @@ function MyServicesPage() {
           service.especialidad.nombre
             .toLowerCase()
             .includes(filters.especialidad.toLowerCase()) ||
-          service.especialidad.id.toString() === filters.especialidad
+          service.especialidad.id.toString() === filters.especialidad,
       );
     }
 
@@ -188,24 +164,26 @@ function MyServicesPage() {
       const tipoLower = filters.modalidad.toLowerCase();
       filtered = filtered.filter((service) => {
         const modalidad = service.modalidad.toLowerCase();
-        
+
         if (tipoLower === "presencial") {
           return modalidad.includes("presencial");
         } else if (tipoLower === "virtual") {
-          return modalidad.includes("virtual") || modalidad.includes("telemedicina");
+          return (
+            modalidad.includes("virtual") || modalidad.includes("telemedicina")
+          );
         } else if (tipoLower === "mixta") {
           return modalidad.includes("mixta") || modalidad.includes("ambos");
         }
-        
+
         return modalidad.includes(tipoLower);
       });
     }
-    
+
     // Filtro por precio
     if (filters.precio) {
       filtered = filtered.filter((service) => {
         const precio = Number(service.precio);
-        
+
         switch (filters.precio) {
           case "0-1000":
             return precio >= 0 && precio <= 1000;
@@ -225,7 +203,7 @@ function MyServicesPage() {
     if (filters.duracion) {
       filtered = filtered.filter((service) => {
         const duracion = service.duracionMinutos;
-        
+
         switch (filters.duracion) {
           case "corta":
             return duracion <= 30;
@@ -244,28 +222,25 @@ function MyServicesPage() {
     // Filtro por rating
     if (filters.rating !== null && filters.rating > 0) {
       filtered = filtered.filter(
-        (service) => service.calificacionPromedio >= filters.rating!
+        (service) => service.calificacionPromedio >= filters.rating!,
       );
     }
 
     // Filtro por estado
     if (filters.estado && filters.estado !== "all") {
-      filtered = filtered.filter(
-        (service) => {
-          const estadoLower = filters.estado.toLowerCase();
-          if (estadoLower === "active") {
-            return service.estado.toLowerCase() === "activo";
-          }
-          else if (estadoLower === "inactive") {
-            return service.estado.toLowerCase() === "inactivo";
-          }
-          return service.estado.toLowerCase() === filters.estado.toLowerCase();
+      filtered = filtered.filter((service) => {
+        const estadoLower = filters.estado.toLowerCase();
+        if (estadoLower === "active") {
+          return service.estado.toLowerCase() === "activo";
+        } else if (estadoLower === "inactive") {
+          return service.estado.toLowerCase() === "inactivo";
+        }
+        return service.estado.toLowerCase() === filters.estado.toLowerCase();
       });
     }
 
     return filtered;
   }, [services, searchTerm, filters]);
-
 
   // Resetear página cuando cambien los filtros
   useEffect(() => {
@@ -281,7 +256,10 @@ function MyServicesPage() {
         service.imagenes && service.imagenes.length > 0
           ? service.imagenes[0].url
           : "https://via.placeholder.com/300x200?text=Servicio",
-      status: service.estado.toLowerCase() === "activo" ? ("active" as const) : ("inactive" as const),
+      status:
+        service.estado.toLowerCase() === "activo"
+          ? ("active" as const)
+          : ("inactive" as const),
       title: service.nombre,
       price: `RD$${service.precio}`,
       description: service.descripcion || "Sin descripción disponible",
@@ -290,7 +268,13 @@ function MyServicesPage() {
       modalidad: service.modalidad,
       isOwner: true,
       onDetails: () => navigate(`/service/${service.id}`),
-      onEdit: () => navigate(ROUTES.DOCTOR.EDIT_SERVICE.replace(":serviceId", service.id.toString())),
+      onEdit: () =>
+        navigate(
+          ROUTES.DOCTOR.EDIT_SERVICE.replace(
+            ":serviceId",
+            service.id.toString(),
+          ),
+        ),
       onDeactivate: () => handleServiceAction(service.id, "deactivate"),
       onActivate: () => handleServiceAction(service.id, "activate"),
       onDelete: () => handleServiceAction(service.id, "delete"),
@@ -305,7 +289,9 @@ function MyServicesPage() {
       especialidad: service.especialidad.nombre,
       ubicacion:
         service.ubicacion && service.ubicacion.length > 0
-          ? service.ubicacion.map((u) => u.direccion || u.barrio?.nombre || "").filter(Boolean)
+          ? service.ubicacion
+              .map((u) => u.direccion || u.barrio?.nombre || "")
+              .filter(Boolean)
           : ["Virtual"],
       modalidad: service.modalidad,
       precio: `RD$${service.precio}`,
@@ -317,7 +303,13 @@ function MyServicesPage() {
           ? service.imagenes[0].url
           : "https://via.placeholder.com/100x100?text=Servicio",
       descripcion: service.descripcion || "Sin descripción disponible",
-      onEdit: () => navigate(ROUTES.DOCTOR.EDIT_SERVICE.replace(":serviceId", service.id.toString())),
+      onEdit: () =>
+        navigate(
+          ROUTES.DOCTOR.EDIT_SERVICE.replace(
+            ":serviceId",
+            service.id.toString(),
+          ),
+        ),
       onDeactivate: () => handleServiceAction(service.id, "deactivate"),
       onActivate: () => handleServiceAction(service.id, "activate"),
       onDelete: () => handleServiceAction(service.id, "delete"),
@@ -326,7 +318,7 @@ function MyServicesPage() {
 
   // Paginación para cards
   const totalCardsPages = Math.ceil(
-    transformedServicesForCards.length / ITEMS_PER_PAGE
+    transformedServicesForCards.length / ITEMS_PER_PAGE,
   );
   const paginatedCards = useMemo(() => {
     const start = (cardsPage - 1) * ITEMS_PER_PAGE;
@@ -342,8 +334,11 @@ function MyServicesPage() {
   }, [cardsPage, totalCardsPages]);
 
   useEffect(() => {
-    if (tablePage > Math.ceil(transformedServicesForTable.length / TABLE_PAGE_SIZE) && 
-        transformedServicesForTable.length > 0) {
+    if (
+      tablePage >
+        Math.ceil(transformedServicesForTable.length / TABLE_PAGE_SIZE) &&
+      transformedServicesForTable.length > 0
+    ) {
       setTablePage(1);
     }
   }, [tablePage, transformedServicesForTable.length]);
@@ -351,21 +346,11 @@ function MyServicesPage() {
   // Handlers para acciones de servicios
   const handleServiceAction = async (
     _serviceId: number,
-    action: "activate" | "deactivate" | "delete"
+    action: "activate" | "deactivate" | "delete",
   ) => {
     try {
-      
       // Recargar servicios después de la acción
-      if (user?.id) {
-        const response = await doctorService.getServicesOfDoctor(Number(user.id), {
-          target: currentLanguage,
-          source: sourceLanguage,
-          translate_fields: "nombre,descripcion,modalidad", // Campos que deseas traducir
-        });
-        if (response?.success && Array.isArray(response.data)) {
-          setServices(response.data);
-        }
-      }
+      await refetch();
     } catch (error) {
       console.error(`Error al ${action} servicio:`, error);
     }
@@ -493,6 +478,7 @@ function MyServicesPage() {
             <MCButton
               variant="primary"
               onClick={() => navigate(ROUTES.DOCTOR.CREATE_SERVICE)}
+              disabled={!isDoctorVerified}
               className={isMobile ? "px-4 py-2" : "px-6 py-2"}
               size="sm"
             >
@@ -508,7 +494,10 @@ function MyServicesPage() {
   const loadingState = (
     <div className="flex justify-center items-center p-12 w-full">
       <div className="flex flex-col items-center gap-4">
-        <div className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
+        <Spinner
+          className="w-12 h-12"
+          aria-label={t("services.loading", "Cargando servicios...")}
+        />
         <span className="text-muted-foreground text-lg">
           {t("services.loading", "Cargando servicios...")}
         </span>
@@ -557,7 +546,7 @@ function MyServicesPage() {
                       {p}
                     </PaginationLink>
                   </PaginationItem>
-                )
+                ),
               )}
               <PaginationItem>
                 <PaginationNext
@@ -582,7 +571,11 @@ function MyServicesPage() {
     <MyServicesTable
       services={transformedServicesForTable}
       onViewDetails={(id) => navigate(`/service/${id}`)}
-      onEdit={(serviceId) => navigate(ROUTES.DOCTOR.EDIT_SERVICE.replace(":serviceId", String(serviceId)))}
+      onEdit={(serviceId) =>
+        navigate(
+          ROUTES.DOCTOR.EDIT_SERVICE.replace(":serviceId", String(serviceId)),
+        )
+      }
       onDeactivate={(id) => handleServiceAction(Number(id), "deactivate")}
       onActivate={(id) => handleServiceAction(Number(id), "activate")}
       onDelete={(id) => handleServiceAction(Number(id), "delete")}
@@ -594,6 +587,7 @@ function MyServicesPage() {
     <MCNewButton
       text={t("services.management.newService")}
       onClick={() => navigate(ROUTES.DOCTOR.CREATE_SERVICE)}
+      disabled={!isDoctorVerified}
     />
   );
 

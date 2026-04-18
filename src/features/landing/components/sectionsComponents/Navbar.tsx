@@ -90,7 +90,7 @@ function Navbar({ id, isFixed = false }: NavbarProps) {
 
       <span className="flex gap-4">
         <LanguageDropDown
-          buttonBg="transparent"
+          buttonBg="bg-transparent"
           buttonText={isFixed ? "text-primary" : "text-white"}
           borderColor={isFixed ? "border-primary" : "border-white"}
         />

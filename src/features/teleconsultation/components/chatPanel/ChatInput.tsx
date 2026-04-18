@@ -1,6 +1,6 @@
 import { useRef, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Send, Mic, ImageIcon, Paperclip } from "lucide-react";
+import { Send, Mic, ImageIcon, Paperclip, X } from "lucide-react";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
 import { useTranslation } from "react-i18next";
 
@@ -16,6 +16,7 @@ interface ChatInputProps {
   onFileSelect: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onStartRecording: () => void;
   onStopRecording: () => void;
+  onCancelRecording: () => void;
   formatDuration: (seconds: number) => string;
 }
 
@@ -31,6 +32,7 @@ export const ChatInput = ({
   onFileSelect,
   onStartRecording,
   onStopRecording,
+  onCancelRecording,
   formatDuration,
 }: ChatInputProps) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -70,6 +72,13 @@ export const ChatInput = ({
           <span className="flex-1 font-medium text-destructive text-xs md:text-sm truncate">
             {t("chatInput.recording")} {formatDuration(recordingTime)}
           </span>
+          <button
+            onClick={onCancelRecording}
+            className="bg-muted text-destructive rounded-full p-1.5 md:p-2 hover:bg-muted/80 transition-all shadow-lg flex-shrink-0"
+            title={t("chatInput.cancelRecording", "Cancelar grabación")}
+          >
+            <X size={isMobile ? 16 : 18} />
+          </button>
           <button
             onClick={onStopRecording}
             className="bg-destructive text-white rounded-full p-1.5 md:p-2 hover:bg-destructive/90 transition-all shadow-lg flex-shrink-0"

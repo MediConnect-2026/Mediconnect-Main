@@ -35,7 +35,7 @@ const MCMetricCard: React.FC<MCMetricCardProps> = ({
           <span
             className={`flex items-center justify-center ${
               isMobile ? "text-xl" : "text-2xl"
-            } text-accent-accent-foreground`}
+            } text-accent-accent-foreground dark:text-background`}
           >
             {icon}
           </span>

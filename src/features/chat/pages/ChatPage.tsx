@@ -7,8 +7,10 @@ import { useWebSocket } from "@/lib/hooks/useWebSocket";
 import { useAppStore } from "@/stores/useAppStore";
 import { useParams, useNavigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const ChatPage = () => {
+  const { t } = useTranslation("common");
   const { conversationId } = useParams<{ conversationId: string }>();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
@@ -74,7 +76,11 @@ const ChatPage = () => {
       <div className="h-full w-full flex items-center justify-center bg-background rounded-2xl md:rounded-4xl">
         <div className="text-center">
           <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-4" />
-          <p className="text-muted-foreground">Cargando conversaciones...</p>
+          <p className="text-muted-foreground">
+            {t("chatPanel.loading", {
+              defaultValue: "Loading conversations...",
+            })}
+          </p>
         </div>
       </div>
     );

@@ -1,5 +1,5 @@
 import { type StateCreator } from "zustand";
-import i18n from "../i18n/config";
+import i18n, { normalizeLanguageCode } from "../i18n/config";
 
 export type Theme = "light" | "dark" | "system";
 export type ResolvedTheme = "light" | "dark";
@@ -84,10 +84,11 @@ export const createGlobalUISlice: StateCreator<GlobalUISlice> = (set, get) => ({
     else nextTheme = "light";
     get().setTheme(nextTheme);
   },
-  language: "es",
+  language: normalizeLanguageCode(i18n.language),
   setLanguage: (lang: string) => {
-    i18n.changeLanguage(lang);
-    set({ language: lang });
+    const normalizedLang = normalizeLanguageCode(lang);
+    i18n.changeLanguage(normalizedLang);
+    set({ language: normalizedLang });
   },
   toast: {
     message: "",

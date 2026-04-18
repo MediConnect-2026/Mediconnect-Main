@@ -6,7 +6,7 @@ import { VideoCall } from "../components/VideoCall";
 import { ConsultationInfo } from "../components/ConsultationInfo";
 import { TeleconsultChatPanel } from "../components/TeleconsultChatPanel";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
-import { MessageSquare, Info, Loader2 } from "lucide-react";
+import { MessageSquare, Info, Loader2, ClipboardList } from "lucide-react";
 import { useTeleconsult } from "@/lib/hooks/useTeleconsult";
 import { useTeleconsultStore } from "@/stores/useTeleconsultStore";
 import { ROUTES } from "@/router/routes";
@@ -49,7 +49,7 @@ function TeleconsultRoomPage() {
   const navigate = useNavigate();
   const [isFullscreen, setIsFullscreen] = useState(false);
   const isMobile = useIsMobile();
-  const [mobileView, setMobileView] = useState<"video" | "chat" | "info">(
+  const [mobileView, setMobileView] = useState<"video" | "chat" | "info" | "diagnosis">(
     "video",
   );
   const { endCall } = useTeleconsult();
@@ -225,11 +225,29 @@ function TeleconsultRoomPage() {
                 <Info className="w-4 h-4" />
                 <span className="text-sm font-medium">{t("teleconsultRoom.tabs.info")}</span>
               </button>
+
+              {!isPatient && (
+                <button
+                  onClick={() => setMobileView("diagnosis")}
+                  className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg transition-colors ${mobileView === "diagnosis"
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted text-muted-foreground"
+                    }`}
+                >
+                  <ClipboardList className="w-4 h-4" />
+                  <span className="text-sm font-medium">{t("teleconsultChatPanel.tabs.notes")}</span>
+                </button>
+              )}
             </div>
 
             <div className="flex-1 overflow-hidden flex flex-col">
-              {mobileView === "video" && (
-                <div className={videoCallWrapperClass}>
+              <div className="relative h-full">
+                <div
+                  className={`${videoCallWrapperClass} ${mobileView === "video" || isFullscreen
+                    ? "z-10 opacity-100 pointer-events-auto"
+                    : "absolute inset-0 z-0 opacity-0 pointer-events-none"
+                    } transition-opacity`}
+                >
                   <ErrorBoundary>
                     <VideoCall
                       callUrl={callUrl}
@@ -239,17 +257,42 @@ function TeleconsultRoomPage() {
                     />
                   </ErrorBoundary>
                 </div>
-              )}
-              {mobileView === "chat" && (
-                <div className="h-full">
-                  <TeleconsultChatPanel appointmentId={appointmentId || ""} onEndCall={handleEndCall} />
+
+                <div
+                  className={`absolute inset-0 ${mobileView === "chat" && !isFullscreen
+                    ? "z-20 opacity-100 pointer-events-auto"
+                    : "z-0 opacity-0 pointer-events-none"
+                    } transition-opacity`}
+                >
+                  <TeleconsultChatPanel
+                    appointmentId={appointmentId || ""}
+                    onEndCall={handleEndCall}
+                    panelMode="chat-only"
+                  />
                 </div>
-              )}
-              {mobileView === "info" && (
-                <div className="h-full overflow-y-auto p-4">
+
+                <div
+                  className={`absolute inset-0 overflow-y-auto p-4 ${mobileView === "info" && !isFullscreen
+                    ? "z-20 opacity-100 pointer-events-auto"
+                    : "z-0 opacity-0 pointer-events-none"
+                    } transition-opacity`}
+                >
                   <ConsultationInfo appointmentId={appointmentId || ""} />
                 </div>
-              )}
+
+                <div
+                  className={`absolute inset-0 ${mobileView === "diagnosis" && !isFullscreen
+                    ? "z-20 opacity-100 pointer-events-auto"
+                    : "z-0 opacity-0 pointer-events-none"
+                    } transition-opacity`}
+                >
+                  <TeleconsultChatPanel
+                    appointmentId={appointmentId || ""}
+                    onEndCall={handleEndCall}
+                    panelMode="notes-only"
+                  />
+                </div>
+              </div>
             </div>
           </div>
         ) : (

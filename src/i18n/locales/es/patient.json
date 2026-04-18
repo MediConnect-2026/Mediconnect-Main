@@ -50,6 +50,8 @@
       "settings": "Configuración",
       "privacy": "Privacidad y Seguridad",
       "copyProfile": "Copiar perfil",
+      "logoutSuccess": "¡Sesión cerrada exitosamente!",
+      "profileCopied": "Enlace de perfil copiado al portapapeles",
       "logout": "Cerrar sesión"
     }
   },
@@ -103,8 +105,6 @@
     "mapfre": "Mapfre Salud",
     "removed": "Seguro eliminado exitosamente",
     "added": "Seguro agregado exitosamente",
-    "profileCopied": "Enlace de perfil copiado al portapapeles",
-    "logoutSuccess": "¡Sesión cerrada exitosamente!",
     "particular": "Particular",
     "selectType": "Seleccionar tipo de seguro",
     "typePlaceholder": "Tipo de seguro",
@@ -113,7 +113,8 @@
     "verifying": "Verificando compatibilidad...",
     "compatible": "Este seguro es aceptado por el doctor",
     "notCompatible": "Este seguro no es aceptado por el doctor",
-    "verificationError": "Error al verificar compatibilidad"
+    "verificationError": "Error al verificar compatibilidad",
+    "addFirst": "Agrega tu primer seguro médico"
   },
   "validation": {
     "fullNameRequired": "El nombre completo es requerido",
@@ -171,17 +172,25 @@
     "cancelReasonPlaceholder": "Describe el motivo de la cancelación...",
     "cancelError": "Error al cancelar la cita. Por favor, intenta nuevamente.",
     "join": "Unirse",
+    "accept": "Aceptar",
+    "viewAppointment": "Ver cita",
+    "joinTeleconsult": "Unirse a teleconsulta",
+    "markCompleted": "Marcar como completada",
+    "continueConsultation": "Agregar diagnóstico médico",
     "success": "Cita programada exitosamente",
     "error": "Error al programar la cita. Por favor, intenta nuevamente.",
     "rescheduleSuccess": "Cita reagendada exitosamente",
     "cancellationPolicyTitle": "Política flexible de cancelación y reagendamiento",
     "cancellationPolicyDescription": "Puedes cancelar o reagendar tu cita sin costo adicional si lo haces con al menos 4 horas de anticipación. Nuestro objetivo es ofrecerte la mayor comodidad y flexibilidad en tu atención médica.",
     "noInsurance": "Sin seguro",
+    "withoutInsurance": "Sin seguro",
     "ongoing": "En progreso",
     "withInsurance": "Con seguro",
     "submitting": "Procesando...",
     "loadingDoctorData": "Cargando información del doctor...",
-    "noDoctorData": "No se pudo cargar la información del doctor"
+    "noDoctorData": "No se pudo cargar la información del doctor",
+
+    "reject": "Rechazar"
   },
   "dashboard": {
     "searchTitle": "Busca médicos, especialidades o clínicas cercanas"
@@ -367,6 +376,7 @@
       "completed": "Completada",
       "cancelled": "Cancelada"
     },
+    "statusTitle": "Estado",
     "cancelTitle": "Cancelar Cita",
     "cancellationReason": "Motivo de cancelación",
     "cancellationReasonPlaceholder": "Describe el motivo de la cancelación...",
@@ -453,19 +463,17 @@
     "joinTeleconsult": "Unirse a teleconsulta",
     "markCompleted": "Marcar como completada",
     "continueConsultation": "Agregar diagnóstico médico",
-    "pdfColumns": {
-      "doctor": "Doctor",
-      "patient": "Paciente",
-      "specialty": "Especialidad",
-      "service": "Servicio",
-      "evaluationType": "Tipo de Evaluación",
-      "date": "Fecha",
-      "time": "Hora",
-      "modality": "Modalidad",
-      "appointmentType": "Tipo de Cita",
-      "location": "Ubicación",
-      "status": "Estado"
-    }
+    "success": "Cita programada exitosamente",
+    "error": "Error al programar la cita. Por favor, intenta nuevamente.",
+    "rescheduleSuccess": "Cita reagendada exitosamente",
+    "cancellationPolicyTitle": "Política flexible de cancelación y reagendamiento",
+    "cancellationPolicyDescription": "Puedes cancelar o reagendar tu cita sin costo adicional si lo haces con al menos 4 horas de anticipación. Nuestro objetivo es ofrecerte la mayor comodidad y flexibilidad en tu atención médica.",
+    "noInsurance": "Sin seguro",
+    "ongoing": "En progreso",
+    "withInsurance": "Con seguro",
+    "submitting": "Procesando...",
+    "loadingDoctorData": "Cargando información del doctor...",
+    "noDoctorData": "No se pudo cargar la información del doctor"
   },
   "services": {
     "consultation": "Consulta general",
@@ -495,6 +503,12 @@
     "searchPlaceholder": "Buscar por nombre...",
     "pdfTitle": "Mis Doctores",
     "pdfSubtitle": "Lista completa de doctores favoritos",
+    "noSpecialty": "Sin especialidad",
+    "retry": "Reintentar",
+    "error": {
+      "title": "Error al cargar",
+      "description": "No se pudieron cargar los doctores. Por favor, intenta nuevamente."
+    },
     "pdfColumns": {
       "name": "Nombre",
       "specialty": "Especialidad",
@@ -504,13 +518,15 @@
       "insuranceAccepted": "Seguros aceptados"
     },
     "empty": {
+      "title": "No tienes doctores aún",
+      "description": "Cuando agregues doctores a favoritos, aparecerán aquí para que puedas acceder rápidamente.",
       "noDoctorsTitle": "Aún no tienes doctores",
       "noDoctorsDescription": "Cuando tengas doctores asignados, aparecerán aquí.",
       "filteredTitle": "No se encontraron doctores",
-      "filteredDescription": "Intenta ajustar los filtros o la búsqueda.",
+      "filteredDescription": "Intenta ajustar los filtros o tu búsqueda.",
       "clearFilters": "Limpiar filtros",
       "noResults": "No se encontraron doctores",
-      "noResultsDescription": "No tienes doctores favoritos que coincidan con los filtros aplicados. Intenta ajustar tus criterios de búsqueda o agrega doctores a tu lista de favoritos."
+      "noResultsDescription": "No se encontraron consultas con los filtros aplicados. Intenta ajustar los filtros para ver más resultados."
     },
     "loading": "Cargando doctores..."
   },

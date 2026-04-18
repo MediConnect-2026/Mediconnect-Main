@@ -4,6 +4,9 @@ import { QUERY_KEYS } from '@/lib/react-query/config';
 import { doctorService } from '@/shared/navigation/userMenu/editProfile/doctor/services/doctor.service';
 import type { Seguro } from '@/shared/navigation/userMenu/editProfile/doctor/services/doctor.types';
 
+const normalizeLanguageCode = (language?: string): 'es' | 'en' =>
+  language?.toLowerCase().startsWith('en') ? 'en' : 'es';
+
 /**
  * Hook para obtener los seguros aceptados por el doctor actual
  * Los datos se actualizan en idioma actual
@@ -22,8 +25,9 @@ export const useAcceptedInsurances = (options?: {
   source?: string;
 }) => {
   const { i18n } = useTranslation();
-  const target = options?.target ?? i18n.language;
-  const source = options?.source ?? i18n.language === 'en' ? 'es' : 'en';
+  const currentLanguage = normalizeLanguageCode(i18n.resolvedLanguage || i18n.language);
+  const target = normalizeLanguageCode(options?.target ?? currentLanguage);
+  const source = normalizeLanguageCode(options?.source ?? (target === 'en' ? 'es' : 'en'));
   const translate_fields = 'nombre,descripcion';
 
   return useQuery({

@@ -262,6 +262,26 @@ function MCInput({
   const isVerticalLayout = variant === "internal-vertical";
   const isHorizontalLayout = variant === "internal-horizontal";
 
+  const watchedFieldValue = standalone ? value : formContext?.watch(name);
+
+  useEffect(() => {
+    if (!isCedulaVariant) return;
+
+    setCedulaValue(formatDominicanCedula(String(watchedFieldValue ?? "")));
+  }, [isCedulaVariant, watchedFieldValue]);
+
+  useEffect(() => {
+    if (!isExequaturVariant) return;
+
+    setExequaturValue(formatExequatur(String(watchedFieldValue ?? "")));
+  }, [isExequaturVariant, watchedFieldValue]);
+
+  useEffect(() => {
+    if (!isTimeVariant && !isDecideHourVariant) return;
+
+    setTimeValue(String(watchedFieldValue ?? ""));
+  }, [isTimeVariant, isDecideHourVariant, watchedFieldValue]);
+
   const handleCedulaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const formatted = formatDominicanCedula(e.target.value);
     setCedulaValue(formatted);

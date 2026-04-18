@@ -138,7 +138,9 @@ function DashboardPage() {
           !rating.includes("0") &&
           !rating.includes("all")
         ) {
-          const minRating = Math.min(...rating.map((value) => parseFloat(value)));
+          const minRating = Math.min(
+            ...rating.map((value) => parseFloat(value)),
+          );
           if (staff.rating < minRating) return false;
         }
 
@@ -244,7 +246,9 @@ function DashboardPage() {
         <div className="flex flex-col items-center gap-2 px-4">
           <span className="flex items-center justify-center gap-2 text-destructive">
             <AlertCircle className={isMobile ? "w-5 h-5" : "w-7 h-7"} />
-            <EmptyTitle className={`font-semibold ${isMobile ? "text-lg" : "text-xl"}`}>
+            <EmptyTitle
+              className={`font-semibold ${isMobile ? "text-lg" : "text-xl"}`}
+            >
               {t("staff.error.title")}
             </EmptyTitle>
           </span>
@@ -311,14 +315,21 @@ function DashboardPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 flex-shrink-0">
           {(() => {
             // Hook to fetch center stats
-            const { data: centerStats, isLoading, isError } = useCenterStatsResumen();
+            const {
+              data: centerStats,
+              isLoading,
+              isError,
+            } = useCenterStatsResumen();
 
-            const metrics = useMemo(() => ({
-              totalDoctors: centerStats?.totalMedicos ?? 0,
-              specialties: centerStats?.totalEspecialidades ?? 0,
-              appointmentsWeek: centerStats?.citasSemanaActual ?? 0,
-              avgRating: centerStats?.valoracionPromedio ?? null,
-            }), [centerStats]);
+            const metrics = useMemo(
+              () => ({
+                totalDoctors: centerStats?.totalMedicos ?? 0,
+                specialties: centerStats?.totalEspecialidades ?? 0,
+                appointmentsWeek: centerStats?.citasSemanaActual ?? 0,
+                avgRating: centerStats?.valoracionPromedio ?? null,
+              }),
+              [centerStats],
+            );
 
             // Loading skeletons
             if (isLoading) {
@@ -351,7 +362,7 @@ function DashboardPage() {
                   <MCMetricCard
                     title={t("dashboard.metrics.totalDoctors")}
                     icon={<StethoscopeIcon />}
-                    value={'-'}
+                    value={"-"}
                     subtitle={t("dashboard.metrics.totalDoctorsSubtitle")}
                     percentage=""
                     bordered
@@ -359,7 +370,7 @@ function DashboardPage() {
                   <MCMetricCard
                     title={t("dashboard.metrics.specialtiesCovered")}
                     icon={<UsersIcon />}
-                    value={'-'}
+                    value={"-"}
                     subtitle={t("dashboard.metrics.specialtiesCoveredSubtitle")}
                     percentage=""
                     bordered
@@ -367,15 +378,17 @@ function DashboardPage() {
                   <MCMetricCard
                     title={t("dashboard.metrics.appointmentsThisWeek")}
                     icon={<CalendarCheckIcon />}
-                    value={'-'}
-                    subtitle={t("dashboard.metrics.appointmentsThisWeekSubtitle")}
+                    value={"-"}
+                    subtitle={t(
+                      "dashboard.metrics.appointmentsThisWeekSubtitle",
+                    )}
                     percentage=""
                     bordered
                   />
                   <MCMetricCard
                     title={t("dashboard.metrics.averageRating")}
                     icon={<StarIcon />}
-                    value={'-'}
+                    value={"-"}
                     subtitle={t("dashboard.metrics.averageRatingSubtitle")}
                     percentage=""
                     bordered
@@ -414,7 +427,11 @@ function DashboardPage() {
                 <MCMetricCard
                   title={t("dashboard.metrics.averageRating")}
                   icon={<StarIcon />}
-                  value={metrics.avgRating !== null ? metrics.avgRating.toFixed(1) : 0}
+                  value={
+                    metrics.avgRating !== null
+                      ? metrics.avgRating.toFixed(1)
+                      : 0
+                  }
                   subtitle={t("dashboard.metrics.averageRatingSubtitle")}
                   percentage=""
                   bordered

@@ -57,7 +57,6 @@ function DashboardLayout() {
     if (!currentPath.startsWith("/doctor/services/create")) {
       resetCreateService();
     }
-     
   }, [
     location.pathname,
     resetAppointment,
@@ -78,11 +77,11 @@ function DashboardLayout() {
       }
     >
       {/* Navbar */}
-      <div className="block md:hidden sticky top-0 z-30 animate-fade-in">
+      <div className="block md:hidden sticky top-1 z-30 animate-fade-in">
         <MCNavbarMobile />
       </div>
 
-      <div className="hidden md:block  top-5 z-30 animate-fade-in">
+      <div className="hidden md:block sticky top-2 z-30 animate-fade-in">
         <MCNavbar />
       </div>
 

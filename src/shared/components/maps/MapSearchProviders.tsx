@@ -24,6 +24,8 @@ interface MapSearchProvidersProps {
   providers: Provider[];
   selectedProviders?: string[];
   onProviderSelect?: (id: string) => void;
+  userCoords?: { lat: number; lng: number } | null;
+  locationPermission?: "unknown" | "granted" | "denied";
 }
 
 // Componente auxiliar para capturar el navigate
@@ -69,6 +71,8 @@ export default function MapSearchProviders({
   providers,
   selectedProviders = [],
   onProviderSelect,
+  userCoords,
+  locationPermission = "unknown",
 }: MapSearchProvidersProps) {
   const navigate = useNavigate();
   const mapRef = useRef<mapboxgl.Map | null>(null);
@@ -118,6 +122,16 @@ export default function MapSearchProviders({
     () => new Set(selectedProviders),
     [selectedProviders],
   );
+
+  const normalizedExternalUserLocation = useMemo<[number, number] | null>(() => {
+    if (!userCoords) return null;
+
+    const lat = Number(userCoords.lat);
+    const lng = Number(userCoords.lng);
+
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+    return [lng, lat];
+  }, [userCoords]);
 
   // Callback handlers
   const handleScheduleAppointment = (providerId: string) => {
@@ -651,26 +665,45 @@ export default function MapSearchProviders({
   }, [isFullscreen]);
 
   useEffect(() => {
-    if ("geolocation" in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          setUserLocation([pos.coords.longitude, pos.coords.latitude]);
-          setLocationDenied(false);
-        },
-        () => {
-          setUserLocation(null);
-          setLocationDenied(true);
-        },
-      );
+    if (normalizedExternalUserLocation) {
+      setUserLocation(normalizedExternalUserLocation);
+      setLocationDenied(false);
+      return;
     }
-  }, []);
+
+    if (locationPermission === "denied") {
+      setUserLocation(null);
+      setLocationDenied(true);
+      return;
+    }
+
+    if (!("geolocation" in navigator)) {
+      setUserLocation(null);
+      setLocationDenied(true);
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setUserLocation([pos.coords.longitude, pos.coords.latitude]);
+        setLocationDenied(false);
+      },
+      () => {
+        setUserLocation(null);
+        setLocationDenied(true);
+      },
+      { enableHighAccuracy: false, timeout: 5000 },
+    );
+  }, [normalizedExternalUserLocation, locationPermission]);
 
   return (
     <>
       {locationDenied && (
         <div className="fixed top-4 left-1/2 z-[10002] -translate-x-1/2 bg-red-100 text-red-700 px-4 py-2 rounded shadow-lg rounded-3xl">
-          Debes permitir el acceso a tu ubicación para centrar el mapa en tu
-          posición.
+          {t(
+            "map.locationPermissionRequired",
+            "Debes permitir el acceso a tu ubicación para centrar el mapa en tu posición.",
+          )}
         </div>
       )}
       {/* Modal para fullscreen */}

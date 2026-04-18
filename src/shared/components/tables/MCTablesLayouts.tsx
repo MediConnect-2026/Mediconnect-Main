@@ -128,8 +128,14 @@ function MCTablesLayouts({
           </div>
         )}
 
-        {/* Tabla/Contenido - con flex-1 para ocupar espacio disponible */}
-        <div className="flex-1 overflow-auto mt-6">{tableComponent}</div>
+        {/* Tabla/Contenido: scroll horizontal en móvil cuando la tabla no cabe */}
+        <div className="flex-1 min-h-0 mt-6 overflow-y-auto">
+          <div className="w-full overflow-x-auto">
+            <div className="min-w-full [&_table]:min-w-[640px] [&_table]:sm:min-w-full">
+              {tableComponent}
+            </div>
+          </div>
+        </div>
 
         {/* Paginación fija en la parte inferior */}
         {paginationComponent && (

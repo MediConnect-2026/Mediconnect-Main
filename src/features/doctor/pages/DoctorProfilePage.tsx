@@ -22,6 +22,10 @@ import { useTranslation } from "react-i18next";
 function DoctorProfilePage() {
   const { doctorId } = useParams();
   const { i18n, t } = useTranslation("doctor");
+  const normalizeLanguageCode = (language?: string): "es" | "en" =>
+    language?.toLowerCase().startsWith("en") ? "en" : "es";
+  const currentLanguage = normalizeLanguageCode(i18n.resolvedLanguage || i18n.language);
+  const sourceLanguage = currentLanguage === "en" ? "es" : "en";
   const [openSheet, setOpenSheet] = useState(false);
   const isMobile = useIsMobile();
   const navigate = useNavigate();
@@ -39,10 +43,10 @@ function DoctorProfilePage() {
 
   // Fetch del perfil público cuando es otro doctor
   const { data: fetchedDoctorProfile, isLoading: isLoadingProfile } = useQuery({
-    queryKey: ["doctor-profile", profileDoctorId, i18n.language],
+    queryKey: ["doctor-profile", profileDoctorId, currentLanguage],
     queryFn: () => doctorService.getDoctorById(profileDoctorId!, {
-      target: i18n.language === 'en' ? 'en' : 'es',
-      source: i18n.language === 'en' ? 'es' : 'en',
+      target: currentLanguage,
+      source: sourceLanguage,
       translate_fields: 'biografia,nombre'
     }),
     enabled: !isMyProfile && !!profileDoctorId,
@@ -54,12 +58,12 @@ function DoctorProfilePage() {
     isLoading: isLoadingCenters,
     refetch: refetchMyCenters,
   } = useQuery({
-    queryKey: ["doctor-my-centers", profileDoctorId, i18n.language],
+    queryKey: ["doctor-my-centers", profileDoctorId, currentLanguage],
     queryFn: () =>
       doctorService.getMyCenters({
         doctorId: !isMyProfile ? profileDoctorId : undefined,
-        target: i18n.language === "en" ? "en" : "es",
-        source: i18n.language === "en" ? "es" : "en",
+        target: currentLanguage,
+        source: sourceLanguage,
         translate_fields:
           "centroSalud.nombreComercial,centroSalud.tipoCentro.nombre,centroSalud.ubicacion.direccionCompleta",
       }),

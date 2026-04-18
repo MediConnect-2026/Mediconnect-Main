@@ -4,11 +4,13 @@ import { useTranslation } from "react-i18next";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/tooltip";
 import type { ServiceDetail } from "@/shared/navigation/userMenu/editProfile/doctor/services";
 import { getAddressComplete } from "@/utils/addressParser";
+import { useEffect, useState } from "react";
 
 interface ServiceCardsProps {
   services: ServiceDetail[] | any[];
   selectedTimeSlots: Record<string, string>;
   selectedModality: Record<string, "presencial" | "teleconsulta">;
+  selectedDate: Date;
   onTimeSlotSelect: (serviceId: string, time: string) => void;
   onModalitySelect: (
     serviceId: string,
@@ -20,10 +22,20 @@ function ServiceCards({
   services,
   selectedTimeSlots,
   selectedModality,
+  selectedDate,
   onTimeSlotSelect,
   onModalitySelect,
 }: ServiceCardsProps) {
   const { t } = useTranslation("patient");
+  const [now, setNow] = useState(() => new Date());
+
+  useEffect(() => {
+    const intervalId = window.setInterval(() => {
+      setNow(new Date());
+    }, 30000);
+
+    return () => window.clearInterval(intervalId);
+  }, []);
 
   const hasTimeSlotInOtherService = (currentServiceId: string) => {
     return Object.keys(selectedTimeSlots).some(
@@ -65,6 +77,23 @@ function ServiceCards({
     const hours = Math.floor(minutes / 60);
     const remainingMinutes = minutes % 60;
     return `${hours > 0 ? `${hours}h ` : ""}${remainingMinutes}m`;
+  };
+
+  const isSameLocalDay = (a: Date, b: Date) =>
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate();
+
+  const isSelectedDateToday = isSameLocalDay(selectedDate, now);
+
+  const isPastTimeSlot = (time24: string) => {
+    if (!isSelectedDateToday) return false;
+
+    const slotMinutes = toMinutes(time24);
+    if (Number.isNaN(slotMinutes)) return false;
+
+    const nowMinutes = now.getHours() * 60 + now.getMinutes();
+    return slotMinutes < nowMinutes;
   };
 
   return (
@@ -150,18 +179,22 @@ function ServiceCards({
                     .sort((a: string, b: string) => toMinutes(a) - toMinutes(b))
                     .map((time24: string) => {
                       const label = to12Hour(time24);
+                      const isPastSlot = isPastTimeSlot(time24);
+                      const isDisabled =
+                        isPastSlot || (isBlocked && timeSelected !== label);
+
                       return (
                         <MCButton
                           key={time24}
                           variant={timeSelected === label ? "primary" : "outline"}
                           size="sm"
                           className={`h-8 sm:h-7 text-xs px-2 sm:px-3 w-full ${
-                            isBlocked && timeSelected !== label
+                            isDisabled
                               ? "cursor-not-allowed opacity-50"
                               : ""
                           }`}
                           onClick={() => handleTimeSlotSelect(service.id.toString(), label)}
-                          disabled={isBlocked && timeSelected !== label}
+                          disabled={isDisabled}
                         >
                           {label}
                         </MCButton>

@@ -46,7 +46,7 @@ export const ROUTES = {
 
   // --- DASHBOARD DOCTOR ---
   DOCTOR: {
-    HOME: "/doctor/dashboard",
+    HOME: "/dashboard",
     PATIENTS: "/doctor/my-patients",
     APPOINTMENTS: "/doctor/appointments",
     SERVICES: "/doctor/services",

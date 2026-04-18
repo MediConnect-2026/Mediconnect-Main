@@ -143,6 +143,7 @@
     "subtitle": "Manage all your scheduled appointments",
     "searchPlaceholder": "Search patient, service or specialty...",
     "availableTimes": "Available Time Slots",
+    "loading": "Loading appointments...",
     "table": {
       "patient": "Patient",
       "status": "Status",
@@ -632,24 +633,13 @@
     "services": {
       "title": "Services offered",
       "search": "Search service...",
+      "loading": "Loading services...",
+      "confirmDelete": "Are you sure you want to delete this service?",
       "noResults": "No services found.",
-      "noServices": "No services registered.",
-      "noResultsDescription": "Try clearing the filters or search for another service.",
-      "noServicesDescription": "Add services so patients can book.",
-      "clearFilters": "Clear filters",
-      "details": "View details",
-      "reviews": "reviews",
-      "menu": {
-        "view": "View service",
-        "edit": "Edit service",
-        "deactivate": "Deactivate service",
-        "activate": "Activate service",
-        "delete": "Delete service"
-      },
-      "status": {
-        "active": "Active",
-        "inactive": "Inactive"
-      }
+      "noServices": "There are no registered services.",
+      "noResultsDescription": "Try clearing filters or searching for another service.",
+      "noServicesDescription": "Add services so patients can book appointments.",
+      "clearFilters": "Clear filters"
     },
     "centers": {
       "title": "Medical centers",
@@ -667,6 +657,7 @@
     }
   },
   "services": {
+    "loading": "Loading services...",
     "management": {
       "title": "Services Management",
       "newService": "New service",
@@ -771,7 +762,8 @@
     },
     "reviews": {
       "title": "Reviews",
-      "titleForOne": "Review"
+      "titleForOne": "Review",
+      "empty": "No reviews have been added for this service yet."
     }
   },
   "filters": {
@@ -1036,5 +1028,8 @@
     "thursday": "Thursday",
     "friday": "Friday",
     "saturday": "Saturday"
+  },
+  "map": {
+    "locationPermissionRequired": "You must allow access to your location to center the map on your position."
   }
 }

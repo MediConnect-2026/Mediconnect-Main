@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -29,11 +29,52 @@ import { getUserAvatar, getUserFullName } from "@/services/auth/auth.types";
 import centerService from "@/shared/navigation/userMenu/editProfile/center/services/center.services";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { formatPhone } from "@/utils/phoneFormat";
+import { useDoctorAllianceRequest } from "@/features/search/hooks/useDoctorAllianceRequest";
+import { useDoctorAllianceDelete } from "@/features/search/hooks/useDoctorAllianceDelete";
 
 interface StaffFilters {
   specialty: string | string[];
   rating: string | string[];
   joinDate: { from: Date | null; to: Date | null };
+}
+
+type ConnectionStatus = "connected" | "not_connected" | "pending";
+
+interface CenterConnectionSnapshot {
+  status: ConnectionStatus;
+  requestId?: number;
+}
+
+function normalizeCenterConnection(centerProfile: unknown): CenterConnectionSnapshot {
+  const profile = (centerProfile ?? {}) as {
+    estaConectado?: boolean;
+    estadoAlianza?: string;
+    solicitudAlianzaId?: number | null;
+  };
+
+  const normalizedAllianceStatus = (profile.estadoAlianza || "").toLowerCase();
+  const isConnected =
+    profile.estaConectado === true ||
+    normalizedAllianceStatus === "aceptada" ||
+    normalizedAllianceStatus === "accepted";
+  const isPending =
+    normalizedAllianceStatus === "pendiente" ||
+    normalizedAllianceStatus === "pending" ||
+    normalizedAllianceStatus === "en_proceso" ||
+    normalizedAllianceStatus === "in_progress";
+
+  const status: ConnectionStatus = isConnected
+    ? "connected"
+    : isPending
+      ? "pending"
+      : "not_connected";
+
+  const requestId =
+    typeof profile.solicitudAlianzaId === "number" && Number.isFinite(profile.solicitudAlianzaId)
+      ? profile.solicitudAlianzaId
+      : undefined;
+
+  return { status, requestId };
 }
 
 function parseApiNumeric(value: unknown): number {
@@ -98,6 +139,7 @@ function CenterProfilePage() {
   const [openSheet, setOpenSheet] = useState(false);
   const [searchName, setSearchName] = useState("");
   const [deletingAllianceId, setDeletingAllianceId] = useState<string | number | null>(null);
+  const [optimisticCenterConnection, setOptimisticCenterConnection] = useState<CenterConnectionSnapshot | null>(null);
   const { centerId } = useParams();
   const { t, i18n } = useTranslation("center");
 
@@ -108,6 +150,8 @@ function CenterProfilePage() {
   });
 
   const user = useAppStore((state) => state.user);
+  const createDoctorAllianceMutation = useDoctorAllianceRequest();
+  const deleteDoctorAllianceMutation = useDoctorAllianceDelete();
   const isMobile = useIsMobile();
   const isMyProfile = !centerId || String(user?.id ?? "") === String(centerId);
   const viewedCenterId = isMyProfile ? String(user?.id ?? "") : String(centerId ?? "");
@@ -260,6 +304,20 @@ function CenterProfilePage() {
     website: centerProfile?.sitio_web || "",
     description: centerProfile?.descripcion || "",
   };
+
+  const serverCenterConnection = useMemo(
+    () =>
+      isMyProfile
+        ? { status: "not_connected" as ConnectionStatus }
+        : normalizeCenterConnection(centerProfile),
+    [centerProfile, isMyProfile],
+  );
+
+  const effectiveCenterConnection = optimisticCenterConnection ?? serverCenterConnection;
+
+  useEffect(() => {
+    setOptimisticCenterConnection(null);
+  }, [viewedCenterId]);
 
   // Mapear la ubicación del centro mediante ubicacionId
   const ubicacionId = centerProfile?.ubicacionId ?? centerProfile?.ubicacion?.id;
@@ -437,6 +495,58 @@ function CenterProfilePage() {
     deleteAllianceMutation.mutate(requestId);
   };
 
+  const handleConnectToCenter = async (id: string, message?: string) => {
+    const destinatarioId = Number(id);
+    const allianceMessage = (message ?? "").trim();
+
+    if (!Number.isFinite(destinatarioId) || allianceMessage.length < 10) {
+      return;
+    }
+
+    const previousConnection = optimisticCenterConnection;
+    setOptimisticCenterConnection({
+      status: "pending",
+      requestId: previousConnection?.requestId ?? serverCenterConnection.requestId,
+    });
+
+    try {
+      const response = await createDoctorAllianceMutation.mutateAsync({
+        destinatarioId,
+        mensaje: allianceMessage,
+      });
+
+      const requestId =
+        typeof response.message === "object" && response.message && "id" in response.message
+          ? Number((response.message as { id?: number }).id)
+          : undefined;
+
+      setOptimisticCenterConnection({
+        status: "pending",
+        requestId: Number.isFinite(requestId) ? requestId : undefined,
+      });
+    } catch {
+      setOptimisticCenterConnection(previousConnection ?? null);
+    }
+  };
+
+  const handleDisconnectFromCenter = async (_centerUserId: string) => {
+    const requestId = optimisticCenterConnection?.requestId ?? serverCenterConnection.requestId;
+
+    if (!requestId) {
+      toast.error(t("connection.allianceDisconnectError"));
+      return;
+    }
+
+    const previousConnection = optimisticCenterConnection;
+    setOptimisticCenterConnection({ status: "not_connected" });
+
+    try {
+      await deleteDoctorAllianceMutation.mutateAsync(requestId);
+    } catch {
+      setOptimisticCenterConnection(previousConnection ?? null);
+    }
+  };
+
   if (isLoadingCenterProfile) {
     return (
       <MCDashboardContent mainWidth="w-[100%]" noBg>
@@ -473,10 +583,21 @@ function CenterProfilePage() {
           {isMobile ? (
             <CenterProfileBannerMobile
               center={center}
-              setOpenSheet={setOpenSheet}
+              setOpenSheet={isMyProfile ? setOpenSheet : undefined}
+              isConnected={effectiveCenterConnection.status}
+              onConnect={handleConnectToCenter}
+              onDisconnect={handleDisconnectFromCenter}
+              isConnecting={createDoctorAllianceMutation.isPending || deleteDoctorAllianceMutation.isPending}
             />
           ) : (
-            <CenterProfileBanner center={center} setOpenSheet={setOpenSheet} />
+            <CenterProfileBanner
+              center={center}
+              setOpenSheet={isMyProfile ? setOpenSheet : undefined}
+              isConnected={effectiveCenterConnection.status}
+              onConnect={handleConnectToCenter}
+              onDisconnect={handleDisconnectFromCenter}
+              isConnecting={createDoctorAllianceMutation.isPending || deleteDoctorAllianceMutation.isPending}
+            />
           )}
         </div>
 

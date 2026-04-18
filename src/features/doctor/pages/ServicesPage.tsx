@@ -33,6 +33,7 @@ import { formatCurrency } from "@/utils/formatCurrency";
 
 const PATIENT_PROFILE_PUBLIC = "/patient/profile/:patientId";
 const DOCTOR_PROFILE = "/doctor/profile/:doctorId";
+const REVIEWS_TIME_ZONE = "America/Santo_Domingo";
 
 const StarRating = ({ rating }: { rating: number }) => (
   <div className="flex gap-0.5">
@@ -110,6 +111,7 @@ function ServicesPage() {
   const { startConversation, isLoading: isStartingConversation } = useStartConversation();
 
   const isOwner = user?.id === serviceData?.doctorId;
+  const isDoctorUser = user?.rol === "DOCTOR" || user?.rol === "Doctor";
 
   const handleShare = () => {
     navigator.clipboard.writeText(window.location.href).then(() => {
@@ -151,10 +153,71 @@ function ServicesPage() {
 
   // Helper function for relative time
   const getRelativeTime = (dateString: string): string => {
-    const date = new Date(dateString);
+    const getYmdInTimeZone = (date: Date, timeZone: string) => {
+      const parts = new Intl.DateTimeFormat("en-CA", {
+        timeZone,
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      }).formatToParts(date);
+
+      const year = Number(parts.find((p) => p.type === "year")?.value ?? 0);
+      const month = Number(parts.find((p) => p.type === "month")?.value ?? 0);
+      const day = Number(parts.find((p) => p.type === "day")?.value ?? 0);
+
+      return { year, month, day };
+    };
+
+    const dayDiffInTimeZone = (from: Date, to: Date, timeZone: string) => {
+      const fromYmd = getYmdInTimeZone(from, timeZone);
+      const toYmd = getYmdInTimeZone(to, timeZone);
+
+      const fromUtcMidday = Date.UTC(fromYmd.year, fromYmd.month - 1, fromYmd.day, 12, 0, 0);
+      const toUtcMidday = Date.UTC(toYmd.year, toYmd.month - 1, toYmd.day, 12, 0, 0);
+
+      return Math.floor((toUtcMidday - fromUtcMidday) / (1000 * 60 * 60 * 24));
+    };
+
+    const parseReviewDate = (value: string): Date => {
+      // Date-only strings (YYYY-MM-DD) are parsed as UTC by JS Date,
+      // which can shift to the previous day in negative timezones.
+      const dateOnlyMatch = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+      if (dateOnlyMatch) {
+        const year = Number(dateOnlyMatch[1]);
+        const month = Number(dateOnlyMatch[2]) - 1;
+        const day = Number(dateOnlyMatch[3]);
+        return new Date(year, month, day, 12, 0, 0);
+      }
+
+      const utcParsed = new Date(value);
+
+      // Some backends send local wall-clock timestamps with a trailing "Z".
+      // If so, also parse as local and choose the interpretation closer to "now"
+      // in calendar-day terms for our target timezone.
+      if (value.endsWith("Z")) {
+        const localLikeValue = value.replace(/Z$/, "");
+        const localParsed = new Date(localLikeValue);
+
+        if (!Number.isNaN(localParsed.getTime()) && !Number.isNaN(utcParsed.getTime())) {
+          const now = new Date();
+          const utcDiff = Math.abs(dayDiffInTimeZone(utcParsed, now, REVIEWS_TIME_ZONE));
+          const localDiff = Math.abs(dayDiffInTimeZone(localParsed, now, REVIEWS_TIME_ZONE));
+          return localDiff <= utcDiff ? localParsed : utcParsed;
+        }
+
+        if (!Number.isNaN(localParsed.getTime())) {
+          return localParsed;
+        }
+      }
+
+      return utcParsed;
+    };
+
+    const date = parseReviewDate(dateString);
+    if (Number.isNaN(date.getTime())) return t("service.reviews.today", "Hoy");
+
     const now = new Date();
-    const diffInMs = now.getTime() - date.getTime();
-    const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
+    const diffInDays = dayDiffInTimeZone(date, now, REVIEWS_TIME_ZONE);
     
     if (diffInDays === 0) return t("service.reviews.today", "Hoy");
     if (diffInDays === 1) return t("service.reviews.yesterday", "Ayer");
@@ -369,7 +432,7 @@ function ServicesPage() {
                       </MCButton>
                     </Link>
                     {
-                      !isOwner && (
+                      !isOwner && !isDoctorUser && (
                         <MCButton
                           size="sm"
                           className="font-body text-xs w-full flex-1 sm:flex-none"
@@ -432,8 +495,9 @@ function ServicesPage() {
               )}
 
               {/* Reviews */}
-              {serviceData.resenas.length > 0 && (
-                <div>
+              <div>
+                {serviceData.resenas.length > 0 ? (
+                  <>
                   <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-4">
                     <h2 className="text-lg sm:text-xl font-heading font-semibold text-foreground">
                       {t("service.reviews.title", "Reseñas")}
@@ -455,6 +519,15 @@ function ServicesPage() {
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                     {displayedReviews.map((review) => (
+                      (() => {
+                        const patientFirstName = review.paciente?.nombre ?? "";
+                        const patientLastName = review.paciente?.apellido ?? "";
+                        const patientDisplayName =
+                          `${patientFirstName} ${patientLastName}`.trim() || "Usuario";
+                        const patientInitials =
+                          `${patientFirstName?.[0] ?? "U"}${patientLastName?.[0] ?? ""}`;
+
+                        return (
                       <div
                         key={review.id}
                         className="space-y-2 p-4 sm:p-0 bg-muted/30 sm:bg-transparent rounded-lg sm:rounded-none"
@@ -465,16 +538,16 @@ function ServicesPage() {
                               <Avatar className="w-10 h-10">
                                 <AvatarImage
                                   src={review.paciente.usuario.fotoPerfil}
-                                  alt={`${review.paciente.usuario.nombre} ${review.paciente.usuario.apellido}`}
+                                  alt={patientDisplayName}
                                   className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
                                 />
                                 <AvatarFallback className="bg-muted text-muted-foreground font-body text-sm">
-                                  {review.paciente.usuario.nombre[0]}{review.paciente.usuario.apellido[0]}
+                                  {patientInitials}
                                 </AvatarFallback>
                               </Avatar>
                             ) : (
                               <MCUserAvatar
-                                name={review.paciente ? `${review.paciente.usuario.nombre} ${review.paciente.usuario.apellido}` : "Usuario"}
+                                name={patientDisplayName}
                                 square
                                 size={40}
                                 className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
@@ -489,7 +562,7 @@ function ServicesPage() {
                               )}
                               className="font-medium text-sm text-foreground font-body hover:underline block truncate"
                             >
-                              {review.paciente ? `${review.paciente.usuario.nombre} ${review.paciente.usuario.apellido}` : "Usuario"}
+                              {patientDisplayName}
                             </Link>
                             <div className="flex items-center gap-2 flex-wrap">
                               <StarRating rating={review.calificacion} />
@@ -503,6 +576,8 @@ function ServicesPage() {
                           {review.comentario}
                         </p>
                       </div>
+                        );
+                      })()
                     ))}
                   </div>
                   {!showAllReviews && serviceData.resenas.length > 4 && (
@@ -514,8 +589,21 @@ function ServicesPage() {
                       {t("service.showAllReviews", "Mostrar todas las reseñas")}
                     </MCButton>
                   )}
-                </div>
-              )}
+                  </>
+                ) : (
+                  <div className="rounded-xl border border-border bg-muted/20 p-5 sm:p-6">
+                    <h2 className="text-lg sm:text-xl font-heading font-semibold text-foreground mb-2">
+                      {t("service.reviews.title", "Reseñas")}
+                    </h2>
+                    <p className="text-sm sm:text-base text-muted-foreground font-body">
+                      {t(
+                        "service.reviews.empty",
+                        "Aun no se han agregado reseñas para este servicio.",
+                      )}
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Right column - Booking card */}
@@ -530,7 +618,7 @@ function ServicesPage() {
                       {t("service.perPatient", "por paciente")}
                     </span>
                   </div>
-                  {!isOwner && (
+                  {!isOwner && !isDoctorUser && (
                     <ScheduleAppointmentDialog
                       idProvider={serviceData.doctor.usuarioId.toString()}
                       idService={serviceId || ""}

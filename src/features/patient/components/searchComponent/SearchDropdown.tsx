@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import HighlightedText from "@/features/patient/components/searchComponent/HighlightedText";
 import type { Provider, Doctor as ProviderDoctor } from "@/data/providers";
 import type { Specialty } from "@/data/searchData";
+import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/avatar";
 
 interface SearchDropdownProps {
   searchTerm: string;
@@ -97,17 +98,27 @@ const SearchDropdown = ({
             </h3>
             {filteredDoctors.map((provider) => {
               const doctor = provider as ProviderDoctor;
+              const imageSrc = doctor.image?.trim() ? doctor.image : undefined;
+              const doctorInitials = doctor.name
+                .split(" ")
+                .filter(Boolean)
+                .slice(0, 2)
+                .map((part) => part[0])
+                .join("")
+                .toUpperCase();
+
               return (
                 <button
                   key={doctor.id}
                   onClick={() => onSelectDoctor(doctor.id, doctor.name)}
                   className="w-full flex items-center gap-3 py-2.5 md:py-2 px-2 rounded-lg hover:bg-accent hover:text-secondary-foreground transition-colors"
                 >
-                  <img
-                    src={doctor.image}
-                    alt={doctor.name}
-                    className="w-10 h-10 md:w-10 md:h-10 rounded-full object-cover flex-shrink-0"
-                  />
+                  <Avatar className="w-10 h-10 md:w-10 md:h-10 flex-shrink-0">
+                    <AvatarImage src={imageSrc} alt={doctor.name} className="object-cover" />
+                    <AvatarFallback className="bg-muted text-muted-foreground text-xs font-medium">
+                      {doctorInitials || "DR"}
+                    </AvatarFallback>
+                  </Avatar>
                   <div className="text-left min-w-0 flex-1">
                     <div className="font-medium text-sm md:text-base truncate">
                       {searchTerm ? (

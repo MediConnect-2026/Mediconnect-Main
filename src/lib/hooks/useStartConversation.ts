@@ -27,15 +27,15 @@ export const useStartConversation = () => {
 
     onSuccess: (response) => {
       const conversacionId = response.data.id;
-      const esNueva = response.data.esNueva ?? false;
 
-      // Si es nueva, invalidar para que useConversations refresque la lista
-      if (esNueva) {
-        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.CONVERSATIONS });
-      }
+      // Refrescar lista para reflejar nuevas o reanudadas conversaciones inmediatamente
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.CONVERSATIONS });
+
       // Activar la conversación y navegar
       setActiveConversation(conversacionId);
-      navigate(`/chat/${conversacionId}`);
+      navigate(`/chat/${conversacionId}`, {
+        state: { openingConversation: true },
+      });
     },
   });
 
