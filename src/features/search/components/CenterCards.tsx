@@ -70,6 +70,10 @@ const CenterCardsComponent = ({
     connectBtnDisabled = true;
   }
 
+  const ratingValue = Number(clinic.rating ?? 0);
+  const reviewCountValue = Number(clinic.reviewCount ?? 0);
+  const hasVisibleRating = ratingValue > 0;
+
   return (
     <div
       className={cn(
@@ -93,160 +97,165 @@ const CenterCardsComponent = ({
         </div>
 
         {/* Clinic Info */}
-        <div className="flex-1 min-w-0">
-          {/* Header */}
-          <div className="flex items-start justify-between gap-2">
-            <div className="flex-1 min-w-0">
-              <h3
-                className={cn(
-                  "font-semibold text-foreground leading-tight hover:underline cursor-pointer",
-                  isMobile ? "text-sm" : "text-base md:text-lg",
-                )}
-                onClick={handleProfile}
-              >
-                {clinic.name}
-              </h3>
-              {/* Rating */}
-              <div
-                className={cn(
-                  "flex items-center gap-1.5 mt-1",
-                  isMobile && "text-xs",
-                )}
-              >
-                <div className="flex items-center gap-1">
-                  <Star
-                    className={cn(
-                      "fill-amber-400 text-amber-400",
-                      isMobile ? "w-3 h-3" : "w-4 h-4",
-                    )}
-                  />
-                  <span className="text-xs sm:text-sm font-medium">
-                    {clinic.rating}
-                  </span>
-                  {!isMobile && clinic.reviewCount && (
-                    <span className="text-muted-foreground text-xs sm:text-sm">
-                      ({clinic.reviewCount} {t("clinicCard.reviews")})
-                    </span>
+        <div className="flex-1 min-w-0 flex flex-col justify-between">
+          <div>
+            {/* Header */}
+            <div className="flex items-start justify-between gap-2">
+              <div className="flex-1 min-w-0">
+                <h3
+                  className={cn(
+                    "font-semibold text-foreground leading-tight hover:underline cursor-pointer",
+                    isMobile ? "text-sm" : "text-base md:text-lg",
                   )}
-                </div>
+                  onClick={handleProfile}
+                >
+                  {clinic.name}
+                </h3>
+
+                {/* Rating */}
+                {hasVisibleRating && (
+                  <div
+                    className={cn(
+                      "flex items-center gap-1.5 mt-1",
+                      isMobile && "text-xs",
+                    )}
+                  >
+                    <div className="flex items-center gap-1">
+                      <Star
+                        className={cn(
+                          "fill-amber-400 text-amber-400",
+                          isMobile ? "w-3 h-3" : "w-4 h-4",
+                        )}
+                      />
+                      <span className="text-xs sm:text-sm font-medium">
+                        {clinic.rating}
+                      </span>
+                      {!isMobile && reviewCountValue > 0 && (
+                        <span className="text-muted-foreground text-xs sm:text-sm">
+                          ({reviewCountValue} {t("clinicCard.reviews")})
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
+
+            {/* Address — oculto si vacío */}
+            {hasAddress && (
+              <div
+                className={cn(
+                  "flex items-start gap-1.5 mt-2 text-muted-foreground",
+                  isMobile ? "text-xs" : "text-sm",
+                )}
+              >
+                <MapPin
+                  className={cn(
+                    "flex-shrink-0 mt-0.5 text-secondary",
+                    isMobile ? "w-3 h-3" : "w-4 h-4",
+                  )}
+                />
+                <span className="line-clamp-1">{addressText}</span>
+              </div>
+            )}
+
+            {/* Languages — oculto si array vacío */}
+            {languages.length > 0 && (
+              <div
+                className={cn(
+                  "flex items-center gap-1.5 mt-2 text-muted-foreground",
+                  isMobile ? "text-xs" : "text-sm",
+                )}
+              >
+                <Globe
+                  className={cn(
+                    "flex-shrink-0 text-secondary",
+                    isMobile ? "w-3 h-3" : "w-4 h-4",
+                  )}
+                />
+                {languages.length > 2 ? (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className="cursor-pointer">
+                        {languages[0]}
+                        <span className="text-secondary ml-1">
+                          {t("clinicCard.andOtherLanguages", {
+                            count: languages.length - 1,
+                          })}
+                        </span>
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <span>{languages.join(", ")}</span>
+                    </TooltipContent>
+                  </Tooltip>
+                ) : (
+                  <span>{languages.join(", ")}</span>
+                )}
+              </div>
+            )}
+
+            {/* Phone — oculto si vacío */}
+            {hasPhone && (
+              <div
+                className={cn(
+                  "flex items-center gap-1.5 mt-2 text-muted-foreground",
+                  isMobile ? "text-xs" : "text-sm",
+                )}
+              >
+                <Phone
+                  className={cn(
+                    "flex-shrink-0 text-secondary",
+                    isMobile ? "w-3 h-3" : "w-4 h-4",
+                  )}
+                />
+                <span>{formatPhone(phoneText)}</span>
+              </div>
+            )}
+
+            {/* Insurances — oculto si array vacío */}
+            {insurances.length > 0 && (
+              <div
+                className={cn(
+                  "flex items-start gap-1.5 mt-2 text-muted-foreground",
+                  isMobile ? "text-xs" : "text-sm",
+                )}
+              >
+                <Shield
+                  className={cn(
+                    "flex-shrink-0 mt-0.5 text-secondary",
+                    isMobile ? "w-3 h-3" : "w-4 h-4",
+                  )}
+                />
+                <span className="font-medium">
+                  {isMobile
+                    ? t("clinicCard.insurances")
+                    : t("clinicCard.acceptedInsurances")}
+                </span>
+                {insurances.length > 2 ? (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className="cursor-pointer truncate">
+                        {isMobile
+                          ? insurances[0]
+                          : insurances.slice(0, 2).join(", ")}
+                        <span className="text-secondary ml-1">
+                          {t("clinicCard.andMore", {
+                            count: insurances.length - (isMobile ? 1 : 2),
+                          })}
+                        </span>
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <span>{insurances.join(", ")}</span>
+                    </TooltipContent>
+                  </Tooltip>
+                ) : (
+                  <span className="truncate">{insurances.join(", ")}</span>
+                )}
+              </div>
+            )}
           </div>
-
-          {/* Address — oculto si vacío */}
-          {hasAddress && (
-            <div
-              className={cn(
-                "flex items-start gap-1.5 mt-2 text-muted-foreground",
-                isMobile ? "text-xs" : "text-sm",
-              )}
-            >
-              <MapPin
-                className={cn(
-                  "flex-shrink-0 mt-0.5 text-secondary",
-                  isMobile ? "w-3 h-3" : "w-4 h-4",
-                )}
-              />
-              <span className="line-clamp-1">{addressText}</span>
-            </div>
-          )}
-
-          {/* Languages — oculto si array vacío */}
-          {languages.length > 0 && (
-            <div
-              className={cn(
-                "flex items-center gap-1.5 mt-2 text-muted-foreground",
-                isMobile ? "text-xs" : "text-sm",
-              )}
-            >
-              <Globe
-                className={cn(
-                  "flex-shrink-0 text-secondary",
-                  isMobile ? "w-3 h-3" : "w-4 h-4",
-                )}
-              />
-              {languages.length > 2 ? (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <span className="cursor-pointer">
-                      {languages[0]}
-                      <span className="text-secondary ml-1">
-                        {t("clinicCard.andOtherLanguages", {
-                          count: languages.length - 1,
-                        })}
-                      </span>
-                    </span>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <span>{languages.join(", ")}</span>
-                  </TooltipContent>
-                </Tooltip>
-              ) : (
-                <span>{languages.join(", ")}</span>
-              )}
-            </div>
-          )}
-
-          {/* Phone — oculto si vacío */}
-          {hasPhone && (
-            <div
-              className={cn(
-                "flex items-center gap-1.5 mt-2 text-muted-foreground",
-                isMobile ? "text-xs" : "text-sm",
-              )}
-            >
-              <Phone
-                className={cn(
-                  "flex-shrink-0 text-secondary",
-                  isMobile ? "w-3 h-3" : "w-4 h-4",
-                )}
-              />
-              <span>{formatPhone(phoneText)}</span>
-            </div>
-          )}
-
-          {/* Insurances — oculto si array vacío */}
-          {insurances.length > 0 && (
-            <div
-              className={cn(
-                "flex items-start gap-1.5 mt-2 text-muted-foreground",
-                isMobile ? "text-xs" : "text-sm",
-              )}
-            >
-              <Shield
-                className={cn(
-                  "flex-shrink-0 mt-0.5 text-secondary",
-                  isMobile ? "w-3 h-3" : "w-4 h-4",
-                )}
-              />
-              <span className="font-medium">
-                {isMobile
-                  ? t("clinicCard.insurances")
-                  : t("clinicCard.acceptedInsurances")}
-              </span>
-              {insurances.length > 2 ? (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <span className="cursor-pointer truncate">
-                      {isMobile
-                        ? insurances[0]
-                        : insurances.slice(0, 2).join(", ")}
-                      <span className="text-secondary ml-1">
-                        {t("clinicCard.andMore", {
-                          count: insurances.length - (isMobile ? 1 : 2),
-                        })}
-                      </span>
-                    </span>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <span>{insurances.join(", ")}</span>
-                  </TooltipContent>
-                </Tooltip>
-              ) : (
-                <span className="truncate">{insurances.join(", ")}</span>
-              )}
-            </div>
-          )}
 
           {/* Action buttons */}
           <div

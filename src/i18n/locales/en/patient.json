@@ -113,7 +113,8 @@
     "verifying": "Verifying compatibility...",
     "compatible": "This insurance is accepted by the doctor",
     "notCompatible": "This insurance is not accepted by the doctor",
-    "verificationError": "Error verifying compatibility"
+    "verificationError": "Error verifying compatibility",
+    "addFirst": "Add your first medical insurance"
   },
   "validation": {
     "fullNameRequired": "Full name is required",
@@ -183,7 +184,10 @@
     "cancellationPolicyDescription": "You can cancel or reschedule your appointment at no additional cost if you do so at least 4 hours in advance. Our goal is to offer you the greatest comfort and flexibility in your medical care.",
     "noInsurance": "Without insurance",
     "ongoing": "Ongoing",
+
+    "insuranceType": "Will you use medical insurance?",
     "withInsurance": "With insurance",
+    "withoutInsurance": "Without insurance",
     "submitting": "Processing...",
     "loadingDoctorData": "Loading doctor information...",
     "noDoctorData": "Could not load doctor information"
@@ -410,6 +414,12 @@
     "searchPlaceholder": "Search by name...",
     "pdfTitle": "My Doctors",
     "pdfSubtitle": "Complete list of favorite doctors",
+    "noSpecialty": "No specialty",
+    "retry": "Retry",
+    "error": {
+      "title": "Error loading",
+      "description": "Could not load doctors. Please try again."
+    },
     "pdfColumns": {
       "name": "Name",
       "specialty": "Specialty",
@@ -419,6 +429,8 @@
       "insuranceAccepted": "Accepted insurances"
     },
     "empty": {
+      "title": "You don't have doctors yet",
+      "description": "When you have assigned doctors, they will appear here.",
       "noDoctorsTitle": "You don't have doctors yet",
       "noDoctorsDescription": "When you have assigned doctors, they will appear here.",
       "filteredTitle": "No doctors found",

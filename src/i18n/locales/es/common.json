@@ -138,7 +138,12 @@
     "province": "Provincia",
     "municipality": "Municipio",
     "loadingProviderTypes": "Cargando tipos de proveedores...",
-    "loadingSpecialties": "Cargando especialidades..."
+    "loadingSpecialties": "Cargando especialidades...",
+    "fallbacks": {
+      "noSpecialty": "Sin especialidad",
+      "noAddress": "Sin dirección",
+      "healthCenter": "Centro de salud"
+    }
   },
   "validation": {
     "emailRequired": "El correo electrónico es obligatorio",
