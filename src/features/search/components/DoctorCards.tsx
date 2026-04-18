@@ -109,8 +109,8 @@ const DoctorCardsComponent = ({
     }
   };
 
-  const handleConfirmConnect = () => {
-    onConnect?.(doctor.id);
+  const handleConfirmConnect = (message?: string) => {
+    onConnect?.(doctor.id, message);
   };
 
   let connectBtnText = t("clinicCard.connect");
@@ -627,6 +627,9 @@ const DoctorCardsComponent = ({
                     status={connectionStatus}
                     id={parseInt(doctor.id)}
                     onConfirm={handleConfirmConnect}
+                    enableMessageInput={
+                      userRole === "CENTER" && connectionStatus === "not_connected"
+                    }
                   >
                     <MCButton
                       variant={connectVariant}

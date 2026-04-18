@@ -235,7 +235,7 @@ const centerService = {
     createDoctorAllianceRequest: async ( payload: DoctorAllianceRequestPayload ): Promise<CreateDoctorAllianceRequestResponse> => {
       try {
       const { data } = await apiClient.post<CreateDoctorAllianceRequestResponse>(
-          API_ENDPOINTS.DOCTORES.SOLICITUDES_ALIANZA,
+                    API_ENDPOINTS.HEALTH_CENTERS.SOLICITUDES_ALIANZA,
           payload,
       );
 

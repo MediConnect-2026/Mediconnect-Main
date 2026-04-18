@@ -257,6 +257,26 @@ input[type="time"] {
   appearance: none;
   -moz-appearance: textfield;
 }
+
+/* Chat audio player: improve spacing between native controls */
+.chat-audio-player {
+  min-height: 42px;
+}
+
+.chat-audio-player::-webkit-media-controls-panel {
+  padding-left: 8px;
+  padding-right: 8px;
+}
+
+.chat-audio-player::-webkit-media-controls-timeline {
+  margin-left: 8px;
+  margin-right: 8px;
+}
+
+.chat-audio-player::-webkit-media-controls-volume-slider {
+  margin-left: 8px;
+}
+
 /* Spinner Médico - Efecto Pulso */
 .medical-loader {
   width: 60px;

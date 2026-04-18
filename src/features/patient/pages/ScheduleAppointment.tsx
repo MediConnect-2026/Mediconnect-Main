@@ -17,7 +17,7 @@ import { useEffect, useState } from "react";
 import { patientService } from "@/shared/navigation/userMenu/editProfile/patient/services/patient.service";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import MapScheduleLocation from "@/shared/components/maps/MapScheduleLocation";
 import { MCUserAvatar } from "@/shared/navigation/userMenu/MCUserAvatar";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
@@ -32,6 +32,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { QUERY_KEYS } from "@/lib/react-query/config";
 import { formatCurrency } from "@/utils/formatCurrency";
 import { formatTimeTo12h } from "@/utils/appointmentMapper";
+import { ROUTES } from "@/router/routes";
 
 // Skeleton para la página de resumen de cita
 const ScheduleAppointmentSkeleton = ({ isMobile }: { isMobile: boolean }) => {
@@ -80,6 +81,7 @@ function ScheduleAppointment() {
   const isRescheduling = useAppointmentStore((state) => state.isRescheduling);
 
   const navigate = useNavigate();
+  const location = useLocation();
   const isMobile = useIsMobile();
   const queryClient = useQueryClient();
 
@@ -178,6 +180,24 @@ function ScheduleAppointment() {
       : selectedInsurance
         ? `${selectedInsurance.nombre}${selectedInsurance.tipoSeguro ? ` - ${typeof selectedInsurance.tipoSeguro === "string" ? selectedInsurance.tipoSeguro : selectedInsurance.tipoSeguro.nombre}` : ""}`
         : appointmentDetails.insuranceProvider;
+
+  const handleBack = () => {
+    const fallbackPath = ROUTES.COMMON.DASHBOARD;
+    const hasHistory = window.history.length > 1;
+    const referrerPath =
+      typeof document !== "undefined" && document.referrer
+        ? new URL(document.referrer).pathname
+        : "";
+    const cameFromLogin = referrerPath === ROUTES.LOGIN;
+    const isDirectEntry = location.key === "default";
+
+    if (!hasHistory || cameFromLogin || isDirectEntry) {
+      navigate(fallbackPath, { replace: true });
+      return;
+    }
+
+    navigate(-1);
+  };
 
   const handleConfirm = async () => {
     if (isSubmitting) return;
@@ -288,7 +308,7 @@ function ScheduleAppointment() {
         className={`w-full ${isMobile ? "flex flex-col" : "grid grid-cols-[1fr_7fr_1fr]"} justify-items-center`}
       >
         <aside className={isMobile ? "w-full mb-4" : ""}>
-          <MCBackButton onClick={() => navigate(-1)} />
+          <MCBackButton onClick={handleBack} />
         </aside>
 
         {loading ? (

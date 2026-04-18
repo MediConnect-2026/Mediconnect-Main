@@ -38,6 +38,21 @@ export const mapDoctorsToProviders = async (
 
   const providers: Doctor[] = await Promise.all(
     doctors.map(async (doctor) => {
+      const normalizedAllianceStatus = (doctor.estadoAlianza || "").toLowerCase();
+      const isConnected =
+        doctor.estaConectado === true ||
+        normalizedAllianceStatus === "aceptada" ||
+        normalizedAllianceStatus === "accepted";
+      const isPending =
+        normalizedAllianceStatus === "pendiente" ||
+        normalizedAllianceStatus === "pending" ||
+        normalizedAllianceStatus === "en_proceso" ||
+        normalizedAllianceStatus === "in_progress";
+      const connectionStatus: "connected" | "not_connected" | "pending" = isConnected
+        ? "connected"
+        : isPending
+          ? "pending"
+          : "not_connected";
       const noSpecialtyLabel = tByLang(
         language,
         "search.fallbacks.noSpecialty",
@@ -148,7 +163,7 @@ export const mapDoctorsToProviders = async (
         specialties,
         bio: doctor.biografia || "",
         availability,
-        connectionStatus: "not_connected",
+        connectionStatus,
         isFavorite: doctor.esFavorito,
         // Store additional data for filtering
         _rawDoctor: doctor, // Keep reference to raw doctor data for filtering

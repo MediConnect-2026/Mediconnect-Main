@@ -183,6 +183,7 @@
     "cancellationPolicyTitle": "Política flexible de cancelación y reagendamiento",
     "cancellationPolicyDescription": "Puedes cancelar o reagendar tu cita sin costo adicional si lo haces con al menos 4 horas de anticipación. Nuestro objetivo es ofrecerte la mayor comodidad y flexibilidad en tu atención médica.",
     "noInsurance": "Sin seguro",
+    "withoutInsurance": "Sin seguro",
     "ongoing": "En progreso",
     "withInsurance": "Con seguro",
     "submitting": "Procesando...",
@@ -517,8 +518,8 @@
       "insuranceAccepted": "Seguros aceptados"
     },
     "empty": {
-      "title": "Aún no tienes doctores",
-      "description": "Cuando tengas doctores asignados, aparecerán aquí.",
+      "title": "No tienes doctores aún",
+      "description": "Cuando agregues doctores a favoritos, aparecerán aquí para que puedas acceder rápidamente.",
       "noDoctorsTitle": "Aún no tienes doctores",
       "noDoctorsDescription": "Cuando tengas doctores asignados, aparecerán aquí.",
       "filteredTitle": "No se encontraron doctores",

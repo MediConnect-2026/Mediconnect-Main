@@ -432,8 +432,8 @@
       "insuranceAccepted": "Accepted insurances"
     },
     "empty": {
-      "title": "You don't have doctors yet",
-      "description": "When you have assigned doctors, they will appear here.",
+      "title": "You have no doctors yet",
+      "description": "When you add doctors to favorites, they will appear here for quick access.",
       "noDoctorsTitle": "You don't have doctors yet",
       "noDoctorsDescription": "When you have assigned doctors, they will appear here.",
       "filteredTitle": "No doctors found",

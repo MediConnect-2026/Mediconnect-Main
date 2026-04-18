@@ -565,6 +565,7 @@
   },
   "chatInput": {
     "recording": "Recording...",
+    "cancelRecording": "Cancel recording",
     "sendImage": "Send image",
     "sendFile": "Send document",
     "placeholder": "Type a message..."
@@ -576,15 +577,20 @@
     "menu": "Menu",
     "conversations": "Conversations",
     "searchChats": "Search Chats",
+    "largeUploadWarning": "You are uploading {{count}} large file(s) (>= {{size}}). This may take a while.",
     "loading": "Loading conversations...",
+    "loadingConversation": "Loading conversation...",
     "noConversationsFound": "No conversations found",
     "microphoneError": "Could not access microphone. Check permissions.",
     "noConversations": "No conversations yet. Start a new chat to connect with your doctors or patients.",
-    "loadingOlderMessages": "Loading older messages..."
+    "loadingOlderMessages": "Loading older messages...",
+    "fileValidationError": "Could not validate the selected file.",
+    "removeInvalidAttachmentFirst": "Remove files with errors before sending the message."
   },
   "filePreview": {
     "imageAlt": "Image preview",
-    "fileAlt": "File preview"
+    "fileAlt": "File preview",
+    "largeUploadWarning": "Large file (>= {{size}}): upload may take longer"
   },
   "fileViewer": {
     "imageTitle": "Image preview",

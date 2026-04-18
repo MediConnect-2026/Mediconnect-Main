@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 interface MCNewButtonProps {
   onClick?: () => void | Promise<void>;
   loading?: boolean;
+  disabled?: boolean;
   className?: string;
   text?: string;
 }
@@ -13,13 +14,14 @@ interface MCNewButtonProps {
 function MCNewButton({
   onClick,
   loading = false,
+  disabled = false,
   className,
   text = "Nuevo",
 }: MCNewButtonProps) {
   const [isProcessing, setIsProcessing] = React.useState(false);
 
   const handleClick = async () => {
-    if (!onClick || isProcessing || loading) return;
+    if (!onClick || isProcessing || loading || disabled) return;
 
     try {
       setIsProcessing(true);
@@ -30,12 +32,13 @@ function MCNewButton({
   };
 
   const isLoading = loading || isProcessing;
+  const isDisabled = isLoading || disabled;
 
   return (
     <Button
       type="button"
       onClick={handleClick}
-      disabled={isLoading}
+      disabled={isDisabled}
       variant="outline"
       className={cn(
         "flex w-full items-center text-primary px-4 py-3.5 text-base sm:px-8 sm:py-4 md:px-10 md:py-5 lg:px-5 lg:py-5 lg:text-md rounded-4xl border-primary/20 bg-bg-btn-secondary",
@@ -44,7 +47,7 @@ function MCNewButton({
         "active:bg-bg-btn-secondary/30 active:text-primary",
         "active:scale-95",
         "transition-colors duration-150",
-        isLoading && "opacity-50 cursor-not-allowed",
+        isDisabled && "opacity-50 cursor-not-allowed",
         className,
       )}
     >

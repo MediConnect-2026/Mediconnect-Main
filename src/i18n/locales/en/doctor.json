@@ -762,7 +762,8 @@
     },
     "reviews": {
       "title": "Reviews",
-      "titleForOne": "Review"
+      "titleForOne": "Review",
+      "empty": "No reviews have been added for this service yet."
     }
   },
   "filters": {

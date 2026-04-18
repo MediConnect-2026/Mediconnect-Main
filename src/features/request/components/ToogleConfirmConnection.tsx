@@ -37,8 +37,7 @@ function ToogleConfirmConnection({
   const [isFormValid, setIsFormValid] = useState(false);
   const submitRef = useRef<(() => void) | null>(null);
 
-  const requiresMessage =
-    enableMessageInput && userRole === "DOCTOR" && !isConnected && !isPending;
+  const requiresMessage = enableMessageInput && !isConnected && !isPending;
 
   const messageSchema = useMemo(
     () =>

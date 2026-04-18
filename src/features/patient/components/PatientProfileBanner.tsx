@@ -2,7 +2,6 @@ import MCButton from "@/shared/components/forms/MCButton";
 import {
   History,
   Settings,
-  Shield,
   Copy,
   LogOut,
   Ellipsis,
@@ -150,10 +149,10 @@ function PatientProfileBanner({ user, setOpenSheet }: Props) {
                       <Settings className="w-4 h-4 mr-2" />
                       {t("profileForm.menu.settings")}
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => navigate(ROUTES.PRIVACY.ROOT)}>
+                    {/* <DropdownMenuItem onClick={() => navigate(ROUTES.PRIVACY.ROOT)}>
                       <Shield className="w-4 h-4 mr-2" />
                       {t("profileForm.menu.privacy")}
-                    </DropdownMenuItem>
+                    </DropdownMenuItem> */}
                     <DropdownMenuItem onClick={handleCopyProfile}>
                       <Copy className="w-4 h-4 mr-2" />
                       {t("profileForm.menu.copyProfile")}

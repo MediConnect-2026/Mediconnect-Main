@@ -181,11 +181,32 @@ function AppRouter() {
               />
             )}
 
-            {/* Common Routes (All Users) */}
-            <Route path={ROUTES.COMMON.GLOBAL_SEARCH} element={<Search />} />
+            {/* Common Routes (All Authenticated Users) */}
+            <Route
+              path={ROUTES.COMMON.GLOBAL_SEARCH}
+              element={
+                <ProtectedRoute doctor patient center>
+                  <Search />
+                </ProtectedRoute>
+              }
+            />
 
-            <Route path={ROUTES.COMMON.CHAT} element={<ChatPage />} />
-            <Route path={ROUTES.COMMON.CHAT_WITH} element={<ChatPage />} />
+            <Route
+              path={ROUTES.COMMON.CHAT}
+              element={
+                <ProtectedRoute doctor patient center>
+                  <ChatPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path={ROUTES.COMMON.CHAT_WITH}
+              element={
+                <ProtectedRoute doctor patient center>
+                  <ChatPage />
+                </ProtectedRoute>
+              }
+            />
             <Route path={ROUTES.COMMON.SERVICE} element={<ServicesPage />} />
 
             {/* Common Routes (Doctor & Patient Only) */}
@@ -202,7 +223,7 @@ function AppRouter() {
             <Route
               path={ROUTES.PATIENT.PATIENT_PROFILE_PRIVATE}
               element={
-                <ProtectedRoute patient>
+                <ProtectedRoute doctor patient center>
                   <PatientProfilePage />
                 </ProtectedRoute>
               }
@@ -210,26 +231,42 @@ function AppRouter() {
             <Route
               path={ROUTES.PATIENT.PATIENT_PROFILE_PUBLIC}
               element={
-                <ProtectedRoute patient>
+                <ProtectedRoute doctor patient center>
                   <PatientProfilePage />
                 </ProtectedRoute>
               }
             />
             <Route
               path={ROUTES.DOCTOR.DOCTOR_PROFILE_PUBLIC}
-              element={<DoctorProfilePage />}
+              element={
+                <ProtectedRoute doctor patient center>
+                  <DoctorProfilePage />
+                </ProtectedRoute>
+              }
             />
             <Route
               path={ROUTES.DOCTOR.DOCTOR_PROFILE_PRIVATE}
-              element={<DoctorProfilePage />}
+              element={
+                <ProtectedRoute doctor patient center>
+                  <DoctorProfilePage />
+                </ProtectedRoute>
+              }
             />
             <Route
               path={ROUTES.CENTER.CENTER_PROFILE_PUBLIC}
-              element={<CenterProfilePage />}
+              element={
+                <ProtectedRoute doctor patient center>
+                  <CenterProfilePage />
+                </ProtectedRoute>
+              }
             />
             <Route
               path={ROUTES.CENTER.CENTER_PROFILE_PRIVATE}
-              element={<CenterProfilePage />}
+              element={
+                <ProtectedRoute doctor patient center>
+                  <CenterProfilePage />
+                </ProtectedRoute>
+              }
             />
 
             {/* Patient-Only Routes */}

@@ -758,7 +758,7 @@ function Search() {
                     onSelect={handleProviderSelect}
                     onViewProfile={handleViewProfile}
                     onConnect={
-                      provider.type === "clinic"
+                      provider.type === "clinic" || provider.type === "doctor"
                         ? handleConnectCenter
                         : undefined
                     }

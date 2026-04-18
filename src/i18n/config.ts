@@ -15,13 +15,24 @@ import landen from "@/i18n/locales/en/landing.json"; // <-- Importa landing en i
 // Si tienes landing.json en español, impórtalo también:
 import landes from "@/i18n/locales/es/landing.json";
 
+const normalizeLanguageCode = (language?: string): "en" | "es" =>
+  language?.toLowerCase().startsWith("es") ? "es" : "en";
+
 i18n
   .use(LanguageDetector)
   .use(initReactI18next)
   .init({
     fallbackLng: "en",
-    ns: ["auth", "patient", "doctor", "center", "common", "landing"], // <-- Agrega "landing"
+    supportedLngs: ["en", "es"],
+    nonExplicitSupportedLngs: true,
+    load: "languageOnly",
+    cleanCode: true,
+    lowerCaseLng: true,
+    ns: ["auth", "patient", "doctor", "center", "common", "landing"],
     defaultNS: "auth",
+    detection: {
+      convertDetectedLanguage: (lng: string) => normalizeLanguageCode(lng),
+    },
     resources: {
       en: {
         auth: authen,
@@ -40,6 +51,19 @@ i18n
         landing: landes, // <-- Descomenta si tienes landing.json en español
       },
     },
+  })
+  .then(() => {
+    const normalized = normalizeLanguageCode(i18n.language);
+    if (i18n.language !== normalized) {
+      void i18n.changeLanguage(normalized);
+    }
   });
+
+i18n.on("languageChanged", (lng) => {
+  const normalized = normalizeLanguageCode(lng);
+  if (lng !== normalized) {
+    void i18n.changeLanguage(normalized);
+  }
+});
 
 export default i18n;

@@ -26,6 +26,7 @@ import MCToogle from "@/shared/components/forms/MCToogle";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
 import FullFilterStaff from "@/features/center/components/filters/FullFilterStaff";
 import useCenterStaff from "@/features/center/hooks/useCenterStaff";
+import { useDoctorAllianceDelete } from "@/features/search/hooks/useDoctorAllianceDelete";
 
 import StaffTable from "../components/staff/StaffTable";
 
@@ -46,6 +47,7 @@ function StaffPage() {
   const isMobile = useIsMobile();
   const { data: staffList = [], isLoading, isError, refetch, error } =
     useCenterStaff();
+  const deleteAllianceMutation = useDoctorAllianceDelete();
 
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
@@ -219,6 +221,11 @@ function StaffPage() {
     setFilters((prev) => ({ ...prev, ...newFilters }));
     setPage(1);
   }
+
+  const handleDisconnectStaff = async (requestId: string) => {
+    await deleteAllianceMutation.mutateAsync(requestId);
+    await refetch();
+  };
 
   const hasActiveFilters = getActiveFiltersCount() > 0;
 
@@ -432,6 +439,8 @@ function StaffPage() {
               isFavorite={staff.isFavorite}
               urlImage={staff.urlImage}
               connectionStatus="connected"
+              onConnect={() => handleDisconnectStaff(staff.id)}
+              isConnectionSubmitting={deleteAllianceMutation.isPending}
             />
           ))}
         </div>

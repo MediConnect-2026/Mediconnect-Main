@@ -12,6 +12,9 @@ import { formatPhone } from "@/utils/phoneFormat";
 
 import ToogleConfirmConnection from "@/features/request/components/ToogleConfirmConnection";
 
+const DEFAULT_CENTER_IMAGE =
+  "https://i.pinimg.com/736x/2c/bb/0e/2cbb0ee6c1c55b1041642128c902dadd.jpg";
+
 interface ClinicCardProps {
   clinic: Clinic;
   isConnected: "connected" | "not_connected" | "pending";
@@ -28,10 +31,20 @@ const CenterCardsComponent = ({
   onDisconnect,
   isConnecting = false,
 }: ClinicCardProps) => {
-  const userRole = useAppStore((state) => state.user?.rol);
+  const user = useAppStore((state) => state.user);
+  const userRole = user?.rol;
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const { t } = useTranslation("common");
+
+  const doctorVerificationStatus = user?.doctor?.estadoVerificacion;
+  const isDoctorVerified =
+    typeof doctorVerificationStatus === "string" &&
+    ["verificado", "aprobado", "approved", "aproved"].includes(
+      doctorVerificationStatus.toLowerCase().trim(),
+    );
+  const isDoctorRole = userRole === "DOCTOR" || userRole === "Doctor";
+  const disableConnectForUnverifiedDoctor = isDoctorRole && !isDoctorVerified;
 
   const handleProfile = () => {
     navigate(`/center/profile/${clinic.id}`);
@@ -70,6 +83,9 @@ const CenterCardsComponent = ({
     connectBtnDisabled = true;
   }
 
+  if (disableConnectForUnverifiedDoctor) {
+    connectBtnDisabled = true;
+  }
   const ratingValue = Number(clinic.rating ?? 0);
   const reviewCountValue = Number(clinic.reviewCount ?? 0);
   const hasVisibleRating = ratingValue > 0;
@@ -90,7 +106,7 @@ const CenterCardsComponent = ({
           )}
         >
           <img
-            src={clinic.image}
+            src={clinic.image || DEFAULT_CENTER_IMAGE}
             alt={clinic.name}
             className="w-30 h-full md:w-45 md:h-full object-cover transition-transform duration-500 hover:scale-110"
           />
@@ -261,7 +277,7 @@ const CenterCardsComponent = ({
           <div
             className={cn("flex gap-2 sm:gap-3", isMobile ? "mt-3" : "mt-4")}
           >
-            {userRole === "DOCTOR" ? (
+            {isDoctorRole ? (
               <>
                 {isConnected === "not_connected" ? (
                   <ToogleConfirmConnection

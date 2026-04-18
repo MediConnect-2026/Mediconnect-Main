@@ -46,7 +46,9 @@ export function doctorPersonalInfoSchema(t: (key: string) => string) {
         message: t("validation.identificationNumberInvalid"),
       }),
     phone: z.string().min(1, { message: t("validation.phoneRequired") }),
-    address: z.string().min(1, { message: t("validation.addressRequired") }),
+    // Address is not editable in the current doctor verify-info form.
+    // Keep it optional in validation to avoid blocking submit.
+    address: z.string(),
     primarySpecialty: z
       .string()
       .min(1, { message: t("validation.primarySpecialtyRequired") }),

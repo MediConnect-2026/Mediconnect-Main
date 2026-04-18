@@ -317,6 +317,15 @@ export const ChatPanel = () => {
     simulateTyping();
   };
 
+  const cancelRecording = () => {
+    setIsRecording(false);
+    if (recordingInterval.current) {
+      clearInterval(recordingInterval.current);
+      recordingInterval.current = null;
+    }
+    setRecordingTime(0);
+  };
+
   // Utilidades
   const getFileType = (mimeType: string, fileName: string): string => {
     if (mimeType.includes("pdf")) return "pdf";
@@ -501,6 +510,7 @@ export const ChatPanel = () => {
             onFileSelect={handleFileSelect}
             onStartRecording={startRecording}
             onStopRecording={stopRecording}
+            onCancelRecording={cancelRecording}
             formatDuration={formatDuration}
           />
 
