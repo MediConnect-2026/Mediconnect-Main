@@ -254,7 +254,7 @@ export function TeleconsultChatPanel({
           <Prescription onSuccess={onEndCall} />
         ) : (
           safeConversation && (
-            <RealChatPanel conversation={safeConversation} layoutMode="teleconsult" />
+            <RealChatPanel conversation={safeConversation} />
           )
         )}
       </div>
