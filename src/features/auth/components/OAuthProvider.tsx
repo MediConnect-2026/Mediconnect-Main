@@ -1,7 +1,7 @@
 import GoogleSVG from "@/assets/google-2.svg";
 import { useTranslation } from "react-i18next";
 import { useGoogleLogin } from "@/lib/hooks/auth";
-import { useState } from 'react';
+import { useState } from "react";
 import { useGlobalUIStore } from "@/stores/useGlobalUIStore";
 import { Loader2 } from "lucide-react";
 
@@ -13,7 +13,7 @@ function OAuthProvider({ onAuthStateChange }: OAuthProviderProps) {
   const { t } = useTranslation("auth");
   const [isAuthenticating, setIsAuthenticating] = useState(false);
   const setToast = useGlobalUIStore((state) => state.setToast);
-  
+
   const bubbles = [
     {
       id: "google",
@@ -29,45 +29,46 @@ function OAuthProvider({ onAuthStateChange }: OAuthProviderProps) {
   const handleCustomButtonClick = () => {
     setIsAuthenticating(true);
     onAuthStateChange?.(true);
-    
+
     const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
     const redirectUri = `${window.location.origin}/auth/google/callback.html`;
-    
+
     if (!clientId) {
       setToast({
-        message: 'Error de configuración: Google Client ID no está configurado',
-        type: 'error',
+        message: "Error de configuración: Google Client ID no está configurado",
+        type: "error",
         open: true,
       });
       setIsAuthenticating(false);
       onAuthStateChange?.(false);
       return;
     }
-    
+
     // Construir la URL de autorización de Google OAuth
-    const authUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
-    authUrl.searchParams.append('client_id', clientId);
-    authUrl.searchParams.append('redirect_uri', redirectUri);
-    authUrl.searchParams.append('response_type', 'id_token token');
-    authUrl.searchParams.append('scope', 'openid email profile');
-    authUrl.searchParams.append('nonce', Math.random().toString(36));
-      
+    const authUrl = new URL("https://accounts.google.com/o/oauth2/v2/auth");
+    authUrl.searchParams.append("client_id", clientId);
+    authUrl.searchParams.append("redirect_uri", redirectUri);
+    authUrl.searchParams.append("response_type", "id_token token");
+    authUrl.searchParams.append("scope", "openid email profile");
+    authUrl.searchParams.append("nonce", Math.random().toString(36));
+
     // Abrir popup
     const width = 500;
     const height = 600;
     const left = window.screenX + (window.outerWidth - width) / 2;
     const top = window.screenY + (window.outerHeight - height) / 2;
-    
+
     const popup = window.open(
       authUrl.toString(),
-      'Google Sign In',
-      `width=${width},height=${height},left=${left},top=${top},popup=yes`
+      "Google Sign In",
+      `width=${width},height=${height},left=${left},top=${top},popup=yes`,
     );
 
     if (!popup) {
       setToast({
-        message: 'No se pudo abrir la ventana de Google. Por favor, permite los popups.',
-        type: 'error',
+        message:
+          "No se pudo abrir la ventana de Google. Por favor, permite los popups.",
+        type: "error",
         open: true,
       });
       setIsAuthenticating(false);
@@ -83,51 +84,51 @@ function OAuthProvider({ onAuthStateChange }: OAuthProviderProps) {
     const cleanup = () => {
       setIsAuthenticating(false);
       onAuthStateChange?.(false);
-      window.removeEventListener('message', handleMessage);
+      window.removeEventListener("message", handleMessage);
       if (checkPopupInterval) clearInterval(checkPopupInterval);
       if (authTimeout) clearTimeout(authTimeout);
     };
-    const handleMessage = (event: MessageEvent) => {      
+    const handleMessage = (event: MessageEvent) => {
       if (event.origin !== window.location.origin) {
-        console.warn('⚠️ Mensaje de origen no confiable:', event.origin);
+        console.warn("⚠️ Mensaje de origen no confiable:", event.origin);
         return;
       }
-      
-      if (event.data.type === 'GOOGLE_AUTH_SUCCESS' && event.data.idToken) {
+
+      if (event.data.type === "GOOGLE_AUTH_SUCCESS" && event.data.idToken) {
         messageReceived = true;
 
         loginWithGoogle(event.data.idToken);
-        
+
         // Intentar cerrar el popup
         try {
           popup?.close();
         } catch (e) {
-          console.log('El popup se cerrará por sí mismo');
+          console.log("El popup se cerrará por sí mismo");
         }
-        
+
         cleanup();
-      } else if (event.data.type === 'GOOGLE_AUTH_ERROR') {
-        console.error('❌ Error en autenticación de Google:', event.data.error);
+      } else if (event.data.type === "GOOGLE_AUTH_ERROR") {
+        console.error("❌ Error en autenticación de Google:", event.data.error);
         messageReceived = true;
-        
+
         setToast({
-          message: `Error de autenticación: ${event.data.error || 'Error desconocido'}`,
-          type: 'error',
+          message: `Error de autenticación: ${event.data.error || "Error desconocido"}`,
+          type: "error",
           open: true,
         });
-        
+
         // Intentar cerrar el popup
         try {
           popup?.close();
         } catch (e) {
-          console.log('El popup se cerrará por sí mismo');
+          console.log("El popup se cerrará por sí mismo");
         }
-        
+
         cleanup();
       }
     };
 
-    window.addEventListener('message', handleMessage);
+    window.addEventListener("message", handleMessage);
 
     // Verificar si el popup fue cerrado (con manejo de errores COOP)
     checkPopupInterval = setInterval(() => {
@@ -135,7 +136,7 @@ function OAuthProvider({ onAuthStateChange }: OAuthProviderProps) {
         if (popup && popup.closed) {
           if (checkPopupInterval) clearInterval(checkPopupInterval);
           if (!messageReceived) {
-            console.log('Popup cerrado sin recibir respuesta');
+            console.log("Popup cerrado sin recibir respuesta");
             cleanup();
           }
         }
@@ -148,7 +149,7 @@ function OAuthProvider({ onAuthStateChange }: OAuthProviderProps) {
     // Timeout de seguridad (2 minutos)
     authTimeout = setTimeout(() => {
       if (!messageReceived) {
-        console.log('Timeout de autenticación');
+        console.log("Timeout de autenticación");
         cleanup();
         try {
           popup?.close();

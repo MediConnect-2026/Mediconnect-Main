@@ -191,7 +191,7 @@ const DoctorSearchBar = ({
         </div>
 
         {/* Separador */}
-        <div className="w-full md:w-px h-px md:h-12 bg-border md:mx-4" />
+        <div className="w-full md:w-px h-px md:h-12 bg-primary/25 md:mx-4" />
 
         {/* Campo de seguro */}
         <div ref={insuranceRef} className="flex-1 py-2 relative">

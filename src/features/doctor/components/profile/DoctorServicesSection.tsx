@@ -19,6 +19,7 @@ import MCButton from "@/shared//components/forms/MCButton";
 import { doctorService } from "@/shared/navigation/userMenu/editProfile/doctor/services";
 import { onDoctorServicesChanged } from "@/lib/events/doctorServicesEvents";
 import { useAppStore } from "@/stores/useAppStore";
+import { Spinner } from "@/shared/ui/spinner";
 
 interface ServiceFilters {
   modalidad: string;
@@ -75,7 +76,12 @@ function DoctorServicesSection({ doctorId, isMyProfile = false }: Props) {
   const user = useAppStore((state) => state.user);
   const resolvedDoctorId = doctorId ?? user?.id;
 
-  console.log("DoctorServicesSection renderizado con doctorId:", doctorId, "isMyProfile:", isMyProfile);
+  console.log(
+    "DoctorServicesSection renderizado con doctorId:",
+    doctorId,
+    "isMyProfile:",
+    isMyProfile,
+  );
 
   const {
     data: services = [],
@@ -136,7 +142,14 @@ function DoctorServicesSection({ doctorId, isMyProfile = false }: Props) {
   const handleDelete = async (serviceId: string) => {
     try {
       console.log("Eliminar servicio:", serviceId);
-      if (window.confirm(t("profile.services.confirmDelete", "¿Estás seguro de que deseas eliminar este servicio?"))) {
+      if (
+        window.confirm(
+          t(
+            "profile.services.confirmDelete",
+            "¿Estás seguro de que deseas eliminar este servicio?",
+          ),
+        )
+      ) {
         await doctorService.deleteService(Number(serviceId));
         await refetch();
       }
@@ -313,9 +326,18 @@ function DoctorServicesSection({ doctorId, isMyProfile = false }: Props) {
       <CardContent className={isMobile ? "p-4 pt-2" : "p-6 pt-4"}>
         {isLoading ? (
           <div className="flex items-center justify-center py-8">
-            <p className="text-muted-foreground">
-              {t("profile.services.loading", "Cargando servicios...")}
-            </p>
+            <div className="flex flex-col items-center gap-3">
+              <Spinner
+                className="w-10 h-10"
+                aria-label={t(
+                  "profile.services.loading",
+                  "Cargando servicios...",
+                )}
+              />
+              <p className="text-muted-foreground">
+                {t("profile.services.loading", "Cargando servicios...")}
+              </p>
+            </div>
           </div>
         ) : error ? (
           <div className="flex items-center justify-center py-8">
@@ -377,14 +399,16 @@ function DoctorServicesSection({ doctorId, isMyProfile = false }: Props) {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3 gap-4">
             {filteredServices.map((service) => {
               // Obtener la primera imagen o usar una por defecto
-              const imageUrl = service.imagenes && service.imagenes.length > 0 
-                ? service.imagenes[0].url 
-                : "https://i.pinimg.com/736x/26/96/86/2696865c46c902b5a2a0cdd58b98ba95.jpg";
-              
+              const imageUrl =
+                service.imagenes && service.imagenes.length > 0
+                  ? service.imagenes[0].url
+                  : "https://i.pinimg.com/736x/26/96/86/2696865c46c902b5a2a0cdd58b98ba95.jpg";
+
               // Mapear el estado de la API al formato esperado por el componente
-              const status = service.estado.toLowerCase() === "activo" 
-                ? "active" as const
-                : "inactive" as const;
+              const status =
+                service.estado.toLowerCase() === "activo"
+                  ? ("active" as const)
+                  : ("inactive" as const);
 
               return (
                 <MCServiceCards
@@ -405,8 +429,14 @@ function DoctorServicesSection({ doctorId, isMyProfile = false }: Props) {
                   // Solo pasar handlers si es el owner
                   {...(isMyProfile && {
                     onEdit: () => handleEdit(service.id.toString()),
-                    onActivate: status === "inactive" ? () => handleActivate(service.id.toString()) : undefined,
-                    onDeactivate: status === "active" ? () => handleDeactivate(service.id.toString()) : undefined,
+                    onActivate:
+                      status === "inactive"
+                        ? () => handleActivate(service.id.toString())
+                        : undefined,
+                    onDeactivate:
+                      status === "active"
+                        ? () => handleDeactivate(service.id.toString())
+                        : undefined,
                     onDelete: () => handleDelete(service.id.toString()),
                   })}
                 />

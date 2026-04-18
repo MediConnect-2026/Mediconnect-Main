@@ -144,6 +144,7 @@
     "subtitle": "Gestiona todas tus citas agendadas",
     "searchPlaceholder": "Buscar paciente, servicio o especialidad...",
     "availableTimes": "Horarios Disponibles",
+    "loading": "Cargando citas...",
     "table": {
       "patient": "Paciente",
       "status": "Estado",
@@ -635,24 +636,13 @@
     "services": {
       "title": "Servicios ofrecidos",
       "search": "Buscar servicio...",
+      "loading": "Cargando servicios...",
+      "confirmDelete": "¿Estás seguro de que deseas eliminar este servicio?",
       "noResults": "No se encontraron servicios.",
       "noServices": "No hay servicios registrados.",
-      "noResultsDescription": "Intenta limpiar los filtros o busca otro servicio.",
-      "noServicesDescription": "Agrega servicios para que los pacientes puedan agendar.",
-      "clearFilters": "Limpiar filtros",
-      "details": "Ver detalles",
-      "reviews": "reseñas",
-      "menu": {
-        "view": "Ver servicio",
-        "edit": "Editar servicio",
-        "deactivate": "Desactivar servicio",
-        "activate": "Activar servicio",
-        "delete": "Eliminar servicio"
-      },
-      "status": {
-        "active": "Activo",
-        "inactive": "Inactivo"
-      }
+      "noResultsDescription": "Intenta limpiar los filtros o buscar otro servicio.",
+      "noServicesDescription": "Agrega servicios para que los pacientes puedan reservar.",
+      "clearFilters": "Limpiar filtros"
     },
     "centers": {
       "title": "Centros médicos",
@@ -670,6 +660,7 @@
     }
   },
   "services": {
+    "loading": "Cargando servicios...",
     "management": {
       "title": "Gestión de Servicios",
       "newService": "Nuevo servicio",
@@ -1040,5 +1031,8 @@
     "thursday": "Jueves",
     "friday": "Viernes",
     "saturday": "Sábado"
+  },
+  "map": {
+    "locationPermissionRequired": "Debes permitir el acceso a tu ubicación para centrar el mapa en tu posición."
   }
 }

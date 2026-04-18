@@ -700,8 +700,10 @@ export default function MapSearchProviders({
     <>
       {locationDenied && (
         <div className="fixed top-4 left-1/2 z-[10002] -translate-x-1/2 bg-red-100 text-red-700 px-4 py-2 rounded shadow-lg rounded-3xl">
-          Debes permitir el acceso a tu ubicación para centrar el mapa en tu
-          posición.
+          {t(
+            "map.locationPermissionRequired",
+            "Debes permitir el acceso a tu ubicación para centrar el mapa en tu posición.",
+          )}
         </div>
       )}
       {/* Modal para fullscreen */}

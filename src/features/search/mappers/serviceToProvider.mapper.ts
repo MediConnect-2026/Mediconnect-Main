@@ -1,19 +1,36 @@
-import type { DoctorNearby, CenterNearby } from "@/shared/navigation/userMenu/editProfile/doctor/services/doctor.types";
+import type {
+  DoctorNearby,
+  CenterNearby,
+} from "@/shared/navigation/userMenu/editProfile/doctor/services/doctor.types";
 import type { Doctor, Provider } from "@/data/providers";
 import { doctorService } from "@/shared/navigation/userMenu/editProfile/doctor/services";
+import { useGlobalUIStore } from "@/stores/useGlobalUIStore";
+import i18n from "@/i18n/config";
+
+const resolveLocale = (language: string): string =>
+  language?.toLowerCase().startsWith("en") ? "en-US" : "es-ES";
+
+const tByLang = (language: string, key: string, fallback: string): string =>
+  i18n.t(key, {
+    ns: "common",
+    lng: language,
+    defaultValue: fallback,
+  }) as string;
 
 /**
  * Maps API doctor data (with nested services) to UI Provider format
  * Each doctor from the API is transformed into one Provider entry
- * 
+ *
  * @param doctors - Array of doctors from the API (getDoctoresByDistance)
  * @returns Array of Provider objects (Doctor type) for the UI
  */
 export const mapDoctorsToProviders = async (
   doctors: DoctorNearby[],
-  language: string = "es",
+  language: string = useGlobalUIStore.getState().language ||
+    i18n.language ||
+    "es",
   // When true, avoid fetching availability slots for each doctor (e.g., center users)
-  skipAvailability: boolean = false
+  skipAvailability: boolean = false,
 ): Promise<Provider[]> => {
   if (!doctors || doctors.length === 0) {
     return [];
@@ -36,13 +53,28 @@ export const mapDoctorsToProviders = async (
         : isPending
           ? "pending"
           : "not_connected";
+      const noSpecialtyLabel = tByLang(
+        language,
+        "search.fallbacks.noSpecialty",
+        "Sin especialidad",
+      );
+      const noAddressLabel = tByLang(
+        language,
+        "search.fallbacks.noAddress",
+        "Sin dirección",
+      );
 
       // Extract primary specialty
-      const primarySpecialty = doctor.especialidades.find((e) => e.es_principal);
-      const mainSpecialtyName = primarySpecialty?.especialidades.nombre || "Sin especialidad";
+      const primarySpecialty = doctor.especialidades.find(
+        (e) => e.es_principal,
+      );
+      const mainSpecialtyName =
+        primarySpecialty?.especialidades.nombre || noSpecialtyLabel;
 
       // Extract all specialty names
-      const specialties = doctor.especialidades.map((e) => e.especialidades.nombre);
+      const specialties = doctor.especialidades.map(
+        (e) => e.especialidades.nombre,
+      );
 
       // Extract modality from services
       const modalitySet = new Set<"Presencial" | "Virtual">();
@@ -54,18 +86,20 @@ export const mapDoctorsToProviders = async (
 
       // Extract unique addresses from ubicaciones
       const addresses = doctor.servicios
-        .map((u) => u.servicios_ubicaciones.map((su) => {
-          return su.ubicacion.direccion;
-        }))
+        .map((u) =>
+          u.servicios_ubicaciones.map((su) => {
+            return su.ubicacion.direccion;
+          }),
+        )
         .flat();
 
       // Extract insurance names
       const insurances = Array.from(
-        new Set(doctor.segurosAceptados.map((s) => s.seguro.nombre))
+        new Set(doctor.segurosAceptados.map((s) => s.seguro.nombre)),
       );
 
       // Try to fetch availability for the doctor unless skipping is requested
-      let availability = generateAvailabilityPlaceholder();
+      let availability = generateAvailabilityPlaceholder(language);
       if (!skipAvailability) {
         try {
           const slotsResp = await doctorService.getDoctorSlotsAvailableInRange(
@@ -75,8 +109,8 @@ export const mapDoctorsToProviders = async (
             {
               target: language || "es",
               source: language === "es" ? "en" : "es",
-              translate_fields: "diaSemana,mes"
-            }
+              translate_fields: "diaSemana,mes",
+            },
           );
 
           if (slotsResp?.data && Array.isArray(slotsResp.data)) {
@@ -92,20 +126,24 @@ export const mapDoctorsToProviders = async (
           }
         } catch (e) {
           // Keep placeholder on error
-           
-          console.error(`Failed to fetch availability for doctor ID ${doctor.usuarioId}`, e);
+          console.error(
+            `Failed to fetch availability for doctor ID ${doctor.usuarioId}`,
+            e,
+          );
         }
       }
 
       // Default coordinates (TODO: extract from ubicaciones if available)
       const coordinates = doctor.servicios
-        .map((u) => u.servicios_ubicaciones.map((su) => {
-          return { lat: su.ubicacion.latitud, lng: su.ubicacion.longitud };
-        })).flat();
+        .map((u) =>
+          u.servicios_ubicaciones.map((su) => {
+            return { lat: su.ubicacion.latitud, lng: su.ubicacion.longitud };
+          }),
+        )
+        .flat();
 
       //Map languages
       const languages = doctor.idiomas.map((i) => i.nombre);
-
 
       return {
         id: doctor.usuarioId.toString(),
@@ -114,7 +152,7 @@ export const mapDoctorsToProviders = async (
         specialty: mainSpecialtyName,
         rating: Math.round(doctor.calificacionPromedio * 10) / 10,
         reviewCount: doctor.cantidadResenas,
-        address: addresses.length > 0 ? addresses : ["Sin dirección"],
+        address: addresses.length > 0 ? addresses : [noAddressLabel],
         languages: languages,
         insurances,
         phone: doctor.usuario.telefono || "",
@@ -130,7 +168,7 @@ export const mapDoctorsToProviders = async (
         // Store additional data for filtering
         _rawDoctor: doctor, // Keep reference to raw doctor data for filtering
       } as Doctor & { _rawDoctor: DoctorNearby };
-    })
+    }),
   );
 
   return providers;
@@ -141,11 +179,25 @@ export const mapDoctorsToProviders = async (
  * Keeps a reference to the original center in `_rawCenter` for client-side filters
  */
 export const mapCentersToProviders = (
-  centers: CenterNearby[] = []
+  centers: CenterNearby[] = [],
+  language: string = useGlobalUIStore.getState().language ||
+    i18n.language ||
+    "es",
 ): Provider[] => {
   if (!centers || centers.length === 0) return [];
 
   const providers: Provider[] = centers.map((c) => {
+    const noAddressLabel = tByLang(
+      language,
+      "search.fallbacks.noAddress",
+      "Sin dirección",
+    );
+    const healthCenterLabel = tByLang(
+      language,
+      "search.fallbacks.healthCenter",
+      "Centro de salud",
+    );
+
     const normalizedAllianceStatus = (c.estadoAlianza || "").toLowerCase();
     const isConnected =
       c.estaConectado === true ||
@@ -157,29 +209,37 @@ export const mapCentersToProviders = (
       normalizedAllianceStatus === "en_proceso" ||
       normalizedAllianceStatus === "in_progress";
 
-    const name = c.nombreComercial || c.tipoCentro?.nombre || "Centro de salud";
+    const name = c.nombreComercial || c.tipoCentro?.nombre || healthCenterLabel;
 
     const address = c.ubicacion?.direccionCompleta
       ? [c.ubicacion.direccionCompleta]
-      : c.ubicacion?.direccion || c.ubicacion?.provincia || "Sin dirección";
+      : c.ubicacion?.direccion
+        ? [c.ubicacion.direccion]
+        : c.ubicacion?.provincia
+          ? [c.ubicacion.provincia]
+          : [noAddressLabel];
 
-    const coordinates = (c.ubicacion && typeof c.ubicacion.latitud === "number" && typeof c.ubicacion.longitud === "number")
-      ? { lat: c.ubicacion.latitud, lng: c.ubicacion.longitud }
-      : [] as any;
+    const coordinates =
+      c.ubicacion &&
+      typeof c.ubicacion.latitud === "number" &&
+      typeof c.ubicacion.longitud === "number"
+        ? { lat: c.ubicacion.latitud, lng: c.ubicacion.longitud }
+        : ([] as any);
 
     const languages = Array.from(
-      new Set((c.idiomas || []).map((i) => i.nombre).filter(Boolean) as string[])
+      new Set(
+        (c.idiomas || []).map((i) => i.nombre).filter(Boolean) as string[],
+      ),
     );
 
     const insurances = Array.from(
-      new Set((c.seguros || []).map((s) => s.nombre).filter(Boolean) as string[])
+      new Set(
+        (c.seguros || []).map((s) => s.nombre).filter(Boolean) as string[],
+      ),
     );
 
-    const connectionStatus: "connected" | "not_connected" | "pending" = isConnected
-      ? "connected"
-      : isPending
-        ? "pending"
-        : "not_connected";
+    const connectionStatus: "connected" | "not_connected" | "pending" =
+      isConnected ? "connected" : isPending ? "pending" : "not_connected";
 
     return {
       id: c.usuarioId.toString(),
@@ -208,9 +268,7 @@ export const mapCentersToProviders = (
 /**
  * Maps API modality string to UI modality array
  */
-const mapModalityToUI = (
-  modalidad: string
-): ("Presencial" | "Virtual")[] => {
+const mapModalityToUI = (modalidad: string): ("Presencial" | "Virtual")[] => {
   const normalized = modalidad.toLowerCase();
 
   if (normalized.includes("mixed") || normalized.includes("mixta")) {
@@ -231,16 +289,25 @@ const mapModalityToUI = (
  * Generates placeholder availability data
  * TODO: Process actual horarios from service data
  */
-const generateAvailabilityPlaceholder = () => {
-  const days = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
+const generateAvailabilityPlaceholder = (language: string = "es") => {
+  const locale = resolveLocale(language);
   const today = new Date();
+  const weekdayFormatter = new Intl.DateTimeFormat(locale, {
+    weekday: "short",
+  });
 
-  return days.map((dayName, i) => {
+  return Array.from({ length: 7 }).map((_, i) => {
     const date = new Date(today);
     date.setDate(date.getDate() + i);
 
+    const dayNameRaw = weekdayFormatter.format(date).replace(".", "");
+    const dayName = dayNameRaw.charAt(0).toUpperCase() + dayNameRaw.slice(1);
+
     return {
-      date: date.toLocaleDateString("es-ES", { month: "short", day: "numeric" }),
+      date: date.toLocaleDateString(locale, {
+        month: "short",
+        day: "numeric",
+      }),
       dayName,
       slots: Math.floor(Math.random() * 15), // Placeholder
     };

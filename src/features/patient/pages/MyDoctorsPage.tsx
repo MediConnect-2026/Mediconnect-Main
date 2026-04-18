@@ -64,25 +64,34 @@ function MyDoctorsPage() {
   // Fetch doctors from API
   const { data, isLoading, error } = useMyDoctors({
     target: i18n.language,
-    source: 'es',
-    translate_fields: 'especialidadPrincipal.nombre',
+    source: "es",
+    translate_fields: "especialidadPrincipal.nombre",
   });
 
   // Transform API data to the format expected by MCDoctorsCards
   const transformedDoctors = useMemo(() => {
     if (!data?.data) return [];
-    
+
     console.log("Transforming doctors data:", data.data);
     return data.data.map((doctor) => ({
       id: doctor.id.toString(),
       name: `${doctor.nombre} ${doctor.apellido}`,
-      specialty: doctor.especialidadPrincipal?.nombre || t("myDoctors.noSpecialty", "Sin especialidad"),
+      specialty:
+        doctor.especialidadPrincipal?.nombre ||
+        t("myDoctors.noSpecialty", "Sin especialidad"),
       specialtyId: doctor.especialidadPrincipal?.id || null,
       rating: doctor.calificacionPromedio || 0,
       yearsOfExperience: doctor.anosExperiencia || 0,
-      languages: doctor.idiomas?.map(idioma => idioma.nombre.toLowerCase().substring(0, 2)) || [],
-      insuranceAccepted: doctor.segurosAceptados?.map(seguro => seguro.nombre?.toLowerCase() || '') || [],
-      insuranceAccpetedIds: doctor.segurosAceptados?.map(seguro => seguro.id) || [],
+      languages:
+        doctor.idiomas?.map((idioma) =>
+          idioma.nombre.toLowerCase().substring(0, 2),
+        ) || [],
+      insuranceAccepted:
+        doctor.segurosAceptados?.map(
+          (seguro) => seguro.nombre?.toLowerCase() || "",
+        ) || [],
+      insuranceAccpetedIds:
+        doctor.segurosAceptados?.map((seguro) => seguro.id) || [],
       isFavorite: doctor.esFavorito || false, // This would come from a separate favorites system
       urlImage: doctor.fotoPerfil || "",
       lastAppointment: doctor.ultimaCita?.fecha,
@@ -98,29 +107,39 @@ function MyDoctorsPage() {
           doctor.specialty.toLowerCase().includes(search.toLowerCase()),
       )
       .filter((doctor) => {
-        if (filters.specialty && doctor.specialtyId !== parseInt(filters.specialty))
+        if (
+          filters.specialty &&
+          doctor.specialtyId !== parseInt(filters.specialty)
+        )
           return false;
         if (filters.language && !doctor.languages?.includes(filters.language))
           return false;
         if (
           filters.insurance &&
-          !doctor.insuranceAccepted?.some(ins => ins.includes(filters.insurance.toLowerCase()))
+          !doctor.insuranceAccepted?.some((ins) =>
+            ins.includes(filters.insurance.toLowerCase()),
+          )
         )
           return false;
-        if (filters.languages.length > 0 && 
-            !filters.languages.some(lang => doctor.languages?.includes(lang)))
+        if (
+          filters.languages.length > 0 &&
+          !filters.languages.some((lang) => doctor.languages?.includes(lang))
+        )
           return false;
-        
+
         // ✅ FILTRO ACTUALIZADO POR IDs DE SEGUROS
         if (filters.acceptingInsurance.length > 0) {
-          const hasMatchingInsurance = filters.acceptingInsurance.some(filterId => 
-            doctor.insuranceAccpetedIds?.includes(Number(filterId))
+          const hasMatchingInsurance = filters.acceptingInsurance.some(
+            (filterId) =>
+              doctor.insuranceAccpetedIds?.includes(Number(filterId)),
           );
           if (!hasMatchingInsurance) return false;
         }
-        
-        if (filters.yearsOfExperience !== null && 
-            (doctor.yearsOfExperience || 0) < filters.yearsOfExperience)
+
+        if (
+          filters.yearsOfExperience !== null &&
+          (doctor.yearsOfExperience || 0) < filters.yearsOfExperience
+        )
           return false;
         if (filters.rating !== null && doctor.rating < filters.rating)
           return false;
@@ -168,7 +187,7 @@ function MyDoctorsPage() {
     setPage(1);
   }
 
-  console
+  console;
   // PDF generator
   const pdfGeneratorComponent = (
     <MCPDFButton
@@ -345,8 +364,10 @@ function MyDoctorsPage() {
   // Table component - Grid responsive
   const tableComponent = isLoading ? (
     <div className="flex items-center justify-center py-12">
-      <Loader2 className="w-8 h-8 animate-spin text-primary" /> 
-      <span className="ml-3 text-muted-foreground">{t("myDoctors.loading", "Cargando doctores...")}</span>
+      <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      <span className="ml-3 text-muted-foreground">
+        {t("myDoctors.loading", "Cargando doctores...")}
+      </span>
     </div>
   ) : error ? (
     <Empty>
@@ -359,13 +380,16 @@ function MyDoctorsPage() {
             </EmptyTitle>
           </span>
           <EmptyDescription className="text-muted-foreground text-center max-w-md mx-auto text-sm sm:text-base px-2">
-            {t("myDoctors.error.description", "No se pudieron cargar los doctores. Por favor, intenta nuevamente.")}
+            {t(
+              "myDoctors.error.description",
+              "No se pudieron cargar los doctores. Por favor, intenta nuevamente.",
+            )}
           </EmptyDescription>
         </div>
       </EmptyHeader>
       <EmptyContent>
-        <MCButton 
-          variant="outline" 
+        <MCButton
+          variant="outline"
           onClick={() => window.location.reload()}
           className="px-4 py-2 sm:px-6"
           size="sm"
