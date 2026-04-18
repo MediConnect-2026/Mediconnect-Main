@@ -39,7 +39,7 @@
   "clinicCard": {
     "connect": "Connect",
     "connected": "Connected",
-    "allied": "Allied",
+    "allied": "Connected",
     "pending": "Request pending",
     "viewProfile": "View profile",
     "insurances": "Insurances:",
@@ -138,7 +138,8 @@
     "province": "Province",
     "municipality": "Municipality",
     "loadingProviderTypes": "Loading provider types...",
-    "loadingSpecialties": "Loading specialties..."
+    "loadingSpecialties": "Loading specialties...",
+    "loading": "Searching doctors..."
   },
   "validation": {
     "emailRequired": "Email is required",
@@ -663,6 +664,8 @@
     "day": "Day",
     "list": "List",
     "weekOf": "Week of",
+    "loadingAppointments": "Loading appointments...",
+    "errorLoadingAppointments": "Error loading appointments",
     "appointmentsScheduled": "{{count}} appointment scheduled",
     "appointmentsScheduled_plural": "{{count}} appointments scheduled",
     "noUpcomingAppointments": "No upcoming appointments",

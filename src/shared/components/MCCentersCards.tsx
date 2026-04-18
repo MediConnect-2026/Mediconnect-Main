@@ -122,7 +122,7 @@ const MCCentersCards = ({
                   variant={connectVariant}
                   size={isMobile ? "xs" : "sm"}
                   className={cn(
-                    "flex-1",
+                    "flex-1 w-full",
                     isMobile && "text-xs px-2",
                     connectionStatus === "connected" &&
                       "bg-secondary hover:bg-secondary/90 text-white border-none active:bg-secondary/80",
@@ -131,7 +131,11 @@ const MCCentersCards = ({
                     connectionStatus === "pending" &&
                       "border-gray-300 text-gray-500 bg-gray-100 cursor-not-allowed",
                   )}
-                  disabled={connectBtnDisabled || !canToggleConnection || isConnectionSubmitting}
+                  disabled={
+                    connectBtnDisabled ||
+                    !canToggleConnection ||
+                    isConnectionSubmitting
+                  }
                 >
                   {connectBtnText}
                 </MCButton>

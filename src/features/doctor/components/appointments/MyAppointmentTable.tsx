@@ -21,7 +21,7 @@ import { Popover, PopoverTrigger, PopoverContent } from "@/shared/ui/popover";
 import AppointmentActions from "@/features/patient/components/appoiments/AppointmentActions";
 import { MCUserAvatar } from "@/shared/navigation/userMenu/MCUserAvatar";
 import { formatTimeTo12h } from "@/utils/appointmentMapper";
-
+import { Spinner } from "@/shared/ui/spinner";
 export interface Appointment {
   id: string;
   doctorId: string;
@@ -56,20 +56,25 @@ export default function MyAppointmentTable({
   const { t } = useTranslation("doctor");
   return (
     <div className="w-full overflow-x-auto relative">
-
       {/* Spinner overlay */}
       {isChangingPage && (
         <div className="absolute inset-0 bg-background/50 backdrop-blur-sm z-10 flex items-center justify-center rounded-lg">
           <div className="flex flex-col items-center gap-3">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
+            <Spinner
+              className="h-12 w-12"
+              iconClassName="h-12 w-12 text-primary"
+              aria-label={t("appointments.loading")}
+            />
             <p className="text-sm text-muted-foreground font-medium">
-              {t("common.loading")}
+              {t("appointments.loading")}
             </p>
           </div>
         </div>
       )}
 
-      <Table className={`transition-opacity duration-300 ${isChangingPage ? "opacity-40" : "opacity-100"}`}>
+      <Table
+        className={`transition-opacity duration-300 ${isChangingPage ? "opacity-40" : "opacity-100"}`}
+      >
         <TableHeader>
           <TableRow>
             <TableHead className="w-[250px]">

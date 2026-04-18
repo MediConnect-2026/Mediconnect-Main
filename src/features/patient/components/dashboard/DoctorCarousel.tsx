@@ -235,9 +235,8 @@ export function DoctorCarousel({
     return count;
   };
 
-  const hasAnyDoctor = doctorList.length > 0;
   const hasActiveFilters = getActiveFiltersCount() > 0;
-  const isFilteredEmpty = hasAnyDoctor && hasActiveFilters;
+  const isFilteredEmpty = hasActiveFilters && filteredDoctors.length === 0;
 
   const scroll = (direction: "left" | "right") => {
     if (scrollContainerRef.current) {
@@ -344,15 +343,18 @@ export function DoctorCarousel({
                       )}
                 </EmptyDescription>
               </EmptyHeader>
-              <EmptyContent>
-                <MCButton
-                  size="s"
-                  variant="outline"
-                  onClick={resetDoctorFilters}
-                >
-                  {t("filters.popover.clear", "Clear filters")}
-                </MCButton>
-              </EmptyContent>
+
+              {hasActiveFilters && (
+                <EmptyContent>
+                  <MCButton
+                    size="s"
+                    variant="outline"
+                    onClick={resetDoctorFilters}
+                  >
+                    {t("myDoctors.empty.clearFilters", "Limpiar filtros")}
+                  </MCButton>
+                </EmptyContent>
+              )}
             </Empty>
           ) : (
             <div

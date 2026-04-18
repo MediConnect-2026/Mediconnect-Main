@@ -210,7 +210,6 @@ function LoginPage() {
                 type="submit"
                 className="w-full h-12.5 rounded-full text-lg font-medium"
                 variant="primary"
-                size="xl"
                 disabled={isPending || isGoogleAuthenticating}
               >
                 {isPending

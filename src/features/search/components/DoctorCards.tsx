@@ -59,6 +59,10 @@ const DoctorCardsComponent = ({
   const modality = doctor.modality?.filter(Boolean) ?? [];
   const insurances = doctor.insurances?.filter(Boolean) ?? [];
 
+  const ratingValue = Number(doctor.rating ?? 0);
+  const reviewCountValue = Number(doctor.reviewCount ?? 0);
+  const hasVisibleRating = ratingValue > 0;
+
   const handleFavoriteToggle = (e: React.MouseEvent) => {
     e.stopPropagation();
     setFavoriteDialogOpen(true);
@@ -269,25 +273,30 @@ const DoctorCardsComponent = ({
                   <span className="text-primary text-xs sm:text-sm truncate max-w-[120px] sm:max-w-none">
                     {doctor.specialty}
                   </span>
-                  <span className="text-muted-foreground hidden sm:inline">
-                    ·
-                  </span>
-                  <div className="flex items-center gap-1">
-                    <Star
-                      className={cn(
-                        "fill-amber-400 text-amber-400",
-                        isMobile ? "w-3 h-3" : "w-4 h-4",
-                      )}
-                    />
-                    <span className="text-xs sm:text-sm font-medium">
-                      {doctor.rating}
-                    </span>
-                    {!isMobile && (
-                      <span className="text-muted-foreground text-xs sm:text-sm">
-                        ({doctor.reviewCount} {t("clinicCard.reviews")})
+
+                  {hasVisibleRating && (
+                    <>
+                      <span className="text-muted-foreground hidden sm:inline">
+                        ·
                       </span>
-                    )}
-                  </div>
+                      <div className="flex items-center gap-1">
+                        <Star
+                          className={cn(
+                            "fill-amber-400 text-amber-400",
+                            isMobile ? "w-3 h-3" : "w-4 h-4",
+                          )}
+                        />
+                        <span className="text-xs sm:text-sm font-medium">
+                          {doctor.rating}
+                        </span>
+                        {!isMobile && reviewCountValue > 0 && (
+                          <span className="text-muted-foreground text-xs sm:text-sm">
+                            ({reviewCountValue} {t("clinicCard.reviews")})
+                          </span>
+                        )}
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
 
