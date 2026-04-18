@@ -15,13 +15,20 @@ import landen from "@/i18n/locales/en/landing.json"; // <-- Importa landing en i
 // Si tienes landing.json en español, impórtalo también:
 import landes from "@/i18n/locales/es/landing.json";
 
-const normalizeLanguageCode = (language?: string): "en" | "es" =>
+export const normalizeLanguageCode = (language?: string): "en" | "es" =>
   language?.toLowerCase().startsWith("es") ? "es" : "en";
+
+const getCachedLanguage = (): "en" | "es" | undefined => {
+  if (typeof window === "undefined") return undefined;
+  const cached = window.localStorage.getItem("i18nextLng") ?? undefined;
+  return cached ? normalizeLanguageCode(cached) : undefined;
+};
 
 i18n
   .use(LanguageDetector)
   .use(initReactI18next)
   .init({
+    lng: getCachedLanguage(),
     fallbackLng: "en",
     supportedLngs: ["en", "es"],
     nonExplicitSupportedLngs: true,
@@ -31,6 +38,9 @@ i18n
     ns: ["auth", "patient", "doctor", "center", "common", "landing"],
     defaultNS: "auth",
     detection: {
+      order: ["localStorage", "navigator", "htmlTag"],
+      lookupLocalStorage: "i18nextLng",
+      caches: ["localStorage"],
       convertDetectedLanguage: (lng: string) => normalizeLanguageCode(lng),
     },
     resources: {
@@ -56,6 +66,11 @@ i18n
     const normalized = normalizeLanguageCode(i18n.language);
     if (i18n.language !== normalized) {
       void i18n.changeLanguage(normalized);
+      return;
+    }
+
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem("i18nextLng", normalized);
     }
   });
 
@@ -63,6 +78,11 @@ i18n.on("languageChanged", (lng) => {
   const normalized = normalizeLanguageCode(lng);
   if (lng !== normalized) {
     void i18n.changeLanguage(normalized);
+    return;
+  }
+
+  if (typeof window !== "undefined") {
+    window.localStorage.setItem("i18nextLng", normalized);
   }
 });
 
