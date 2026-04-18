@@ -30,14 +30,18 @@ import { motion } from "framer-motion";
 export const CalendarPage = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
+  const [selectedAppointment, setSelectedAppointment] =
+    useState<Appointment | null>(null);
   const [view, setView] = useState<CalendarView>("month");
   const [showMobileDetails, setShowMobileDetails] = useState(false);
   const { t } = useTranslation("common");
   const { i18n } = useTranslation();
   const isMobile = useIsMobile();
   const language = i18n.resolvedLanguage || i18n.language;
-  const dateLocale = useMemo(() => (language.startsWith("en") ? enUS : es), [language]);
+  const dateLocale = useMemo(
+    () => (language.startsWith("en") ? enUS : es),
+    [language],
+  );
   const isEnglish = language.startsWith("en");
 
   // Mapear la vista del calendario local a la vista de la API
@@ -53,7 +57,10 @@ export const CalendarPage = () => {
   }, [view]);
 
   // Formatear la fecha actual en formato YYYY-MM-DD para la API
-  const fechaParam = useMemo(() => format(currentDate, "yyyy-MM-dd"), [currentDate]);
+  const fechaParam = useMemo(
+    () => format(currentDate, "yyyy-MM-dd"),
+    [currentDate],
+  );
 
   // Fetch calendar data from API
   const {
@@ -65,9 +72,10 @@ export const CalendarPage = () => {
     params: {
       vista: apiVista,
       fecha: fechaParam,
-      target: isEnglish ? 'en' : 'es',
-      source: isEnglish ? 'es' : 'en',
-      translate_fields: 'nombre,motivoConsulta,diagnostico,motivoCancelacion,comentario',
+      target: isEnglish ? "en" : "es",
+      source: isEnglish ? "es" : "en",
+      translate_fields:
+        "nombre,motivoConsulta,diagnostico,motivoCancelacion,comentario",
     },
   });
 
@@ -294,7 +302,9 @@ export const CalendarPage = () => {
             animate={fadeInUp.animate}
             exit={fadeInUp.exit}
             transition={fadeInUp.transition}
-          >            <div className="flex-1 flex flex-col min-h-0">
+          >
+            {" "}
+            <div className="flex-1 flex flex-col min-h-0">
               <div className="flex-1 overflow-hidden rounded-2xl  backdrop-blur-sm">
                 {/* Loading state */}
                 {isLoading && (
@@ -326,7 +336,9 @@ export const CalendarPage = () => {
                         size="s"
                         onClick={() => refetch()}
                       >
-                        {t("common.tryAgain", { defaultValue: "Intentar de nuevo" })}
+                        {t("common.tryAgain", {
+                          defaultValue: "Intentar de nuevo",
+                        })}
                       </MCButton>
                     </div>
                   </div>
@@ -370,7 +382,6 @@ export const CalendarPage = () => {
                 )}
               </div>
             </div>
-
             {/* Desktop Details panel */}
             {!isMobile && (
               <motion.div

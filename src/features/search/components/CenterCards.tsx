@@ -277,7 +277,7 @@ const CenterCardsComponent = ({
                       className={cn(
                         "flex-1",
                         isMobile && "text-xs px-2",
-                        "border-secondary text-secondary hover:bg-secondary/10 hover:border-secondary/80 active:bg-secondary/20",
+                        "border-secondary text-secondary hover:bg-secondary/10 hover:border-secondary/80 active:bg-secondary/20 w-full",
                       )}
                       disabled={connectBtnDisabled}
                     >
@@ -302,7 +302,7 @@ const CenterCardsComponent = ({
                         "flex-1",
                         isMobile && "text-xs px-2",
                         isConnected === "connected" &&
-                          "border-emerald-500 text-emerald-700 bg-emerald-50 hover:bg-emerald-100 dark:border-emerald-400 dark:text-emerald-300 dark:bg-emerald-950/30",
+                          "bg-secondary hover:bg-secondary/90 text-white border-none active:bg-secondary/80 w-full",
                         isConnected === "pending" &&
                           "border-gray-300 text-gray-500 bg-gray-100 cursor-not-allowed",
                       )}

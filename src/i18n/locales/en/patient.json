@@ -173,7 +173,7 @@
     "cancelError": "Error cancelling the appointment. Please try again.",
     "join": "Join",
     "accept": "Accept",
-    "viewAppointment": "View appointment",
+
     "joinTeleconsult": "Join teleconsult",
     "markCompleted": "Mark as completed",
     "continueConsultation": "Add Medical diagnosis",
@@ -190,7 +190,10 @@
     "withoutInsurance": "Without insurance",
     "submitting": "Processing...",
     "loadingDoctorData": "Loading doctor information...",
-    "noDoctorData": "Could not load doctor information"
+    "noDoctorData": "Could not load doctor information",
+
+    "reject": "Reject",
+    "viewAppointment": "View appointment"
   },
   "dashboard": {
     "searchTitle": "Search for doctors, specialties or nearby clinics"
@@ -484,6 +487,7 @@
       "completed": "Completed",
       "cancelled": "Cancelled"
     },
+    "statusTitle": "Status",
     "cancelTitle": "Cancel Appointment",
     "cancellationReason": "Cancellation reason",
     "cancellationReasonPlaceholder": "Describe the reason for cancellation...",

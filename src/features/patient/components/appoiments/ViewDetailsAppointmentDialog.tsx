@@ -1,4 +1,11 @@
-import React, { useEffect, useState, useCallback, useMemo, memo, useRef } from "react";
+import React, {
+  useEffect,
+  useState,
+  useCallback,
+  useMemo,
+  memo,
+  useRef,
+} from "react";
 import { MCModalBase } from "@/shared/components/MCModalBase";
 import { useTranslation } from "react-i18next";
 import MapScheduleLocation from "@/shared/components/maps/MapScheduleLocation";
@@ -24,13 +31,19 @@ import {
   getHistorialByPacienteId,
   getHistorialSelf,
 } from "@/services/api/appointments.service";
-import type { CitaDetalle, CitaDetallePaciente } from "@/types/AppointmentTypes";
-import { formatTimeTo12h, mapCitaEstadoToAppointmentStatus } from "@/utils/appointmentMapper";
+import type {
+  CitaDetalle,
+  CitaDetallePaciente,
+} from "@/types/AppointmentTypes";
+import {
+  formatTimeTo12h,
+  mapCitaEstadoToAppointmentStatus,
+} from "@/utils/appointmentMapper";
 import ubicacionesService from "@/features/onboarding/services/ubicaciones.services";
 import i18n from "@/i18n/config";
 import { formatCurrency } from "@/utils/formatCurrency";
 import { Skeleton } from "@/shared/ui/skeleton";
-
+import MCAppointmentsStatus from "@/shared/components/tables/MCAppointmentsStatus";
 interface HistoryFilters {
   services: string[];
   dateRange?: [Date, Date];
@@ -47,16 +60,17 @@ interface ViewDetailsAppointmentDialogProps {
   preview?: "details" | "history" | "patientDetails";
 }
 
-// ✅ STATUS_MAP moved outside component — object is created once, not on every render
-const STATUS_STYLE_MAP = {
-  scheduled: "bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300 border-purple-200 dark:border-purple-500/30",
-  pending: "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300 border-amber-200 dark:border-amber-500/30",
-  in_progress: "bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300 border-blue-200 dark:border-blue-500/30",
-  completed: "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300 border-emerald-200 dark:border-emerald-500/30",
-  cancelled: "bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-300 border-red-200 dark:border-red-500/30",
-} as const;
+// ✅ reemplaza este bloque:
+// const STATUS_STYLE_MAP = { ... } as const;
+// type StatusKey = keyof typeof STATUS_STYLE_MAP;
 
-type StatusKey = keyof typeof STATUS_STYLE_MAP;
+// por este:
+type StatusKey =
+  | "scheduled"
+  | "pending"
+  | "in_progress"
+  | "completed"
+  | "cancelled";
 
 // ─── PacientDetailsTabContent ────────────────────────────────────────────────
 // ✅ memo: won't re-render unless patientData reference changes
@@ -141,7 +155,7 @@ const PacientDetailsTabContent = memo(function PacientDetailsTabContent({
                 <li key={i} className="font-medium text-primary">
                   {al.condicion.nombre} - {al.condicion.descripcion}
                 </li>
-              ) : null
+              ) : null,
             )}
           </ul>
         </div>
@@ -157,7 +171,7 @@ const PacientDetailsTabContent = memo(function PacientDetailsTabContent({
                 <li key={i} className="font-medium text-primary">
                   {cond.condicion.nombre} - {cond.condicion.descripcion}
                 </li>
-              ) : null
+              ) : null,
             )}
           </ul>
         </div>
@@ -320,12 +334,11 @@ const HistoryCardSkeleton = memo(function HistoryCardSkeleton() {
   );
 });
 
-
 const HistoryCard = memo(function HistoryCard({
   historyItem,
   active,
   onClick,
-  resetTrigger
+  resetTrigger,
 }: {
   historyItem: any;
   active: boolean;
@@ -357,7 +370,7 @@ const HistoryCard = memo(function HistoryCard({
       // Luego marca como activo
       onClick();
     },
-    [onClick]
+    [onClick],
   );
 
   const handlePrescriptionClose = useCallback(() => {
@@ -413,7 +426,6 @@ const HistoryTabContent = memo(function HistoryTabContent({
   onLoadMore?: () => void;
   pacienteId?: string | number;
 }) {
-
   const { t } = useTranslation("patient");
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [resetTrigger, setResetTrigger] = useState(0);
@@ -429,7 +441,7 @@ const HistoryTabContent = memo(function HistoryTabContent({
   useEffect(() => {
     return () => {
       setActiveIndex(null);
-      setResetTrigger(prev => prev + 1);
+      setResetTrigger((prev) => prev + 1);
     };
   }, []);
 
@@ -440,7 +452,7 @@ const HistoryTabContent = memo(function HistoryTabContent({
           onLoadMore?.();
         }
       },
-      { threshold: 0.1 }
+      { threshold: 0.1 },
     );
 
     if (observerTarget.current) {
@@ -450,18 +462,26 @@ const HistoryTabContent = memo(function HistoryTabContent({
     return () => observer.disconnect();
   }, [hasMore, loading, onLoadMore]);
 
-  const safeHistory = history[0] !== null && Array.isArray(history) ? history : [];
+  const safeHistory =
+    history[0] !== null && Array.isArray(history) ? history : [];
 
   // ✅ useCallback: stable reference for filter change handler
-  const handleFiltersChange = useCallback((newFilters: Partial<HistoryFilters>) => {
-    setFilters((prev) => ({ ...prev, ...newFilters }));
-  }, []);
+  const handleFiltersChange = useCallback(
+    (newFilters: Partial<HistoryFilters>) => {
+      setFilters((prev) => ({ ...prev, ...newFilters }));
+    },
+    [],
+  );
 
   // ✅ useCallback: stable reference for clear
   const handleClearFilters = useCallback(() => {
-    setFilters({ services: [], timeRange: [], locations: [], dateRange: undefined });
+    setFilters({
+      services: [],
+      timeRange: [],
+      locations: [],
+      dateRange: undefined,
+    });
   }, []);
-
 
   // ✅ useMemo: only recompute filtered list when history or filters change
   const filteredHistory = useMemo(() => {
@@ -469,14 +489,16 @@ const HistoryTabContent = memo(function HistoryTabContent({
       if (
         filters.services.length > 0 &&
         !filters.services.includes(
-          histItem.cita?.servicio?.nombre || histItem.nombre_diagnostico || ""
+          histItem.cita?.servicio?.nombre || histItem.nombre_diagnostico || "",
         )
       )
         return false;
 
       if (
         filters.locations.length > 0 &&
-        !filters.locations.includes(histItem.cita?.servicio?.id_ubicacion.toString())
+        !filters.locations.includes(
+          histItem.cita?.servicio?.id_ubicacion.toString(),
+        )
       )
         return false;
 
@@ -512,7 +534,7 @@ const HistoryTabContent = memo(function HistoryTabContent({
       filters.timeRange.length +
       filters.locations.length +
       (filters.dateRange ? 1 : 0),
-    [filters]
+    [filters],
   );
 
   const consultationText = (count: number) =>
@@ -539,8 +561,8 @@ const HistoryTabContent = memo(function HistoryTabContent({
           </h3>
           {safeHistory.length > 0 && (
             <span className="text-sm text-primary/60 font-medium">
-              {filteredHistory.length} {t("appointment.of")} {safeHistory.length}{" "}
-              {consultationText(safeHistory.length)}
+              {filteredHistory.length} {t("appointment.of")}{" "}
+              {safeHistory.length} {consultationText(safeHistory.length)}
             </span>
           )}
         </div>
@@ -627,7 +649,8 @@ function ViewDetailsAppointmentDialog({
   const [loading, setLoading] = useState(false);
   const [appointment, setAppointment] = useState<CitaDetalle | null>(null);
   const [history, setHistory] = useState<any[]>([]);
-  const [appointmentStatusKey, setAppointmentStatusKey] = useState<StatusKey | null>(null);
+  const [appointmentStatusKey, setAppointmentStatusKey] =
+    useState<StatusKey | null>(null);
   const [activeTab, setActiveTab] = useState<string>(preview);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historyFetched, setHistoryFetched] = useState(false);
@@ -636,7 +659,7 @@ function ViewDetailsAppointmentDialog({
   const [loadingMoreHistory, setLoadingMoreHistory] = useState(false);
 
   const appointmentStatus = mockAppointments.find(
-    (appt) => appt.id === appointmentId
+    (appt) => appt.id === appointmentId,
   )?.status;
 
   useEffect(() => {
@@ -661,7 +684,9 @@ function ViewDetailsAppointmentDialog({
           return;
         }
 
-        const appointmentData: CitaDetallePaciente | null = Array.isArray(payload)
+        const appointmentData: CitaDetallePaciente | null = Array.isArray(
+          payload,
+        )
           ? (payload[0] ?? null)
           : payload;
 
@@ -676,7 +701,7 @@ function ViewDetailsAppointmentDialog({
         if (ubicacionId) {
           try {
             const location = await ubicacionesService.getLocationById(
-              Number(ubicacionId)
+              Number(ubicacionId),
             );
             const coords = location?.puntoGeografico?.coordinates;
             if (Array.isArray(coords) && coords.length >= 2) {
@@ -688,14 +713,16 @@ function ViewDetailsAppointmentDialog({
             console.warn(
               "No se pudo obtener la ubicación para ubicacionId",
               ubicacionId,
-              err
+              err,
             );
           }
         }
 
         setAppointment(appointmentData.cita);
         setAppointmentStatusKey(
-          mapCitaEstadoToAppointmentStatus(appointmentData.cita.estado) as StatusKey
+          mapCitaEstadoToAppointmentStatus(
+            appointmentData.cita.estado,
+          ) as StatusKey,
         );
       } catch (error) {
         console.error("Error fetching appointment details: ", error);
@@ -711,7 +738,7 @@ function ViewDetailsAppointmentDialog({
     const fetchHistory = async () => {
       const targetUsuarioId = appointment?.paciente?.usuarioId;
       const canFetchDoctorHistory = !isPatientRole && !!targetUsuarioId;
-      
+
       if (
         activeTab === "history" &&
         (isPatientRole || canFetchDoctorHistory) &&
@@ -736,7 +763,7 @@ function ViewDetailsAppointmentDialog({
             setHistory(response.data);
             setHistoryPage(1);
             setHasMoreHistory(
-              response.paginacion?.pagina < response.paginacion?.totalPaginas
+              response.paginacion?.pagina < response.paginacion?.totalPaginas,
             );
           }
         } catch (error) {
@@ -783,7 +810,7 @@ function ViewDetailsAppointmentDialog({
         setHistory((prev) => [...prev, ...response.data]);
         setHistoryPage(nextPage);
         setHasMoreHistory(
-          response.paginacion?.pagina < response.paginacion?.totalPaginas
+          response.paginacion?.pagina < response.paginacion?.totalPaginas,
         );
       }
     } catch (error) {
@@ -800,17 +827,9 @@ function ViewDetailsAppointmentDialog({
     i18n.language,
   ]);
 
-  const statusKey: StatusKey = (appointmentStatusKey || appointmentStatus || status) as StatusKey;
-
-  // ✅ useMemo: statusInfo only changes when statusKey or language changes
-  const statusInfo = useMemo(
-    () => ({
-      label: t(`appointment.status.${statusKey}`),
-      color: STATUS_STYLE_MAP[statusKey] ?? "bg-gray-200 text-gray-600",
-    }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [statusKey, i18n.language]
-  );
+  const statusKey: StatusKey = (appointmentStatusKey ||
+    appointmentStatus ||
+    status) as StatusKey;
 
   return (
     <MCModalBase
@@ -837,8 +856,8 @@ function ViewDetailsAppointmentDialog({
         </TabsList>
 
         <TabsContent value="details">
-          {appointmentDetails ?? (
-            loading ? (
+          {appointmentDetails ??
+            (loading ? (
               <div className="w-full h-full flex items-center justify-center p-6">
                 <div className="flex flex-col items-center gap-3">
                   <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -850,46 +869,39 @@ function ViewDetailsAppointmentDialog({
             ) : (
               <div className="flex flex-col w-full h-full max-h-[70vh] overflow-y-auto pr-2">
                 <div className="flex flex-col gap-4 mb-4 mt-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-primary/75">
-                      {t("appointment.statusTitle", "Estado:")}
+                  <div className="flex items-center gap-3">
+                    <span className="text-base md:text-lg font-semibold text-primary">
+                      {t("appointment.statusTitle", "Estado")}
                     </span>
-                    <Badge
-                      variant="outline"
-                      className={`px-2.5 py-0.5 border ${statusInfo.color}`}
-                    >
-                      {statusInfo.label}
-                    </Badge>
+                    <MCAppointmentsStatus status={statusKey} variant="card" />
                   </div>
 
-                  {statusKey === "cancelled" && appointment?.motivoCancelacion && (
-                    <div className="flex items-start gap-2 p-3 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/40 rounded-xl">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <Badge
-                            variant="destructive"
-                            className="bg-red-600 hover:bg-red-700 text-xs"
-                          >
-                            {t(
-                              "appointment.cancellationReason",
-                              "Motivo de Cancelación"
-                            )}
-                          </Badge>
+                  {statusKey === "cancelled" &&
+                    appointment?.motivoCancelacion && (
+                      <div className="flex items-start gap-2 p-3 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/40 rounded-xl">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <Badge
+                              variant="destructive"
+                              className="bg-red-600 hover:bg-red-700 text-xs"
+                            >
+                              {t(
+                                "appointment.cancellationReason",
+                                "Motivo de Cancelación",
+                              )}
+                            </Badge>
+                          </div>
+                          <p className="text-sm font-medium text-red-800 dark:text-red-200 mt-1">
+                            {appointment.motivoCancelacion}
+                          </p>
                         </div>
-                        <p className="text-sm font-medium text-red-800 dark:text-red-200 mt-1">
-                          {appointment.motivoCancelacion}
-                        </p>
                       </div>
-                    </div>
-                  )}
+                    )}
                 </div>
 
-                {appointment && (
-                  <DetailsTabContent appointment={appointment} />
-                )}
+                {appointment && <DetailsTabContent appointment={appointment} />}
               </div>
-            )
-          )}
+            ))}
         </TabsContent>
 
         <TabsContent value="history">

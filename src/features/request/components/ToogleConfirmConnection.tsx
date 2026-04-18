@@ -101,24 +101,24 @@ function ToogleConfirmConnection({
       trigger={children}
       variant={isConnected ? "warning" : "decide"}
       title={title}
-      triggerClassName="flex-1 w-full"
+      triggerClassName="flex-1 w-full bg-red"
       description={description}
       confirmText={
-        isSubmitting
-          ? (
-            <span className="inline-flex items-center gap-2">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              {isConnected
-                ? t("connection.allianceDisconnecting")
-                : t("connection.allianceRequestSending")}
-            </span>
-          )
-          : confirmText
+        isSubmitting ? (
+          <span className="inline-flex items-center gap-2">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            {isConnected
+              ? t("connection.allianceDisconnecting")
+              : t("connection.allianceRequestSending")}
+          </span>
+        ) : (
+          confirmText
+        )
       }
       secondaryText={t("connection.cancel")}
       onConfirm={handleConfirm}
       onSecondary={onCancel}
-      size="sm"
+      size="smWide"
       isOpen={isOpen}
       onClose={onClose}
       disabledConfirm={isSubmitting || (requiresMessage && !isFormValid)}

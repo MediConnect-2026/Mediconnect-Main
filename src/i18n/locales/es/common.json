@@ -39,7 +39,7 @@
   "clinicCard": {
     "connect": "Conectar",
     "connected": "Conectado",
-    "allied": "Aliado",
+    "allied": "Conectado",
     "pending": "Esperando solicitud",
     "viewProfile": "Ver perfil",
     "insurances": "Seguros:",
@@ -139,11 +139,7 @@
     "municipality": "Municipio",
     "loadingProviderTypes": "Cargando tipos de proveedores...",
     "loadingSpecialties": "Cargando especialidades...",
-    "fallbacks": {
-      "noSpecialty": "Sin especialidad",
-      "noAddress": "Sin dirección",
-      "healthCenter": "Centro de salud"
-    }
+    "loading": "Buscando doctores..."
   },
   "validation": {
     "emailRequired": "El correo electrónico es obligatorio",
@@ -667,6 +663,8 @@
     "day": "Día",
     "list": "Lista",
     "weekOf": "Semana del",
+    "loadingAppointments": "Cargando citas...",
+    "errorLoadingAppointments": "Error al cargar las citas",
     "appointmentsScheduled": "{{count}} cita programada",
     "appointmentsScheduled_plural": "{{count}} citas programadas",
     "noUpcomingAppointments": "No hay citas próximas",

@@ -187,7 +187,9 @@
     "withInsurance": "Con seguro",
     "submitting": "Procesando...",
     "loadingDoctorData": "Cargando información del doctor...",
-    "noDoctorData": "No se pudo cargar la información del doctor"
+    "noDoctorData": "No se pudo cargar la información del doctor",
+
+    "reject": "Rechazar"
   },
   "dashboard": {
     "searchTitle": "Busca médicos, especialidades o clínicas cercanas"
@@ -373,6 +375,7 @@
       "completed": "Completada",
       "cancelled": "Cancelada"
     },
+    "statusTitle": "Estado",
     "cancelTitle": "Cancelar Cita",
     "cancellationReason": "Motivo de cancelación",
     "cancellationReasonPlaceholder": "Describe el motivo de la cancelación...",
