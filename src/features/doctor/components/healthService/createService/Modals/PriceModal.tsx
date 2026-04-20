@@ -19,7 +19,6 @@ function PriceModal({ children }: { children?: React.ReactNode }) {
   const priceSchema = serviceSchema(t).pick({ pricePerSession: true });
 
   const handleSubmit = (data: any) => {
-    console.log("Datos enviados desde modal:", data);
     setCreateServiceField("pricePerSession", data.pricePerSession);
     setTimeout(() => {
       setIsOpen(false);

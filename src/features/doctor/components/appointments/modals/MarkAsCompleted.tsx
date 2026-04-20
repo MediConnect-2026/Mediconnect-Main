@@ -20,7 +20,6 @@ function MarkAsCompleted({ children, appointmentId }: MarkAsCompletedProps) {
       type: "success",
       open: true,
     });
-    console.log("Cita marcada como completada:", appointmentId);
   };
 
   const handleSecondary = () => {
@@ -29,7 +28,6 @@ function MarkAsCompleted({ children, appointmentId }: MarkAsCompletedProps) {
       type: "info",
       open: true,
     });
-    console.log("Acción de marcar como completada cancelada:", appointmentId);
   };
 
   return (

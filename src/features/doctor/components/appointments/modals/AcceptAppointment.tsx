@@ -23,7 +23,6 @@ function AcceptAppointment({
       type: "success",
       open: true,
     });
-    console.log("Cita aceptada:", appointmentId);
   };
 
   const handleSecondary = () => {
@@ -32,7 +31,6 @@ function AcceptAppointment({
       type: "info",
       open: true,
     });
-    console.log("Acción de aceptación cancelada:", appointmentId);
   };
 
   return (

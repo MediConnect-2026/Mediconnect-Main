@@ -25,7 +25,6 @@ function CounterModal({ children }: CounterModalProps) {
   const sessionsSchema = serviceSchema(t).pick({ numberOfSessions: true });
 
   const handleSubmit = (data: any) => {
-    console.log("Datos enviados desde modal:", data);
     setCreateServiceField("numberOfSessions", data.numberOfSessions);
     setTimeout(() => {
       setIsOpen(false);

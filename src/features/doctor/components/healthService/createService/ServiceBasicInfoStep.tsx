@@ -126,7 +126,6 @@ function ServiceBasicInfoStep() {
     };
 
     setCreateServiceData(formattedData);
-    console.log("Datos enviados del paso 1:", formattedData);
 
     goToNextStep();
   };

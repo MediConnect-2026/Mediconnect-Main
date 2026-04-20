@@ -187,7 +187,6 @@ function ManageSchedule({ locationSelected, scheduleData, scheduleId, children, 
   }, [setComercialScheduleField, scheduleData]);
 
   const handleSubmit = async (data: any) => {
-    console.log("Datos enviados desde modal:", data);
     
     // Normalizar el formato de tiempo agregando :00 si no tiene segundos
     const normalizeTime = (time: string) => {

@@ -42,13 +42,11 @@ function PatientProfilePhotoPage() {
 
   useEffect(() => {
     if (!basicInfo?.password || !basicInfo?.confirmPassword) {
-      console.log("Credentials not set, redirecting to password setup...");
       navigate("/auth/patient-onboarding/password-setup", { replace: true });
       return;
     }
 
     if (selectedRole !== "Patient") {
-      console.log("Invalid role for patient onboarding, redirecting...");
       navigate("/auth/register", { replace: true });
     }
   }, [otpData, basicInfo, selectedRole, navigate]);
@@ -128,24 +126,13 @@ function PatientProfilePhotoPage() {
 
       // Agregar foto de perfil si existe y no es la imagen por defecto
       if (profile && profile !== DEFAULT_PROFILE_IMAGE) {
-        try {
-          console.log("📸 Procesando foto de perfil...");
-          console.log("Profile string length:", profile.length);
-          console.log("Profile starts with:", profile.substring(0, 50));
-          
+        try {  
           const mimeType = getMimeTypeFromBase64(profile);
-          console.log("📸 MIME type detectado:", mimeType);
           
           // Convertir base64 a File (mejor que Blob para FormData)
           const photoFile = base64ToFile(profile, "profile-photo.jpg", mimeType);
-          console.log("📸 File creado:", {
-            name: photoFile.name,
-            size: photoFile.size,
-            type: photoFile.type
-          });
           
           requestData.fotoPerfil = photoFile;
-          console.log("✅ Foto de perfil agregada al request");
         } catch (err) {
           console.error("❌ Error al procesar la foto de perfil:", err);
           toast.error(t("profilePhotoPage.errors.photoProcessing") || "Error al procesar la foto");
@@ -154,21 +141,6 @@ function PatientProfilePhotoPage() {
       } else {
         console.log("ℹ️ No se agregará foto de perfil (usando imagen por defecto o no seleccionada)");
       }
-
-      // Log final de los datos del request
-      console.log("📤 Datos del request preparados:", {
-        token: requestData.token ? `${requestData.token.substring(0, 20)}...` : "NO TOKEN",
-        nombre: requestData.nombre,
-        apellido: requestData.apellido,
-        numero_documento: requestData.numero_documento,
-        tipo_documento: requestData.tipo_documento,
-        genero: requestData.genero,
-        fotoPerfil: requestData.fotoPerfil ? {
-          name: requestData.fotoPerfil.name,
-          size: requestData.fotoPerfil.size,
-          type: requestData.fotoPerfil.type
-        } : "NO PHOTO"
-      });
 
       // Llamar al servicio de registro
       const response = await patientRegistrationService.registerPatient(requestData);

@@ -22,8 +22,6 @@ function StaffActions({ doctor }: StaffActionsProps) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  console.log("Rendering StaffActions for doctor:", doctor);
-
   const deleteAllianceMutation = useMutation({
     mutationFn: async (requestId: string) =>
       centerService.deleteAllianceRequest(requestId),

@@ -23,7 +23,6 @@ function DurationModal({ children }: DurationModalProps) {
   const durationSchema = serviceSchema(t).pick({ duration: true });
 
   const handleSubmit = (data: any) => {
-    console.log("Datos enviados desde modal:", data);
     setCreateServiceField("duration", data.duration);
     setTimeout(() => {
       setIsOpen(false);

@@ -119,13 +119,11 @@ function PatientBasicInfoPage() {
   // Validar que exista OTP verificado antes de acceder a esta página
   useEffect(() => {
     if (!otpData || !basicInfo?.email) {
-      console.log("No OTP or email found, redirecting to OTP verification...");
       navigate("/auth/otp-verification", { replace: true });
       return;
     }
 
     if (selectedRole !== "Patient") {
-      console.log("Invalid role for patient onboarding, redirecting...");
       navigate("/auth/register", { replace: true });
     }
   }, [otpData, basicInfo?.email, selectedRole, navigate]);
