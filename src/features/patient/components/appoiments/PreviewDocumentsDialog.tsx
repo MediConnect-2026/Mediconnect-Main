@@ -6,6 +6,9 @@ interface PreviewDocumentsDialogProps {
   documentUrl?: string;
   documentType?: string;
   documentName?: string;
+  isOpen?: boolean;
+  onClose?: () => void;
+  zIndex?: number;
 }
 
 function PreviewDocumentsDialog({
@@ -13,6 +16,9 @@ function PreviewDocumentsDialog({
   documentUrl,
   documentType,
   documentName,
+  isOpen,
+  onClose,
+  zIndex,
 }: PreviewDocumentsDialogProps) {
   const renderPreviewContent = () => {
     if (!documentUrl) {
@@ -42,7 +48,8 @@ function PreviewDocumentsDialog({
 
     // Verificar si es PDF usando documentType primero, luego la extensión
     const isPdf =
-      documentType === "application/pdf" || documentUrl.match(/\.pdf$/i);
+      documentType?.toLowerCase().includes("pdf") ||
+      documentUrl.match(/\.pdf($|\?)/i);
 
     if (isPdf) {
       // Si es un blob local o file local, solo mostrar botón para abrir en nueva pestaña
@@ -112,7 +119,10 @@ function PreviewDocumentsDialog({
       id="previewDocumentsDialog"
       title={documentName || "Vista previa del documento"}
       trigger={children}
+      isOpen={isOpen}
+      onClose={onClose}
       size="xl"
+      zIndex={zIndex}
     >
       <div className="p-4">{renderPreviewContent()}</div>
     </MCModalBase>

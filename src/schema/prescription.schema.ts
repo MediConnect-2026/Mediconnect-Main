@@ -5,13 +5,14 @@ import { z } from "zod";
 export const MAX_FILES = 10; // backend limit
 export const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB per file
 
-/** Image MIME types accepted by the /citas/{id}/diagnosticar endpoint */
+/** File MIME types accepted by the /citas/{id}/diagnosticar endpoint */
 export const ACCEPTED_FILE_TYPES = [
   "image/jpeg",
   "image/png",
   "image/gif",
   "image/webp",
   "image/svg+xml",
+  "application/pdf",
 ];
 
 export const ACCEPTED_FILE_EXTENSIONS = [
@@ -21,6 +22,7 @@ export const ACCEPTED_FILE_EXTENSIONS = [
   ".gif",
   ".webp",
   ".svg",
+  ".pdf",
 ];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────

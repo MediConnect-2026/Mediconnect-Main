@@ -296,9 +296,14 @@ function PatientsPage() {
     data: patientsResponse,
     isLoading: patientsLoading,
     isFetching: patientsFetching,
+    isPlaceholderData,
     isError: patientsError,
     error: patientsErrorDetail,
   } = useDoctorPatients(apiFilters);
+
+  // Match DashboardTable behavior: true only during page transitions
+  // when previous data remains visible.
+  const isChangingPage = patientsFetching && isPlaceholderData;
 
   const totalPages = patientsResponse?.paginacion?.totalPaginas || 1;
 
@@ -367,20 +372,20 @@ function PatientsPage() {
 
   // ─── Pagination Callbacks ────────────────────────────────────────────────
   const handlePreviousPage = useCallback(() => {
-    if (currentPage > 1 && !patientsFetching) setCurrentPage((p) => Math.max(1, p - 1));
-  }, [currentPage, patientsFetching]);
+    if (currentPage > 1 && !isChangingPage) setCurrentPage((p) => Math.max(1, p - 1));
+  }, [currentPage, isChangingPage]);
 
   const handlePageClick = useCallback(
     (pageNum: number) => {
-      if (!patientsFetching) setCurrentPage(pageNum);
+      if (!isChangingPage) setCurrentPage(pageNum);
     },
-    [patientsFetching]
+    [isChangingPage]
   );
 
   const handleNextPage = useCallback(() => {
-    if (currentPage < totalPages && !patientsFetching)
+    if (currentPage < totalPages && !isChangingPage)
       setCurrentPage((p) => Math.min(totalPages, p + 1));
-  }, [currentPage, totalPages, patientsFetching]);
+  }, [currentPage, totalPages, isChangingPage]);
 
   // ─── PDF export ──────────────────────────────────────────────────────────
   // Columns built once — keys are static
@@ -444,10 +449,10 @@ function PatientsPage() {
             <PaginationItem>
               <PaginationPrevious
                 onClick={handlePreviousPage}
-                aria-disabled={currentPage === 1 || patientsFetching}
-                tabIndex={currentPage === 1 || patientsFetching ? -1 : 0}
+                aria-disabled={currentPage === 1 || isChangingPage}
+                tabIndex={currentPage === 1 || isChangingPage ? -1 : 0}
                 className={
-                  currentPage === 1 || patientsFetching
+                  currentPage === 1 || isChangingPage
                     ? "pointer-events-none opacity-50"
                     : "cursor-pointer"
                 }
@@ -459,7 +464,7 @@ function PatientsPage() {
                   isActive={currentPage === idx + 1}
                   onClick={() => handlePageClick(idx + 1)}
                   className={
-                    patientsFetching ? "pointer-events-none opacity-50" : "cursor-pointer"
+                    isChangingPage ? "pointer-events-none opacity-50" : "cursor-pointer"
                   }
                 >
                   {idx + 1}
@@ -469,10 +474,10 @@ function PatientsPage() {
             <PaginationItem>
               <PaginationNext
                 onClick={handleNextPage}
-                aria-disabled={currentPage === totalPages || patientsFetching}
-                tabIndex={currentPage === totalPages || patientsFetching ? -1 : 0}
+                aria-disabled={currentPage === totalPages || isChangingPage}
+                tabIndex={currentPage === totalPages || isChangingPage ? -1 : 0}
                 className={
-                  currentPage === totalPages || patientsFetching
+                  currentPage === totalPages || isChangingPage
                     ? "pointer-events-none opacity-50"
                     : "cursor-pointer"
                 }
@@ -481,7 +486,7 @@ function PatientsPage() {
           </PaginationContent>
         </Pagination>
       ) : null,
-    [totalPages, currentPage, patientsFetching, handlePreviousPage, handlePageClick, handleNextPage]
+    [totalPages, currentPage, isChangingPage, handlePreviousPage, handlePageClick, handleNextPage]
   );
 
   // ─── Loading ─────────────────────────────────────────────────────────────
@@ -530,7 +535,7 @@ function PatientsPage() {
       />
     ) : (
       <div className="relative">
-        {patientsFetching && (
+        {isChangingPage && (
           <div className="absolute inset-0 bg-background/50 backdrop-blur-sm z-10 flex items-center justify-center rounded-lg">
             <div className="flex flex-col items-center gap-3">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
@@ -540,7 +545,7 @@ function PatientsPage() {
             </div>
           </div>
         )}
-        <div className={`transition-opacity duration-300 ${patientsFetching ? "opacity-40" : "opacity-100"}`}>
+        <div className={`transition-opacity duration-300 ${isChangingPage ? "opacity-40" : "opacity-100"}`}>
           <MyPatientsTable patients={tablePatients} />
         </div>
       </div>

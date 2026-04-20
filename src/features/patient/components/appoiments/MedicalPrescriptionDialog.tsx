@@ -64,18 +64,21 @@ const AttachmentCard = memo(function AttachmentCard({
   isMobile,
   imageUrls,
   onImageClick,
+  onDocumentClick,
   t,
 }: {
   doc: any;
   isMobile: boolean;
   imageUrls: string[];
   onImageClick: (index: number) => void;
+  onDocumentClick: (doc: any) => void;
   t: any;
 }) {
   const truncatedName = truncateFileName(doc.media.nombre, isMobile ? 18 : 22);
   const isTruncated = truncatedName !== doc.media.nombre;
   const isImage = doc.media.tipoMime.includes("image");
-  const imageIndex = imageUrls.indexOf(doc.media.archivo);
+  const mediaUrl = doc.media.urlFirmada || doc.media.archivo;
+  const imageIndex = imageUrls.indexOf(doc.media.urlFirmada);
 
   return (
     <div className="flex flex-col items-center border border-primary/10 rounded-2xl sm:rounded-3xl p-2 sm:p-3 bg-transparent w-full">
@@ -85,7 +88,7 @@ const AttachmentCard = memo(function AttachmentCard({
           className="relative overflow-hidden rounded-2xl sm:rounded-3xl border border-primary/5 w-full aspect-[4/3] max-h-40 sm:max-h-56 mb-2 flex items-center justify-center bg-background cursor-pointer group hover:opacity-80 transition-opacity"
         >
           <img
-            src={doc.media.archivo}
+            src={doc.media.urlFirmada}
             alt={doc.media.nombre}
             loading="lazy"
             className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105"
@@ -98,32 +101,29 @@ const AttachmentCard = memo(function AttachmentCard({
           </div>
         </div>
       ) : (
-        <PreviewDocumentsDialog
-          documentUrl={doc.media.archivo}
-          documentType={doc.media.tipoMime}
-          documentName={doc.media.nombre}
+        <div
+          onClick={() => onDocumentClick(doc)}
+          className="relative overflow-hidden rounded-2xl sm:rounded-3xl border border-primary/5 w-full aspect-[4/3] max-h-40 sm:max-h-56 mb-2 flex items-center justify-center bg-background cursor-pointer group hover:opacity-80 transition-opacity"
         >
-          <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl border border-primary/5 w-full aspect-[4/3] max-h-40 sm:max-h-56 mb-2 flex items-center justify-center bg-background cursor-pointer group hover:opacity-80 transition-opacity">
-            {doc.media.tipoMime.includes("pdf") ? (
-              <iframe
-                src={doc.media.archivo}
-                title={doc.media.nombre}
-                className="w-full h-full pointer-events-none"
-                style={{
-                  border: "none",
-                  maxHeight: isMobile ? "160px" : "224px",
-                }}
-              />
-            ) : (
-              <span className="text-xs text-primary/10">Click to preview</span>
-            )}
-            <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-              <span className="text-white text-sm sm:text-lg font-semibold px-2 text-center">
-                Ver documento
-              </span>
-            </div>
+          {doc.media.tipoMime.includes("pdf") ? (
+            <iframe
+              src={mediaUrl}
+              title={doc.media.nombre}
+              className="w-full h-full pointer-events-none"
+              style={{
+                border: "none",
+                maxHeight: isMobile ? "160px" : "224px",
+              }}
+            />
+          ) : (
+            <span className="text-xs text-primary/10">Click to preview</span>
+          )}
+          <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+            <span className="text-white text-sm sm:text-lg font-semibold px-2 text-center">
+              Ver documento
+            </span>
           </div>
-        </PreviewDocumentsDialog>
+        </div>
       )}
 
       {isTruncated ? (
@@ -153,7 +153,7 @@ const AttachmentCard = memo(function AttachmentCard({
           type="button"
           onClick={async () => {
             try {
-              const response = await fetch(doc.media.archivo);
+              const response = await fetch(mediaUrl);
               const blob = await response.blob();
               const blobUrl = URL.createObjectURL(blob);
               const link = document.createElement("a");
@@ -165,7 +165,7 @@ const AttachmentCard = memo(function AttachmentCard({
               URL.revokeObjectURL(blobUrl);
             } catch {
               // Fallback si el fetch falla por CORS
-              window.open(doc.media.archivo, "_blank");
+              window.open(mediaUrl, "_blank");
             }
           }}
           className="text-xs text-secondary underline flex items-center cursor-pointer"
@@ -189,6 +189,12 @@ function MedicalPrescriptionDialog({
   const isMobile = useIsMobile();
   const [carouselOpen, setCarouselOpen] = useState(false);
   const [carouselStartIndex, setCarouselStartIndex] = useState(0);
+  const [documentPreviewOpen, setDocumentPreviewOpen] = useState(false);
+  const [selectedDocument, setSelectedDocument] = useState<{
+    url: string;
+    type?: string;
+    name?: string;
+  } | null>(null);
 
   const [internalIsOpen, setInternalIsOpen] = useState(false);
   const isOpen = externalIsOpen !== undefined ? externalIsOpen : internalIsOpen;
@@ -292,7 +298,7 @@ function MedicalPrescriptionDialog({
       diagnosis: historyItem.nombre_diagnostico || "-",
       observations: diagnosisHtml || "-",
       documents:
-        historyItem.adjuntos?.map((adjunto: any) => adjunto.media?.archivo) ||
+        historyItem.adjuntos?.map((adjunto: any) => adjunto.media?.urlFirmada) ||
         [],
       insurance: historyItem.cita?.seguro?.nombre || "-",
       doctorName: historyItem.cita?.doctor
@@ -323,10 +329,24 @@ function MedicalPrescriptionDialog({
     setCarouselOpen(false);
   }, []);
 
+  const handleDocumentClick = useCallback((doc: any) => {
+    const mediaUrl = doc?.media?.urlFirmada || doc?.media?.archivo;
+    if (!mediaUrl) return;
+
+    setSelectedDocument({
+      url: mediaUrl,
+      type: doc?.media?.tipoMime,
+      name: doc?.media?.nombre,
+    });
+    setDocumentPreviewOpen(true);
+  }, []);
+
   // ✅ Derive imageUrls once — avoids .map() on every render
   const imageUrls: string[] = historyItem?.adjuntos
-    ? historyItem.adjuntos.map((adjunto: any) => adjunto.media.archivo)
+    ? historyItem.adjuntos.map((adjunto: any) => adjunto.media.urlFirmada)
     : [];
+
+  console.log("MedicalPrescriptionDialog render", { historyItem, loading, imageUrls });
 
   let triggerElem = children;
   if (children && externalIsOpen === undefined) {
@@ -531,6 +551,7 @@ function MedicalPrescriptionDialog({
                     isMobile={isMobile}
                     imageUrls={imageUrls}
                     onImageClick={handleImageClick}
+                    onDocumentClick={handleDocumentClick}
                     t={t}
                   />
                 ))
@@ -570,6 +591,15 @@ function MedicalPrescriptionDialog({
         open={carouselOpen}
         onClose={handleCarouselClose}
         startIndex={carouselStartIndex}
+      />
+
+      <PreviewDocumentsDialog
+        isOpen={documentPreviewOpen}
+        onClose={() => setDocumentPreviewOpen(false)}
+        documentUrl={selectedDocument?.url}
+        documentType={selectedDocument?.type}
+        documentName={selectedDocument?.name}
+        zIndex={200}
       />
     </>
   );
