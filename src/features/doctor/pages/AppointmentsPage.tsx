@@ -261,11 +261,13 @@ function AppointmentsPage() {
     data: apiResponse,
     isLoading,
     isFetching,
+    isPlaceholderData,
     error,
   } = useDoctorAppointments(apiFilters);
   const { data: doctorCitasStats } = useDoctorCitasStats();
 
-  const isChanginPage = isFetching;
+  // Consistent with DashboardTable: only true during page transition with previous data shown.
+  const isChangingPage = isFetching && isPlaceholderData;
 
   // Mapear respuesta del API
   const allAppointments = useMemo(() => {
@@ -463,20 +465,20 @@ function AppointmentsPage() {
 
   // Callbacks para paginación - Memoizados
   const handlePreviousPage = useCallback(() => {
-    if (currentPage > 1 && !isChanginPage) setCurrentPage((p) => Math.max(1, p - 1));
-  }, [currentPage, isChanginPage]);
+    if (currentPage > 1 && !isChangingPage) setCurrentPage((p) => Math.max(1, p - 1));
+  }, [currentPage, isChangingPage]);
 
   const handlePageClick = useCallback(
     (pageNum: number) => {
-      if (!isChanginPage) setCurrentPage(pageNum);
+      if (!isChangingPage) setCurrentPage(pageNum);
     },
-    [isChanginPage]
+    [isChangingPage]
   );
 
   const handleNextPage = useCallback(() => {
-    if (currentPage < totalPages && !isChanginPage)
+    if (currentPage < totalPages && !isChangingPage)
       setCurrentPage((p) => Math.min(totalPages, p + 1));
-  }, [currentPage, totalPages, isChanginPage]);
+  }, [currentPage, totalPages, isChangingPage]);
 
   // Componente de paginación separado - Memoizar para evitar re-renders
   const paginationComponent = useMemo(
@@ -487,10 +489,10 @@ function AppointmentsPage() {
             <PaginationItem>
               <PaginationPrevious
                 onClick={handlePreviousPage}
-                aria-disabled={currentPage === 1 || isChanginPage}
-                tabIndex={currentPage === 1 || isChanginPage ? -1 : 0}
+                aria-disabled={currentPage === 1 || isChangingPage}
+                tabIndex={currentPage === 1 || isChangingPage ? -1 : 0}
                 className={
-                  currentPage === 1 || isChanginPage
+                  currentPage === 1 || isChangingPage
                     ? "pointer-events-none opacity-50"
                     : "cursor-pointer"
                 }
@@ -507,7 +509,7 @@ function AppointmentsPage() {
                     isActive={currentPage === page}
                     onClick={() => handlePageClick(page)}
                     className={
-                      isChanginPage
+                      isChangingPage
                         ? "pointer-events-none opacity-50"
                         : "cursor-pointer"
                     }
@@ -520,10 +522,10 @@ function AppointmentsPage() {
             <PaginationItem>
               <PaginationNext
                 onClick={handleNextPage}
-                aria-disabled={currentPage === totalPages || isChanginPage}
-                tabIndex={currentPage === totalPages || isChanginPage ? -1 : 0}
+                aria-disabled={currentPage === totalPages || isChangingPage}
+                tabIndex={currentPage === totalPages || isChangingPage ? -1 : 0}
                 className={
-                  currentPage === totalPages || isChanginPage
+                  currentPage === totalPages || isChangingPage
                     ? "pointer-events-none opacity-50"
                     : "cursor-pointer"
                 }
@@ -535,7 +537,7 @@ function AppointmentsPage() {
     [
       totalPages,
       currentPage,
-      isChanginPage,
+      isChangingPage,
       handlePreviousPage,
       handlePageClick,
       handleNextPage,
@@ -625,7 +627,7 @@ function AppointmentsPage() {
       </EmptyContent>
     </Empty>
   ) : (
-    <MyAppointmentTable appointments={paginatedAppointments} isChangingPage={isChanginPage} />
+    <MyAppointmentTable appointments={paginatedAppointments} isChangingPage={isChangingPage} />
   );
 
   // Métricas: Calcular desde los datos cargados

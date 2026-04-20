@@ -10,7 +10,7 @@
  * - All options have explicit types — no implicit `any`
  * - `gcTime` / `staleTime` exposed as top-level options; sane defaults kept
  */
-import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
+import { useQuery, useInfiniteQuery, keepPreviousData } from "@tanstack/react-query";
 import { getDoctorPatients } from "@/services/api/appointments.service";
 import { QUERY_KEYS } from "@/lib/react-query/config";
 
@@ -76,6 +76,7 @@ export const useDoctorPatients = ({
   useQuery({
     queryKey: doctorPatientsKey(pagina, limite, filters),
     queryFn: () => getDoctorPatients({ pagina, limite, ...filters }),
+    placeholderData: keepPreviousData,
     enabled,
     staleTime,
     gcTime,

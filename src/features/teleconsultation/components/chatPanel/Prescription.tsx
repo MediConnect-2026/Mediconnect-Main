@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Controller } from "react-hook-form";
 import { useTranslation } from "react-i18next";
-import { CheckCircle, AlertCircle, X, Upload, Image as ImageIcon } from "lucide-react";
+import { CheckCircle, AlertCircle, X, Upload, Image as ImageIcon, FileText } from "lucide-react";
 
 import MCFormWrapper from "@/shared/components/forms/MCFormWrapper";
 import MCInput from "@/shared/components/forms/MCInput";
 import MCButton from "@/shared/components/forms/MCButton";
 import RichTextEditor from "./RichTextEditor";
+import { FileViewerModal } from "./FileViewerModal";
 
 import { prescriptionSchema, MAX_FILES, MAX_FILE_SIZE, validateFileType, validateFileSize, formatFileSize } from "@/schema/prescription.schema";
 import { usePrescriptionStore } from "@/stores/usePrescriptionStore";
@@ -31,6 +32,14 @@ interface FilePreview {
   file: File;
   /** Object URL for <img> previews. Revoked on component unmount or file removal. */
   objectUrl: string;
+}
+
+interface ViewerModalState {
+  open: boolean;
+  content: string;
+  type: "image" | "file";
+  fileName?: string;
+  fileType?: string;
 }
 
 type SubmitStatus = "idle" | "loading" | "success" | "error";
@@ -58,6 +67,13 @@ function Prescription({ minHeight, maxHeight, appointmentId: appointmentIdProp, 
   const [submitStatus, setSubmitStatus] = useState<SubmitStatus>("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [fileErrors, setFileErrors] = useState<string[]>([]);
+  const [viewerModal, setViewerModal] = useState<ViewerModalState>({
+    open: false,
+    content: "",
+    type: "file",
+    fileName: "",
+    fileType: "",
+  });
 
   // Clean up all object URLs on unmount to prevent memory leaks
   const filePreviewsRef = useRef(filePreviews);
@@ -135,6 +151,34 @@ function Prescription({ minHeight, maxHeight, appointmentId: appointmentIdProp, 
     },
     [],
   );
+
+  const openFilePreview = useCallback((filePreview: FilePreview) => {
+    const fileType = filePreview.file.type || "";
+    const isImage = fileType.startsWith("image/");
+
+    setViewerModal({
+      open: true,
+      content: filePreview.objectUrl,
+      type: isImage ? "image" : "file",
+      fileName: filePreview.file.name,
+      fileType: fileType.includes("pdf") ? "pdf" : "other",
+    });
+  }, []);
+
+  const handleDownloadFile = useCallback((url: string, fileName: string) => {
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = fileName;
+    anchor.target = "_blank";
+    document.body.appendChild(anchor);
+    anchor.click();
+    document.body.removeChild(anchor);
+  }, []);
+
+  const getFileIcon = useCallback((fileType: string) => {
+    if (fileType === "pdf") return "PDF";
+    return "FILE";
+  }, []);
 
   // ─── Drag & Drop ────────────────────────────────────────────────────────────
 
@@ -282,11 +326,16 @@ function Prescription({ minHeight, maxHeight, appointmentId: appointmentIdProp, 
                     <input
                       type="file"
                       multiple
-                      accept="image/*"
+                      accept="image/*,.pdf,application/pdf"
                       disabled={isAtLimit || isSubmitting || loadingCita || !isCitaInProgress}
-                      onChange={(e) =>
-                        addFiles(Array.from(e.target.files ?? []), field.onChange)
-                      }
+                      onClick={(e) => {
+                        // Allow re-selecting the same file after removing it.
+                        e.currentTarget.value = "";
+                      }}
+                      onChange={(e) => {
+                        addFiles(Array.from(e.target.files ?? []), field.onChange);
+                        e.currentTarget.value = "";
+                      }}
                       className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed"
                     />
 
@@ -340,12 +389,24 @@ function Prescription({ minHeight, maxHeight, appointmentId: appointmentIdProp, 
                           {filePreviews.map((fp, idx) => (
                             <div
                               key={fp.objectUrl}
+                              onClick={() => openFilePreview(fp)}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter" || e.key === " ") {
+                                  e.preventDefault();
+                                  openFilePreview(fp);
+                                }
+                              }}
+                              role="button"
+                              tabIndex={0}
                               className="relative group aspect-square border-2 border-primary/15 rounded-lg overflow-hidden bg-bg-btn-secondary hover:border-primary transition-colors"
                             >
                               {/* Remove button */}
                               <button
                                 type="button"
-                                onClick={() => removeFile(idx, field.onChange)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  removeFile(idx, field.onChange);
+                                }}
                                 disabled={isSubmitting}
                                 className="absolute top-1 right-1 z-10 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity shadow-md disabled:pointer-events-none"
                                 aria-label={t("prescription.removeImageAria")}
@@ -362,6 +423,25 @@ function Prescription({ minHeight, maxHeight, appointmentId: appointmentIdProp, 
                                     loading="lazy"
                                     className="object-cover w-full h-full rounded-lg"
                                   />
+                                ) : fp.file.type === "application/pdf" ? (
+                                  <>
+                                    <object
+                                      data={fp.objectUrl}
+                                      type="application/pdf"
+                                      aria-label={fp.file.name}
+                                      className="w-full h-full"
+                                    >
+                                      <div className="w-full h-full flex flex-col items-center justify-center gap-1 p-2 text-center">
+                                        <FileText className="w-5 h-5 md:w-6 md:h-6 text-primary/60" />
+                                        <p className="text-[10px] md:text-xs text-primary/70 line-clamp-2 break-all">
+                                          {fp.file.name}
+                                        </p>
+                                      </div>
+                                    </object>
+                                    <span className="absolute top-1 left-1 z-10 bg-red-600 text-white text-[9px] px-1.5 py-0.5 rounded">
+                                      PDF
+                                    </span>
+                                  </>
                                 ) : (
                                   <ImageIcon className="w-5 h-5 md:w-6 md:h-6 text-primary/60" />
                                 )}
@@ -426,6 +506,13 @@ function Prescription({ minHeight, maxHeight, appointmentId: appointmentIdProp, 
           </div>
         </div>
       </MCFormWrapper>
+
+      <FileViewerModal
+        viewerModal={viewerModal}
+        onOpenChange={(open) => setViewerModal((prev) => ({ ...prev, open }))}
+        onDownloadFile={handleDownloadFile}
+        getFileIcon={getFileIcon}
+      />
     </div>
   );
 }

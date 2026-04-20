@@ -438,6 +438,8 @@ const HistoryTabContent = memo(function HistoryTabContent({
 
   const observerTarget = useRef<HTMLDivElement>(null);
 
+  console.log("HistoryTabContent render", { history, loading, hasMore });
+  
   useEffect(() => {
     return () => {
       setActiveIndex(null);

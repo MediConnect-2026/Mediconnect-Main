@@ -1,4 +1,3 @@
-import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/shared/ui/button";
 import {
@@ -17,12 +16,6 @@ import {
   TooltipTrigger,
 } from "@/shared/ui/tooltip";
 import {
-  Pagination,
-  PaginationContent,
-  PaginationLink,
-  PaginationItem,
-  PaginationPrevious,
-  PaginationNext,
 } from "@/shared/ui/pagination";
 import { Popover, PopoverTrigger, PopoverContent } from "@/shared/ui/popover";
 import { MCUserAvatar } from "@/shared/navigation/userMenu/MCUserAvatar";
@@ -67,26 +60,13 @@ interface MyPatientsTableProps {
   patients: Patient[];
 }
 
-const PAGE_SIZE = 10;
-
 const truncate = (text: string, max = 28) =>
   text.length > max ? `${text.substring(0, max)}...` : text;
 
 export default function MyPatientsTable({ patients }: MyPatientsTableProps) {
   const { t } = useTranslation("doctor");
   const isMobile = useIsMobile();
-  const [page, setPage] = React.useState(1);
   const patientsList = patients as any[];
-
-  const totalPages = Math.ceil(patientsList.length / PAGE_SIZE);
-  const paginatedData = patientsList.slice(
-    (page - 1) * PAGE_SIZE,
-    page * PAGE_SIZE,
-  );
-
-  React.useEffect(() => {
-    if (page > totalPages && totalPages > 0) setPage(1);
-  }, [patientsList.length, page, totalPages]);
 
   const genderLabel = (gender: string | undefined) => {
     const labels: Record<string, string> = {
@@ -129,8 +109,8 @@ export default function MyPatientsTable({ patients }: MyPatientsTableProps) {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {paginatedData.length > 0 ? (
-            paginatedData.map((row: any) => (
+          {patientsList.length > 0 ? (
+            patientsList.map((row: any) => (
               <TableRow key={row.id || row.pacienteId}>
                 {/* Paciente */}
                 <TableCell>
@@ -211,7 +191,7 @@ export default function MyPatientsTable({ patients }: MyPatientsTableProps) {
                 </TableCell>
 
                 {/* Info Médica */}
-                <TableCell>
+                <TableCell className="text-left align-middle">
                   {row.conditionsCount === 0 && row.allergiesCount === 0 ? (
                     <span
                       className={`text-muted-foreground ${isMobile ? "text-xs" : "text-sm"}`}
@@ -219,7 +199,7 @@ export default function MyPatientsTable({ patients }: MyPatientsTableProps) {
                       {t("patients.table.none")}
                     </span>
                   ) : (
-                    <div className="flex flex-col gap-0.5 items-center justify-center">
+                    <div className="flex flex-col gap-0.5 items-start justify-start">
                       {row.conditionsCount > 0 && (
                         <span className="flex items-center gap-1 text-xs text-orange-500 font-medium">
                           <ShieldAlert className="w-3 h-3 shrink-0" />
@@ -299,43 +279,6 @@ export default function MyPatientsTable({ patients }: MyPatientsTableProps) {
         </TableBody>
       </Table>
 
-      {totalPages > 1 && (
-        <Pagination className="mt-4">
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                className={
-                  page === 1
-                    ? "pointer-events-none opacity-50"
-                    : "cursor-pointer"
-                }
-              />
-            </PaginationItem>
-            {[...Array(totalPages)].map((_, i) => (
-              <PaginationItem key={i}>
-                <PaginationLink
-                  isActive={page === i + 1}
-                  onClick={() => setPage(i + 1)}
-                  className="cursor-pointer"
-                >
-                  {i + 1}
-                </PaginationLink>
-              </PaginationItem>
-            ))}
-            <PaginationItem>
-              <PaginationNext
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                className={
-                  page === totalPages
-                    ? "pointer-events-none opacity-50"
-                    : "cursor-pointer"
-                }
-              />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
-      )}
     </div>
   );
 }

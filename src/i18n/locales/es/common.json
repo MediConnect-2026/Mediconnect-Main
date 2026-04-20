@@ -622,10 +622,10 @@
     "diagnosisDescription": "Descripción del diagnóstico",
     "diagnosisDescriptionPlaceholder": "Describe el diagnóstico aquí...",
     "documents": "Documentos adjuntos",
-    "maxImagesHint": "(máx. {{max}} imágenes · 10 MB c/u)",
+    "maxImagesHint": "(máx. {{max}} archivos · 10 MB c/u)",
     "uploadHintMobile": "Toca para subir",
     "uploadHintDesktop": "Arrastra o haz clic",
-    "uploadFormats": "Imágenes (JPG, PNG, GIF, WebP)",
+    "uploadFormats": "Imágenes (JPG, PNG, GIF, WebP) y PDF",
     "imagesAttached": "{{count}} imagen adjunta",
     "imagesAttached_plural": "{{count}} imágenes adjuntas",
     "removeImageAria": "Eliminar imagen",
@@ -646,10 +646,10 @@
       "diagnosisTitleMax": "El título no puede exceder {{max}} caracteres",
       "diagnosisDescriptionRequired": "La descripción del diagnóstico es obligatoria",
       "diagnosisDescriptionMax": "La descripción no puede exceder {{max}} caracteres",
-      "documentsMax": "Puedes adjuntar un máximo de {{max}} imágenes",
-      "fileTypeInvalid": "\"{{fileName}}\": tipo no permitido (solo imágenes)",
+      "documentsMax": "Puedes adjuntar un máximo de {{max}} archivos",
+      "fileTypeInvalid": "\"{{fileName}}\": tipo no permitido (imágenes o PDF)",
       "fileSizeExceeded": "\"{{fileName}}\": excede {{maxSize}} máximo",
-      "maxReached": "Límite de {{max}} imágenes alcanzado"
+      "maxReached": "Límite de {{max}} archivos alcanzado"
     }
   },
   "richText": {
