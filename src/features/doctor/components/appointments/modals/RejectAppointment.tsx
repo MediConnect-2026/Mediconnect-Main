@@ -18,23 +18,19 @@ function RejectAppointment({
   const setToast = useGlobalUIStore((state) => state.setToast);
 
   const handleConfirm = () => {
-    console.log("Confirm pressed");
     setToast({
       message: t("appointment.rejectedSuccess"),
       type: "success",
       open: true,
     });
-    console.log("Cita rechazada:", appointmentId);
   };
 
   const handleSecondary = () => {
-    console.log("Cancel pressed");
     setToast({
       message: t("appointment.rejectAborted"),
       type: "info",
       open: true,
     });
-    console.log("Acción de rechazo cancelada:", appointmentId);
   };
 
   return (

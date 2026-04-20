@@ -29,7 +29,6 @@ function RegEmailVerificationPage() {
   
   useEffect(() => {
     if (!selectedRole) {
-      console.log("No role selected, redirecting...");
       navigate("/auth/register", { replace: true });
     }
   }, [selectedRole, navigate]);

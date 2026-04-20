@@ -61,7 +61,6 @@ export const AppointmentDetails = ({
     : "EEEE, d 'de' MMMM";
 
   const { startConversation, isLoading: isStartingConversation } = useStartConversation();
-  console.log(appointment);
 
   const statusLabels: Record<AppointmentStatus, string> = {
     scheduled: t("calendar.status.scheduled"),

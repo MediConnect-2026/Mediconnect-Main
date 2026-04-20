@@ -76,12 +76,6 @@ function DoctorServicesSection({ doctorId, isMyProfile = false }: Props) {
   const user = useAppStore((state) => state.user);
   const resolvedDoctorId = doctorId ?? user?.id;
 
-  console.log(
-    "DoctorServicesSection renderizado con doctorId:",
-    doctorId,
-    "isMyProfile:",
-    isMyProfile,
-  );
 
   const {
     data: services = [],
@@ -114,14 +108,12 @@ function DoctorServicesSection({ doctorId, isMyProfile = false }: Props) {
 
   // Handlers para acciones de servicios
   const handleEdit = (serviceId: string) => {
-    console.log("Editar servicio:", serviceId);
     // TODO: Navegar a página de edición o abrir modal
     window.location.href = `/doctor/service/edit/${serviceId}`;
   };
 
   const handleActivate = async (serviceId: string) => {
     try {
-      console.log("Activar servicio:", serviceId);
       await doctorService.updateStatusOfService(Number(serviceId), "Activo");
       await refetch();
     } catch (error) {
@@ -131,7 +123,6 @@ function DoctorServicesSection({ doctorId, isMyProfile = false }: Props) {
 
   const handleDeactivate = async (serviceId: string) => {
     try {
-      console.log("Desactivar servicio:", serviceId);
       await doctorService.updateStatusOfService(Number(serviceId), "Inactivo");
       await refetch();
     } catch (error) {
@@ -141,7 +132,6 @@ function DoctorServicesSection({ doctorId, isMyProfile = false }: Props) {
 
   const handleDelete = async (serviceId: string) => {
     try {
-      console.log("Eliminar servicio:", serviceId);
       if (
         window.confirm(
           t(
@@ -159,7 +149,6 @@ function DoctorServicesSection({ doctorId, isMyProfile = false }: Props) {
   };
 
   const handleViewDetails = (serviceId: string) => {
-    console.log("Ver detalles del servicio:", serviceId);
     // TODO: Navegar a página de detalles
     window.location.href = `/service/${serviceId}`;
   };

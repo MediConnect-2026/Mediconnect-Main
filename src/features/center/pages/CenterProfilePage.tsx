@@ -467,8 +467,6 @@ function CenterProfilePage() {
 
     return true;
   });
-
-  console.log("Doctors List:", filteredDoctors);
   
   const deleteAllianceMutation = useMutation({
     mutationFn: async (requestId: string | number) =>

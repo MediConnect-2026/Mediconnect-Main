@@ -176,7 +176,6 @@ function ServiceImagesStep({ isEditMode = false, serviceId }: Props) {
   };
 
   const removeImage = async (id: string) => {
-    console.log("Attempting to remove image with id:", id);
     const img = images.find((i) => String(i.id) === String(id));
     if (!img) return;
 
@@ -191,7 +190,6 @@ function ServiceImagesStep({ isEditMode = false, serviceId }: Props) {
     if (isEditMode && serviceId) {
       setDeletingImageId(id);
       try {
-        console.log("Attempting to remove image with id:", img);
         const fallbackStoreImage = Array.isArray(storeImages)
           ? (storeImages as any[]).find((storedImg) => storedImg?.url === img.url)
           : undefined;

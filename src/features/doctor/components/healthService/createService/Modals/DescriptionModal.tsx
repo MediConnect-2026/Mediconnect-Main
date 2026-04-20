@@ -4,7 +4,7 @@ import MCFormWrapper from "@/shared/components/forms/MCFormWrapper";
 import { serviceSchema } from "@/schema/createService.schema";
 import { useTranslation } from "react-i18next";
 import { useCreateServicesStore } from "@/stores/useCreateServicesStore";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
 
 interface DescriptionModalProps {
@@ -20,10 +20,6 @@ function DescriptionModal({ children }: DescriptionModalProps) {
   );
   const createServiceData = useCreateServicesStore((s) => s.createServiceData);
   const [isOpen, setIsOpen] = useState(false);
-
-  useEffect(() => {
-    console.log("Descripción actual:", createServiceData.description);
-  }, [createServiceData.description]);
 
   const descriptionSchema = serviceSchema(t).pick({ description: true });
 
