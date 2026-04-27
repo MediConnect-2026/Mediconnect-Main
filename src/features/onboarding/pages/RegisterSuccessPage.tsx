@@ -140,7 +140,6 @@ function RegisterSuccessPage() {
     isAuthenticated,
     credentials.email,
     credentials.password,
-    isAutoLoggingIn,
     login,
     clearOnboarding,
     clearAuthFlow,
