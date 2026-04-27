@@ -158,7 +158,7 @@ function HowItWorksSection({ onCarouselActiveChange }: HowItWorksSectionProps) {
   );
 
   return (
-    <main className="p-[15px] flex justify-center w-full">
+    <main id="how" className="p-[15px] flex justify-center w-full">
       <div ref={containerRef} className="w-full">
         <section className="bg-white py-12 px-6 items-center w-full">
           <div
