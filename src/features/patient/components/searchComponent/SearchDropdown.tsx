@@ -42,7 +42,7 @@ const SearchDropdown = ({
   // Show loading state
   if (isLoading) {
     return (
-      <div className="absolute top-full left-0 right-0 mt-2 md:mt-2.5 bg-card rounded-xl md:rounded-2xl shadow-search border border-border overflow-hidden z-50">
+      <div className="absolute top-full left-0 right-0 mt-2 md:mt-2.5 bg-background rounded-xl md:rounded-2xl shadow-search border border-primary/15 overflow-hidden z-50">
         <div className="py-4 px-4 text-center text-sm text-muted-foreground">
           Buscando...
         </div>
@@ -52,11 +52,10 @@ const SearchDropdown = ({
 
   // Show empty state if no results
   if (filteredSpecialties.length === 0 && filteredDoctors.length === 0) {
-    // Don't show dropdown if no search term and no active filter
     if (!searchTerm.trim() && !hasActiveFilter) return null;
-    
+
     return (
-      <div className="absolute top-full left-0 right-0 mt-2 md:mt-2.5 bg-card rounded-xl md:rounded-2xl shadow-search border border-border overflow-hidden z-50">
+      <div className="absolute top-full left-0 right-0 mt-2 md:mt-2.5 bg-background rounded-xl md:rounded-2xl shadow-search border border-primary/15 overflow-hidden z-50">
         <div className="py-4 px-4 text-center text-sm text-muted-foreground">
           No se encontraron resultados
         </div>
@@ -65,7 +64,7 @@ const SearchDropdown = ({
   }
 
   return (
-    <div className="absolute top-full left-0 right-0 mt-2 md:mt-2.5 bg-card rounded-xl md:rounded-2xl shadow-search border border-border overflow-hidden z-50 max-h-[60vh] md:max-h-96 overflow-y-auto">
+    <div className="absolute top-full left-0 right-0 mt-2 md:mt-2.5 bg-background rounded-xl md:rounded-2xl shadow-search border border-primary/15 overflow-hidden z-50 max-h-[60vh] md:max-h-96 overflow-y-auto">
       <div className="py-2">
         {/* Especialidades */}
         {filteredSpecialties.length > 0 && (
@@ -114,7 +113,11 @@ const SearchDropdown = ({
                   className="w-full flex items-center gap-3 py-2.5 md:py-2 px-2 rounded-lg hover:bg-accent hover:text-secondary-foreground transition-colors"
                 >
                   <Avatar className="w-10 h-10 md:w-10 md:h-10 flex-shrink-0">
-                    <AvatarImage src={imageSrc} alt={doctor.name} className="object-cover" />
+                    <AvatarImage
+                      src={imageSrc}
+                      alt={doctor.name}
+                      className="object-cover"
+                    />
                     <AvatarFallback className="bg-muted text-muted-foreground text-xs font-medium">
                       {doctorInitials || "DR"}
                     </AvatarFallback>
