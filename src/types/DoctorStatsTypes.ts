@@ -330,8 +330,9 @@ export interface PacienteInfoSeguroAsignado {
 export interface PacienteInfoCondicion {
   id: number;
   nombre: string;
-  descripcion: string | null;
+  descripcion: string;
   tipo: string;
+  notas: string;
   estado: string;
   creadoEn: string;
 }
@@ -342,7 +343,7 @@ export interface PacienteInfoCondicion {
 export interface PacienteInfoCondicionMedica {
   pacienteId: number;
   condicionId: number;
-  notas: string | null;
+  notas: string;
   estado: string;
   registradoEn: string;
   actualizadoEn: string | null;

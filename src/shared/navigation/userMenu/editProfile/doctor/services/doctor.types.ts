@@ -62,7 +62,8 @@ export interface UpdateProfilePhotoResponse {
   success: boolean;
   message: string;
   data: {
-    fotoPerfil: string;
+    fotoPerfil?: string;
+    fotoPerfilUrl?: string;
   };
 }
 

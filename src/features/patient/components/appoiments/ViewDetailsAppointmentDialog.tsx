@@ -167,9 +167,9 @@ const PacientDetailsTabContent = memo(function PacientDetailsTabContent({
         <div className="max-h-32 overflow-y-auto">
           <ul className="list-disc ml-5">
             {(patientData?.caracteristicas || []).map((cond: any, i: number) =>
-              cond?.condicion.tipo === "Condicion" ? (
+              cond?.condicion.tipo === "Condición" ? (
                 <li key={i} className="font-medium text-primary">
-                  {cond.condicion.nombre} - {cond.condicion.descripcion}
+                  {cond.notas} - {cond.condicion.descripcion}
                 </li>
               ) : null,
             )}

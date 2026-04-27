@@ -54,6 +54,16 @@ export interface CitaDoctor {
     fotoPerfil: string | null;
     telefono?: string;
   };
+  especialidades?: {
+    es_principal: boolean;
+    estado: string;
+    creado_en: string;
+    actualizado_en: string | null;
+    especialidades: {
+      id: number;
+      nombre: string;
+    }
+  }[];
 }
 
 /**

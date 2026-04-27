@@ -71,6 +71,8 @@ const adaptApiAppointmentToLocal = (
   apiAppointment: ApiAppointment,
   locale: Locale,
 ): Appointment => {
+
+  console.log("Raw API appointment:", apiAppointment);
   return {
     id: apiAppointment.id,
     doctorId: apiAppointment.doctorId || "",

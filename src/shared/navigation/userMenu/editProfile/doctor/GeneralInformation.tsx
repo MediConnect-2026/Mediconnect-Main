@@ -26,6 +26,8 @@ import { toast } from "sonner";
 import { base64ToFile } from "@/utils/base64ToFile";
 import { formatPhone } from "@/utils/phoneFormat";
 import { formatDominicanCedula } from "@/utils/identityDocument";
+import { useQueryClient } from "@tanstack/react-query";
+import { QUERY_KEYS } from "@/lib/react-query/config";
 type CropType = "banner" | "profile";
 
 interface GeneralInformationProps {
@@ -34,6 +36,7 @@ interface GeneralInformationProps {
 
 function GeneralInformation({ onOpenChange }: GeneralInformationProps) {
   const { t } = useTranslation("doctor");
+  const queryClient = useQueryClient();
   const isMobile = useIsMobile();
   const doctorProfile = useProfileStore((s) => s.doctorProfile);
   const setDoctorProfile = useProfileStore((s) => s.setDoctorProfile);
@@ -224,9 +227,12 @@ function GeneralInformation({ onOpenChange }: GeneralInformationProps) {
           // Llamar al servicio para actualizar la foto de perfil
           const photoResponse = await doctorService.updateProfilePhoto(photoFile);
 
-          if (photoResponse.success && photoResponse.data.fotoPerfil) {
+          const uploadedProfilePhotoUrl =
+            photoResponse.data.fotoPerfilUrl || photoResponse.data.fotoPerfil;
+
+          if (photoResponse.success && uploadedProfilePhotoUrl) {
             // Agregar timestamp para evitar caché del navegador
-            newProfilePhotoUrl = `${photoResponse.data.fotoPerfil}?t=${Date.now()}`;
+            newProfilePhotoUrl = `${uploadedProfilePhotoUrl}?t=${Date.now()}`;
             
             // Actualizar también el estado local para preview inmediata
             setProfileImage(newProfilePhotoUrl);
@@ -293,14 +299,20 @@ function GeneralInformation({ onOpenChange }: GeneralInformationProps) {
       const response = await doctorService.updateProfile(updateData);
 
       if (response.success) {
+        const latestUser = useAppStore.getState().user;
+        if (!latestUser) {
+          toast.error(t("profileForm.errorNoUser"));
+          return;
+        }
+
         // Actualizar el usuario en el store con los nuevos datos
         useAppStore.getState().updateUser({
-          ...user,
+          ...latestUser,
           fotoPerfil: newProfilePhotoUrl,
-          telefono: data.phone || user.telefono,
+          telefono: data.phone || latestUser.telefono,
           banner: newBannerUrl || null,
-          doctor: user.doctor ? {
-            ...user.doctor,
+          doctor: latestUser.doctor ? {
+            ...latestUser.doctor,
             ...response.data,
             fotoPerfil: newProfilePhotoUrl,
             banner: newBannerUrl || null,
@@ -329,6 +341,27 @@ function GeneralInformation({ onOpenChange }: GeneralInformationProps) {
               : undefined,
           });
         }
+
+        // Fuerza sincronizacion del perfil autenticado en toda la app
+        // incluso en vistas inactivas con refetchOnMount deshabilitado.
+        await Promise.all([
+          queryClient.invalidateQueries({
+            queryKey: [...QUERY_KEYS.DOCTORS, "me"],
+            refetchType: "all",
+          }),
+          queryClient.invalidateQueries({
+            queryKey: QUERY_KEYS.DOCTORS,
+            refetchType: "all",
+          }),
+          queryClient.invalidateQueries({
+            queryKey: QUERY_KEYS.ME,
+            refetchType: "all",
+          }),
+          queryClient.invalidateQueries({
+            queryKey: QUERY_KEYS.USER_PROFILE,
+            refetchType: "all",
+          }),
+        ]);
 
         toast.success(t("profileForm.success"));
         

@@ -106,6 +106,8 @@ export const mapCitaDetalleToAppointment = (cita: CitaDetalle, userRole: string)
   // Extraer el doctorId para poder reagendar: prioriza el campo raíz, luego el usuarioId anidado
   const resolvedDoctorId = cita.doctorId ?? cita.doctor.usuarioId;
   const doctorId = resolvedDoctorId?.toString();
+  const primarySpecialty = cita.doctor.especialidades?.find((e) => e.es_principal)?.especialidades;
+  const fallbackSpecialty = cita.servicio.especialidad;
 
   // Construir serviceData con los campos que necesita ScheduleAppointmentDialog
   const serviceData: Partial<ServiceDetail> = {
@@ -121,8 +123,9 @@ export const mapCitaDetalleToAppointment = (cita: CitaDetalle, userRole: string)
       },
     } as ServiceDetailDoctor,
     especialidad: {
-      id: cita.servicio.especialidad.id,
-      nombre: cita.servicio.especialidad.nombre,
+      // Usa especialidad principal del doctor cuando exista; si no, la del servicio.
+      id: primarySpecialty?.id ?? fallbackSpecialty.id,
+      nombre: primarySpecialty?.nombre || fallbackSpecialty.nombre,
     },
   };
 

@@ -518,7 +518,7 @@ function ScheduleAppointment() {
                   >
                     {t(
                       "appointments.virtualDescription",
-                      "The consultation will take place through our secure telemedicine platform. You will receive a link by email before the appointment.",
+                      "The consultation will take place through our secure telemedicine platform. You will receive a notification to join the virtual consultation before the scheduled time.",
                     )}
                   </p>
                 </div>

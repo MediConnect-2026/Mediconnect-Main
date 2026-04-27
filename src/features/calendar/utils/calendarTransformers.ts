@@ -49,6 +49,10 @@ export const transformCitaToAppointment = (cita: CitaDetalle): Appointment => {
   // horaInicio viene en formato HH:mm:ss o HH:mm
   const [year, month, day] = cita.fechaInicio.split('-').map(Number);
   const [hour, minute] = cita.horaInicio.split(':').map(Number);
+  const primarySpecialtyName =
+    cita.doctor.especialidades
+      ?.find((especialidad) => especialidad.es_principal)
+      ?.especialidades?.nombre;
 
   // Crear Date en la zona horaria local (importante para comparaciones con isSameDay)
   const dateTime = new Date(year, month - 1, day, hour, minute);
@@ -65,7 +69,7 @@ export const transformCitaToAppointment = (cita: CitaDetalle): Appointment => {
     patientAvatarUrl: cita.paciente.usuario.fotoPerfil || undefined,
     doctorName: `${cita.doctor.nombre} ${cita.doctor.apellido}`,
     doctorAvatarUrl: cita.doctor.usuario.fotoPerfil || undefined,
-    doctorSpecialty: cita.servicio.especialidad.nombre,
+    doctorSpecialty: primarySpecialtyName || cita.servicio.especialidad.nombre,
     date: dateTime,
     time: cita.horaInicio,
     duration: cita.servicio.duracionMinutos,

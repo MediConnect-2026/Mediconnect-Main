@@ -134,7 +134,18 @@ const mapCitaDetalleToAppointment = (
   cita: CitaDetalle,
   locale: string,
 ): Appointment => {
-  const fechaInicio = new Date(cita.fechaInicio);
+  const parseBackendDateAsLocal = (rawDate: string): Date => {
+    // Evita desfases por zona horaria cuando el backend devuelve YYYY-MM-DD.
+    if (/^\d{4}-\d{2}-\d{2}$/.test(rawDate)) {
+      const [year, month, day] = rawDate.split("-").map(Number);
+      return new Date(year, month - 1, day, 12, 0, 0, 0);
+    }
+
+    const parsed = new Date(rawDate);
+    return Number.isNaN(parsed.getTime()) ? new Date() : parsed;
+  };
+
+  const fechaInicio = parseBackendDateAsLocal(cita.fechaInicio);
 
   // Formatear fecha como DD/MM/YYYY
   const formattedDate = new Intl.DateTimeFormat(locale, {

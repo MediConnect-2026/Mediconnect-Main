@@ -930,7 +930,7 @@ function PatientDetailsPage() {
 
     const conditions = patientData.condicionesMedicas
       .filter((item) => !item.condicion.tipo.toLowerCase().includes("alerg"))
-      .map((item) => item.condicion.nombre);
+      .map((item) => item.notas || '');
 
     return {
       id: patientData.id.toString(),

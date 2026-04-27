@@ -746,7 +746,7 @@ function ScheduleAppointmentForm({
       <div className="space-y-2">
         <div className="flex flex-col gap-2">
           <span className="text-left text-base sm:text-lg text-primary mb-1">
-            {t("appointments.insuranceType", "¿Usarás seguro médico?")}
+            {t("appointments.insuranceType", "¿Usarás seguro médico?")} 
           </span>
           <div className="flex items-center gap-6 mt-1 mb-2">
             <label className="flex items-center gap-2 cursor-pointer text-sm sm:text-base text-primary">
