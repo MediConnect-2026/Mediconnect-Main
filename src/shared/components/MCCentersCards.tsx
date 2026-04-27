@@ -1,12 +1,65 @@
 import { useTranslation } from "react-i18next";
+import { useState, useEffect, useRef } from "react";
 import { Card, CardContent } from "@/shared/ui/card";
 import { Star, Phone } from "lucide-react";
 import MCButton from "./forms/MCButton";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "../ui/tooltip";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
 import { cn } from "@/lib/utils";
 import { useAppStore } from "@/stores/useAppStore";
 import { formatPhone } from "@/utils/phoneFormat";
 import ToogleConfirmConnection from "@/features/request/components/ToogleConfirmConnection";
+
+// Shows a tooltip ONLY when the text is actually truncated/clamped
+function TruncatedText({
+  text,
+  className,
+  maxLines = 2,
+  as: Tag = "span",
+}: {
+  text: string;
+  className?: string;
+  maxLines?: 1 | 2;
+  as?: "span" | "p" | "h3";
+}) {
+  const ref = useRef<HTMLElement>(null);
+  const [isTruncated, setIsTruncated] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    setIsTruncated(el.scrollHeight > el.clientHeight + 1);
+  }, [text]);
+
+  const clampClass = maxLines === 1 ? "line-clamp-1" : "line-clamp-2";
+
+  const content = (
+    <Tag
+      ref={ref as React.RefObject<any>}
+      className={`${clampClass} ${className ?? ""}`}
+    >
+      {text}
+    </Tag>
+  );
+
+  if (!isTruncated) return content;
+
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>{content}</TooltipTrigger>
+        <TooltipContent className="max-w-[240px] whitespace-normal">
+          {text}
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+}
 
 interface MCCenterCardProps {
   id?: string | number;
@@ -70,16 +123,18 @@ const MCCentersCards = ({
       <CardContent
         className={`flex flex-col flex-1 ${isMobile ? "pt-3 pb-2" : "pt-4 pb-2"}`}
       >
-        <h3
+        <TruncatedText
+          text={name}
+          maxLines={1}
+          as="h3"
           className={`font-semibold text-primary ${isMobile ? "text-base" : "text-lg"}`}
-        >
-          {name}
-        </h3>
-        <p
-          className={`text-muted-foreground mb-1 line-clamp-2 ${isMobile ? "text-xs min-h-[20px]" : "text-sm min-h-[24px]"}`}
-        >
-          {type}
-        </p>
+        />
+        <TruncatedText
+          text={type}
+          maxLines={2}
+          as="p"
+          className={`text-muted-foreground mb-1 ${isMobile ? "text-xs min-h-[20px]" : "text-sm min-h-[24px]"}`}
+        />
         <p
           className={`text-muted-foreground mb-3 line-clamp-2 ${isMobile ? "text-xs min-h-[32px]" : "text-sm min-h-[36px]"}`}
         >

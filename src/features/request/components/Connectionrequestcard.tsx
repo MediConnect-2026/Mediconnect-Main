@@ -144,6 +144,20 @@ export const ConnectionRequestCard = ({
     }
   };
 
+  // Badge shown inline next to the name for non-pending statuses
+  const statusBadge = !isPending ? (
+    <Badge
+      className={cn(
+        "rounded-full px-2.5 py-0.5 text-xs font-medium flex-shrink-0",
+        isAccepted
+          ? "bg-secondary/20 text-secondary border border-secondary/30"
+          : "bg-destructive/10 text-destructive border border-destructive/30",
+      )}
+    >
+      {isAccepted ? t("requests.statusAccepted") : t("requests.statusRejected")}
+    </Badge>
+  ) : null;
+
   const renderName = () => {
     const nameElement = (
       <button
@@ -151,6 +165,7 @@ export const ConnectionRequestCard = ({
         ref={nameRef}
         className="font-semibold text-foreground truncate text-left cursor-pointer hover:underline"
         onClick={handleOpenProfile}
+        style={{ maxWidth: isMobile ? 160 : 240 }} // Puedes ajustar el ancho máximo si lo deseas
       >
         {request.name}
       </button>
@@ -158,18 +173,24 @@ export const ConnectionRequestCard = ({
 
     if (isNameTruncated) {
       return (
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>{nameElement}</TooltipTrigger>
-            <TooltipContent>
-              <p>{request.name}</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        <div className="flex items-center gap-2 min-w-0">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>{nameElement}</TooltipTrigger>
+              <TooltipContent>{request.name}</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          {statusBadge}
+        </div>
       );
     }
 
-    return nameElement;
+    return (
+      <div className="flex items-center gap-2 min-w-0">
+        {nameElement}
+        {statusBadge}
+      </div>
+    );
   };
 
   const renderSubtitle = () => {
@@ -184,9 +205,7 @@ export const ConnectionRequestCard = ({
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>{subtitleElement}</TooltipTrigger>
-            <TooltipContent>
-              <p>{request.subtitle}</p>
-            </TooltipContent>
+            <TooltipContent>{request.subtitle}</TooltipContent>
           </Tooltip>
         </TooltipProvider>
       );
@@ -205,7 +224,7 @@ export const ConnectionRequestCard = ({
               size="sm"
               className={cn(
                 "border-secondary text-secondary hover:bg-secondary/10 hover:border-secondary/80 active:bg-secondary/20",
-                isMobile && "w-full",
+                isMobile && "w-full flex-1",
               )}
               onClick={() => setIsAcceptModalOpen(true)}
             >
@@ -235,34 +254,25 @@ export const ConnectionRequestCard = ({
       );
     }
 
-    return (
-      <div className={cn("flex items-center gap-2", isMobile && "w-full") }>
-        <Badge
-          className={cn(
-            "rounded-full px-3 py-1 text-xs font-medium",
-            isAccepted
-              ? "bg-secondary/20 text-secondary border border-secondary/30"
-              : "bg-destructive/10 text-destructive border border-destructive/30",
-          )}
+    // Non-pending: badge is now shown next to the name.
+    // Only render the "view detail" button here for rejected requests.
+    if (isRejected) {
+      return (
+        <MCButton
+          variant="outline"
+          size="sm"
+          className={isMobile ? "w-full" : ""}
+          onClick={() => setIsRejectDetailModalOpen(true)}
         >
-          {isAccepted
-            ? t("requests.statusAccepted")
-            : t("requests.statusRejected")}
-        </Badge>
+          {t("requests.viewDetail")}
+        </MCButton>
+      );
+    }
 
-        {isRejected && (
-          <MCButton
-            variant="outline"
-            size="sm"
-            className={isMobile ? "w-full" : ""}
-            onClick={() => setIsRejectDetailModalOpen(true)}
-          >
-            {t("requests.viewDetail")}
-          </MCButton>
-        )}
-      </div>
-    );
+    return null;
   };
+
+  const actions = renderStatusActions();
 
   return (
     <div
@@ -301,24 +311,27 @@ export const ConnectionRequestCard = ({
             )}
           </Avatar>
         </button>
-        <div className="flex-1 min-w-0">
+        <div className="flex flex-col flex-1 min-w-0">
           {renderName()}
           {renderSubtitle()}
           <p className="text-sm text-muted-foreground">{request.date}</p>
         </div>
       </div>
-      <div
-        className={cn(
-          "flex flex-shrink-0",
-          type === "recibidas"
-            ? isMobile
-              ? "flex-col gap-2 w-full sm:w-auto sm:flex-row sm:gap-3"
-              : "flex-row gap-3"
-            : "gap-3",
-        )}
-      >
-        {renderStatusActions()}
-      </div>
+
+      {actions && (
+        <div
+          className={cn(
+            "flex flex-shrink-0",
+            type === "recibidas"
+              ? isMobile
+                ? "flex-col gap-2 w-full sm:w-auto sm:flex-row sm:gap-3"
+                : "flex-row gap-3"
+              : "gap-3",
+          )}
+        >
+          {actions}
+        </div>
+      )}
 
       <MCModalBase
         id={`accept-request-${request.id}`}
@@ -327,7 +340,7 @@ export const ConnectionRequestCard = ({
         title={t("requests.acceptModalTitle")}
         description={t("requests.acceptModalDescription")}
         variant="decide"
-        size="sm"
+        size="smWide"
         onConfirm={handleAcceptRequest}
         onSecondary={() => setIsAcceptModalOpen(false)}
         confirmText={
@@ -347,7 +360,7 @@ export const ConnectionRequestCard = ({
         onClose={() => setIsRejectModalOpen(false)}
         title={t("requests.rejectModalTitle")}
         variant="warning"
-        size="sm"
+        size="smWide"
         onConfirm={handleRejectRequest}
         onSecondary={() => setIsRejectModalOpen(false)}
         confirmText={
@@ -382,12 +395,12 @@ export const ConnectionRequestCard = ({
         onClose={() => setIsRejectDetailModalOpen(false)}
         title={t("requests.rejectDetailTitle")}
         variant="decide"
-        size="sm"
+        size="smWide"
         onSecondary={() => setIsRejectDetailModalOpen(false)}
         secondaryText={t("requests.close")}
         showConfirm={false}
       >
-        <div className="space-y-3">
+        <div className="flex flex-row items-center justify-between mb-4">
           <div>
             <p className="text-xs text-muted-foreground">
               {t("requests.rejectReasonLabel")}
@@ -424,7 +437,7 @@ export const ConnectionRequestCard = ({
         title={t("requests.withdrawModalTitle")}
         description={t("requests.withdrawModalDescription")}
         variant="warning"
-        size="sm"
+        size="smWide"
         onConfirm={handleWithdrawRequest}
         onSecondary={() => setIsWithdrawModalOpen(false)}
         confirmText={

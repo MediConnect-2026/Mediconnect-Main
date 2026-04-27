@@ -134,7 +134,9 @@ function RequestPage() {
     },
   });
 
-  const [receivedRequests, setReceivedRequests] = useState<ConnectionRequest[]>([]);
+  const [receivedRequests, setReceivedRequests] = useState<ConnectionRequest[]>(
+    [],
+  );
   const [sentRequests, setSentRequests] = useState<ConnectionRequest[]>([]);
 
   useEffect(() => {
@@ -188,14 +190,10 @@ function RequestPage() {
             : request,
         ),
       );
-      toast.success(
-        t("requests.acceptSuccess"),
-      );
+      toast.success(t("requests.acceptSuccess"));
     } catch (error) {
       const message =
-        error instanceof Error
-          ? error.message
-          : t("requests.actionError");
+        error instanceof Error ? error.message : t("requests.actionError");
       toast.error(message);
       throw error;
     }
@@ -227,14 +225,10 @@ function RequestPage() {
             : request,
         ),
       );
-      toast.success(
-        t("requests.rejectSuccess"),
-      );
+      toast.success(t("requests.rejectSuccess"));
     } catch (error) {
       const message =
-        error instanceof Error
-          ? error.message
-          : t("requests.actionError");
+        error instanceof Error ? error.message : t("requests.actionError");
       toast.error(message);
       throw error;
     }
@@ -247,9 +241,7 @@ function RequestPage() {
       toast.success(t("requests.withdrawSuccess"));
     } catch (error) {
       const message =
-        error instanceof Error
-          ? error.message
-          : t("requests.actionError");
+        error instanceof Error ? error.message : t("requests.actionError");
       toast.error(message);
       throw error;
     }
@@ -282,9 +274,7 @@ function RequestPage() {
           {(isCenter || isDoctor) && isLoading ? (
             <div className="flex flex-col items-center justify-center gap-3 py-10">
               <Spinner className="size-6" />
-              <p className="text-sm text-muted-foreground">
-                {t("loading")}
-              </p>
+              <p className="text-sm text-muted-foreground">{t("loading")}</p>
             </div>
           ) : (isCenter || isDoctor) && isError ? (
             <div className="flex flex-col items-center justify-center gap-3 py-10 text-center">
@@ -331,16 +321,14 @@ function mapAllianceRequestsToCards(
         : (item.centroSalud?.nombreComercial ?? "").trim();
 
     const avatar = isCenterRole
-      ? item.doctor?.usuario?.fotoPerfil ?? ""
-      : item.centroSalud?.foto_perfil ?? "";
+      ? (item.doctor?.usuario?.fotoPerfil ?? "")
+      : (item.centroSalud?.foto_perfil ?? "");
 
     const profileId = isCenterRole
       ? String(item.doctorId ?? "")
       : String(item.centroSaludId ?? "");
 
-    const profileType: "doctor" | "center" = isCenterRole
-      ? "doctor"
-      : "center";
+    const profileType: "doctor" | "center" = isCenterRole ? "doctor" : "center";
 
     return {
       iniciadaPor: item.iniciadaPor,

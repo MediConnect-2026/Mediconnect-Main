@@ -57,7 +57,7 @@ function CenterProfileBanner({
   const setToast = useGlobalUIStore((state) => state.setToast);
 
   const navigate = useNavigate();
-  
+
   const doctorVerificationStatus = user?.doctor?.estadoVerificacion;
   const isDoctorVerified =
     typeof doctorVerificationStatus === "string" &&
@@ -172,9 +172,7 @@ function CenterProfileBanner({
                   {/* Rating */}
                   <div className="flex items-center gap-1.5">
                     <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
-                    <span className="font-medium">
-                      {center?.rating}
-                    </span>
+                    <span className="font-medium">{center?.rating}</span>
                     <span className="text-primary/70">
                       ({center?.reviewCount} {t("profileBanner.reviews")})
                     </span>
@@ -190,9 +188,7 @@ function CenterProfileBanner({
                   <div className="flex items-center gap-1.5">
                     <Globe className="w-4 h-4 text-secondary" />
                     <a
-                      href={
-                        center?.website || "-"
-                      }
+                      href={center?.website || "-"}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-secondary hover:underline"
@@ -232,7 +228,11 @@ function CenterProfileBanner({
                       <ToogleConfirmConnection
                         status={isConnected}
                         id={parseInt(center?.id || "0", 10)}
-                        onConfirm={isConnected === "connected" ? handleConfirmDisconnect : undefined}
+                        onConfirm={
+                          isConnected === "connected"
+                            ? handleConfirmDisconnect
+                            : undefined
+                        }
                         isSubmitting={isConnecting}
                       >
                         <MCButton
@@ -241,7 +241,7 @@ function CenterProfileBanner({
                           className={cn(
                             "font-medium rounded-full transition-colors transition-opacity transition-transform duration-200 focus:outline-none px-6 py-3 text-base md:px-8 md:py-6 md:text-lg",
                             isConnected === "connected" &&
-                              "border-emerald-500 text-emerald-700 bg-emerald-50 hover:bg-emerald-100 dark:border-emerald-400 dark:text-emerald-300 dark:bg-emerald-950/30",
+                              "border-secondary text-secondary hover:bg-secondary/10 hover:border-secondary/80 active:bg-secondary/20 w-full",
                             isConnected === "pending" &&
                               "border-gray-300 text-gray-500 bg-gray-100 cursor-not-allowed",
                           )}
@@ -276,7 +276,9 @@ function CenterProfileBanner({
                         <History className="w-4 h-4 mr-2" />
                         {t("profileBanner.menu.history")}
                       </DropdownMenuItem> */}
-                      <DropdownMenuItem onClick={() => navigate(ROUTES.CENTER.SETTINGS)}>
+                      <DropdownMenuItem
+                        onClick={() => navigate(ROUTES.CENTER.SETTINGS)}
+                      >
                         <Settings className="w-4 h-4 mr-2" />
                         {t("profileBanner.menu.settings")}
                       </DropdownMenuItem>
