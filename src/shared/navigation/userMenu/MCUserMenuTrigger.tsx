@@ -52,7 +52,7 @@ export function MCUserMenuTrigger({ userData, open }: MCUserMenuTriggerProps) {
           {/* Textos: min-w-0 + overflow-hidden es la clave del truncado en flex */}
           <div className="flex flex-col items-start leading-tight text-left min-w-0 overflow-hidden">
             <span
-              className={`text-base font-semibold w-full truncate ${
+              className={`text-base font-semibold w-full truncate max-w-[160px] ${
                 !open ? "text-primary" : "text-background"
               }`}
               title={userData.name}
