@@ -384,13 +384,13 @@ export interface RefreshTokenResponse {
  */
 export function getUserFullName(user: User | any | null): string {
   if (!user) return '';
-  
+
   if (user.doctor) {
     return `${user.doctor.nombre} ${user.doctor.apellido}`;
   } else if (user.paciente && user.paciente.nombre) {
     return `${user.paciente.nombre} ${user.paciente.apellido || ''}`.trim();
-  } else if (user.centroSalud && user.centroSalud.nombre) {
-    return user.centroSalud.nombre;
+  } else if (user.centroSalud && user.centroSalud.nombreComercial) {
+    return user.centroSalud.nombreComercial;
   } else if(user.nombre && user.apellido){
     return `${user.nombre} ${user.apellido}`;
   }
@@ -406,8 +406,8 @@ export function getUserName(user: User | any | null): string {
     return user.doctor.nombre;
   } else if (user.paciente && user.paciente.nombre) {
     return user.paciente.nombre;
-  } else if (user.centroSalud && user.centroSalud.nombre) {
-    return user.centroSalud.nombre;
+  } else if (user.centroSalud && user.centroSalud.nombreComercial) {
+    return user.centroSalud.nombreComercial;
   } else if(user.nombre){
     return user.nombre;
   }
