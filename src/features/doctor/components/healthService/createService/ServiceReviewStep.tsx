@@ -11,6 +11,7 @@ import { doctorService } from "@/shared/navigation/userMenu/editProfile/doctor/s
 import { useGlobalUIStore } from "@/stores/useGlobalUIStore";
 import { useState } from "react";
 import { ROUTES } from "@/router/routes";
+import { emitDoctorServicesChanged } from "@/lib/events/doctorServicesEvents";
 
 function ServiceReviewStep({ isEditMode = false, serviceId }: { isEditMode?: boolean; serviceId?: number }) {
   const { t } = useTranslation("doctor");
@@ -43,6 +44,7 @@ function ServiceReviewStep({ isEditMode = false, serviceId }: { isEditMode?: boo
         open: true,
       });
 
+      emitDoctorServicesChanged();
       clearCreateServiceData();
 
       // ✅ Navegar a la página de servicios
@@ -151,6 +153,7 @@ function ServiceReviewStep({ isEditMode = false, serviceId }: { isEditMode?: boo
           open: true,
         });
 
+        emitDoctorServicesChanged();
         // ✅ Navegar a la página de servicios
         navigate(ROUTES.DOCTOR.SERVICES, { replace: true });
       } catch (error) {

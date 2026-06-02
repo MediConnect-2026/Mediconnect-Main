@@ -29,6 +29,7 @@ interface manageLocationProps {
   onCloseModal?: () => void;
   // Props para modo edición
   locationId?: number;
+  reloadKey?: number;
   onLocationUpdated?: () => void;
 }
 
@@ -55,6 +56,7 @@ function ManageLocation({
   isReadOnly = false,
   onCloseModal,
   locationId,
+  reloadKey,
   onLocationUpdated,
 }: manageLocationProps) {
   const { t } = useTranslation("doctor");
@@ -103,6 +105,7 @@ function ManageLocation({
     mutationFn: (data: any) => {
       if (!locationId) throw new Error("Location ID is required for update");
       const updatePayload: any = {
+        nombre: data.name,
         barrioId: Number(data.neighborhood || selectedNeighborhood),
         direccion: data.address,
         codigoPostal: data.codigoPostal || "",
@@ -363,7 +366,7 @@ function ManageLocation({
 
       loadLocationForEdit();
     }
-  }, [locationId, isReadOnly, setlocationField, handlePointSelected]);
+  }, [locationId, reloadKey, isReadOnly, setlocationField, handlePointSelected]);
 
   // ─── Validar formulario para habilitar/deshabilitar botón de confirmar ────
   useEffect(() => {
@@ -584,7 +587,10 @@ function ManageLocation({
   };
 
   const handleClose = () => {
-    clearLocationData();
+    if (!locationId && !isReadOnly) {
+      clearLocationData();
+    }
+
     setSelectedProvince("");
     setSelectedMunicipality("");
     setSelectedDistrict("");
@@ -597,7 +603,10 @@ function ManageLocation({
       secciones: null,
       barrios: null,
     });
-    setCoordinates({ lat: 18.4861, lng: -69.9312 });
+
+    if (!locationId && !isReadOnly) {
+      setCoordinates({ lat: 18.4861, lng: -69.9312 });
+    }
 
     // Notificar al padre que se cerró (importante para limpiar el estado de visualización)
     if (onCloseModal) onCloseModal();

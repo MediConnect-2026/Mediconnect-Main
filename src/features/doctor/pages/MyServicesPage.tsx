@@ -1,9 +1,11 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
 import { useDoctorServicesStats } from "@/lib/hooks/useDoctorStats";
 import { useDoctorServicesByDoctor } from "@/lib/hooks/useDoctorServicesByDoctor";
+import { useDoctorProfile } from "@/lib/hooks/useDoctorProfile";
+import { onDoctorServicesChanged } from "@/lib/events/doctorServicesEvents";
 import MyServicesTable from "../components/healthService/MyServicesTable";
 import MCTablesLayouts from "@/shared/components/tables/MCTablesLayouts";
 import MCPDFButton from "@/shared/components/forms/MCPDFButton";
@@ -41,6 +43,8 @@ import FilterMyServices from "../components/filters/FilterMyServices";
 import MCNewButton from "@/shared/components/forms/MCNewButton";
 import { ROUTES } from "@/router/routes";
 import { useAppStore } from "@/stores/useAppStore";
+import { socketService } from "@/services/websocket";
+import type { NotificacionEvent } from "@/types/WebSocketTypes";
 const ITEMS_PER_PAGE = 8;
 const TABLE_PAGE_SIZE = 15;
 
@@ -61,6 +65,44 @@ function MyServicesPage() {
   const navigate = useNavigate();
 
   const user = useAppStore((state) => state.user);
+  const updateUser = useAppStore((state) => state.updateUser);
+  const {
+    data: doctorProfile,
+    refetch: refetchDoctorProfile,
+  } = useDoctorProfile({
+    enabled: Boolean(user?.id),
+  });
+
+  const syncDoctorStatus = useCallback(
+    (nextDoctorStatus?: string) => {
+      if (!user || !nextDoctorStatus) return;
+      const currentStatus = user.doctor?.estadoVerificacion;
+      if (currentStatus === nextDoctorStatus) return;
+
+      if (user.doctor) {
+        updateUser({
+          ...user,
+          doctor: {
+            ...user.doctor,
+            estadoVerificacion: nextDoctorStatus,
+          },
+        });
+        return;
+      }
+
+      if (doctorProfile?.usuarioId) {
+        updateUser({
+          ...user,
+          doctor: {
+            ...doctorProfile,
+            estadoVerificacion: nextDoctorStatus,
+          },
+        });
+      }
+    },
+    [doctorProfile, updateUser, user],
+  );
+
   const isDoctorVerified = useMemo(() => {
     const rawStatus = user?.doctor?.estadoVerificacion;
     if (typeof rawStatus !== "string") return false;
@@ -69,6 +111,11 @@ function MyServicesPage() {
       rawStatus.toLowerCase().trim(),
     );
   }, [user?.doctor?.estadoVerificacion]);
+
+  useEffect(() => {
+    if (!doctorProfile?.estadoVerificacion) return;
+    syncDoctorStatus(doctorProfile.estadoVerificacion);
+  }, [doctorProfile?.estadoVerificacion, syncDoctorStatus]);
 
   const {
     data: services = [],
@@ -80,8 +127,11 @@ function MyServicesPage() {
   });
 
   // Hook para obtener estadísticas de servicios desde la API
-  const { data: servicesStats, isLoading: isLoadingStats } =
-    useDoctorServicesStats();
+  const {
+    data: servicesStats,
+    isLoading: isLoadingStats,
+    refetch: refetchServicesStats,
+  } = useDoctorServicesStats();
 
   // Estados de vista y filtros
   const [showCards, setShowCards] = useState(() => {
@@ -102,6 +152,82 @@ function MyServicesPage() {
   // Estado de paginación independiente para cards y tabla
   const [cardsPage, setCardsPage] = useState(1);
   const [tablePage, setTablePage] = useState(1);
+
+  const notificationRefreshRef = useRef(false);
+  const lastNotificationAtRef = useRef(0);
+
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const normalizeText = (value?: string) =>
+      String(value || "")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase();
+
+    const isDoctorApprovedNotification = (event: NotificacionEvent) => {
+      const combined = [
+        event.titulo,
+        event.mensaje,
+        event.tipoAlerta,
+        event.tipoEntidad,
+      ]
+        .map(normalizeText)
+        .join(" ");
+
+      const hasApproval =
+        combined.includes("aprob") || combined.includes("approved");
+      const hasContext =
+        combined.includes("cuenta") ||
+        combined.includes("doctor") ||
+        combined.includes("verificacion");
+
+      return hasApproval && hasContext;
+    };
+
+    const refreshFromNotification = async () => {
+      const now = Date.now();
+      if (
+        notificationRefreshRef.current ||
+        now - lastNotificationAtRef.current < 1200
+      ) {
+        return;
+      }
+
+      notificationRefreshRef.current = true;
+      lastNotificationAtRef.current = now;
+
+      try {
+        const result = await refetchDoctorProfile();
+        const nextStatus = result.data?.estadoVerificacion;
+        if (nextStatus) {
+          syncDoctorStatus(nextStatus);
+        }
+      } finally {
+        notificationRefreshRef.current = false;
+      }
+    };
+
+    const unsubscribe = socketService.onNewNotification((event) => {
+      if (!event || !isDoctorApprovedNotification(event)) return;
+      void refreshFromNotification();
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [user, refetchDoctorProfile, syncDoctorStatus]);
+
+  useEffect(() => {
+    const unsubscribe = onDoctorServicesChanged(() => {
+      refetch();
+      refetchServicesStats();
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [refetch, refetchServicesStats]);
 
   // Contar filtros activos
   const activeFiltersCount = useMemo(() => {

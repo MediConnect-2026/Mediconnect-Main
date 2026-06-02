@@ -1,6 +1,8 @@
 import { Star, MapPin, Globe, Phone, X, Building2 } from "lucide-react";
 import { type Provider } from "@/data/providers";
 import { Button } from "@/shared/ui/button";
+import { MCUserAvatar } from "@/shared/navigation/userMenu/MCUserAvatar";
+import { useState } from "react";
 
 interface ProviderMapPopupProps {
   provider: Provider;
@@ -13,6 +15,9 @@ export const DoctorMapPopup = ({
   onViewProfile,
   onClose,
 }: ProviderMapPopupProps) => {
+  const [avatarFailed, setAvatarFailed] = useState(false);
+  const hasAvatar = Boolean(provider.image && provider.image.trim()) && !avatarFailed;
+
   const getSubtitle = () => {
     if (provider.type === "doctor") {
       return provider.specialty;
@@ -33,11 +38,21 @@ export const DoctorMapPopup = ({
         <div
           className={`w-16 h-16 rounded-full object-cover flex-shrink-0 overflow-hidden ${provider.type === "clinic" ? "border-2 border-blue-200 bg-blue-50" : ""}`}
         >
-          <img
-            src={provider.image}
-            alt={provider.name}
-            className="w-full h-full object-cover"
-          />
+          {hasAvatar ? (
+            <img
+              src={provider.image}
+              alt=""
+              className="w-full h-full object-cover"
+              onError={() => setAvatarFailed(true)}
+            />
+          ) : (
+            <MCUserAvatar
+              name={provider.name}
+              size={64}
+              square={false}
+              className="rounded-full"
+            />
+          )}
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5">

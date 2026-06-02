@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Star, MapPin, Globe, Shield, Phone, Loader2 } from "lucide-react";
 import { type Doctor } from "@/data/providers";
 import { Card, CardContent, CardTitle } from "@/shared/ui/card";
@@ -8,6 +8,7 @@ import { fadeInUp } from "@/lib/animations/commonAnimations";
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { formatPhone } from "@/utils/phoneFormat";
+import { MCUserAvatar } from "@/shared/navigation/userMenu/MCUserAvatar";
 
 type DoctorPopupProps = {
   provider: Doctor;
@@ -32,6 +33,8 @@ const DoctorPopup: React.FC<DoctorPopupProps> = ({
   isContactLoading = false,
 }) => {
   const { t } = useTranslation("common");
+  const [avatarFailed, setAvatarFailed] = useState(false);
+  const hasAvatar = Boolean(provider.image && provider.image.trim()) && !avatarFailed;
 
   // Helpers
   const locations = (
@@ -77,11 +80,23 @@ const DoctorPopup: React.FC<DoctorPopupProps> = ({
         <div
           className={`overflow-hidden rounded-xl border border-primary/15 ${imgHeight}`}
         >
-          <img
-            src={provider.image}
-            alt={provider.name}
-            className="w-full h-full object-cover transition-transform hover:scale-105"
-          />
+          {hasAvatar ? (
+            <img
+              src={provider.image}
+              alt=""
+              className="w-full h-full object-cover transition-transform hover:scale-105"
+              onError={() => setAvatarFailed(true)}
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center bg-muted/40">
+              <MCUserAvatar
+                name={provider.name}
+                size={isMobile ? 96 : 112}
+                square={false}
+                className="rounded-full"
+              />
+            </div>
+          )}
         </div>
 
         {/* Nombre + rating */}

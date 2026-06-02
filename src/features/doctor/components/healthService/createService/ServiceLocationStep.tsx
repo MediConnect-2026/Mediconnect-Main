@@ -68,6 +68,7 @@ function ServiceLocationStep() {
     locationId: null,
     isEditing: false,
   });
+  const [editModalKey, setEditModalKey] = useState(0);
   const hiddenEditTriggerRef = useRef<HTMLButtonElement>(null);
 
   const { data: doctorLocations = [], isLoading: isLoadingLocations, isError, refetch } = useUbicaciones("doctor", {});
@@ -196,12 +197,6 @@ function ServiceLocationStep() {
                       neighborhood: loc.barrio ? String(loc.barrio.id) : undefined,
                     });
                     setLocationData("location", normalizedLocationId);
-                    
-                    // Abrir modal en modo edición si la ubicación está siendo seleccionada
-                    if (selectedLocationId !== normalizedLocationId) {
-                      setEditMode({ locationId: normalizedLocationId, isEditing: true });
-                      setTimeout(() => hiddenEditTriggerRef.current?.click(), 0);
-                    }
                   }}
                 >
                   <div className={`flex flex-col gap-1 ${isMobile ? "max-w-[160px]" : "max-w-[180px]"}`}>
@@ -218,8 +213,9 @@ function ServiceLocationStep() {
                       className="rounded-full p-2 h-auto w-auto hover:bg-primary/10 hover:text-primary"
                       onClick={(e) => {
                         e.stopPropagation();
-                        setViewLocation(loc);
-                        setTimeout(() => hiddenViewTriggerRef.current?.click(), 0);
+                        setEditMode({ locationId: normalizedLocationId, isEditing: true });
+                        setEditModalKey((prev) => prev + 1);
+                        setTimeout(() => hiddenEditTriggerRef.current?.click(), 0);
                       }}
                       title={t("common.view", "Ver")}
                     >
@@ -253,10 +249,12 @@ function ServiceLocationStep() {
         {/* ─── NUEVO: Modal oculto dedicado EXCLUSIVAMENTE a Modo Edición ─────── */}
         <ManageLocation
           locationId={editMode.locationId || undefined}
+          reloadKey={editModalKey}
           onLocationUpdated={() => {
             setEditMode({ locationId: null, isEditing: false });
             refetch();
           }}
+          onCloseModal={() => setEditMode({ locationId: null, isEditing: false })}
         >
           <button ref={hiddenEditTriggerRef} className="hidden" aria-hidden="true" />
         </ManageLocation>
