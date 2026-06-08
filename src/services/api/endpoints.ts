@@ -41,6 +41,7 @@ export const API_ENDPOINTS = {
   // --- CITAS DEL PACIENTE ---
   CITAS: {
     LIST: '/citas',
+    AGENDAR_DOCTOR: '/citas/agendar-doctor',
     BY_ID: (id: string | number) => `/citas/${id}`,
     CANCEL: (id: string | number) => `/citas/${id}/cancelar`,
     TO_DOCTORS: '/citas/doctor',

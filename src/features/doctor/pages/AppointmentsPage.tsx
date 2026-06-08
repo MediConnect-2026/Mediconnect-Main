@@ -12,6 +12,8 @@ import { useDoctorCitasStats } from "@/lib/hooks/useDoctorStats";
 import { useQueryClient } from "@tanstack/react-query";
 import MyAppointmentTable from "../components/appointments/MyAppointmentTable";
 import MCTablesLayouts from "@/shared/components/tables/MCTablesLayouts";
+import ScheduleAppointmentDialog from "@/features/patient/components/appoiments/ScheduleAppointmentDialog";
+import { useAppStore } from "@/stores/useAppStore";
 import MCPDFButton from "@/shared/components/forms/MCPDFButton";
 import { MCFilterPopover } from "@/shared/components/filters/MCFilterPopover";
 import MCFilterInput from "@/shared/components/filters/MCFilterInput";
@@ -40,6 +42,7 @@ import {
   CheckCircle,
   Calendar,
   AlertCircle,
+  Plus,
 } from "lucide-react";
 import FilterMyAppointments from "../components/filters/FilterMyAppoinments";
 import type { CitasFilters, CitaDetalle } from "@/types/AppointmentTypes";
@@ -184,6 +187,7 @@ function AppointmentsPage() {
   const { t, i18n } = useTranslation("doctor");
   const queryClient = useQueryClient();
   const isMobile = useIsMobile();
+  const user = useAppStore((state) => state.user);
   const currentLanguage = normalizeLanguageCode(i18n.language);
   const sourceLanguage = currentLanguage === "es" ? "en" : "es";
 
@@ -230,7 +234,7 @@ function AppointmentsPage() {
     };
 
     // Mapear estado
-    if (normalizedStatusFilter !== STATUS_FILTER_VALUES.all) { 
+    if (normalizedStatusFilter !== STATUS_FILTER_VALUES.all) {
       const statusMap: Record<string, CitasFilters["estado"]> = {
         [STATUS_FILTER_VALUES.scheduled]: "Programada",
         [STATUS_FILTER_VALUES.inProgress]: "En Progreso",
@@ -381,8 +385,8 @@ function AppointmentsPage() {
   // Manejar cambios de filtros
   const handleFiltersChange = useCallback(
     (newFilters: Partial<AppointmentsFiltersState>) => {
-    setFilters((prev) => ({ ...prev, ...newFilters }));
-    setCurrentPage(1); // Resetear a página 1 al cambiar filtros
+      setFilters((prev) => ({ ...prev, ...newFilters }));
+      setCurrentPage(1); // Resetear a página 1 al cambiar filtros
     },
     []
   );
@@ -431,6 +435,27 @@ function AppointmentsPage() {
   const pdfGeneratorComponent = useMemo(
     () => <MCPDFButton onClick={handleGeneratePDF} />,
     [handleGeneratePDF]
+  );
+
+  const actionPlusComponent = useMemo(
+    () => (
+      <ScheduleAppointmentDialog
+        idProvider={user?.id?.toString() || ""}
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: QUERY_KEYS.CITAS() });
+        }}
+      >
+        <MCButton
+          variant="primary"
+          icon={<Plus className={isMobile ? "w-9 h-9" : "w-3 h-3"} />}
+          className={isMobile ? "h-8 w-8 p-0 rounded-full flex items-center justify-center" : "flex w-full items-center px-4 py-3.5 px-4 py-3.5 text-base sm:px-8 sm:py-4 md:px-10 md:py-5 lg:px-5 lg:py-5 lg:text-md rounded-4xl border-primary/20"}
+          size={isMobile ? "xs" : "ml"}
+        >
+          {!isMobile && t("appointments.scheduleNew", "Agendar Cita")}
+        </MCButton>
+      </ScheduleAppointmentDialog>
+    ),
+    [user?.id, isMobile, t, queryClient]
   );
 
   const filterComponent = useMemo(
@@ -695,6 +720,7 @@ function AppointmentsPage() {
       tableComponent={tableComponent}
       searchComponent={searchComponent}
       pdfGeneratorComponent={pdfGeneratorComponent}
+      actionPlusComponent={actionPlusComponent}
       filterComponent={filterComponent}
       paginationComponent={paginationComponent}
     />

@@ -4,11 +4,12 @@
  */
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { cancelCita } from '@/services/api/appointments.service';
+import { cancelCita, agendarCitaDoctor } from '@/services/api/appointments.service';
 import { patientService } from '@/shared/navigation/userMenu/editProfile/patient/services/patient.service';
 import { QUERY_KEYS } from '@/lib/react-query/config';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
+import type { CrearCitaDoctorDto } from '@/types/AppointmentTypes';
 
 interface CancelAppointmentVariables {
   appointmentId: string;
@@ -158,6 +159,26 @@ export const useRescheduleAppointment = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.CITAS() });
       toast.success(t('appointments.rescheduleSuccess', 'Cita reprogramada correctamente'));
+    },
+  });
+};
+
+// ─── Agendar Cita como Doctor (Shadow Account) ──────────────────────────────
+
+export const useAgendarCitaDoctorMutation = () => {
+  const queryClient = useQueryClient();
+  const { t } = useTranslation('doctor');
+
+  return useMutation({
+    mutationFn: (payload: CrearCitaDoctorDto) => agendarCitaDoctor(payload),
+    onSuccess: () => {
+      // Invalidar las queries para recargar el calendario y la lista de citas
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.CITAS() });
+      toast.success(t('appointments.scheduleSuccess', 'Cita agendada correctamente'));
+    },
+    onError: (error) => {
+      console.error('Error scheduling appointment as doctor:', error);
+      toast.error(t('appointments.scheduleError', 'Error al agendar la cita'));
     },
   });
 };

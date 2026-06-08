@@ -19,6 +19,7 @@ import type {
   DoctorPatientInfoFilters,
   DoctorPatientInfoResponse,
 } from '@/types/DoctorStatsTypes';
+import type { CrearCitaDoctorDto } from '@/types/AppointmentTypes';
 
 /**
  * Obtiene todas las citas del paciente autenticado con soporte para filtros y paginación
@@ -121,6 +122,16 @@ export const cancelCita = async (id: string | number, motivo: string) => {
     throw error;
   }
 }
+
+/**
+ * Agenda una cita como doctor (permite shadow accounts)
+ * @param payload Datos de la cita y del paciente
+ * @returns Promise con la cita creada
+ */
+export const agendarCitaDoctor = async (payload: CrearCitaDoctorDto) => {
+  const { data } = await apiClient.post(API_ENDPOINTS.CITAS.AGENDAR_DOCTOR, payload);
+  return data;
+};
 
 /**
  * Obtiene el calendario de citas del usuario autenticado

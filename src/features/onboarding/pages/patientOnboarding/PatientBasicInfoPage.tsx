@@ -60,11 +60,14 @@ function PatientBasicInfoPage() {
     try {
       const response = await authService.verificarDocumento(numeroLimpio);
       
-      if (response.disponible) {
+      if (response.disponible || response.estado === "Invitado") {
         setDocumentoStatus({
           isChecking: false,
           isAvailable: true,
-          message: t("personalIdentificationStep.documentAvailable") || "Número de documento disponible",
+          message:
+            response.estado === "Invitado"
+              ? t("personalIdentificationStep.documentAvailableShadow") || "Cuenta de invitado encontrada. Puede continuar para reclamarla."
+              : t("personalIdentificationStep.documentAvailable") || "Número de documento disponible",
         });
       } else {
         setDocumentoStatus({

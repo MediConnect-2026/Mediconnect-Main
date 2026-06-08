@@ -707,6 +707,7 @@ export interface VerificarDocumentoResponse {
   disponible: boolean;
   message: string;
   tipoUsuario?: 'Doctor' | 'Paciente';
+  estado?: string; // Para identificar si es un usuario invitado (shadow account)
 }
 
 // --- ELIMINAR CUENTA ---

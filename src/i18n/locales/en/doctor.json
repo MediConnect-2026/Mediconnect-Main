@@ -141,6 +141,7 @@
   "appointments": {
     "title": "Appointments",
     "subtitle": "Manage all your scheduled appointments",
+    "scheduleNew": "Schedule Appointment",
     "searchPlaceholder": "Search patient, service or specialty...",
     "availableTimes": "Available Time Slots",
     "loading": "Loading appointments...",

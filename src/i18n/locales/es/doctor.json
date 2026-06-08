@@ -142,6 +142,7 @@
   "appointments": {
     "title": "Citas",
     "subtitle": "Gestiona todas tus citas agendadas",
+    "scheduleNew": "Agendar Cita",
     "searchPlaceholder": "Buscar paciente, servicio o especialidad...",
     "availableTimes": "Horarios Disponibles",
     "loading": "Cargando citas...",

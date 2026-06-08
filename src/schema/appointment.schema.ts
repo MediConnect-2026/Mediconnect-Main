@@ -26,6 +26,15 @@ export const appointmentSchemaBase = z.object({
   seguroId: z.number().optional(),
   tipoSeguroId: z.number().optional(),
   motivoConsulta: z.string().optional(),
+  
+  // Campos del paciente para agendamiento por doctor
+  pacienteNombre: z.string().optional(),
+  pacienteApellido: z.string().optional(),
+  pacienteDocumento: z.string().optional(),
+  pacienteFechaNacimiento: z.string().optional(),
+  pacienteGenero: z.string().optional(),
+  isDoctorView: z.boolean().optional(),
+  isRescheduling: z.boolean().optional(),
 });
 
 export const cancelAppointmentSchemaBase = z.object({
@@ -73,14 +82,41 @@ export const appointmentSchema = (t: (key: string) => string) =>
     seguroId: z.number().optional(),
     tipoSeguroId: z.number().optional(),
     motivoConsulta: z.string().optional(),
-  }).refine((data) => {
-    if (data.useInsurance) {
-      return typeof data.insuranceProvider === "string" && data.insuranceProvider.length > 0;
+    
+    // Campos del paciente para agendamiento por doctor
+    pacienteNombre: z.string().optional(),
+    pacienteApellido: z.string().optional(),
+    pacienteDocumento: z.string().optional(),
+    pacienteFechaNacimiento: z.string().optional(),
+    pacienteGenero: z.string().optional(),
+    isDoctorView: z.boolean().optional(),
+    isRescheduling: z.boolean().optional(),
+  }).superRefine((data, ctx) => {
+    if (data.useInsurance && (!data.insuranceProvider || data.insuranceProvider.length === 0)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: t("appointment.insuranceRequired"),
+        path: ["insuranceProvider"],
+      });
     }
-    return true;
-  }, {
-    message: t("appointment.insuranceRequired"),
-    path: ["insuranceProvider"],
+
+    if (data.isDoctorView && !data.isRescheduling) {
+      if (!data.pacienteNombre?.trim()) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: t("appointment.requiredField"), path: ["pacienteNombre"] });
+      }
+      if (!data.pacienteApellido?.trim()) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: t("appointment.requiredField"), path: ["pacienteApellido"] });
+      }
+      if (!data.pacienteDocumento?.trim()) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: t("appointment.requiredField"), path: ["pacienteDocumento"] });
+      }
+      if (!data.pacienteFechaNacimiento?.trim()) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: t("appointment.requiredField"), path: ["pacienteFechaNacimiento"] });
+      }
+      if (!data.pacienteGenero?.trim()) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: t("appointment.requiredField"), path: ["pacienteGenero"] });
+      }
+    }
   });
 
 export const cancelAppointmentSchema = (t: (key: string) => string) =>

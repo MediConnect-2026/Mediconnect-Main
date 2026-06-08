@@ -4,6 +4,7 @@ import { MCModalBase } from "@/shared/components/MCModalBase";
 import { Calendar } from "@/shared/ui/calendar";
 import MCTextArea from "@/shared/components/forms/MCTextArea";
 import MCSelect from "@/shared/components/forms/MCSelect";
+import MCInput from "@/shared/components/forms/MCInput";
 import { useNavigate } from "react-router-dom";
 import {
   MorphingPopover,
@@ -50,7 +51,7 @@ import type {
   CitaSeguro,
   CitaTipoSeguro,
 } from "@/types/AppointmentTypes";
-import { useRescheduleAppointment } from "@/lib/hooks/useAppointmentMutations";
+import { useRescheduleAppointment, useAgendarCitaDoctorMutation } from "@/lib/hooks/useAppointmentMutations";
 
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/avatar";
@@ -743,6 +744,55 @@ function ScheduleAppointmentForm({
         doctor={serviceData?.doctor}
         especialidad={serviceData?.especialidad?.nombre}
       />
+
+      {/* BLOQUE DE PACIENTE (Solo para Doctores agendando una cita nueva) */}
+      {isDoctorView && !isRescheduling && (
+        <div className="space-y-4 bg-muted/30 p-4 rounded-xl border border-border">
+          <h4 className="font-semibold text-primary text-sm sm:text-base">
+            {t("appointments.patientData", "Datos del Paciente")}
+          </h4>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <MCInput
+              name="pacienteNombre"
+              label={t("appointments.patientName", "Nombre")}
+              placeholder={t("appointments.patientNamePlaceholder", "Ej. Juan")}
+              required
+            />
+            <MCInput
+              name="pacienteApellido"
+              label={t("appointments.patientLastName", "Apellido")}
+              placeholder={t("appointments.patientLastNamePlaceholder", "Ej. Pérez")}
+              required
+            />
+            <MCInput
+              name="pacienteDocumento"
+              label={t("appointments.patientDocument", "Cédula o Pasaporte")}
+              placeholder={t("appointments.patientDocumentPlaceholder", "Ej. 00100000000")}
+              required
+            />
+            <MCSelect
+              name="pacienteGenero"
+              label={t("appointments.patientGender", "Género")}
+              placeholder={t("appointments.patientGenderPlaceholder", "Seleccione el género")}
+              options={[
+                { value: "M", label: t("appointments.genderM", "Masculino") },
+                { value: "F", label: t("appointments.genderF", "Femenino") },
+                { value: "O", label: t("appointments.genderO", "Otro") },
+              ]}
+              required
+            />
+            <div className="sm:col-span-2">
+              <MCInput
+                name="pacienteFechaNacimiento"
+                label={t("appointments.patientDob", "Fecha de Nacimiento")}
+                type="date"
+                required
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="space-y-2">
         <div className="flex flex-col gap-2">
           <span className="text-left text-base sm:text-lg text-primary mb-1">
@@ -975,6 +1025,8 @@ function ScheduleAppointmentDialog({
 
   const { mutate: rescheduleDoctorAppt, isPending: isReschedulingMutation } =
     useRescheduleAppointment();
+  const { mutate: agendarCitaDoctor, isPending: isAgendandoDoctor } = 
+    useAgendarCitaDoctorMutation();
 
   const [serviceData, setServiceData] = useState<ServiceDetail | undefined>(
     externalServiceData
@@ -1276,7 +1328,7 @@ function ScheduleAppointmentDialog({
 
   // ✅ FIX: Mejorar onSubmit para ambos flujos
   const onSubmit = async (data: scheduleAppointment) => {
-    if (isSubmitting || isReschedulingMutation) return;
+    if (isSubmitting || isReschedulingMutation || isAgendandoDoctor) return;
 
     setIsSubmitting(true);
 
@@ -1306,6 +1358,48 @@ function ScheduleAppointmentDialog({
                   "Error al reprogramar la cita"
                 )
               );
+            },
+            onSettled: () => {
+              setIsSubmitting(false);
+            },
+          }
+        );
+        return;
+      }
+
+      // ✅ FLUJO DOCTOR: Agendar nueva cita (Shadow Account)
+      if (isDoctorView && !isRescheduling) {
+        const { 
+          doctorId, appointmentId, isDoctorView: _isDoc, isRescheduling: _isRes, 
+          pacienteNombre, pacienteApellido, pacienteDocumento, pacienteFechaNacimiento, pacienteGenero, 
+          ...baseAppointmentData 
+        } = data;
+        
+        agendarCitaDoctor(
+          {
+            ...baseAppointmentData,
+            servicioId: Number(data.serviceId),
+            horarioId: Number(data.horarioId),
+            fecha: data.date,
+            hora: data.time,
+            modalidad: data.selectedModality === "presencial" ? "Presencial" : "Virtual",
+            numPacientes: data.numberOfSessions,
+            seguroId: data.useInsurance && data.insuranceProvider ? Number(data.insuranceProvider) : undefined,
+            motivoConsulta: data.reason,
+            paciente: {
+              nombre: data.pacienteNombre || "",
+              apellido: data.pacienteApellido || "",
+              numeroDocumento: data.pacienteDocumento || "",
+              fechaNacimiento: data.pacienteFechaNacimiento || "",
+              genero: data.pacienteGenero || "O",
+            }
+          },
+          {
+            onSuccess: () => {
+              closeRef.current?.close();
+              setTimeout(() => {
+                if (onSuccess) onSuccess();
+              }, 100);
             },
             onSettled: () => {
               setIsSubmitting(false);
@@ -1356,12 +1450,12 @@ function ScheduleAppointmentDialog({
   const formDefaultValues = useMemo(() => {
     // Si estamos en reprogramación y ya cargamos los datos, usarlos
     if (isRescheduling && loadedAppointmentData) {
-      return loadedAppointmentData;
+      return { ...loadedAppointmentData, isDoctorView, isRescheduling };
     }
 
     // Si hay datos en el store, usarlos
     if (appointment.doctorId === idProvider) {
-      return appointment;
+      return { ...appointment, isDoctorView, isRescheduling };
     }
 
     // Valores por defecto
@@ -1377,8 +1471,10 @@ function ScheduleAppointmentDialog({
       doctorId: idProvider,
       appointmentId: undefined,
       horarioId: undefined,
+      isDoctorView,
+      isRescheduling,
     };
-  }, [isRescheduling, loadedAppointmentData, appointment, idProvider]);
+  }, [isRescheduling, loadedAppointmentData, appointment, idProvider, isDoctorView]);
 
   const triggerWithHandler = React.isValidElement(children)
     ? React.cloneElement(children as React.ReactElement<{ onClick?: () => void }>, {
@@ -1449,7 +1545,7 @@ function ScheduleAppointmentDialog({
           <ScheduleAppointmentForm
             isRescheduling={isRescheduling}
             serviceData={serviceData}
-            isSubmitting={isSubmitting || isReschedulingMutation}
+            isSubmitting={isSubmitting || isReschedulingMutation || isAgendandoDoctor}
             appointmentInsurance={appointmentInsurance}
             loadedAppointmentData={loadedAppointmentData}
           />

@@ -15,6 +15,12 @@ import AreaChart from "../components/dashboard/AreaChart";
 import { MCFilterPopover } from "@/shared/components/filters/MCFilterPopover";
 import MCFilterSelect from "@/shared/components/filters/MCFilterSelect";
 import PieServices from "../components/dashboard/PieServices";
+import ScheduleAppointmentDialog from "@/features/patient/components/appoiments/ScheduleAppointmentDialog";
+import { Plus } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { QUERY_KEYS } from "@/lib/react-query/config";
+import MCButton from "@/shared/components/forms/MCButton";
+import { useAppStore } from "@/stores/useAppStore";
 
 
 type DateRangeType = "week" | "month" | "3months" | "year" | "all";
@@ -43,6 +49,8 @@ function DashboardPage() {
     availability: "",
     // ... otros filtros
   });
+  const queryClient = useQueryClient();
+  const user = useAppStore((state) => state.user);
 
   // Obtener estadísticas del doctor
   const {
@@ -102,6 +110,27 @@ function DashboardPage() {
     console.error("Error loading productivity stats:", productividadError);
   }
 
+  const actionPlusComponent = useMemo(
+    () => (
+      <ScheduleAppointmentDialog
+        idProvider={user?.id?.toString() || ""}
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: QUERY_KEYS.CITAS() });
+        }}
+      >
+        <MCButton
+          variant="primary"
+          icon={<Plus className={isMobile ? "w-9 h-9" : "w-3 h-3"} />}
+          className={isMobile ? "h-8 w-8 p-0 rounded-full flex items-center justify-center" : "flex w-full items-center px-4 py-3.5 px-4 py-3.5 text-base sm:px-8 sm:py-4 md:px-10 md:py-5 lg:px-5 lg:py-5 lg:text-md rounded-4xl border-primary/20"}
+          size="m"
+        >
+          {!isMobile && t("appointments.scheduleNew", "Agendar Cita")}
+        </MCButton>
+      </ScheduleAppointmentDialog>
+    ),
+    [user?.id, isMobile, t, queryClient]
+  );
+
   return (
     <motion.main {...fadeInUp} className="min-h-screen">
       <div className="flex flex-col gap-4">
@@ -143,6 +172,7 @@ function DashboardPage() {
                 isDashboard
                 title={t("dashboard.appointmentsManagement")}
                 tableComponent={<DashboardTable />}
+                actionPlusComponent={actionPlusComponent}
               />
             </Card>
           </div>

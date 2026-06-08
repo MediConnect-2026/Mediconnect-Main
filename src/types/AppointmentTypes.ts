@@ -16,6 +16,28 @@ export type CancelAppointment = z.infer<typeof cancelAppointmentSchemaBase>;
 export type EditAppointment = Required<scheduleAppointment>;
 
 // ========================================
+// TIPOS PARA CREAR CITAS COMO DOCTOR (Shadow Accounts)
+// ========================================
+
+export interface DatosPacienteNuevoDto {
+  nombre: string;
+  apellido: string;
+  numeroDocumento: string;
+  tipoDocumento?: "Cédula" | "Pasaporte";
+  fechaNacimiento: string; // YYYY-MM-DD
+  genero: "M" | "F" | "O" | string;
+  telefono?: string;
+  peso?: number;
+  altura?: number;
+  tipoSangre?: string;
+}
+
+export interface CrearCitaDoctorDto extends Omit<CreateAppointment, "pacienteId" | "patientId" | "doctorId"> {
+  // Las propiedades requeridas de la cita base (servicioId, horarioId, fecha, hora, modalidad, etc.) vienen de CreateAppointment
+  paciente: DatosPacienteNuevoDto;
+}
+
+// ========================================
 // TIPOS PARA LA API DE CITAS DEL BACKEND
 // ========================================
 

@@ -54,21 +54,26 @@ function MCTablesLayouts({
       >
         {/* Header con título y acciones */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <h1
-            className={`${
-              titleSize
-                ? titleSize
-                : isDashboard
-                  ? isMobile
-                    ? "text-2xl"
-                    : "text-3xl"
-                  : isMobile
-                    ? "text-2xl"
-                    : "text-3xl"
-            } font-bold text-foreground`}
-          >
-            {title}
-          </h1>
+          <div className="flex w-full sm:w-auto justify-between items-center gap-4">
+            <h1
+              className={`${
+                titleSize
+                  ? titleSize
+                  : isDashboard
+                    ? isMobile
+                      ? "text-2xl"
+                      : "text-3xl"
+                    : isMobile
+                      ? "text-2xl"
+                      : "text-3xl"
+              } font-bold text-foreground`}
+            >
+              {title}
+            </h1>
+            {isMobile && actionPlusComponent && (
+              <div>{actionPlusComponent}</div>
+            )}
+          </div>
 
           {/* Acciones */}
           {(searchComponent ||
@@ -94,7 +99,7 @@ function MCTablesLayouts({
                 {filterComponent}
                 {toogleView}
                 {pdfGeneratorComponent}
-                {actionPlusComponent}
+                {!isMobile && actionPlusComponent}
               </div>
             </div>
           )}
